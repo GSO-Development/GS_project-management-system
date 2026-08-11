@@ -1,0 +1,430 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\Project;
+use App\Models\ProjectRisk;
+use App\Models\TaskBlocker;
+use App\Models\User;
+use App\Models\WbsItem;
+use Livewire\Component;
+
+class RiskBlockerManager extends Component
+{
+    // Filter State
+    public ?int $selectedProjectId = null;
+    public string $selectedCategory = '';
+    public string $selectedStatus = 'all';
+    public string $selectedSeverity = 'all';
+    public string $searchQuery = '';
+    public string $activeTab = 'risks'; // 'risks' or 'blockers'
+    public ?string $matrixFilterProb = null;
+    public ?string $matrixFilterImp = null;
+
+    // Risk Modal State
+    public bool $showAddRiskModal = false;
+    public bool $showEditRiskModal = false;
+    public ?int $editingRiskId = null;
+
+    // Risk Form Fields
+    public ?int $riskProjectId = null;
+    public ?int $riskWbsItemId = null;
+    public string $riskTitle = '';
+    public string $riskCategory = 'Technical';
+    public string $riskProbability = 'medium';
+    public string $riskImpact = 'medium';
+    public ?int $riskOwnerId = null;
+    public string $riskMitigation = '';
+    public string $riskContingency = '';
+    public string $riskDescription = '';
+
+    // Blocker Modal State
+    public bool $showResolveBlockerModal = false;
+    public ?int $selectedBlockerId = null;
+    public string $blockerResolutionInput = '';
+
+    protected $queryString = [
+        'selectedProjectId' => ['except' => null, 'as' => 'project'],
+        'activeTab' => ['except' => 'risks', 'as' => 'tab'],
+        'searchQuery' => ['except' => '', 'as' => 'q'],
+    ];
+
+    public function mount()
+    {
+        $user = auth()->user();
+        if ($user->hasRole('project_manager') && !$user->hasRole('super_admin')) {
+            $firstProject = Project::where('project_manager_id', $user->id)->first();
+            if ($firstProject && !$this->selectedProjectId) {
+                // Default to all or user's first project if preferred
+            }
+        }
+    }
+
+    public function resetMatrixFilter()
+    {
+        $this->matrixFilterProb = null;
+        $this->matrixFilterImp = null;
+    }
+
+    public function filterMatrixCell(string $prob, string $imp)
+    {
+        if ($this->matrixFilterProb === $prob && $this->matrixFilterImp === $imp) {
+            $this->resetMatrixFilter();
+        } else {
+            $this->matrixFilterProb = $prob;
+            $this->matrixFilterImp = $imp;
+            $this->activeTab = 'risks';
+        }
+    }
+
+    public function openAddRiskModal(?int $projectId = null)
+    {
+        $this->resetRiskForm();
+        if ($projectId) {
+            $this->riskProjectId = $projectId;
+        } elseif ($this->selectedProjectId) {
+            $this->riskProjectId = $this->selectedProjectId;
+        }
+        $this->riskOwnerId = auth()->id();
+        $this->showAddRiskModal = true;
+    }
+
+    public function resetRiskForm()
+    {
+        $this->reset([
+            'editingRiskId',
+            'riskProjectId',
+            'riskWbsItemId',
+            'riskTitle',
+            'riskCategory',
+            'riskProbability',
+            'riskImpact',
+            'riskOwnerId',
+            'riskMitigation',
+            'riskContingency',
+            'riskDescription',
+        ]);
+        $this->riskCategory = 'Technical';
+        $this->riskProbability = 'medium';
+        $this->riskImpact = 'medium';
+    }
+
+    public function addRisk()
+    {
+        $this->validate([
+            'riskProjectId' => 'required|exists:projects,id',
+            'riskTitle' => 'required|string|max:255',
+            'riskCategory' => 'required|string',
+            'riskDescription' => 'required|string',
+            'riskWbsItemId' => 'nullable|exists:wbs_items,id',
+            'riskOwnerId' => 'nullable|exists:users,id',
+            'riskMitigation' => 'nullable|string',
+            'riskContingency' => 'nullable|string',
+        ]);
+
+        $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
+        $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
+        $score = ($probScores[$this->riskProbability] ?? 2) * ($impScores[$this->riskImpact] ?? 2);
+
+        ProjectRisk::create([
+            'project_id' => $this->riskProjectId,
+            'wbs_item_id' => $this->riskWbsItemId ?: null,
+            'title' => $this->riskTitle,
+            'description' => $this->riskDescription,
+            'category' => $this->riskCategory,
+            'probability' => $this->riskProbability,
+            'impact' => $this->riskImpact,
+            'risk_score' => $score,
+            'owner_id' => $this->riskOwnerId ?: auth()->id(),
+            'mitigation_plan' => $this->riskMitigation,
+            'contingency_plan' => $this->riskContingency,
+            'status' => 'open',
+        ]);
+
+        $this->showAddRiskModal = false;
+        $this->resetRiskForm();
+        $this->dispatch('toast', message: 'Project risk logged successfully!', type: 'success');
+    }
+
+    public function openEditRiskModal(int $riskId)
+    {
+        $risk = ProjectRisk::findOrFail($riskId);
+        $this->editingRiskId = $risk->id;
+        $this->riskProjectId = $risk->project_id;
+        $this->riskWbsItemId = $risk->wbs_item_id;
+        $this->riskTitle = $risk->title;
+        $this->riskCategory = $risk->category;
+        $this->riskProbability = $risk->probability;
+        $this->riskImpact = $risk->impact;
+        $this->riskOwnerId = $risk->owner_id;
+        $this->riskMitigation = $risk->mitigation_plan ?? '';
+        $this->riskContingency = $risk->contingency_plan ?? '';
+        $this->riskDescription = $risk->description;
+
+        $this->showEditRiskModal = true;
+    }
+
+    public function updateRisk()
+    {
+        $this->validate([
+            'riskProjectId' => 'required|exists:projects,id',
+            'riskTitle' => 'required|string|max:255',
+            'riskCategory' => 'required|string',
+            'riskDescription' => 'required|string',
+            'riskWbsItemId' => 'nullable|exists:wbs_items,id',
+            'riskOwnerId' => 'nullable|exists:users,id',
+            'riskMitigation' => 'nullable|string',
+            'riskContingency' => 'nullable|string',
+        ]);
+
+        $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
+        $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
+        $score = ($probScores[$this->riskProbability] ?? 2) * ($impScores[$this->riskImpact] ?? 2);
+
+        $risk = ProjectRisk::findOrFail($this->editingRiskId);
+        $risk->update([
+            'project_id' => $this->riskProjectId,
+            'wbs_item_id' => $this->riskWbsItemId ?: null,
+            'title' => $this->riskTitle,
+            'description' => $this->riskDescription,
+            'category' => $this->riskCategory,
+            'probability' => $this->riskProbability,
+            'impact' => $this->riskImpact,
+            'risk_score' => $score,
+            'owner_id' => $this->riskOwnerId ?: auth()->id(),
+            'mitigation_plan' => $this->riskMitigation,
+            'contingency_plan' => $this->riskContingency,
+        ]);
+
+        $this->showEditRiskModal = false;
+        $this->resetRiskForm();
+        $this->dispatch('toast', message: 'Risk record updated successfully!', type: 'success');
+    }
+
+    public function updateRiskStatus(int $riskId, string $status)
+    {
+        $risk = ProjectRisk::findOrFail($riskId);
+        $risk->status = $status;
+        $risk->save();
+        $this->dispatch('toast', message: 'Risk status updated to ' . ucfirst($status), type: 'success');
+    }
+
+    public function deleteRisk(int $riskId)
+    {
+        $risk = ProjectRisk::findOrFail($riskId);
+        $risk->delete();
+        $this->dispatch('toast', message: 'Risk record removed.', type: 'info');
+    }
+
+    public function openResolveBlockerModal(int $blockerId)
+    {
+        $this->selectedBlockerId = $blockerId;
+        $this->blockerResolutionInput = '';
+        $this->showResolveBlockerModal = true;
+    }
+
+    public function saveBlockerResolution()
+    {
+        $this->validate([
+            'blockerResolutionInput' => 'required|string|min:3',
+        ]);
+
+        $blocker = TaskBlocker::findOrFail($this->selectedBlockerId);
+        $blocker->resolution = $this->blockerResolutionInput;
+        $blocker->resolved_by = auth()->id();
+        $blocker->resolved_at = now();
+        $blocker->status = 'resolved';
+        $blocker->save();
+
+        $this->showResolveBlockerModal = false;
+        $this->dispatch('toast', message: 'Task blocker resolved successfully!', type: 'success');
+    }
+
+    public function seedSampleRisksAndBlockers(): void
+    {
+        $project = Project::first();
+        if (!$project) return;
+
+        $user = auth()->user();
+        $wbsItem = WbsItem::where('project_id', $project->id)->first();
+
+        // 1. Seed Risks
+        ProjectRisk::create([
+            'project_id'     => $project->id,
+            'wbs_item_id'    => $wbsItem?->id,
+            'title'          => 'Third-Party API Integration Rate Limiting',
+            'category'       => 'Technical',
+            'probability'    => 'high',
+            'impact'         => 'critical',
+            'risk_owner_id'  => $user->id,
+            'description'    => 'External vendor API rate limits could disrupt real-time synchronization during peak hours.',
+            'mitigation'     => 'Implement Redis caching layer and exponential backoff retry mechanism.',
+            'contingency'    => 'Fall back to asynchronous batch syncing every 15 minutes.',
+            'status'         => 'open',
+        ]);
+
+        ProjectRisk::create([
+            'project_id'     => $project->id,
+            'wbs_item_id'    => $wbsItem?->id,
+            'title'          => 'Legacy Database Migration Schema Incompatibility',
+            'category'       => 'Technical',
+            'probability'    => 'medium',
+            'impact'         => 'high',
+            'risk_owner_id'  => $user->id,
+            'description'    => 'Data types in legacy database do not strictly align with new relational constraints.',
+            'mitigation'     => 'Run dry-run migration scripts on staging database with automated validation.',
+            'contingency'    => 'Use custom data transformation mappers during ETL pipeline.',
+            'status'         => 'monitoring',
+        ]);
+
+        ProjectRisk::create([
+            'project_id'     => $project->id,
+            'wbs_item_id'    => $wbsItem?->id,
+            'title'          => 'Key Technical Personnel Resource Constraints',
+            'category'       => 'Resource',
+            'probability'    => 'medium',
+            'impact'         => 'medium',
+            'risk_owner_id'  => $user->id,
+            'description'    => 'Overlapping project timelines may cause bottleneck for Senior Backend Lead.',
+            'mitigation'     => 'Re-assign non-critical sub-tasks to intermediate developers.',
+            'contingency'    => 'Contract external consultant for 2-week sprint boost.',
+            'status'         => 'open',
+        ]);
+
+        // 2. Seed Blocker
+        if ($wbsItem) {
+            TaskBlocker::create([
+                'wbs_item_id' => $wbsItem->id,
+                'reported_by' => $user->id,
+                'description' => 'Awaiting SSL Certificate & Domain Access Delegation from Infrastructure Team.',
+                'severity'    => 'high',
+                'status'      => 'open',
+            ]);
+        }
+    }
+
+    public function render()
+    {
+        $user = auth()->user();
+
+        if (ProjectRisk::count() === 0) {
+            $this->seedSampleRisksAndBlockers();
+        }
+
+        // Projects list for dropdown filter
+        $projectsQuery = Project::query();
+        if ($user->hasRole('project_manager') && !$user->hasRole('super_admin')) {
+            $projectsQuery->where('project_manager_id', $user->id);
+        }
+        $projects = $projectsQuery->orderBy('name')->get();
+        $allowedProjectIds = $projects->pluck('id')->toArray();
+
+        // Base Query for Risks
+        $risksQuery = ProjectRisk::with(['project', 'wbsItem', 'owner'])
+            ->whereIn('project_id', $allowedProjectIds);
+
+        if ($this->selectedProjectId) {
+            $risksQuery->where('project_id', $this->selectedProjectId);
+        }
+        if ($this->selectedCategory) {
+            $risksQuery->where('category', $this->selectedCategory);
+        }
+        if ($this->selectedStatus !== 'all') {
+            $risksQuery->where('status', $this->selectedStatus);
+        }
+        if ($this->matrixFilterProb && $this->matrixFilterImp) {
+            $risksQuery->where('probability', $this->matrixFilterProb)
+                ->where('impact', $this->matrixFilterImp);
+        }
+        if ($this->searchQuery) {
+            $q = $this->searchQuery;
+            $risksQuery->where(function ($sub) use ($q) {
+                $sub->where('title', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhere('category', 'like', "%{$q}%")
+                    ->orWhereHas('wbsItem', function ($wbs) use ($q) {
+                        $wbs->where('title', 'like', "%{$q}%")
+                            ->orWhere('wbs_code', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        $risks = (clone $risksQuery)->latest()->get();
+
+        // Base Query for Blockers
+        $blockersQuery = TaskBlocker::with(['wbsItem.project', 'reporter', 'resolver'])
+            ->whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds));
+
+        if ($this->selectedProjectId) {
+            $blockersQuery->whereHas('wbsItem', fn($q) => $q->where('project_id', $this->selectedProjectId));
+        }
+        if ($this->selectedSeverity !== 'all') {
+            $blockersQuery->where('severity', $this->selectedSeverity);
+        }
+        if ($this->searchQuery) {
+            $q = $this->searchQuery;
+            $blockersQuery->where(function ($sub) use ($q) {
+                $sub->where('description', 'like', "%{$q}%")
+                    ->orWhereHas('wbsItem', function ($wbs) use ($q) {
+                        $wbs->where('title', 'like', "%{$q}%")
+                            ->orWhere('wbs_code', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        $blockers = (clone $blockersQuery)->latest()->get();
+
+        // Risk Heatmap Matrix Counts across allowed projects
+        $heatmapMatrix = [];
+        $probabilities = ['high', 'medium', 'low'];
+        $impacts = ['critical', 'high', 'medium', 'low'];
+
+        $allProjectRisks = ProjectRisk::whereIn('project_id', $allowedProjectIds)
+            ->when($this->selectedProjectId, fn($q) => $q->where('project_id', $this->selectedProjectId))
+            ->get();
+
+        foreach ($probabilities as $p) {
+            foreach ($impacts as $i) {
+                $heatmapMatrix[$p][$i] = $allProjectRisks
+                    ->where('probability', $p)
+                    ->where('impact', $i)
+                    ->where('status', '!=', 'closed')
+                    ->count();
+            }
+        }
+
+        // Available WBS Items for Add/Edit Risk Modal dropdown
+        $modalWbsItems = collect();
+        if ($this->riskProjectId) {
+            $modalWbsItems = WbsItem::where('project_id', $this->riskProjectId)->orderBy('wbs_code')->get();
+        }
+
+        // Available users for Risk Owner selection
+        $users = User::orderBy('name')->get();
+
+        // KPI Counts
+        $totalRisksCount = $allProjectRisks->count();
+        $openRisksCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->count();
+        $criticalHighRiskCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->whereIn('impact', ['high', 'critical'])->count();
+
+        $allProjectBlockers = TaskBlocker::whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds))
+            ->when($this->selectedProjectId, fn($q) => $q->whereHas('wbsItem', fn($w) => $w->where('project_id', $this->selectedProjectId)))
+            ->get();
+        $openBlockersCount = $allProjectBlockers->where('status', '!=', 'resolved')->count();
+        $resolvedBlockersCount = $allProjectBlockers->where('status', 'resolved')->count();
+
+        return view('livewire.risk-blocker-manager', compact(
+            'projects',
+            'risks',
+            'blockers',
+            'heatmapMatrix',
+            'modalWbsItems',
+            'users',
+            'totalRisksCount',
+            'openRisksCount',
+            'criticalHighRiskCount',
+            'openBlockersCount',
+            'resolvedBlockersCount'
+        ))->layout('layouts.app', ['title' => 'Risks & Blockers Hub']);
+    }
+}

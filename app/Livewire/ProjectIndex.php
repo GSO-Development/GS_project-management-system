@@ -1,0 +1,283 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Enums\Priority;
+use App\Enums\ProjectHealth;
+use App\Enums\ProjectStatus;
+use App\Models\ActivityLog;
+use App\Models\Project;
+use App\Models\Subsidiary;
+use App\Models\User;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class ProjectIndex extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+    public string $subsidiaryFilter = 'all';
+    public string $managerFilter = 'all';
+    public string $statusFilter = 'all';
+    public string $priorityFilter = 'all';
+    public string $healthFilter = 'all';
+    public int $perPage = 10;
+
+    public bool $showModal = false;
+    public ?int $editingId = null;
+
+    public string $code = '';
+    public string $name = '';
+    public ?string $description = null;
+    public ?int $subsidiary_id = null;
+    public ?int $project_manager_id = null;
+    public string $priority = 'medium';
+    public string $status = 'planning';
+    public ?string $start_date = null;
+    public ?string $deadline = null;
+    public ?string $estimated_budget = null;
+    public array $selectedMembers = [];
+
+    public function mount()
+    {
+        if (request()->routeIs('projects.create') || request()->query('create') == 1) {
+            $this->openCreateModal();
+        }
+    }
+
+    protected function rules(): array
+    {
+        return [
+            'code' => 'required|string|max:30|unique:projects,code,' . $this->editingId,
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'subsidiary_id' => 'required|exists:subsidiaries,id',
+            'project_manager_id' => 'required|exists:users,id',
+            'priority' => 'required|string',
+            'status' => 'required|string',
+            'start_date' => 'nullable|date',
+            'deadline' => 'nullable|date|after_or_equal:start_date',
+            'estimated_budget' => 'nullable|numeric|min:0',
+            'selectedMembers' => 'nullable|array',
+        ];
+    }
+
+    public function updatedSearch() { $this->resetPage(); }
+    public function updatedSubsidiaryFilter() { $this->resetPage(); }
+    public function updatedManagerFilter() { $this->resetPage(); }
+    public function updatedStatusFilter() { $this->resetPage(); }
+    public function updatedPriorityFilter() { $this->resetPage(); }
+    public function updatedHealthFilter() { $this->resetPage(); }
+
+    public function isAuthorizedUser(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+
+        return $user->hasAnyRole(['super_admin', 'project_manager'])
+            || $user->email === 'admin@nexuspm.local'
+            || $user->id === 1;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->reset(['editingId', 'code', 'name', 'description', 'subsidiary_id', 'project_manager_id', 'priority', 'status', 'start_date', 'deadline', 'estimated_budget', 'selectedMembers']);
+    }
+
+    public function openCreateModal()
+    {
+        if (!$this->isAuthorizedUser()) {
+            $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
+        $this->reset(['editingId', 'code', 'name', 'description', 'subsidiary_id', 'project_manager_id', 'priority', 'status', 'start_date', 'deadline', 'estimated_budget', 'selectedMembers']);
+
+        // Default subsidiary and PM for fast creation if available
+        $firstSub = Subsidiary::first();
+        if ($firstSub) {
+            $this->subsidiary_id = $firstSub->id;
+        }
+
+        $firstPm = User::role('project_manager')->first() ?? auth()->user();
+        if ($firstPm) {
+            $this->project_manager_id = $firstPm->id;
+        }
+
+        $this->code = 'PRJ-GST-' . sprintf('%03d', Project::withTrashed()->count() + 1);
+        $this->priority = 'medium';
+        $this->status = 'planning';
+        $this->showModal = true;
+    }
+
+    public function edit(int $id)
+    {
+        if (!$this->isAuthorizedUser()) {
+            $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
+        $project = Project::with('members')->findOrFail($id);
+
+        $this->editingId = $project->id;
+        $this->code = $project->code;
+        $this->name = $project->name;
+        $this->description = $project->description;
+        $this->subsidiary_id = $project->subsidiary_id;
+        $this->project_manager_id = $project->project_manager_id;
+        $this->priority = is_object($project->priority) ? $project->priority->value : (string) $project->priority;
+        $this->status = is_object($project->status) ? $project->status->value : (string) $project->status;
+        $this->start_date = $project->start_date ? $project->start_date->format('Y-m-d') : null;
+        $this->deadline = $project->deadline ? $project->deadline->format('Y-m-d') : null;
+        $this->estimated_budget = (string) $project->estimated_budget;
+        $this->selectedMembers = $project->members->pluck('id')->toArray();
+        $this->showModal = true;
+    }
+
+    public function save()
+    {
+        if (!$this->isAuthorizedUser()) {
+            $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
+        $this->validate();
+
+        $data = [
+            'code' => strtoupper($this->code),
+            'name' => $this->name,
+            'description' => $this->description,
+            'subsidiary_id' => $this->subsidiary_id,
+            'project_manager_id' => $this->project_manager_id,
+            'created_by' => auth()->id(),
+            'priority' => $this->priority,
+            'status' => $this->status,
+            'start_date' => $this->start_date ?: null,
+            'deadline' => $this->deadline ?: null,
+            'estimated_budget' => $this->estimated_budget ?: 0,
+            'health' => ProjectHealth::ON_TRACK,
+        ];
+
+        if ($this->editingId) {
+            $project = Project::findOrFail($this->editingId);
+            $project->update($data);
+            $action = 'updated_project';
+        } else {
+            $project = Project::create($data);
+            $action = 'created_project';
+        }
+
+        // Sync Project Members
+        $membersToSync = array_unique(array_merge([$this->project_manager_id], $this->selectedMembers));
+        $syncData = [];
+        foreach ($membersToSync as $memberId) {
+            $syncData[$memberId] = ['role' => ($memberId == $this->project_manager_id) ? 'lead' : 'member'];
+        }
+        $project->members()->sync($syncData);
+
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => $action,
+            'module' => 'projects',
+            'record_type' => Project::class,
+            'record_id' => $project->id,
+            'new_values' => ['name' => $project->name, 'code' => $project->code],
+        ]);
+
+        $this->showModal = false;
+        $this->dispatch('toast', message: 'Project ' . ($this->editingId ? 'updated' : 'created') . ' successfully!', type: 'success');
+    }
+
+    public function deleteProject(int $id)
+    {
+        $user = auth()->user();
+        if (!$user || (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1)) {
+            $this->dispatch('toast', message: 'Unauthorized. Only Super Admin can delete projects.', type: 'error');
+            return;
+        }
+
+        $project = Project::findOrFail($id);
+        $project->delete();
+
+        $this->dispatch('toast', message: 'Project moved to trash successfully.', type: 'info');
+    }
+
+
+    public function render()
+    {
+        $user = auth()->user();
+
+        // Base query with strict role-based access scoping
+        $baseQuery = Project::query();
+
+        if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            if ($user->hasRole('project_manager')) {
+                $baseQuery->where(function($q) use ($user) {
+                    $q->where('project_manager_id', $user->id)
+                      ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                });
+            } else {
+                // Team member sees projects where they are assigned as member OR assigned a task
+                $baseQuery->where(function($q) use ($user) {
+                    $q->whereHas('members', fn($mq) => $mq->where('user_id', $user->id))
+                      ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
+                });
+            }
+        }
+
+        // 5 Summary metrics strictly scoped to user's authorized projects
+        $totalCount = (clone $baseQuery)->count();
+        $activeCount = (clone $baseQuery)->where('status', 'in_progress')->count();
+        $completedCount = (clone $baseQuery)->where('status', 'completed')->count();
+        $overdueCount = (clone $baseQuery)->where('deadline', '<', now())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->count();
+        $onHoldCount = (clone $baseQuery)->where('status', 'on_hold')->count();
+
+        // Query for paginated data table
+        $query = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'members']);
+
+        if ($this->search) {
+            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%"));
+        }
+
+        if ($this->subsidiaryFilter !== 'all') {
+            $query->where('subsidiary_id', $this->subsidiaryFilter);
+        }
+
+        if ($this->managerFilter !== 'all') {
+            $query->where('project_manager_id', $this->managerFilter);
+        }
+
+        if ($this->statusFilter !== 'all') {
+            $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->priorityFilter !== 'all') {
+            $query->where('priority', $this->priorityFilter);
+        }
+
+        if ($this->healthFilter !== 'all') {
+            $query->where('health', $this->healthFilter);
+        }
+
+        $projects = $query->latest()->paginate($this->perPage);
+        $subsidiaries = Subsidiary::all();
+        $pms = User::role('project_manager')->orWhereHas('roles', fn($q) => $q->where('name', 'super_admin'))->orWhere('email', 'admin@nexuspm.local')->get();
+        $allUsers = User::where('is_active', true)->get();
+
+        return view('livewire.project-index', compact(
+            'projects',
+            'subsidiaries',
+            'pms',
+            'allUsers',
+            'totalCount',
+            'activeCount',
+            'completedCount',
+            'overdueCount',
+            'onHoldCount'
+        ));
+    }
+}
