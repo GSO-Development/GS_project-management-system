@@ -92,79 +92,69 @@
 
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- DAILY PROJECTS STATUS TRACKER ════════════════════════════ --}}
-    <div class="card p-6 mb-6 border border-slate-200/80 rounded-2xl bg-white shadow-xs overflow-hidden relative">
-        <!-- Decorative brand accent line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-rose-500 to-[#b8860b]"></div>
-
+    <!-- Executive Active Projects Day-by-Day Status Tracker -->
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs mb-6 overflow-hidden">
+        <!-- Section Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/80 border border-rose-200/80 text-[#c3122e] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#faeaea] text-[#c3122e] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">Active Projects Day-by-Day Status Tracker</h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Real-time daily project status &amp; work completed updates submitted by Project Managers</p>
+                    <h2 class="text-lg font-black text-slate-900 tracking-tight">Active Projects Day-by-Day Status Tracker</h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Real-time daily project status & work completed updates submitted by Project Managers.</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-3 flex-wrap">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
-                    Most Recent Project Update
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Live PM Monitor
                 </span>
-                <a href="{{ route('daily-updates.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.98]">
+                <a href="{{ route('daily-updates.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] transition-all cursor-pointer shadow-sm flex items-center gap-1.5 active:scale-95">
                     <span>View All Updates</span>
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
             </div>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-            <table class="w-full text-left border-collapse min-w-[980px]">
+        <!-- Executive Status Tracker Table -->
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
+            <table class="w-full text-left border-collapse min-w-[950px]">
                 <thead>
-                    <tr class="bg-slate-50/90 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                        <th class="py-3.5 px-5 font-extrabold w-[30%]">
-                            <div class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                                <span>Project &amp; Manager</span>
-                            </div>
-                        </th>
-                        <th class="py-3.5 px-4 text-center font-extrabold w-[13%]">Status</th>
-                        <th class="py-3.5 px-4 font-extrabold w-[23%]">Execution Progress</th>
-                        <th class="py-3.5 px-4 font-extrabold w-[24%]">
-                            <div class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                                <span>Latest PM Daily Status Log</span>
-                            </div>
-                        </th>
-                        <th class="py-3.5 px-5 text-right font-extrabold w-[10%]">Action</th>
+                    <tr class="bg-slate-50/90 border-b border-slate-200/80 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        <th class="py-3.5 px-5 font-black w-[30%]">Project & Manager</th>
+                        <th class="py-3.5 px-4 text-center font-black w-[12%]">Status</th>
+                        <th class="py-3.5 px-4 font-black w-[24%]">Execution Progress</th>
+                        <th class="py-3.5 px-4 font-black w-[24%]">Latest PM Daily Log</th>
+                        <th class="py-3.5 px-5 text-right font-black w-[10%]">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs">
+                <tbody class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
                     @forelse($dailyProjectTracker as $item)
                         @php
                             $proj = $item['project'];
                             $latest = $item['latestUpdate'];
-                            $pmName = $proj->projectManager->name ?? 'Unassigned';
+                            $pmName = $proj->projectManager->name ?? 'Unassigned PM';
                             $pmInitial = strtoupper(substr($pmName, 0, 1));
                         @endphp
-                        <tr class="hover:bg-slate-50/70 transition-colors group align-middle">
-                            {{-- 1. Project & Manager --}}
+                        <tr class="hover:bg-slate-50/80 transition-colors group align-middle">
+                            <!-- 1. Project & Manager Info -->
                             <td class="py-4 px-5 align-middle">
                                 <div class="space-y-1.5">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono text-[10px] font-bold tracking-wider shadow-2xs">
+                                        <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono text-[9px] font-black tracking-wider shadow-2xs">
                                             {{ $proj->code }}
                                         </span>
                                         @if($item['isUpdatedToday'])
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
-                                                <span class="relative flex h-2 w-2">
-                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                </span>
-                                                PM Updated Today
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Updated Today
                                             </span>
                                         @endif
                                     </div>
@@ -173,109 +163,97 @@
                                         {{ $proj->name }}
                                     </a>
 
-                                    <div class="flex items-center gap-2.5 text-[11px] text-slate-500 font-medium flex-wrap pt-0.5">
-                                        <span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
-                                            <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h5m-5 0V9m0 0h-2m2 0h2"/></svg>
-                                            <span class="font-semibold text-slate-700">{{ $proj->subsidiary->name ?? '-' }}</span>
+                                    <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium flex-wrap pt-0.5">
+                                        <span class="inline-flex items-center gap-1 text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60 text-[10px] font-bold">
+                                            🏢 {{ $proj->subsidiary->name ?? 'General' }}
                                         </span>
                                         <span class="text-slate-300">•</span>
                                         <span class="inline-flex items-center gap-1.5 text-slate-600">
-                                            <span class="w-5 h-5 rounded-full bg-slate-800 text-white text-[10px] font-extrabold flex items-center justify-center flex-shrink-0 shadow-2xs">{{ $pmInitial }}</span>
-                                            <span class="font-semibold text-slate-700">{{ $pmName }}</span>
+                                            <span class="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] font-black flex items-center justify-center flex-shrink-0">{{ $pmInitial }}</span>
+                                            <span class="font-semibold text-slate-700 text-[11px]">{{ $pmName }}</span>
                                         </span>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- 2. Status --}}
+                            <!-- 2. Status Badge -->
                             <td class="py-4 px-4 align-middle text-center">
                                 @if($proj->status->value === 'in_progress')
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                         In Progress
                                     </span>
                                 @elseif($proj->status->value === 'completed')
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                         Completed
                                     </span>
                                 @elseif($proj->status->value === 'on_hold')
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-800 border border-orange-200/80 shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-orange-50 text-orange-800 border border-orange-200/80">
                                         <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                                         On Hold
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200/80 shadow-2xs">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                         {{ $proj->status->label() }}
                                     </span>
                                 @endif
                             </td>
 
-                            {{-- 3. Execution Progress --}}
+                            <!-- 3. Execution Progress Bar & Counts -->
                             <td class="py-4 px-4 align-middle">
-                                <div class="space-y-2">
+                                <div class="space-y-1.5">
                                     <div class="flex items-center justify-between text-xs">
-                                        <span class="font-extrabold text-slate-600">Progress</span>
-                                        <span class="text-slate-900 font-extrabold text-xs bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">{{ $proj->overall_progress }}%</span>
+                                        <span class="font-extrabold text-slate-500 text-[10px] uppercase tracking-wider">Progress</span>
+                                        <span class="text-[#c3122e] font-black text-xs bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">{{ $proj->overall_progress }}%</span>
                                     </div>
-                                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-[1px]">
-                                        <div class="h-full bg-gradient-to-r from-[#c3122e] via-rose-500 to-rose-600 rounded-full transition-all duration-500" style="width: {{ $proj->overall_progress }}%"></div>
+                                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-[1px]">
+                                        <div class="h-full bg-gradient-to-r from-[#c3122e] to-rose-500 rounded-full transition-all duration-500" style="width: {{ $proj->overall_progress }}%"></div>
                                     </div>
-                                    <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            {{ $item['completedTasks'] }} Done
+                                    <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap pt-0.5">
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                            ✓ {{ $item['completedTasks'] }} Done
                                         </span>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md {{ $item['blockedTasks'] > 0 ? 'bg-rose-50 text-rose-700 border border-rose-200/60' : 'bg-slate-50 text-slate-500 border border-slate-200/40' }}">
-                                            <span class="w-1.5 h-1.5 rounded-full {{ $item['blockedTasks'] > 0 ? 'bg-rose-500' : 'bg-slate-300' }}"></span>
-                                            {{ $item['blockedTasks'] }} Blocked
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded {{ $item['blockedTasks'] > 0 ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-slate-50 text-slate-400 border border-slate-200/60' }}">
+                                            🚫 {{ $item['blockedTasks'] }} Blocked
                                         </span>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md {{ $item['overdueTasks'] > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200/60' : 'bg-slate-50 text-slate-500 border border-slate-200/40' }}">
-                                            <span class="w-1.5 h-1.5 rounded-full {{ $item['overdueTasks'] > 0 ? 'bg-amber-500' : 'bg-slate-300' }}"></span>
-                                            {{ $item['overdueTasks'] }} Overdue
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded {{ $item['overdueTasks'] > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-400 border border-slate-200/60' }}">
+                                            ⏰ {{ $item['overdueTasks'] }} Overdue
                                         </span>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- 4. Latest PM Daily Status Log --}}
+                            <!-- 4. Latest PM Daily Log Feed -->
                             <td class="py-4 px-4 align-middle">
                                 @if($latest)
-                                    <div class="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/80 shadow-2xs space-y-2 transition-all">
+                                    <div class="p-3 rounded-xl bg-slate-50/90 border border-slate-200/70 space-y-1.5 transition-all">
                                         <div class="flex items-center justify-between gap-2 text-[11px] font-bold">
-                                            <span class="text-[#c3122e] font-extrabold truncate max-w-[180px] inline-flex items-center gap-1">
-                                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                                            <span class="text-slate-900 font-extrabold truncate max-w-[180px] inline-flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5 text-[#c3122e] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                                                 <span class="truncate">{{ $latest->title }}</span>
                                             </span>
-                                            <span class="text-slate-400 font-mono text-[10px] font-normal flex-shrink-0">{{ $latest->created_at->diffForHumans() }}</span>
+                                            <span class="text-slate-400 text-[10px] font-medium flex-shrink-0">{{ $latest->created_at->diffForHumans() }}</span>
                                         </div>
-                                        <div class="border-l-2 border-[#c3122e]/60 pl-2.5 text-xs text-slate-700 font-medium italic line-clamp-2 leading-relaxed bg-white/80 py-1.5 px-2 rounded-r-lg border border-slate-200/40">
+                                        <div class="text-[11px] text-slate-600 font-medium line-clamp-2 leading-relaxed bg-white p-2 rounded-lg border border-slate-100 italic">
                                             "{{ $latest->summary }}"
                                         </div>
-                                        @if($latest->creator)
-                                            <div class="text-[10px] text-slate-500 pt-1.5 border-t border-slate-200/60 flex items-center justify-between font-medium">
-                                                <span class="inline-flex items-center gap-1">
-                                                    <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                    Logged by <strong class="text-slate-700 font-semibold">{{ $latest->creator->name }}</strong>
-                                                </span>
-                                                <span class="font-mono text-[9px] text-slate-400">{{ $latest->created_at->format('h:i A') }}</span>
-                                            </div>
-                                        @endif
                                     </div>
                                 @else
-                                    <div class="p-3 rounded-xl bg-slate-50/50 border border-dashed border-slate-200 text-center flex items-center justify-center gap-2 text-slate-400 text-xs font-medium py-3.5">
-                                        <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                                        <span>No status updates logged yet</span>
+                                    <div class="px-3 py-2.5 rounded-xl bg-slate-50/60 border border-dashed border-slate-200 text-center flex items-center justify-center gap-2 text-slate-400 text-[11px] font-medium">
+                                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                                        <span>No daily status log submitted today</span>
                                     </div>
                                 @endif
                             </td>
 
-                            {{-- 5. Action --}}
+                            <!-- 5. Quick Action -->
                             <td class="py-4 px-5 align-middle text-right whitespace-nowrap">
-                                <a href="{{ route('projects.show', $proj) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-[#c3122e] hover:text-white border border-slate-200 hover:border-[#c3122e] shadow-2xs transition-all duration-200 group/btn">
+                                <a href="{{ route('projects.show', $proj) }}" 
+                                   class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#c3122e] hover:text-white border border-[#faeaea] transition-all shadow-2xs group/btn">
                                     <span>Workspace</span>
-                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-white group-hover/btn:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    <svg class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                 </a>
                             </td>
                         </tr>
@@ -292,11 +270,12 @@
 
         <div class="mt-4 flex justify-end">
             <a href="{{ route('daily-updates.index') }}" class="text-xs font-bold text-[#c3122e] hover:text-[#a00e24] inline-flex items-center gap-1.5 transition-colors group">
-                <span>View All Daily Status Logs &amp; Updates</span>
-                <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <span>View All Daily Status Logs & Updates</span>
+                <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </a>
         </div>
     </div>
+
 
     <!-- Main Grid: Charts & Analytics -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -375,8 +354,8 @@
                 @foreach($delayedTaskIssues as $item)
                     @php
                         $reporter = $item->delayReporter ?? $item->assignedUser;
-                        $roleLabel = $reporter?->hasRole('project_manager') ? 'Project Manager' : ($reporter?->hasRole('super_admin') ? 'Super Admin' : 'Team Member');
-                        $roleBadgeCls = $reporter?->hasRole('project_manager') ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+                        $roleLabel = $reporter?->hasRole('project_manager') ? 'Project Manager' : ($reporter?->hasRole('super_admin') ? 'PMO Admin' : 'Team Member');
+                        $roleBadgeCls = $reporter?->hasRole('project_manager') ? 'bg-purple-100 text-purple-800 border-purple-200' : ($reporter?->hasRole('super_admin') ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-blue-100 text-blue-800 border-blue-200');
                     @endphp
                     <div class="p-3.5 rounded-xl bg-white border border-amber-200 shadow-xs flex flex-col justify-between">
                         <div>

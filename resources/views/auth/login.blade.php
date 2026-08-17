@@ -179,7 +179,7 @@
                 <!-- Microsoft Azure SSO Button -->
                 <a
                     href="{{ route('azure.redirect') }}"
-                    class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-[#0078d4] hover:shadow-md transition-all duration-200 group cursor-pointer"
+                    class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full border border-[#0078d4] bg-white hover:bg-[#0078d4]/5 hover:shadow-md transition-all duration-200 group cursor-pointer"
                     style="box-shadow: 0 1px 3px rgba(0,0,0,0.08);"
                 >
                     <!-- Official Microsoft Logo SVG -->
@@ -189,7 +189,7 @@
                         <rect x="0" y="11" width="10" height="10" fill="#00A4EF"/>
                         <rect x="11" y="11" width="10" height="10" fill="#FFB900"/>
                     </svg>
-                    <span class="text-xs font-extrabold text-slate-700 group-hover:text-[#0078d4] transition-colors">Sign in with Microsoft</span>
+                    <span class="text-xs font-extrabold text-[#0078d4] transition-colors">Sign in with Microsoft</span>
                 </a>
 
                 @if(session('errors') && session('errors')->has('azure'))

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Hide Alpine elements before JS initialises to prevent flash */
+[x-cloak] { display: none !important; }
+
 /* ================================================================
    NexusPM — George Steuart & Co. Brand Design System
    Brand Colors: #c3122e (Crimson), #1a0a0d (Dark), #b8860b (Gold)

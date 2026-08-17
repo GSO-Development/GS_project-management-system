@@ -97,7 +97,7 @@
                     </div>
 
                     <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; background: #fef3c7; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; color: #92400e;">
-                        ⚡ Super Admin Command Center
+                        ⚡ PMO Admin Command Center
                     </span>
                 </div>
 
@@ -336,7 +336,7 @@
                                 @if($u->hasRole('project_manager'))
                                     <span style="font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">👑 PM</span>
                                 @elseif($u->hasRole('super_admin'))
-                                    <span style="font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; background: #fff1f2; color: #c3122e; border: 1px solid #fecdd3;">⚡ Admin</span>
+                                    <span style="font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; background: #fff1f2; color: #c3122e; border: 1px solid #fecdd3;">⚡ PMO Admin</span>
                                 @else
                                     <span style="font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;">👤 Member</span>
                                 @endif

@@ -116,7 +116,8 @@ class DailyStatusUpdates extends Component
                 $this->updateTitle = 'Daily Progress Log: ' . $wbs->title . ' (' . now()->format('M d') . ')';
             }
         } else {
-            if ($user->hasAnyRole(['team_member', 'collaborator']) && !$this->isSuperAdminUser($user) && !$user->hasRole('project_manager')) {
+            $isPmOnProject = ($this->updateProjectId && Project::where('id', $this->updateProjectId)->where('project_manager_id', $user->id)->exists());
+            if (!$this->isSuperAdminUser($user) && !$isPmOnProject) {
                 $this->updateScopeType = 'task';
                 $this->updateTitle = 'Task Progress Log — ' . now()->format('M d, Y');
             } else {
@@ -227,7 +228,8 @@ class DailyStatusUpdates extends Component
 
         // Super Admin sees ALL projects in the entire organization
         if (!$this->isSuperAdminUser($user)) {
-            if ($user->hasRole('project_manager')) {
+            $isPm = Project::where('project_manager_id', $user->id)->exists();
+            if ($isPm) {
                 $query->where('project_manager_id', $user->id)
                       ->orWhereHas('members', fn($q) => $q->where('user_id', $user->id));
             } else {
@@ -258,8 +260,8 @@ class DailyStatusUpdates extends Component
                 $q->whereNull('wbs_item_id') // Overall Project Reports
                   ->orWhereHas('creator', function($userQuery) {
                       $userQuery->whereHas('roles', function($roleQuery) {
-                          $roleQuery->whereIn('name', ['super_admin', 'project_manager']);
-                      });
+                          $roleQuery->where('name', 'super_admin');
+                      })->orWhereHas('managedProjects');
                   })
                   ->orWhereHas('project', function($projQuery) {
                       $projQuery->whereColumn('project_manager_id', 'project_status_updates.created_by');
@@ -328,7 +330,9 @@ class DailyStatusUpdates extends Component
                 }
             }
 
-            $modalWbsItems = $wbsQuery->orderBy('wbs_code')->get();
+            $modalWbsItems = $wbsQuery->get()->sort(function ($a, $b) {
+                return strnatcmp($a->wbs_code, $b->wbs_code);
+            })->values();
         }
 
         // Summary KPI Counts

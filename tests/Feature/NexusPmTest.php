@@ -17,10 +17,8 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
-    // Seed roles
+    // Seed only the system-wide super_admin role
     Role::findOrCreate('super_admin', 'web');
-    Role::findOrCreate('project_manager', 'web');
-    Role::findOrCreate('team_member', 'web');
 });
 
 test('super admin can view subsidiaries', function () {
@@ -32,16 +30,16 @@ test('super admin can view subsidiaries', function () {
 });
 
 test('project manager cannot access subsidiaries route', function () {
+    // PMs are regular users under project-scoped roles
     $pm = User::factory()->create(['is_active' => true]);
-    $pm->assignRole('project_manager');
 
     $response = $this->actingAs($pm)->get('/subsidiaries');
     $response->assertForbidden();
 });
 
 test('team member cannot create projects', function () {
+    // Members are regular users under project-scoped roles
     $member = User::factory()->create(['is_active' => true]);
-    $member->assignRole('team_member');
 
     $response = $this->actingAs($member)->get('/projects/create');
     $response->assertOk(); // Returns project list view with no create button / disabled state
@@ -49,10 +47,7 @@ test('team member cannot create projects', function () {
 
 test('unauthorized project access is blocked', function () {
     $pm1 = User::factory()->create(['is_active' => true]);
-    $pm1->assignRole('project_manager');
-
     $pm2 = User::factory()->create(['is_active' => true]);
-    $pm2->assignRole('project_manager');
 
     $subsidiary = Subsidiary::create(['code' => 'SUB1', 'name' => 'Sub 1']);
 
@@ -185,7 +180,6 @@ test('super admin approval updates official project deadline', function () {
     $admin->assignRole('super_admin');
 
     $pm = User::factory()->create();
-    $pm->assignRole('project_manager');
 
     $subsidiary = Subsidiary::create(['code' => 'SUB5', 'name' => 'Sub 5']);
 

@@ -166,7 +166,7 @@ class MyTasks extends Component
         $user       = auth()->user();
 
         // Security check: Only assigned user, PM, or Super Admin can create subtasks
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $parentTask->assigned_user_id !== $user->id) {
+        if (!$user->hasRole('super_admin') && $parentTask->project->project_manager_id !== $user->id && $parentTask->assigned_user_id !== $user->id) {
             $this->dispatch('toast', message: 'You can only add sub-tasks to tasks assigned to you.', type: 'error');
             return;
         }
@@ -204,7 +204,7 @@ class MyTasks extends Component
         $task = WbsItem::findOrFail($taskId);
         $user = auth()->user();
 
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $task->assigned_user_id !== $user->id) {
+        if (!$user->hasRole('super_admin') && $task->project->project_manager_id !== $user->id && $task->assigned_user_id !== $user->id) {
             $this->dispatch('toast', message: 'You can only update status for tasks assigned to you.', type: 'error');
             return;
         }
@@ -259,7 +259,7 @@ class MyTasks extends Component
         $user = auth()->user();
 
         // Only assigned user, PM of the project, or SA can update
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $task->assigned_user_id !== $user->id) {
+        if (!$user->hasRole('super_admin') && $task->project->project_manager_id !== $user->id && $task->assigned_user_id !== $user->id) {
             $this->dispatch('toast', message: 'Access denied.', type: 'error');
             return;
         }
@@ -276,9 +276,9 @@ class MyTasks extends Component
         (new ProgressCalculationService())->updateItemProgress($task);
 
         // Build visibility message
-        $whoSees = $user->hasRole('project_manager')
-            ? 'Super Admin'
-            : 'Project Manager & Super Admin';
+        $whoSees = ($task->project->project_manager_id === $user->id)
+            ? 'PMO Admin'
+            : 'Project Manager & PMO Admin';
 
         $this->dispatch('toast',
             message: "Status set to {$statusEnum->label()}. Reason escalated to {$whoSees}.",
@@ -301,10 +301,8 @@ class MyTasks extends Component
         $inProgressCount = (clone $allUserTasks)->where('status', 'in_progress')->count();
         $dueTodayCount = (clone $allUserTasks)->where(function($q) use ($today) {
             $q->whereDate('end_date', $today)
-              ->orWhereDate('start_date', $today)
               ->orWhere(function($sq) use ($today) {
-                  $sq->whereDate('start_date', '<=', $today)
-                     ->whereDate('end_date', '>=', $today);
+                  $sq->whereNull('end_date')->whereDate('start_date', $today);
               });
         })->count();
         $overdueCount = (clone $allUserTasks)->where('end_date', '<', $today)
@@ -347,10 +345,8 @@ class MyTasks extends Component
         if ($this->dueDateFilter === 'today') {
             $query->where(function($q) use ($today) {
                 $q->whereDate('end_date', $today)
-                  ->orWhereDate('start_date', $today)
                   ->orWhere(function($sq) use ($today) {
-                      $sq->whereDate('start_date', '<=', $today)
-                         ->whereDate('end_date', '>=', $today);
+                      $sq->whereNull('end_date')->whereDate('start_date', $today);
                   });
             });
         } elseif ($this->dueDateFilter === 'overdue') {
@@ -369,10 +365,8 @@ class MyTasks extends Component
         $todaySchedule = (clone $allUserTasks)
             ->where(function($q) use ($today) {
                 $q->whereDate('end_date', $today)
-                  ->orWhereDate('start_date', $today)
                   ->orWhere(function($sq) use ($today) {
-                      $sq->whereDate('start_date', '<=', $today)
-                         ->whereDate('end_date', '>=', $today);
+                      $sq->whereNull('end_date')->whereDate('start_date', $today);
                   });
             })
             ->whereNotIn('status', ['cancelled'])

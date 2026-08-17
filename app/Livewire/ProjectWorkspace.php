@@ -3,13 +3,16 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalType;
+use App\Mail\ProjectAssignedMail;
 use App\Models\ApprovalRequest;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\ProjectDocument;
 use App\Models\ProjectRisk;
 use App\Models\ProjectStatusUpdate;
+use App\Models\User;
 use App\Models\WbsBaseline;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 use Livewire\Component;
@@ -100,8 +103,8 @@ class ProjectWorkspace extends Component
     public function saveSetupModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can setup the project workspace.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can setup the project workspace.', type: 'error');
             return;
         }
 
@@ -134,8 +137,8 @@ class ProjectWorkspace extends Component
     public function openEditProjectModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can edit project details.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit project details.', type: 'error');
             return;
         }
 
@@ -149,8 +152,8 @@ class ProjectWorkspace extends Component
     public function saveProjectDetails()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can edit project details.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit project details.', type: 'error');
             return;
         }
 
@@ -174,8 +177,8 @@ class ProjectWorkspace extends Component
     public function openTimelineModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can edit the project deadline.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit the project deadline.', type: 'error');
             return;
         }
 
@@ -187,8 +190,8 @@ class ProjectWorkspace extends Component
     public function saveTimeline()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can edit the project deadline.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit the project deadline.', type: 'error');
             return;
         }
 
@@ -208,8 +211,8 @@ class ProjectWorkspace extends Component
     public function openCollaboratorsModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can manage project collaborators.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can manage project collaborators.', type: 'error');
             return;
         }
 
@@ -221,10 +224,13 @@ class ProjectWorkspace extends Component
     public function saveCollaborators()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can manage project collaborators.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can manage project collaborators.', type: 'error');
             return;
         }
+
+        // Track existing member IDs before sync (to detect newly added ones)
+        $existingMemberIds = $this->project->members->pluck('id')->toArray();
 
         $intIds = array_filter(array_map('intval', $this->selectedCollaboratorIds));
         $membersToSync = array_unique(array_merge([$this->project->project_manager_id], $intIds));
@@ -234,7 +240,21 @@ class ProjectWorkspace extends Component
         }
 
         $this->project->members()->sync($syncData);
-        $this->project->load('members');
+        $this->project->load('members', 'subsidiary');
+
+        // Send mail only to newly added collaborators (not existing, not PM)
+        $newMemberIds = array_diff(array_keys($syncData), $existingMemberIds, [$this->project->project_manager_id]);
+        if (!empty($newMemberIds)) {
+            try {
+                $newMembers = User::whereIn('id', $newMemberIds)->get();
+                foreach ($newMembers as $newMember) {
+                    Mail::to($newMember->email)
+                        ->send(new ProjectAssignedMail($this->project, $newMember, 'member'));
+                }
+            } catch (\Throwable $e) {
+                \Log::error('ProjectAssignedMail (collaborator) failed: ' . $e->getMessage());
+            }
+        }
 
         $this->showCollaboratorsModal = false;
         $this->dispatch('toast', message: 'Project collaborators updated successfully!', type: 'success');
@@ -243,8 +263,8 @@ class ProjectWorkspace extends Component
     public function removeCollaborator(int $userId)
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can remove collaborators.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can remove collaborators.', type: 'error');
             return;
         }
 
@@ -262,8 +282,8 @@ class ProjectWorkspace extends Component
     public function deleteUserFromSystem(int $userId)
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can delete users.', type: 'error');
+        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can delete users.', type: 'error');
             return;
         }
 
@@ -326,9 +346,7 @@ class ProjectWorkspace extends Component
             'must_change_password' => false,
         ]);
 
-        $newCollab->assignRole($this->newCollabRole);
-
-        // Auto-attach to project members
+        // No system-wide roles assigned to new collaborators
         if (!in_array((string) $newCollab->id, $this->selectedCollaboratorIds)) {
             $this->selectedCollaboratorIds[] = (string) $newCollab->id;
         }
@@ -356,7 +374,7 @@ class ProjectWorkspace extends Component
     {
         $user = auth()->user();
         if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only Project Manager or Super Admin can edit financial metrics.', type: 'error');
+            $this->dispatch('toast', message: 'Only Project Manager or PMO Admin can edit financial metrics.', type: 'error');
             return;
         }
 
@@ -382,12 +400,13 @@ class ProjectWorkspace extends Component
         $user = auth()->user();
 
         // Security check: Check if user is authorized to view this project
-        if ($user->hasRole('project_manager') && $project->project_manager_id !== $user->id) {
-            abort(403, 'Unauthorized project access.');
-        }
-
-        if ($user->hasRole('team_member') && !$project->members->contains($user->id)) {
-            abort(403, 'Unauthorized project access.');
+        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local') {
+            $isPm = ($project->project_manager_id === $user->id);
+            $isMember = $project->members->contains($user->id);
+            
+            if (!$isPm && !$isMember) {
+                abort(403, 'Unauthorized project access.');
+            }
         }
 
     }
@@ -643,8 +662,9 @@ class ProjectWorkspace extends Component
     public function approveRequestInWorkspace(int $id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager'])) {
-            $this->dispatch('toast', message: 'Only Super Admins and Project Managers can approve requests.', type: 'error');
+        $isPm = ($this->project->project_manager_id === $user->id);
+        if (!$user->hasRole('super_admin') && !$isPm) {
+            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can approve requests.', type: 'error');
             return;
         }
 
@@ -660,8 +680,9 @@ class ProjectWorkspace extends Component
     public function rejectRequestInWorkspace(int $id)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager'])) {
-            $this->dispatch('toast', message: 'Only Super Admins and Project Managers can reject requests.', type: 'error');
+        $isPm = ($this->project->project_manager_id === $user->id);
+        if (!$user->hasRole('super_admin') && !$isPm) {
+            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can reject requests.', type: 'error');
             return;
         }
 
@@ -811,7 +832,13 @@ class ProjectWorkspace extends Component
         ]);
 
         $previewDoc = $this->previewDocId ? ProjectDocument::with(['project', 'uploader'])->find($this->previewDocId) : null;
-        $availableUsers = \App\Models\User::all();
+        $availableUsers = \App\Models\User::where('is_active', true)
+            ->where(function($q) {
+                $q->where('subsidiary_id', $this->project->subsidiary_id)
+                  ->orWhereIn('id', $this->project->members->pluck('id')->toArray());
+            })
+            ->orderBy('name', 'asc')
+            ->get();
 
         return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers'));
     }

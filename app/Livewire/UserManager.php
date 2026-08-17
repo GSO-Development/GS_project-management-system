@@ -40,14 +40,14 @@ class UserManager extends Component
     public string $password = '';
     public ?string $phone_number = null;
     public ?int $subsidiary_id = null;
-    public string $role = 'collaborator';
+    public string $role = 'regular_user';
     public bool $is_active = true;
 
     protected function rules(): array
     {
         if ($this->creationType === 'azure' && $this->selectedAzureUser) {
             return [
-                'role'          => 'required|exists:roles,name',
+                'role'          => 'required|in:super_admin,regular_user',
                 'subsidiary_id' => 'nullable',
                 'is_active'     => 'boolean',
             ];
@@ -59,7 +59,7 @@ class UserManager extends Component
             'password'      => 'nullable|min:8',
             'phone_number'  => 'nullable|string|max:50',
             'subsidiary_id' => 'nullable',
-            'role'          => 'required|exists:roles,name',
+            'role'          => 'required|in:super_admin,regular_user',
             'is_active'     => 'boolean',
         ];
     }
@@ -204,7 +204,7 @@ class UserManager extends Component
     public function openCreateModal(): void
     {
         if (!$this->isAuthorized()) {
-            $this->dispatch('toast', message: 'Only Super Admins can add new users.', type: 'error');
+            $this->dispatch('toast', message: 'Only PMO Admins can add new users.', type: 'error');
             return;
         }
 
@@ -214,7 +214,7 @@ class UserManager extends Component
             'creationType', 'azureSearchQuery', 'azureSearchResults', 'selectedAzureUser',
         ]);
 
-        $this->role      = 'collaborator';
+        $this->role      = 'regular_user';
         $this->is_active = true;
         $this->creationType = 'system';
 
@@ -240,7 +240,7 @@ class UserManager extends Component
         $this->password       = '';
         $this->phone_number   = $user->phone_number;
         $this->subsidiary_id  = $user->subsidiary_id;
-        $this->role           = $user->getRoleNames()->first() ?? 'collaborator';
+        $this->role           = $user->hasRole('super_admin') ? 'super_admin' : 'regular_user';
         $this->is_active      = (bool) $user->is_active;
         $this->creationType   = 'system'; // Edit always uses system form
         $this->selectedAzureUser = null;
@@ -275,13 +275,7 @@ class UserManager extends Component
             $existingUser = User::where('azure_id', $azureId)->first()
                 ?? User::where('email', $this->email)->first();
 
-            $targetRoles = match($this->role) {
-                'collaborator', 'team_member' => ['collaborator', 'team_member'],
-                'project_manager'             => ['project_manager'],
-                'super_admin'                 => ['super_admin'],
-                default                       => [$this->role],
-            };
-
+            $targetRoles = ($this->role === 'super_admin') ? ['super_admin'] : [];
             if ($existingUser) {
                 // Update existing user
                 $existingUser->update([
@@ -337,12 +331,7 @@ class UserManager extends Component
                 $action = 'created_user';
             }
 
-            $targetRoles = match($this->role) {
-                'collaborator', 'team_member' => ['collaborator', 'team_member'],
-                'project_manager'             => ['project_manager'],
-                'super_admin'                 => ['super_admin'],
-                default                       => [$this->role],
-            };
+            $targetRoles = ($this->role === 'super_admin') ? ['super_admin'] : [];
             $user->syncRoles($targetRoles);
         }
 
@@ -415,8 +404,10 @@ class UserManager extends Component
                 $q->where(fn($sq) => $sq->where('name', 'like', "%{$this->search}%")
                     ->orWhere('email', 'like', "%{$this->search}%"));
             }
-            if ($this->roleFilter !== 'all') {
-                $q->role($this->roleFilter);
+            if ($this->roleFilter === 'super_admin') {
+                $q->role('super_admin');
+            } elseif ($this->roleFilter === 'regular_user') {
+                $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super_admin'));
             }
             if ($this->subsidiaryFilter !== 'all') {
                 $q->where('subsidiary_id', $this->subsidiaryFilter);

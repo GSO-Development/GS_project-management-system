@@ -18,8 +18,7 @@ class KanbanBoard extends Component
         $task = WbsItem::where('project_id', $this->project->id)->findOrFail($taskId);
         $user = auth()->user();
 
-        // Security check: Team members can move only their assigned tasks
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id && $task->assigned_user_id !== $user->id) {
+        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id && $task->assigned_user_id !== $user->id) {
             $this->dispatch('toast', message: 'You can only move tasks assigned to you.', type: 'error');
             return;
         }
@@ -46,6 +45,7 @@ class KanbanBoard extends Component
         ]);
 
         $this->dispatch('toast', message: "Task moved to " . ucfirst(str_replace('_', ' ', $newStatus)), type: 'success');
+        $this->dispatch('wbsUpdated');
     }
 
     public function render()

@@ -1,365 +1,514 @@
-<div class="space-y-7 font-sans">
-    
-    <!-- ===== COLLABORATOR HERO EXECUTIVE CARD ===== -->
-    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-800" style="background: #0d0407;">
+{{-- ============================================================
+     COLLABORATOR / TEAM MEMBER DASHBOARD — GS NexusPM
+     ============================================================ --}}
+<div class="space-y-6 pb-12 font-sans">
+
+    {{-- ═══════════════════ 1. HERO BANNER ═══════════════════ --}}
+    <div class="relative rounded-3xl overflow-hidden shadow-xl" style="background: linear-gradient(135deg, #160a0f 0%, #200d14 45%, #13060b 100%); border: 1px solid rgba(195,18,46,0.25);">
         
-        <!-- Background Overlay Image -->
-        <div class="absolute top-0 right-0 bottom-0 w-full lg:w-2/3 z-0 bg-cover bg-right bg-no-repeat opacity-60"
-             style="background-image: url('{{ asset('images/george_steuart_executive_boardroom.png') }}');">
+        {{-- Crimson Wave Vector Lines Background Graphic --}}
+        <div class="absolute right-0 top-0 bottom-0 w-full md:w-2/3 pointer-events-none opacity-30 overflow-hidden flex items-center justify-end">
+            <svg viewBox="0 0 800 400" class="w-full h-full object-cover" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 350C250 200 400 380 600 220C750 80 850 150 900 100" stroke="#c3122e" stroke-width="1.5" opacity="0.6"/>
+                <path d="M150 370C300 220 450 400 650 240C800 100 900 170 950 120" stroke="#ff4d6d" stroke-width="1.2" opacity="0.4"/>
+                <path d="M50 330C200 180 350 360 550 200C700 60 800 130 850 80" stroke="#c3122e" stroke-width="1.8" opacity="0.5"/>
+                <path d="M200 390C350 240 500 420 700 260C850 120 950 190 1000 140" stroke="#e01e37" stroke-width="1" opacity="0.3"/>
+                <path d="M0 310C150 160 300 340 500 180C650 40 750 110 800 60" stroke="#ff758f" stroke-width="0.8" opacity="0.4"/>
+            </svg>
         </div>
 
-        <!-- Dark Gradient Mask -->
-        <div class="absolute inset-0 z-0 pointer-events-none"
-             style="background: linear-gradient(90deg, #0d0407 0%, #170509 40%, rgba(20, 4, 8, 0.75) 65%, rgba(0, 0, 0, 0) 90%);">
-        </div>
+        {{-- Main Banner Flex Grid --}}
+        <div class="relative p-6 sm:p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 z-10">
+            
+            {{-- LEFT COLUMN: Identity, Greeting & CTAs --}}
+            <div class="space-y-4 max-w-xl">
+                {{-- Top Badge Pill --}}
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-rose-300" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                        <svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        <span>COLLABORATOR WORKSPACE</span>
+                    </span>
+                    <span class="text-xs font-semibold text-slate-400">
+                        {{ auth()->user()->subsidiary->name ?? 'George Steuart Optimize' }}
+                    </span>
+                </div>
 
-        <!-- Ambient Glow FX -->
-        <div class="absolute -top-24 -left-24 w-80 h-80 bg-[#c3122e]/30 rounded-full blur-3xl pointer-events-none z-0"></div>
-
-        <div class="relative z-10 p-6 sm:p-9 md:p-10">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div class="space-y-3 max-w-2xl">
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <span class="px-3 py-1 rounded-full text-xs font-mono font-black border border-[#e8556a]/50 bg-[#c3122e]/40 text-white shadow-md">
-                            Collaborator Workspace
-                        </span>
-                        <span class="px-3 py-1 rounded-full text-xs font-extrabold border bg-black/60 border-white/20 text-slate-200 shadow-md">
-                            {{ auth()->user()->subsidiary->name ?? 'George Steuart Group' }}
-                        </span>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                            {{ now()->format('l, F j, Y') }}
-                        </span>
-                    </div>
-
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md leading-tight" style="font-family: Georgia, 'Times New Roman', serif;">
-                        Welcome back, {{ auth()->user()->name }}
+                {{-- Greeting & Welcome --}}
+                <div>
+                    <p class="text-xs font-bold text-[#f87171] uppercase tracking-wider mb-1">
+                        Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 17 ? 'afternoon' : 'evening') }},
+                    </p>
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                        Welcome back, <span class="text-[#f87171]">{{ auth()->user()->name }}</span>
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed max-w-xl">
-                        View project collaborations assigned to you by Project Managers, track your active WBS tasks, and update work progress in real-time.
+                    <p class="text-xs sm:text-sm text-slate-300 font-medium mt-2 leading-relaxed">
+                        Track WBS tasks, submit approvals &amp; collaborate with your Project Manager.
                     </p>
                 </div>
 
-                <!-- Quick Action Buttons -->
-                <div class="flex flex-wrap items-center gap-3 self-start lg:self-center">
-                    <a href="{{ route('approvals.index') }}" class="px-4 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-lg shadow-[#c3122e]/30 transition-all flex items-center gap-2">
-                        <span>📝 Submit Approval Request</span>
+                {{-- Action Buttons --}}
+                <div class="flex items-center gap-3 flex-wrap pt-2">
+                    <a href="{{ route('approvals.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #a00e24 100%);">
+                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Submit Approval</span>
                     </a>
-                    <a href="{{ route('calendar.index') }}" class="px-4 py-2.5 rounded-xl text-xs font-extrabold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all flex items-center gap-2">
-                        <span>📅 Calendar</span>
+                    
+                    <a href="{{ route('calendar.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-2 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                        <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Calendar</span>
+                    </a>
+
+                    <a href="{{ route('my-tasks.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-2 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                        <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        <span>My Tasks</span>
                     </a>
                 </div>
             </div>
 
-            <!-- 4 Executive KPI Metric Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-white/10">
-                <div class="p-4 rounded-2xl border bg-black/40 border-white/15 backdrop-blur-md">
-                    <span class="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">Attached Projects</span>
-                    <p class="text-2xl font-black text-white">{{ $attachedProjects->count() }}</p>
-                    <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">Active Collaborations</span>
+            {{-- RIGHT COLUMN: 2x2 Metric Stat Cards Grid --}}
+            <div class="grid grid-cols-2 gap-3.5 sm:gap-4 w-full lg:w-auto min-w-[280px] sm:min-w-[340px]">
+                {{-- Metric 1: Projects --}}
+                <div class="p-4 rounded-2xl flex items-center gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(195,18,46,0.2); border: 1px solid rgba(195,18,46,0.35); color: #f87171;">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white tracking-tight leading-none">{{ $attachedProjects->count() }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-1">PROJECTS</div>
+                        <div class="text-[9px] text-slate-400 font-medium">Active</div>
+                    </div>
                 </div>
 
-                <div class="p-4 rounded-2xl border bg-black/40 border-white/15 backdrop-blur-md">
-                    <span class="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">Assigned Tasks</span>
-                    <p class="text-2xl font-black text-amber-300">{{ $totalCount }}</p>
-                    <span class="text-[10px] text-amber-200/80 font-medium mt-0.5 block">{{ $dueToday->count() }} Due Today</span>
+                {{-- Metric 2: Tasks --}}
+                <div class="p-4 rounded-2xl flex items-center gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24;">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white tracking-tight leading-none">{{ $totalCount }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-1">TASKS</div>
+                        <div class="text-[9px] text-slate-400 font-medium">{{ $dueToday->count() }} Due today</div>
+                    </div>
                 </div>
 
-                <div class="p-4 rounded-2xl border bg-black/40 border-white/15 backdrop-blur-md">
-                    <span class="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">In Progress</span>
-                    <p class="text-2xl font-black text-sky-400">{{ $inProgress->count() }}</p>
-                    <span class="text-[10px] text-sky-200/80 font-medium mt-0.5 block">Active Work Execution</span>
+                {{-- Metric 3: In Progress --}}
+                <div class="p-4 rounded-2xl flex items-center gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.35); color: #60a5fa;">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white tracking-tight leading-none">{{ $inProgress->count() }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-1">IN PROGRESS</div>
+                        <div class="text-[9px] text-slate-400 font-medium">Executing</div>
+                    </div>
                 </div>
 
-                <div class="p-4 rounded-2xl border bg-black/40 border-white/15 backdrop-blur-md">
-                    <span class="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">Task Completion Rate</span>
-                    <p class="text-2xl font-black text-emerald-400">{{ $completionPct }}%</p>
-                    <span class="text-[10px] text-emerald-200/80 font-medium mt-0.5 block">{{ $completed->count() }} Tasks Completed</span>
+                {{-- Metric 4: Completion --}}
+                <div class="p-4 rounded-2xl flex items-center gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.35); color: #34d399;">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white tracking-tight leading-none">{{ $completionPct }}%</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-1">COMPLETION</div>
+                        <div class="text-[9px] text-slate-400 font-medium">Overall</div>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- ===== SECTION 1: ATTACHED PROJECTS GRID ===== -->
-    <div>
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-[#fdf4f4] border border-[#faeaea] text-[#c3122e] font-black text-xs flex items-center justify-center shadow-2xs">
-                    🚀
+    {{-- ═══════════════════ 2. COLLABORATING PROJECTS SECTION ═══════════════════ --}}
+    <div class="space-y-4">
+        {{-- Section Header --}}
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-[#c3122e] flex-shrink-0 shadow-sm">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Projects You Are Collaborating On</h2>
-                    <p class="text-xs text-slate-500 font-medium">Projects where the Project Manager added you as an official Collaborator</p>
+                    <h2 class="text-base font-extrabold text-slate-900 tracking-tight">Collaborating Projects</h2>
+                    <p class="text-xs text-slate-500 font-medium">Projects officially assigned to you by a Project Manager</p>
                 </div>
             </div>
-            <a href="{{ route('projects.index') }}" class="text-xs font-extrabold text-[#c3122e] hover:underline">View All Projects →</a>
+
+            <a href="{{ route('projects.index') }}" class="text-xs font-bold text-[#c3122e] hover:text-[#a00e24] transition-colors flex items-center gap-1 group">
+                <span>View All</span>
+                <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
         </div>
 
+        {{-- Projects Cards Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @forelse($attachedProjects as $prj)
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-md p-6 flex flex-col justify-between hover:border-[#e8556a]/60 transition-all group">
+                @php
+                    $pct = (int) $prj->overall_progress;
+                    $pm = $prj->projectManager;
+                    $hs = match($prj->health->value ?? 'on_track') {
+                        'on_track' => ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500', 'label' => 'ON TRACK'],
+                        'at_risk'  => ['bg' => 'bg-amber-50', 'border' => 'border-amber-200', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500', 'label' => 'AT RISK'],
+                        'delayed'  => ['bg' => 'bg-rose-50', 'border' => 'border-rose-200', 'text' => 'text-rose-700', 'dot' => 'bg-rose-500', 'label' => 'DELAYED'],
+                        default    => ['bg' => 'bg-slate-50', 'border' => 'border-slate-200', 'text' => 'text-slate-600', 'dot' => 'bg-slate-400', 'label' => 'ON TRACK'],
+                    };
+                @endphp
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                    
+                    {{-- Card Top Row: Code Badge & Health Pill --}}
                     <div>
-                        <div class="flex items-center justify-between gap-2 mb-3">
-                            <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-black bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea]">
-                                {{ $prj->code }}
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="shadow-sm flex-shrink-0" style="background: #fff1f2; color: #c3122e; border: 1px solid #ffe4e6; font-family: monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px;">
+                                {{ $prj->code ?? 'PRJ' }}
                             </span>
-                            <span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold uppercase tracking-wider
-                                {{ match($prj->health->value) {
-                                    'on_track' => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-                                    'at_risk' => 'bg-amber-50 text-amber-700 border border-amber-200',
-                                    'delayed' => 'bg-rose-50 text-rose-700 border border-rose-200',
-                                    default => 'bg-slate-100 text-slate-700',
-                                } }}">
-                                {{ $prj->health->label() }}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold {{ $hs['bg'] }} {{ $hs['text'] }} border {{ $hs['border'] }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $hs['dot'] }}"></span>
+                                <span>{{ $hs['label'] }}</span>
                             </span>
                         </div>
 
-                        <h3 class="text-lg font-black text-slate-900 group-hover:text-[#c3122e] transition-colors leading-snug mb-2" style="font-family: Georgia, 'Times New Roman', serif;">
+                        {{-- Project Name --}}
+                        <h3 class="text-base font-extrabold text-slate-900 mt-3 truncate" title="{{ $prj->name }}">
                             {{ $prj->name }}
                         </h3>
 
-                        <div class="flex items-center gap-2 mb-4">
-                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[#c3122e] to-[#7a091c] text-white text-[10px] font-black flex items-center justify-center">
-                                {{ strtoupper(substr($prj->projectManager->name ?? 'P', 0, 1)) }}
+                        {{-- PM Info --}}
+                        <div class="flex items-center gap-2 mt-1.5">
+                            <div class="w-5 h-5 rounded-full bg-[#c3122e] text-white flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0">
+                                {{ strtoupper(substr($pm->name ?? 'P', 0, 1)) }}
                             </div>
-                            <span class="text-xs text-slate-600 font-medium">PM: <strong class="text-slate-900">{{ $prj->projectManager->name ?? 'Unassigned' }}</strong></span>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div class="space-y-1.5 mb-4">
-                            <div class="flex items-center justify-between text-xs font-extrabold">
-                                <span class="text-slate-500">Project Progress</span>
-                                <span class="text-[#c3122e]">{{ $prj->overall_progress }}%</span>
-                            </div>
-                            <div class="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                                <div class="h-full bg-gradient-to-r from-[#c3122e] to-[#e8556a] rounded-full" style="width: {{ $prj->overall_progress }}%"></div>
-                            </div>
+                            <span class="text-xs text-slate-500 font-medium truncate">
+                                PM: <strong class="text-slate-800 font-bold">{{ $pm->name ?? 'Unassigned' }}</strong>
+                            </span>
                         </div>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-[11px] text-slate-500 font-medium">Deadline: <strong class="text-slate-800 font-mono">{{ $prj->deadline ? $prj->deadline->format('M d, Y') : 'Not Set' }}</strong></span>
-                        <a href="{{ route('projects.show', $prj->id) }}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#faeaea] border border-[#faeaea] transition-all flex items-center gap-1">
-                            <span>Workspace →</span>
+                    {{-- Progress Bar --}}
+                    <div class="space-y-1 pt-1">
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="font-bold uppercase tracking-wider text-slate-400">PROGRESS</span>
+                            <span class="font-extrabold text-xs {{ $pct >= 100 ? 'text-emerald-600' : 'text-[#c3122e]' }}">{{ $pct }}%</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500 {{ $pct >= 100 ? 'bg-emerald-500' : ($pct > 0 ? 'bg-[#c3122e]' : 'bg-transparent') }}" style="width: {{ $pct }}%;"></div>
+                        </div>
+                    </div>
+
+                    {{-- Bottom Row: Deadline & Open Button --}}
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <div>
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">DEADLINE</span>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mt-0.5">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span>{{ $prj->deadline ? $prj->deadline->format('d M Y') : 'Not Set' }}</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('projects.show', $prj->id) }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-white hover:bg-rose-50 border border-rose-200 shadow-sm transition-all flex items-center gap-1 group">
+                            <span>Open</span>
+                            <svg class="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
                         </a>
                     </div>
+
                 </div>
             @empty
-                <div class="col-span-full bg-white rounded-3xl border border-slate-200/90 shadow-md p-10 text-center">
-                    <div class="w-14 h-14 rounded-2xl bg-[#fdf4f4] text-[#c3122e] flex items-center justify-center mx-auto mb-3 font-bold text-2xl">
-                        📌
+                <div class="col-span-full bg-white rounded-2xl border border-slate-100 p-12 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center mx-auto">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900">No Active Collaborations Yet</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto font-medium">When a Project Manager adds you as a Collaborator to a project, it will automatically show up here with assigned tasks and WBS milestones.</p>
+                    <h3 class="font-extrabold text-sm text-slate-800">No Active Collaborations</h3>
+                    <p class="text-xs text-slate-400 font-medium max-w-sm mx-auto">When a Project Manager attaches you to a project, it will automatically appear here.</p>
                 </div>
             @endforelse
         </div>
     </div>
 
-    <!-- ===== SECTION 2: MY ASSIGNED TASKS WORKSPACE ===== -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-md p-6 sm:p-8 space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-amber-50 text-amber-700 border border-amber-200">
-                        {{ $myTasks->count() }} Assigned Tasks
-                    </span>
-                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Your Assigned Tasks Workspace</h2>
+    {{-- ═══════════════════ 3. ASSIGNED TASKS WORKSPACE SECTION ═══════════════════ --}}
+    <div class="space-y-4">
+        {{-- Section Header --}}
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-[#c3122e] flex-shrink-0 shadow-sm">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
                 </div>
-                <p class="text-xs text-slate-500 font-medium mt-1">Update completion percentages, change status, and execute assigned deliverables</p>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base font-extrabold text-slate-900 tracking-tight">Assigned Tasks Workspace</h2>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-[#c3122e] border border-rose-100">
+                            {{ $myTasks->count() }} Tasks
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">Update completion percentages, statuses, and log sub-task deliverables</p>
+                </div>
             </div>
 
-            <a href="{{ route('my-tasks.index') }}" class="px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all flex items-center gap-1 self-start sm:self-auto">
-                <span>View Full Tasks Board →</span>
+            <a href="{{ route('my-tasks.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all flex items-center gap-1.5 group">
+                <span>Full Task Board</span>
+                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
             </a>
         </div>
 
-        <!-- Tasks List -->
-        <div class="space-y-3.5">
+        {{-- Tasks List --}}
+        <div class="space-y-3">
             @forelse($myTasks as $task)
-                <div class="p-4 sm:p-5 rounded-2xl border transition-all hover:border-[#c3122e]/40 shadow-2xs
-                    {{ match($task->status->value) {
-                        'completed' => 'bg-emerald-50/30 border-emerald-200/60',
-                        'blocked' => 'bg-rose-50/40 border-rose-200/80',
-                        'in_progress' => 'bg-[#fdf4f4]/40 border-[#faeaea]',
-                        default => 'bg-slate-50/60 border-slate-200/80',
-                    } }}">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5 flex-1 min-w-0">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-black/5 text-slate-700 border border-slate-200">
-                                    {{ $task->wbs_code }}
-                                </span>
-                                <span class="text-xs font-extrabold text-[#c3122e]">
-                                    {{ $task->project->name }}
-                                </span>
-                                <span class="text-[10px] text-slate-400 font-medium">
-                                    Owner: {{ $task->project->projectManager->name ?? 'Manager' }}
-                                </span>
-                            </div>
+                @php
+                    $isOverdue = $task->end_date && $task->end_date->isPast() && $task->status->value !== 'completed';
+                    $statusStyles = match($task->status->value ?? 'not_started') {
+                        'completed'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        'blocked'      => 'bg-amber-50 text-amber-700 border-amber-200',
+                        'in_progress'  => 'bg-blue-50 text-blue-700 border-blue-200',
+                        'under_review' => 'bg-purple-50 text-purple-700 border-purple-200',
+                        default        => 'bg-slate-50 text-slate-700 border-slate-200',
+                    };
+                @endphp
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        
+                        {{-- Left Side: Code, Title, Badges & Meta --}}
+                        <div class="flex items-start gap-3 min-w-0">
+                            <span class="px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-mono text-xs font-bold flex-shrink-0 mt-0.5">
+                                {{ $task->wbs_code ?? '1.1' }}
+                            </span>
+                            
+                            <div class="min-w-0 space-y-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="text-sm font-extrabold text-slate-900 leading-snug">
+                                        {{ $task->title }}
+                                    </h4>
+                                    
+                                    {{-- Status Badge --}}
+                                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold border {{ $statusStyles }} flex items-center gap-1">
+                                        {{ $task->status->label() }}
+                                    </span>
 
-                            <h4 class="text-sm font-extrabold text-slate-900 leading-snug">
-                                {{ $task->title }}
-                            </h4>
-
-                            @if($task->end_date)
-                                <p class="text-[11px] font-medium {{ $task->end_date->isPast() && $task->status->value !== 'completed' ? 'text-rose-600 font-bold' : 'text-slate-500' }}">
-                                    📅 Target Deadline: {{ $task->end_date->format('M d, Y') }} 
-                                    @if($task->end_date->isPast() && $task->status->value !== 'completed')
-                                        (Overdue {{ $task->end_date->diffForHumans() }})
+                                    {{-- Overdue Badge if applicable --}}
+                                    @if($isOverdue)
+                                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+                                            ⚠ Overdue
+                                        </span>
                                     @endif
-                                </p>
-                            @endif
+                                </div>
+
+                                {{-- Meta Row --}}
+                                <div class="flex items-center gap-2 text-xs text-slate-400 font-medium flex-wrap">
+                                    @if($task->end_date)
+                                        <span class="flex items-center gap-1 font-semibold {{ $isOverdue ? 'text-rose-600' : 'text-slate-600' }}">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span>{{ $task->end_date->format('d M Y') }}</span>
+                                            @if($isOverdue)
+                                                <span class="text-rose-500 font-bold">• {{ $task->end_date->diffForHumans() }}</span>
+                                            @endif
+                                        </span>
+                                    @endif
+                                    <span>|</span>
+                                    <span>PM: <strong class="text-slate-700 font-bold">{{ $task->project->projectManager->name ?? 'Unassigned' }}</strong></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Task Interactive Controls -->
-                        <div class="flex flex-wrap items-center gap-3 sm:self-center">
-                            <!-- Status Selector -->
-                            <select
-                                wire:change="updateTaskStatus({{ $task->id }}, $event.target.value)"
-                                class="px-3 py-1.5 rounded-xl text-xs font-extrabold border outline-none cursor-pointer transition-all
-                                {{ match($task->status->value) {
-                                    'completed' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
-                                    'in_progress' => 'bg-sky-100 text-sky-800 border-sky-300',
-                                    'blocked' => 'bg-rose-100 text-rose-800 border-rose-300',
-                                    default => 'bg-slate-100 text-slate-800 border-slate-300',
-                                } }}"
-                            >
-                                @foreach(\App\Enums\WbsStatus::cases() as $st)
-                                    <option value="{{ $st->value }}" @selected($task->status->value === $st->value)>
-                                        {{ $st->label() }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        {{-- Right Side: Controls (Status Select, + Sub-Task, Range Slider) --}}
+                        <div class="flex items-center gap-3 flex-wrap lg:justify-end flex-shrink-0">
+                            
+                            {{-- Status Dropdown Pill --}}
+                            <div class="relative">
+                                <select 
+                                    wire:change="updateTaskStatus({{ $task->id }}, $event.target.value)"
+                                    class="text-xs font-bold py-1.5 pl-3 pr-7 rounded-xl border border-amber-200 bg-amber-50/70 text-amber-900 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all appearance-none cursor-pointer"
+                                >
+                                    @foreach(\App\Enums\WbsStatus::cases() as $st)
+                                        <option value="{{ $st->value }}" @selected($task->status->value === $st->value)>{{ $st->label() }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-amber-700">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
 
-                            <!-- Add Sub-Task Button -->
-                            <button
+                            {{-- Sub-Task Button --}}
+                            <button 
                                 wire:click="openSubTaskModal({{ $task->id }})"
-                                class="px-3 py-1.5 rounded-xl text-xs font-black text-[#0078d4] bg-[#e8f4ff] hover:bg-[#b3d4ff]/40 border border-[#b3d4ff] transition-all flex items-center gap-1 cursor-pointer"
-                                title="Add sub-task under this assigned task"
+                                type="button" 
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 transition-all flex items-center gap-1 cursor-pointer"
                             >
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                 <span>+ Sub-Task</span>
                             </button>
 
-                            <!-- Progress Control Slider -->
-                            <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
+                            {{-- Progress Range Slider --}}
+                            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-1.5 shadow-2xs">
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
                                     step="5"
                                     value="{{ $task->progress }}"
                                     wire:change="updateTaskProgress({{ $task->id }}, $event.target.value)"
                                     class="w-20 accent-[#c3122e] cursor-pointer"
                                 >
-                                <span class="text-xs font-black text-slate-900 w-9 text-right">{{ $task->progress }}%</span>
+                                <span class="text-xs font-mono font-bold text-slate-800 min-w-[32px] text-right">
+                                    {{ $task->progress }}%
+                                </span>
                             </div>
+
                         </div>
                     </div>
 
-                    <!-- Sub-tasks breakdown under this assigned task -->
+                    {{-- Nested Sub-tasks if existing --}}
                     @if($task->children && $task->children->count() > 0)
-                    <div class="mt-4 pt-3 border-t border-dashed border-slate-200 bg-slate-50/80 rounded-2xl p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-black text-[#0078d4] uppercase tracking-wider flex items-center gap-1.5">
-                                📂 Sub-Tasks Breakdown ({{ $task->children->count() }})
-                            </span>
-                            <span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                                {{ $task->children->where('status.value', 'completed')->count() }} / {{ $task->children->count() }} Done
-                            </span>
-                        </div>
-
-                        <div class="space-y-2">
-                            @foreach($task->children as $sub)
-                            <div class="flex items-center justify-between gap-3 p-2.5 bg-white border border-slate-200 rounded-xl shadow-2xs">
-                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <code class="text-[10px] font-mono font-black text-[#0078d4] bg-[#e8f4ff] border border-[#b3d4ff] px-1.5 py-0.5 rounded">
-                                        {{ $sub->wbs_code }}
-                                    </code>
-                                    <span class="text-xs font-bold text-slate-900 truncate {{ $sub->status->value === 'completed' ? 'line-through text-slate-400' : '' }}">
-                                        {{ $sub->title }}
-                                    </span>
-                                </div>
-                                <select
-                                    wire:change="updateTaskStatus({{ $sub->id }}, $event.target.value)"
-                                    class="text-[11px] font-extrabold px-2 py-1 rounded-lg border bg-slate-50 border-slate-200"
-                                >
-                                    @foreach(\App\Enums\WbsStatus::cases() as $st)
-                                        <option value="{{ $st->value }}" @selected($sub->status->value === $st->value)>{{ $st->label() }}</option>
-                                    @endforeach
-                                </select>
+                        <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                <span>Sub-Tasks ({{ $task->children->count() }})</span>
+                                @php $doneCount = $task->children->filter(fn($s) => $s->status->value === 'completed')->count(); @endphp
+                                <span class="text-emerald-600 font-extrabold">{{ $doneCount }}/{{ $task->children->count() }} Completed</span>
                             </div>
-                            @endforeach
+
+                            <div class="space-y-1.5 pl-3 border-l-2 border-slate-100">
+                                @foreach($task->children as $sub)
+                                    <div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-slate-50/80 border border-slate-100">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-100">
+                                                {{ $sub->wbs_code }}
+                                            </span>
+                                            <span class="text-xs font-semibold text-slate-800 truncate {{ $sub->status->value === 'completed' ? 'line-through text-slate-400' : '' }}">
+                                                {{ $sub->title }}
+                                            </span>
+                                        </div>
+
+                                        <div class="relative flex-shrink-0">
+                                            <select 
+                                                wire:change="updateTaskStatus({{ $sub->id }}, $event.target.value)"
+                                                class="text-[10px] font-bold py-1 pl-2 pr-6 rounded-lg border border-slate-200 bg-white text-slate-700 outline-none appearance-none cursor-pointer"
+                                            >
+                                                @foreach(\App\Enums\WbsStatus::cases() as $st)
+                                                    <option value="{{ $st->value }}" @selected($sub->status->value === $st->value)>{{ $st->label() }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-400">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
-                    </div>
                     @endif
                 </div>
             @empty
-                <div class="text-center py-10 text-slate-400">
-                    <p class="text-xs font-medium">No tasks assigned to your account yet.</p>
+                <div class="bg-white rounded-2xl border border-slate-100 p-12 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </div>
+                    <h3 class="font-extrabold text-sm text-slate-800">No Assigned Tasks</h3>
+                    <p class="text-xs text-slate-400 font-medium max-w-sm mx-auto">When your Project Manager assigns WBS tasks to you, they will appear here with interactive progress sliders.</p>
                 </div>
             @endforelse
         </div>
     </div>
 
-    <!-- Create Sub-Task Modal -->
+    {{-- ═══════════════════ SUB-TASK MODAL ═══════════════════ --}}
     @if($showSubTaskModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                    <h3 class="text-lg font-black text-slate-900">+ Create New Sub-Task</h3>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Break down your assigned task into smaller actionable sub-tasks</p>
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" wire:click="$set('showSubTaskModal', false)"></div>
+
+            <div class="relative bg-white rounded-3xl max-w-md w-full p-0 overflow-hidden shadow-2xl z-10 border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 flex items-center justify-between border-b border-rose-900/20" style="background: linear-gradient(135deg, #7a0b1d 0%, #c3122e 100%); color: #ffffff;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-inner" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+                            📋
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white leading-tight">Create Sub-Task</h3>
+                            <p style="color: #fecdd3; font-size: 10px; font-weight: 500; margin-top: 1px;">Break down your assigned task into sub-deliverables</p>
+                        </div>
+                    </div>
+                    <button 
+                        wire:click="$set('showSubTaskModal', false)" 
+                        type="button" 
+                        class="p-1.5 rounded-xl text-white hover:bg-white/20 transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button wire:click="$set('showSubTaskModal', false)" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+
+                <form wire:submit="createSubTask" class="p-6 space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-700">Sub-Task Title <span class="text-rose-500">*</span></label>
+                        <input type="text" wire:model="subTaskTitle" required placeholder="e.g. Prepare API payload schema" class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800">
+                        @error('subTaskTitle') <span class="text-rose-500 text-[10px] font-bold block mt-1">⚠ {{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-700">Description</label>
+                        <textarea wire:model="subTaskDescription" rows="2" placeholder="Details or notes..." class="w-full text-xs font-semibold py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">Start Date</label>
+                            <input type="date" wire:model="subTaskStartDate" class="w-full text-xs font-semibold py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] outline-none text-slate-800">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">End Date</label>
+                            <input type="date" wire:model="subTaskEndDate" class="w-full text-xs font-semibold py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] outline-none text-slate-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">Priority</label>
+                            <select wire:model="subTaskPriority" class="w-full text-xs font-bold py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] outline-none text-slate-800">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">Est. Hours</label>
+                            <input type="number" step="0.5" wire:model="subTaskEstimatedHours" placeholder="e.g. 4.5" class="w-full text-xs font-semibold py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] outline-none text-slate-800">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
+                        <button type="button" wire:click="$set('showSubTaskModal', false)" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm transition-all cursor-pointer">
+                            Save Sub-Task
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form wire:submit="createSubTask" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Sub-Task Title <span class="text-rose-500">*</span></label>
-                    <input type="text" wire:model="subTaskTitle" placeholder="e.g. Prepare API Schema / Design Mockup" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0078d4]">
-                    @error('subTaskTitle') <span class="text-[11px] text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Description (Optional)</label>
-                    <textarea wire:model="subTaskDescription" rows="2" placeholder="Sub-task details or requirements..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium bg-slate-50 focus:bg-white focus:outline-none"></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Start Date</label>
-                        <input type="date" wire:model="subTaskStartDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">End Date</label>
-                        <input type="date" wire:model="subTaskEndDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Priority</label>
-                        <select wire:model="subTaskPriority" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="critical">Critical</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Est. Hours</label>
-                        <input type="number" step="0.5" wire:model="subTaskEstimatedHours" placeholder="e.g. 4.5" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" wire:click="$set('showSubTaskModal', false)" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-black text-white bg-[#0078d4] hover:bg-[#0063b1] shadow-md shadow-[#0078d4]/20">Save Sub-Task</button>
-                </div>
-            </form>
         </div>
-    </div>
     @endif
 
 </div>

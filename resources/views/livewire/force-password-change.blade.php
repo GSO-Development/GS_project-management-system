@@ -12,7 +12,7 @@
             </div>
             <h2 class="text-2xl font-black text-white tracking-tight drop-shadow-md">First-Time Password Change</h2>
             <p class="text-xs text-slate-300 font-medium mt-1.5 leading-relaxed max-w-xs mx-auto">
-                Your account was created by Super Admin. Please set a new password to secure your account.
+                Your account was created by PMO Admin. Please set a new password to secure your account.
             </p>
         </div>
 

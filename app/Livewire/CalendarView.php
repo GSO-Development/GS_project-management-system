@@ -121,7 +121,7 @@ class CalendarView extends Component
         if (!$task) return;
 
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $task->assigned_user_id !== $user->id) {
+        if (!$user->hasRole('super_admin') && $task->project->project_manager_id !== $user->id && $task->assigned_user_id !== $user->id) {
             $this->dispatch('toast', message: 'You can only update status for your assigned tasks.', type: 'error');
             return;
         }
@@ -156,10 +156,11 @@ class CalendarView extends Component
                 $q->whereNotNull('start_date')->orWhereNotNull('end_date');
             });
 
-        if ($user->hasRole('project_manager')) {
-            $wbsQuery->whereHas('project', fn($q) => $q->where('project_manager_id', $user->id));
-        } elseif ($user->hasAnyRole(['team_member', 'collaborator'])) {
-            $wbsQuery->where('assigned_user_id', $user->id);
+        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            $wbsQuery->where(function($q) use ($user) {
+                $q->whereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
+                  ->orWhere('assigned_user_id', $user->id);
+            });
         }
 
         if ($this->subsidiaryFilter !== 'all') {

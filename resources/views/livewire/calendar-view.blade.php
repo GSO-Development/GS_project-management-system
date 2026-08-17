@@ -82,70 +82,72 @@
 
     <!-- MONTHLY CALENDAR GRID VIEW -->
     @if($viewMode === 'calendar')
-    <div class="card p-0 overflow-hidden shadow-xs mb-6">
-        <!-- Day of Week Headers -->
-        <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50/80 text-center font-bold text-[11px] text-slate-500 uppercase tracking-wider">
-            <div class="py-3">Sun</div>
-            <div class="py-3">Mon</div>
-            <div class="py-3">Tue</div>
-            <div class="py-3">Wed</div>
-            <div class="py-3">Thu</div>
-            <div class="py-3">Fri</div>
-            <div class="py-3">Sat</div>
-        </div>
+    <div class="card p-0 overflow-hidden shadow-xs mb-6 overflow-x-auto scrollbar-thin">
+        <div class="min-w-[768px] lg:min-w-0">
+            <!-- Day of Week Headers -->
+            <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50/80 text-center font-bold text-[11px] text-slate-500 uppercase tracking-wider">
+                <div class="py-3">Sun</div>
+                <div class="py-3">Mon</div>
+                <div class="py-3">Tue</div>
+                <div class="py-3">Wed</div>
+                <div class="py-3">Thu</div>
+                <div class="py-3">Fri</div>
+                <div class="py-3">Sat</div>
+            </div>
 
-        <!-- 7-Column Calendar Days Grid -->
-        <div class="divide-y divide-slate-200">
-            @foreach($weeks as $week)
-                <div class="grid grid-cols-7 divide-x divide-slate-200 min-h-32">
-                    @foreach($week as $day)
-                        <div class="p-1.5 transition-colors relative {{ $day['isCurrentMonth'] ? 'bg-white' : 'bg-slate-50/50 text-slate-400' }} {{ $day['isToday'] ? 'ring-2 ring-[#c3122e] ring-inset bg-[#fdf4f4]/20' : '' }}">
-                            <div class="flex items-center justify-between mb-1.5 px-1">
-                                <span class="text-xs font-bold font-mono {{ $day['isToday'] ? 'w-6 h-6 rounded-full bg-[#c3122e] text-white flex items-center justify-center' : ($day['isCurrentMonth'] ? 'text-slate-800' : 'text-slate-400') }}">
-                                    {{ $day['dayNumber'] }}
-                                </span>
+            <!-- 7-Column Calendar Days Grid -->
+            <div class="divide-y divide-slate-200">
+                @foreach($weeks as $week)
+                    <div class="grid grid-cols-7 divide-x divide-slate-200 min-h-32">
+                        @foreach($week as $day)
+                            <div class="p-1.5 transition-colors relative {{ $day['isCurrentMonth'] ? 'bg-white' : 'bg-slate-50/50 text-slate-400' }} {{ $day['isToday'] ? 'ring-2 ring-[#c3122e] ring-inset bg-[#fdf4f4]/20' : '' }}">
+                                <div class="flex items-center justify-between mb-1.5 px-1">
+                                    <span class="text-xs font-bold font-mono {{ $day['isToday'] ? 'w-6 h-6 rounded-full bg-[#c3122e] text-white flex items-center justify-center' : ($day['isCurrentMonth'] ? 'text-slate-800' : 'text-slate-400') }}">
+                                        {{ $day['dayNumber'] }}
+                                    </span>
 
-                                <div class="flex items-center gap-1">
-                                    @if(count($day['events']) > 0)
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#faeaea] text-[#a00e24]">
-                                            {{ count($day['events']) }}
-                                        </span>
-                                    @endif
-                                    @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) && $day['isCurrentMonth'])
-                                        <button wire:click="openCreateEventModal('{{ $day['date'] }}')" @click="$wire.showCreateEventModal = true" type="button" class="text-slate-300 hover:text-[#c3122e] transition-colors p-0.5" title="Add event on {{ $day['date'] }}">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Events Inside Day Box -->
-                            <div class="space-y-1 overflow-y-auto max-h-24">
-                                @foreach($day['events'] as $evt)
-                                    @php
-                                        $pillStyle = match($evt['color']) {
-                                            'rose' => 'bg-rose-50 text-rose-700 border-rose-200',
-                                            'purple' =>  'bg-[#fdf4f4] text-[#a00e24] border-[#f0dada]',
-                                            default => 'bg-[#fdf4f4] text-[#a00e24] border-[#f0dada]',
-                                        };
-                                    @endphp
-                                    <div
-                                        wire:click="showEventDetails({{ json_encode($evt) }})"
-                                        @click="$wire.showEventModal = true"
-                                        class="p-1 rounded-md text-[10px] leading-tight border font-medium truncate cursor-pointer hover:shadow-xs transition-shadow active:scale-95 {{ $pillStyle }}"
-                                        title="{{ $evt['title'] }} ({{ $evt['project'] }})"
-                                    >
-                                        <div class="font-bold truncate">{{ $evt['title'] }}</div>
-                                        @if($evt['project'])
-                                            <div class="text-[9px] opacity-75 truncate">{{ $evt['project'] }}</div>
+                                    <div class="flex items-center gap-1">
+                                        @if(count($day['events']) > 0)
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#faeaea] text-[#a00e24]">
+                                                {{ count($day['events']) }}
+                                            </span>
+                                        @endif
+                                        @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) && $day['isCurrentMonth'])
+                                            <button wire:click="openCreateEventModal('{{ $day['date'] }}')" @click="$wire.showCreateEventModal = true" type="button" class="text-slate-300 hover:text-[#c3122e] transition-colors p-0.5" title="Add event on {{ $day['date'] }}">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                            </button>
                                         @endif
                                     </div>
-                                @endforeach
+                                </div>
+
+                                <!-- Events Inside Day Box -->
+                                <div class="space-y-1 overflow-y-auto max-h-24">
+                                    @foreach($day['events'] as $evt)
+                                        @php
+                                            $pillStyle = match($evt['color']) {
+                                                'rose' => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                'purple' =>  'bg-[#fdf4f4] text-[#a00e24] border-[#f0dada]',
+                                                default => 'bg-[#fdf4f4] text-[#a00e24] border-[#f0dada]',
+                                            };
+                                        @endphp
+                                        <div
+                                            wire:click="showEventDetails({{ json_encode($evt) }})"
+                                            @click="$wire.showEventModal = true"
+                                            class="p-1 rounded-md text-[10px] leading-tight border font-medium truncate cursor-pointer hover:shadow-xs transition-shadow active:scale-95 {{ $pillStyle }}"
+                                            title="{{ $evt['title'] }} ({{ $evt['project'] }})"
+                                        >
+                                            <div class="font-bold truncate">{{ $evt['title'] }}</div>
+                                            @if($evt['project'])
+                                                <div class="text-[9px] opacity-75 truncate">{{ $evt['project'] }}</div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endforeach
+                        @endforeach
+                    </div>
+                @endforeach
+            </div>
         </div>
     </div>
     @else

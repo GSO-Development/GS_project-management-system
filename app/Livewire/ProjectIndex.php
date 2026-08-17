@@ -75,7 +75,8 @@ class ProjectIndex extends Component
         $user = auth()->user();
         if (!$user) return false;
 
-        return $user->hasAnyRole(['super_admin', 'project_manager'])
+        return $user->hasRole('super_admin')
+            || \App\Models\Project::where('project_manager_id', $user->id)->exists()
             || $user->email === 'admin@nexuspm.local'
             || $user->id === 1;
     }
@@ -101,7 +102,7 @@ class ProjectIndex extends Component
             $this->subsidiary_id = $firstSub->id;
         }
 
-        $firstPm = User::role('project_manager')->first() ?? auth()->user();
+        $firstPm = User::where('is_active', true)->first() ?? auth()->user();
         if ($firstPm) {
             $this->project_manager_id = $firstPm->id;
         }
@@ -194,7 +195,7 @@ class ProjectIndex extends Component
     {
         $user = auth()->user();
         if (!$user || (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1)) {
-            $this->dispatch('toast', message: 'Unauthorized. Only Super Admin can delete projects.', type: 'error');
+            $this->dispatch('toast', message: 'Unauthorized. Only PMO Admin can delete projects.', type: 'error');
             return;
         }
 
@@ -213,7 +214,8 @@ class ProjectIndex extends Component
         $baseQuery = Project::query();
 
         if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-            if ($user->hasRole('project_manager')) {
+            $isPm = Project::where('project_manager_id', $user->id)->exists();
+            if ($isPm) {
                 $baseQuery->where(function($q) use ($user) {
                     $q->where('project_manager_id', $user->id)
                       ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
@@ -265,7 +267,7 @@ class ProjectIndex extends Component
 
         $projects = $query->latest()->paginate($this->perPage);
         $subsidiaries = Subsidiary::all();
-        $pms = User::role('project_manager')->orWhereHas('roles', fn($q) => $q->where('name', 'super_admin'))->orWhere('email', 'admin@nexuspm.local')->get();
+        $pms = User::where('is_active', true)->get();
         $allUsers = User::where('is_active', true)->get();
 
         return view('livewire.project-index', compact(

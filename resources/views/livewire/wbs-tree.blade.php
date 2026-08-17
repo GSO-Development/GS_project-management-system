@@ -80,15 +80,21 @@
                     @error('title') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label font-extrabold text-slate-800 text-xs mb-1.5 block">Assigned User (Collaborator)</label>
+                    <select wire:model="assigned_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-900 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 transition-all outline-none">
+                        <option value="">-- Unassigned --</option>
+                        @foreach($projectMembers as $m)
+                            <option value="{{ $m->id }}">{{ $m->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label class="form-label font-extrabold text-slate-800 text-xs mb-1.5 block">Assigned User (Collaborator)</label>
-                        <select wire:model="assigned_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-900 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 transition-all outline-none">
-                            <option value="">-- Unassigned --</option>
-                            @foreach($projectMembers as $m)
-                                <option value="{{ $m->id }}">{{ $m->name }}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label font-extrabold text-slate-800 text-xs mb-1.5 block">Start Date <span class="text-rose-500">*</span></label>
+                        <input type="date" wire:model="start_date" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-900 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 transition-all outline-none" required>
+                        @error('start_date') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group">

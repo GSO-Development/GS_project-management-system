@@ -23,13 +23,22 @@ class TeamMonitor extends Component
         $today = now()->today()->toDateString();
 
         // 1. Determine staff users allowed under current role filter
-        $usersQuery = User::where('is_active', true)->with('roles');
+        $pmIds = Project::whereNotNull('project_manager_id')->pluck('project_manager_id')->unique()->toArray();
+        $superAdminIds = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin'))->pluck('id')->toArray();
+
+        $usersQuery = User::where('is_active', true);
         if ($this->roleFilter === 'pm') {
-            $usersQuery->role('project_manager');
+            $usersQuery->whereIn('id', $pmIds);
         } elseif ($this->roleFilter === 'member') {
-            $usersQuery->role('team_member');
+            $usersQuery->whereNotIn('id', array_merge($pmIds, $superAdminIds));
         } else {
-            $usersQuery->whereHas('roles', fn($q) => $q->whereIn('name', ['project_manager', 'team_member', 'super_admin']));
+            // "all" staff includes PMs, Team Members, and Super Admins
+            $usersQuery->where(function($q) use ($pmIds, $superAdminIds) {
+                $q->whereIn('id', $pmIds)
+                  ->orWhereIn('id', $superAdminIds)
+                  ->orWhereHas('projects')
+                  ->orWhereHas('assignedWbsItems');
+            });
         }
 
         $allUsersList = $usersQuery->get();
@@ -147,8 +156,8 @@ class TeamMonitor extends Component
         $totalIssuesCount  = WbsItem::whereHas('project')->whereNotNull('delay_reason')->count();
         $totalBlockedCount = WbsItem::whereHas('project')->where('status', 'blocked')->count();
         $totalOverdueCount = WbsItem::whereHas('project')->where('end_date', '<', now()->today())->whereNotIn('status', ['completed', 'cancelled'])->count();
-        $totalPmCount      = User::role('project_manager')->where('is_active', true)->count();
-        $totalMemberCount  = User::role('team_member')->where('is_active', true)->count();
+        $totalPmCount      = User::where('is_active', true)->whereIn('id', $pmIds)->count();
+        $totalMemberCount  = User::where('is_active', true)->whereNotIn('id', array_merge($pmIds, $superAdminIds))->count();
 
         return view('livewire.team-monitor', compact(
             'loggedIssues',

@@ -76,12 +76,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
             @foreach($members as $member)
                 @php
-                    $roleName   = $member->getRoleNames()->first() ?? 'team_member';
-                    $roleColor  = $roleName === 'super_admin'
+                    $roleName   = $member->role_name;
+                    $roleColor  = $roleName === 'PMO Admin'
                         ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]'
-                        : ($roleName === 'project_manager'
-                            ? 'bg-[#fdf8e8] text-[#b8860b] border-[#f0e0a0]'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200');
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200';
                     $avatarGrad = 'linear-gradient(135deg,'.['#6366f1,#8b5cf6','#0ea5e9,#2563eb','#10b981,#059669','#f59e0b,#d97706','#c3122e,#8b0d1f'][crc32($member->email) % 5].')';
                     $memberProjectCount = $member->projects->whereIn('id', $managedProjects->pluck('id'))->count();
                 @endphp
@@ -115,7 +113,7 @@
                         {{-- Role badge --}}
                         <div class="mb-3">
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $roleColor }}">
-                                {{ ucwords(str_replace('_', ' ', $roleName)) }}
+                                {{ $roleName }}
                             </span>
                         </div>
 
@@ -184,7 +182,7 @@
 
             @if($detailMember)
                 @php
-                    $dr = $detailMember->getRoleNames()->first() ?? 'team_member';
+                    $dr = $detailMember->role_name;
                     $dg = 'linear-gradient(135deg,'.['#6366f1,#8b5cf6','#0ea5e9,#2563eb','#10b981,#059669','#f59e0b,#d97706','#c3122e,#8b0d1f'][crc32($detailMember->email) % 5].')';
                 @endphp
 
@@ -220,7 +218,7 @@
                     <div class="grid grid-cols-3 gap-3 mt-4 mb-5">
                         <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                             <div class="text-xs text-slate-400 mb-1">Role</div>
-                            <div class="text-xs font-bold text-slate-700">{{ ucwords(str_replace('_', ' ', $dr)) }}</div>
+                            <div class="text-xs font-bold text-slate-700">{{ $dr }}</div>
                         </div>
                         <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                             <div class="text-xs text-slate-400 mb-1">Subsidiary</div>

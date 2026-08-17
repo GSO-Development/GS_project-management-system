@@ -1,4 +1,15 @@
 <div>
+    <style>
+        .custom-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            padding-right: 36px !important;
+        }
+    </style>
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -39,17 +50,16 @@
 
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase font-black text-slate-500 ml-1 mb-1">System Role</span>
-                <select wire:model.live="roleFilter" class="form-select text-xs font-bold py-1.5 w-full">
+                <select wire:model.live="roleFilter" class="form-select text-xs font-bold py-1.5 w-full cursor-pointer custom-select">
                     <option value="all">All Roles</option>
-                    @foreach($roles as $r)
-                        <option value="{{ $r->name }}">{{ ucwords(str_replace('_', ' ', $r->name)) }}</option>
-                    @endforeach
+                    <option value="super_admin">PMO Admin</option>
+                    <option value="regular_user">Regular User</option>
                 </select>
             </div>
 
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase font-black text-slate-500 ml-1 mb-1">Subsidiary</span>
-                <select wire:model.live="subsidiaryFilter" class="form-select text-xs font-bold py-1.5 w-full">
+                <select wire:model.live="subsidiaryFilter" class="form-select text-xs font-bold py-1.5 w-full cursor-pointer custom-select">
                     <option value="all">All Subsidiaries</option>
                     @foreach($subsidiaries as $s)
                         <option value="{{ $s->id }}">{{ $s->name }}</option>
@@ -59,7 +69,7 @@
 
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase font-black text-slate-500 ml-1 mb-1">Status</span>
-                <select wire:model.live="statusFilter" class="form-select text-xs font-bold py-1.5 w-full">
+                <select wire:model.live="statusFilter" class="form-select text-xs font-bold py-1.5 w-full cursor-pointer custom-select">
                     <option value="all">All Statuses</option>
                     <option value="active">Active Only</option>
                     <option value="inactive">Inactive Only</option>
@@ -75,12 +85,12 @@
                 <thead>
                     <tr>
                         <th class="w-8"><input type="checkbox" class="rounded border-slate-300"></th>
-                        <th>USER MEMBER</th>
-                        <th>ACCOUNT TYPE</th>
-                        <th>SYSTEM ROLE</th>
-                        <th>SUBSIDIARY</th>
-                        <th>PHONE</th>
-                        <th>ACCOUNT STATUS</th>
+                        <th class="whitespace-nowrap">USER MEMBER</th>
+                        <th class="whitespace-nowrap">ACCOUNT TYPE</th>
+                        <th class="whitespace-nowrap">SYSTEM ROLE</th>
+                        <th class="whitespace-nowrap">SUBSIDIARY</th>
+                        <th class="whitespace-nowrap">PHONE</th>
+                        <th class="whitespace-nowrap">ACCOUNT STATUS</th>
                         <th class="text-right">ACTIONS</th>
                     </tr>
                 </thead>
@@ -122,9 +132,9 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @php $roleName = $user->getRoleNames()->first() ?? 'user'; @endphp
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $roleName === 'super_admin' ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : ($roleName === 'project_manager' ? 'bg-[#fdf8e8] text-[#b8860b] border-[#f0e0a0]' : 'bg-emerald-50 text-emerald-600 border-emerald-200') }}">
-                                        {{ ucwords(str_replace('_', ' ', $roleName)) }}
+                                    @php $isSuper = ($user->hasRole('super_admin') || $user->email === 'admin@nexuspm.local' || $user->email === 'superadmin@georgesteuart.com'); @endphp
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isSuper ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }}">
+                                        {{ $isSuper ? 'PMO Admin' : 'Regular User' }}
                                     </span>
                                 </td>
                                 <td class="text-xs text-slate-700 font-medium">
@@ -192,9 +202,9 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @php $roleName = $user->getRoleNames()->first() ?? 'user'; @endphp
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $roleName === 'super_admin' ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : ($roleName === 'project_manager' ? 'bg-[#fdf8e8] text-[#b8860b] border-[#f0e0a0]' : 'bg-emerald-50 text-emerald-600 border-emerald-200') }}">
-                                        {{ ucwords(str_replace('_', ' ', $roleName)) }}
+                                    @php $isSuper = ($user->hasRole('super_admin') || $user->email === 'admin@nexuspm.local' || $user->email === 'superadmin@georgesteuart.com'); @endphp
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isSuper ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }}">
+                                        {{ $isSuper ? 'PMO Admin' : 'Regular User' }}
                                     </span>
                                 </td>
                                 <td class="text-xs text-slate-700 font-medium">
@@ -372,9 +382,8 @@
                         <div class="form-group">
                             <label class="form-label">System Role</label>
                             <select wire:model="role" class="form-select">
-                                <option value="collaborator">Collaborator (Participant)</option>
-                                <option value="project_manager">Project Manager</option>
-                                <option value="super_admin">Super Admin</option>
+                                <option value="regular_user">Regular User</option>
+                                <option value="super_admin">PMO Admin</option>
                             </select>
                             @error('role') <span class="form-error">{{ $message }}</span> @enderror
                         </div>
@@ -432,9 +441,8 @@
                         <div class="form-group">
                             <label class="form-label">System Role</label>
                             <select wire:model="role" class="form-select">
-                                <option value="collaborator">Collaborator (Participant)</option>
-                                <option value="project_manager">Project Manager</option>
-                                <option value="super_admin">Super Admin</option>
+                                <option value="regular_user">Regular User</option>
+                                <option value="super_admin">PMO Admin</option>
                             </select>
                             @error('role') <span class="form-error">{{ $message }}</span> @enderror
                         </div>

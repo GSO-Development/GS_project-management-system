@@ -215,6 +215,20 @@
 
     <!-- 1. OVERVIEW TAB -->
     @if($activeTab === 'overview')
+        <!-- Project Gantt Schedule (Full Width) -->
+        <div class="card p-6 bg-white border border-slate-200/90 rounded-3xl shadow-xs mb-6">
+            <div class="flex items-center gap-3 mb-5 pb-3 border-b border-slate-100">
+                <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#faeaea] text-[#c3122e] flex items-center justify-center font-black text-sm flex-shrink-0 shadow-2xs">
+                    📊
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-base">Project Gantt Schedule</h3>
+                    <p class="text-xs text-slate-500 font-medium">Visual timeline breakdown of WBS tasks and dependencies</p>
+                </div>
+            </div>
+            <livewire:gantt-chart :project="$project" />
+        </div>
+
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <!-- LEFT: Main Content -->
             <div class="xl:col-span-2 space-y-6">
@@ -453,7 +467,6 @@
                         @endforeach
                     </div>
                 </div>
-            </div>
         </div>
     @endif
 
@@ -1603,8 +1616,8 @@
                             </label>
 
                             <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $u->hasRole('project_manager') ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700' }}">
-                                    {{ $u->getRoleNames()->first() ?? 'Member' }}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $isOwner ? 'bg-[#fdf4f4] text-[#c3122e] border border-[#f5c2c9]' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                                    {{ $isOwner ? 'Project Owner' : 'Participant' }}
                                 </span>
 
                                 @if(!$isOwner && auth()->id() !== $u->id)

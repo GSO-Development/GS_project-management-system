@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Projects' }} — GS NexusPM</title>
+    <title>{{ $title ?? 'Projects' }} — {{ $appName }}</title>
     <meta name="description" content="George Steuart Group — Enterprise Project Management">
 
     <!-- Google Fonts: Inter + Playfair Display -->
@@ -40,7 +40,7 @@
                 </svg>
             </div>
             <div x-show="!sidebarCollapsed" class="min-w-0">
-                <div class="font-extrabold text-base tracking-tight leading-none" style="font-family:'Playfair Display',serif; color:#1a0a0d;">GS NexusPM</div>
+                <div class="font-extrabold text-base tracking-tight leading-none truncate" style="font-family:'Playfair Display',serif; color:#1a0a0d;" title="{{ $appName }}">{{ $appName }}</div>
                 <div class="text-[9px] font-bold mt-0.5 tracking-widest uppercase" style="color: #c3122e;">George Steuart Group</div>
             </div>
         </div>
@@ -301,7 +301,7 @@
                         </div>
                         <div class="text-left hidden sm:block">
                             <p class="text-xs font-bold leading-tight" style="color: #2b2525;">{{ auth()->user()->name }}</p>
-                            <p class="text-[10px] font-medium" style="color: #9c9090;">{{ ucwords(str_replace('_', ' ', auth()->user()->getRoleNames()->first() ?? 'Super Admin')) }}</p>
+                            <p class="text-[10px] font-medium" style="color: #9c9090;">{{ auth()->user()->role_name }}</p>
                         </div>
                         <svg class="w-3.5 h-3.5 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #c8bfbf;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
@@ -314,7 +314,7 @@
                         <!-- GS Brand header in dropdown -->
                         <div class="px-4 py-3" style="background: linear-gradient(135deg,#1a0a0d,#2e1318); border-radius: 14px 14px 0 0;">
                             <p class="text-xs font-bold text-white">{{ auth()->user()->name }}</p>
-                            <p class="text-[10px] mt-0.5" style="color: rgba(195,18,46,0.8);">{{ ucwords(str_replace('_', ' ', auth()->user()->getRoleNames()->first() ?? 'Super Admin')) }}</p>
+                            <p class="text-[10px] mt-0.5" style="color: rgba(195,18,46,0.8);">{{ auth()->user()->role_name }}</p>
                         </div>
                         <div class="p-1">
                             <a href="{{ route('profile.edit') }}" class="dropdown-item rounded-lg">

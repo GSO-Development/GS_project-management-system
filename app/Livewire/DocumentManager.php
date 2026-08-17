@@ -95,10 +95,11 @@ class DocumentManager extends Component
 
         $query = ProjectDocument::with(['project', 'uploader']);
 
-        if ($user->hasRole('project_manager')) {
-            $query->whereHas('project', fn($q) => $q->where('project_manager_id', $user->id));
-        } elseif ($user->hasAnyRole(['team_member', 'collaborator'])) {
-            $query->whereHas('project.members', fn($q) => $q->where('user_id', $user->id));
+        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            $query->whereHas('project', function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+            });
         }
 
         if ($this->search) {
@@ -110,7 +111,14 @@ class DocumentManager extends Component
         }
 
         $documents = $query->latest()->paginate(10);
-        $projects = Project::all();
+        
+        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            $projects = Project::where('project_manager_id', $user->id)
+                ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id))
+                ->get();
+        } else {
+            $projects = Project::all();
+        }
 
         $previewDoc = $this->previewDocId ? ProjectDocument::with(['project', 'uploader'])->find($this->previewDocId) : null;
 

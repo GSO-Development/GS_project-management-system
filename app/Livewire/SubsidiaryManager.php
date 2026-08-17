@@ -170,7 +170,7 @@ class SubsidiaryManager extends Component
     public function openCreateModal()
     {
         if (!$this->isAuthorized()) {
-            $this->dispatch('toast', message: 'Only Super Admins can add subsidiaries.', type: 'error');
+            $this->dispatch('toast', message: 'Only PMO Admins can add subsidiaries.', type: 'error');
             return;
         }
 
@@ -188,7 +188,7 @@ class SubsidiaryManager extends Component
     public function edit(Subsidiary $subsidiary)
     {
         if (!$this->isAuthorized()) {
-            $this->dispatch('toast', message: 'Only Super Admins can edit subsidiaries.', type: 'error');
+            $this->dispatch('toast', message: 'Only PMO Admins can edit subsidiaries.', type: 'error');
             return;
         }
 
@@ -209,7 +209,7 @@ class SubsidiaryManager extends Component
     public function save()
     {
         if (!$this->isAuthorized()) {
-            $this->dispatch('toast', message: 'Only Super Admins can save subsidiaries.', type: 'error');
+            $this->dispatch('toast', message: 'Only PMO Admins can save subsidiaries.', type: 'error');
             return;
         }
 
@@ -260,7 +260,7 @@ class SubsidiaryManager extends Component
     public function archive(int $id)
     {
         if (!$this->isAuthorized()) {
-            $this->dispatch('toast', message: 'Only Super Admins can archive subsidiaries.', type: 'error');
+            $this->dispatch('toast', message: 'Only PMO Admins can archive subsidiaries.', type: 'error');
             return;
         }
 

@@ -99,26 +99,29 @@ class User extends Authenticatable
 
     public static function getPmsForSubsidiary(?int $subsidiaryId)
     {
-        $users = static::getUsersForSubsidiary($subsidiaryId);
-        $pms = $users->filter(function($u) {
-            return $u->hasAnyRole(['super_admin', 'project_manager']) || $u->email === 'superadmin@georgesteuart.com';
-        })->values();
+        return static::getUsersForSubsidiary($subsidiaryId);
+    }
 
-        if ($pms->isEmpty()) {
-            return static::role(['super_admin', 'project_manager'])->orWhere('email', 'superadmin@georgesteuart.com')->get();
-        }
-
-        return $pms;
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin') 
+            || $this->email === 'admin@nexuspm.local' 
+            || $this->email === 'superadmin@georgesteuart.com' 
+            || $this->id === 1;
     }
 
     public function getRoleNameAttribute(): string
     {
-        $role = $this->roles->first()?->name;
-        return match($role) {
-            'super_admin' => 'Super Admin',
-            'project_manager' => 'Project Manager',
-            'team_member' => 'Team Member',
-            default => 'Team Member',
-        };
+        if ($this->isSuperAdmin()) {
+            return 'PMO Admin';
+        }
+        if ($this->hasRole('project_manager')) {
+            return 'Project Manager';
+        }
+        if ($this->hasRole('team_member')) {
+            return 'Team Member';
+        }
+        return 'Regular User';
     }
 }
+

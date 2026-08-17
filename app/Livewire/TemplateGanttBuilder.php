@@ -61,12 +61,21 @@ class TemplateGanttBuilder extends Component
         }
     }
 
+    protected function checkSuperAdmin()
+    {
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Only PMO Admins can configure or modify WBS templates.');
+        }
+    }
+
     public function generateTasks()
     {
+        $this->checkSuperAdmin();
         $this->validate([
-            'setupDuration' => 'required|integer|min:1|max:100',
+            'setupDuration' => 'required|integer|min:1|max:1000',
             'setupUnit' => 'required|in:days,weeks,months',
         ]);
+
 
         $this->tasks = [];
         $totalDays = (int) $this->setupDuration;
@@ -81,61 +90,93 @@ class TemplateGanttBuilder extends Component
     {
         $mainIndex = 1;
         $remainingDays = $totalDays;
-        $chunkSize = 1;
         
-        if ($this->setupUnit === 'weeks') {
+        if ($this->setupUnit === 'days') {
+            while ($remainingDays > 0) {
+                $mainId = 'temp_' . Str::random(8);
+                $this->tasks[] = [
+                    'id' => $mainId,
+                    'parent_id' => null,
+                    'name' => 'Day ' . $mainIndex,
+                    'duration' => 1,
+                    'unit' => 'days',
+                    'is_deleted' => false,
+                    'level' => 1,
+                    'is_expanded' => false
+                ];
+                $remainingDays--;
+                $mainIndex++;
+            }
+        } elseif ($this->setupUnit === 'weeks') {
             $chunkSize = 7;
+            while ($remainingDays > 0) {
+                $duration = min($remainingDays, $chunkSize);
+                $mainId = 'temp_' . Str::random(8);
+                $this->tasks[] = [
+                    'id' => $mainId,
+                    'parent_id' => null,
+                    'name' => 'Week ' . $mainIndex,
+                    'duration' => $duration,
+                    'unit' => 'days',
+                    'is_deleted' => false,
+                    'level' => 1,
+                    'is_expanded' => false
+                ];
+
+                if ($this->divideByDays) {
+                    $this->generateDaySubtasks($mainId, 'Week ' . $mainIndex, $duration, 2);
+                }
+
+                $remainingDays -= $duration;
+                $mainIndex++;
+            }
         } elseif ($this->setupUnit === 'months') {
             $chunkSize = 30;
-        }
+            while ($remainingDays > 0) {
+                $duration = min($remainingDays, $chunkSize);
+                $mainId = 'temp_' . Str::random(8);
+                $this->tasks[] = [
+                    'id' => $mainId,
+                    'parent_id' => null,
+                    'name' => 'Month ' . $mainIndex,
+                    'duration' => $duration,
+                    'unit' => 'days',
+                    'is_deleted' => false,
+                    'level' => 1,
+                    'is_expanded' => false
+                ];
 
-        while ($remainingDays > 0) {
-            $duration = min($remainingDays, $chunkSize);
-            
-            // Level 1 Task
-            $mainId = 'temp_' . Str::random(8);
-            $this->tasks[] = [
-                'id' => $mainId,
-                'parent_id' => null,
-                'name' => $mainIndex . '.0 Task ' . $mainIndex,
-                'duration' => $duration,
-                'unit' => $this->setupUnit,
-                'is_deleted' => false,
-                'level' => 1,
-                'is_expanded' => false
-            ];
+                if ($this->divideByWeeks) {
+                    $subWeekRemaining = $duration;
+                    $weekIndex = 1;
+                    while ($subWeekRemaining > 0) {
+                        $weekDuration = min($subWeekRemaining, 7);
+                        $subId = 'temp_' . Str::random(8);
+                        $this->tasks[] = [
+                            'id' => $subId,
+                            'parent_id' => $mainId,
+                            'name' => 'Month ' . $mainIndex . ' - Week ' . $weekIndex,
+                            'duration' => $weekDuration,
+                            'unit' => 'days',
+                            'is_deleted' => false,
+                            'level' => 2,
+                            'is_expanded' => false
+                        ];
 
-            // Subtasks
-            if ($this->setupUnit === 'months' && $this->divideByWeeks) {
-                $subWeekRemaining = $duration;
-                $weekIndex = 1;
-                while ($subWeekRemaining > 0) {
-                    $weekDuration = min($subWeekRemaining, 7);
-                    $subId = 'temp_' . Str::random(8);
-                    $this->tasks[] = [
-                        'id' => $subId,
-                        'parent_id' => $mainId,
-                        'name' => $mainIndex . '.' . $weekIndex . '.0 Week ' . $weekIndex,
-                        'duration' => $weekDuration,
-                        'unit' => 'weeks',
-                        'is_deleted' => false,
-                        'level' => 2,
-                        'is_expanded' => false
-                    ];
-                    
-                    if ($this->divideByDays) {
-                        $this->generateDaySubtasks($subId, $mainIndex . '.' . $weekIndex, $weekDuration, 3);
+                        if ($this->divideByDays) {
+                            $this->generateDaySubtasks($subId, 'M' . $mainIndex . 'W' . $weekIndex, $weekDuration, 3);
+                        }
+
+                        $subWeekRemaining -= $weekDuration;
+                        $weekIndex++;
                     }
-                    
-                    $subWeekRemaining -= $weekDuration;
-                    $weekIndex++;
+                } elseif ($this->divideByDays) {
+                    $this->generateDaySubtasks($mainId, 'Month ' . $mainIndex, $duration, 2);
                 }
-            } elseif (($this->setupUnit === 'months' || $this->setupUnit === 'weeks') && $this->divideByDays) {
-                $this->generateDaySubtasks($mainId, $mainIndex, $duration, 2);
-            }
 
-            $remainingDays -= $duration;
-            $mainIndex++;
+                $remainingDays -= $duration;
+                $mainIndex++;
+            }
         }
     }
 
@@ -177,6 +218,7 @@ class TemplateGanttBuilder extends Component
 
     public function saveTotalDays()
     {
+        $this->checkSuperAdmin();
         $this->validate([
             'editingTotalDaysValue' => 'required|numeric|min:1',
         ]);
@@ -291,6 +333,7 @@ class TemplateGanttBuilder extends Component
 
     public function editTask($taskId)
     {
+        $this->checkSuperAdmin();
         $task = collect($this->tasks)->firstWhere('id', $taskId);
         if ($task) {
             $this->editingTaskId = $taskId;
@@ -308,6 +351,7 @@ class TemplateGanttBuilder extends Component
 
     public function saveTaskEdit()
     {
+        $this->checkSuperAdmin();
         $this->validate([
             'editingName' => 'required|string',
             'editingNewDuration' => 'required|numeric|min:1',
@@ -350,6 +394,7 @@ class TemplateGanttBuilder extends Component
 
     public function deleteTask($taskId)
     {
+        $this->checkSuperAdmin();
         $taskIndex = collect($this->tasks)->search(fn($t) => $t['id'] === $taskId);
         if ($taskIndex === false) return;
         
@@ -392,6 +437,7 @@ class TemplateGanttBuilder extends Component
 
     public function addTask($taskId)
     {
+        $this->checkSuperAdmin();
         $taskIndex = collect($this->tasks)->search(fn($t) => $t['id'] === $taskId);
         if ($taskIndex === false) return;
         
@@ -421,6 +467,7 @@ class TemplateGanttBuilder extends Component
 
     public function saveGantt()
     {
+        $this->checkSuperAdmin();
         // Delete all existing tasks in DB for this template and recreate
         $this->template->tasks()->delete();
 

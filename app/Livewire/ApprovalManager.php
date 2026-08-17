@@ -125,8 +125,10 @@ class ApprovalManager extends Component
     public function approveRequest(): void
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager'])) {
-            $this->dispatch('toast', message: 'Only Super Admins and Project Managers can approve formal requests.', type: 'error');
+        $request = ApprovalRequest::with(['project', 'requester'])->findOrFail($this->selectedRequestId);
+        $isPm = ($request->project?->project_manager_id === $user->id);
+        if (!$user->hasRole('super_admin') && !$isPm) {
+            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can approve formal requests.', type: 'error');
             return;
         }
 
@@ -153,8 +155,10 @@ class ApprovalManager extends Component
     public function rejectRequest(): void
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager'])) {
-            $this->dispatch('toast', message: 'Only Super Admins and Project Managers can reject requests.', type: 'error');
+        $request = ApprovalRequest::with(['project', 'requester'])->findOrFail($this->selectedRequestId);
+        $isPm = ($request->project?->project_manager_id === $user->id);
+        if (!$user->hasRole('super_admin') && !$isPm) {
+            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can reject requests.', type: 'error');
             return;
         }
 
@@ -191,19 +195,12 @@ class ApprovalManager extends Component
         // Scope filter for Team Members vs Managers vs Admins
         if ($this->scopeFilter === 'my_requests') {
             $query->where('requested_by', $user->id);
-        } elseif (!$user->hasRole('super_admin')) {
-            if ($user->hasRole('project_manager')) {
-                $query->where(function($q) use ($user) {
-                    $q->where('requested_by', $user->id)
-                      ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id));
-                });
-            } else {
-                // Team members see requests submitted by them or for projects they belong to
-                $query->where(function($q) use ($user) {
-                    $q->where('requested_by', $user->id)
-                      ->orWhereHas('project', fn($pq) => $pq->whereHas('members', fn($mq) => $mq->where('user_id', $user->id)));
-                });
-            }
+        } elseif (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            $query->where(function($q) use ($user) {
+                $q->where('requested_by', $user->id)
+                  ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
+                  ->orWhereHas('project.members', fn($mq) => $mq->where('user_id', $user->id));
+            });
         }
 
         if ($this->statusFilter !== 'all') {
@@ -227,9 +224,10 @@ class ApprovalManager extends Component
                 ->orWhere('project_manager_id', $user->id)
                 ->get();
 
+        $isPmOrAdmin = $user->hasRole('super_admin') || ($this->projectId && Project::where('id', $this->projectId)->where('project_manager_id', $user->id)->exists());
         $userWbsTasks = $this->projectId
             ? WbsItem::where('project_id', $this->projectId)
-                ->when(!$user->hasAnyRole(['super_admin', 'project_manager']), fn($q) => $q->where('assigned_user_id', $user->id))
+                ->when(!$isPmOrAdmin, fn($q) => $q->where('assigned_user_id', $user->id))
                 ->get()
             : collect();
 

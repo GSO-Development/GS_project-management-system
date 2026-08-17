@@ -122,8 +122,8 @@
                 @foreach($teamTaskIssues as $item)
                     @php
                         $reporter = $item->delayReporter ?? $item->assignedUser;
-                        $roleLabel = $reporter?->hasRole('project_manager') ? 'Project Manager' : ($reporter?->hasRole('super_admin') ? 'Super Admin' : 'Team Member');
-                        $roleBadgeCls = $reporter?->hasRole('project_manager') ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+                        $roleLabel = $reporter?->hasRole('project_manager') ? 'Project Manager' : ($reporter?->hasRole('super_admin') ? 'PMO Admin' : 'Team Member');
+                        $roleBadgeCls = $reporter?->hasRole('project_manager') ? 'bg-purple-100 text-purple-800 border-purple-200' : ($reporter?->hasRole('super_admin') ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-blue-100 text-blue-800 border-blue-200');
                     @endphp
                     <div class="p-3.5 rounded-xl bg-white border border-amber-200 shadow-xs flex flex-col justify-between">
                         <div>

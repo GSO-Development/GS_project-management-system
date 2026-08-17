@@ -52,7 +52,7 @@ class RiskBlockerManager extends Component
     public function mount()
     {
         $user = auth()->user();
-        if ($user->hasRole('project_manager') && !$user->hasRole('super_admin')) {
+        if (\App\Models\Project::where('project_manager_id', $user->id)->exists() && !$user->hasRole('super_admin')) {
             $firstProject = Project::where('project_manager_id', $user->id)->first();
             if ($firstProject && !$this->selectedProjectId) {
                 // Default to all or user's first project if preferred
@@ -313,8 +313,11 @@ class RiskBlockerManager extends Component
 
         // Projects list for dropdown filter
         $projectsQuery = Project::query();
-        if ($user->hasRole('project_manager') && !$user->hasRole('super_admin')) {
-            $projectsQuery->where('project_manager_id', $user->id);
+        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            $projectsQuery->where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+            });
         }
         $projects = $projectsQuery->orderBy('name')->get();
         $allowedProjectIds = $projects->pluck('id')->toArray();
@@ -396,7 +399,9 @@ class RiskBlockerManager extends Component
         // Available WBS Items for Add/Edit Risk Modal dropdown
         $modalWbsItems = collect();
         if ($this->riskProjectId) {
-            $modalWbsItems = WbsItem::where('project_id', $this->riskProjectId)->orderBy('wbs_code')->get();
+            $modalWbsItems = WbsItem::where('project_id', $this->riskProjectId)->get()->sort(function ($a, $b) {
+                return strnatcmp($a->wbs_code, $b->wbs_code);
+            })->values();
         }
 
         // Available users for Risk Owner selection

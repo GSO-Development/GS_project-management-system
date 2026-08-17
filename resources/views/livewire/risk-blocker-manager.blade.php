@@ -1,48 +1,23 @@
 <div class="space-y-6 sm:space-y-8 pb-12">
-    <!-- 1. HERO TOP BANNER SECTION -->
-    <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 md:p-10 text-white shadow-2xl border border-rose-900/30 mb-6"
-         style="background: linear-gradient(135deg, #0f0507 0%, #20050a 35%, #4a0613 70%, #7a0b1d 100%);">
-        
-        <!-- Decorative Glow Orbs -->
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-rose-600/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
-            <div class="space-y-3 flex-1 min-w-0">
-                <!-- Badge Row -->
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500/20 border border-rose-400/30 text-rose-200 shadow-sm backdrop-blur-sm">
-                        <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
-                        Governance & Threat Command
-                    </span>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/15 border border-amber-400/20 backdrop-blur-sm">
-                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Real-time Assessment Matrix
-                    </span>
-                </div>
-
-                <!-- Main Title -->
-                <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-tight" style="color: #ffffff !important;">
-                    Risk & Blocker Management Hub
-                </h1>
-
-                <!-- Subtitle Description -->
-                <p class="text-xs sm:text-sm text-slate-300/90 leading-relaxed font-medium max-w-3xl">
-                    Centralized risk identification, probability-impact matrix assessment, mitigation tracking, and real-time execution blocker resolution across GS NexusPM projects.
-                </p>
-            </div>
-
-            <!-- Action Button Group -->
-            <div class="flex items-center gap-3 flex-shrink-0 self-start sm:self-auto">
-                <button
-                    wire:click="openAddRiskModal()"
-                    class="inline-flex items-center justify-center px-5 py-3.5 rounded-2xl text-xs sm:text-sm font-black text-white bg-gradient-to-r from-[#c3122e] via-[#b00e27] to-[#8b0d1f] hover:from-[#d91635] hover:to-[#9e0f24] shadow-xl shadow-[#c3122e]/40 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer gap-2 border border-rose-400/20 whitespace-nowrap"
-                >
-                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
-                    <span>Log Project Risk</span>
-                </button>
-            </div>
+    <!-- Redesigned Low-profile Breadcrumb Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 border-b border-slate-200">
+        <div>
+            <!-- Breadcrumbs -->
+            <nav class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition-colors">Dashboard</a>
+                <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-slate-600">Risks & Blockers</span>
+            </nav>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight" style="font-family: Georgia, 'Times New Roman', serif;">
+                Risks & Blockers Hub
+            </h1>
         </div>
+
+        <button wire:click="openAddRiskModal()"
+                class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-black text-white bg-slate-900 hover:bg-slate-800 shadow-2xs transition-all cursor-pointer gap-2 border border-slate-900 select-none">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+            <span>Log Project Risk</span>
+        </button>
     </div>
 
     <!-- 2. KPI SUMMARY METRICS -->
@@ -151,18 +126,18 @@
                     </div>
                     @php
                         $cellStyles = [
-                            'high_low' => 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100',
-                            'high_medium' => 'bg-orange-50 text-orange-900 border-orange-200 hover:bg-orange-100',
-                            'high_high' => 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200 font-black',
-                            'high_critical' => 'bg-[#fdf4f4] text-[#c3122e] border-[#f5c6cb] hover:bg-[#faeaea] font-black',
-                            'medium_low' => 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100',
-                            'medium_medium' => 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100',
-                            'medium_high' => 'bg-orange-50 text-orange-900 border-orange-200 hover:bg-orange-100',
-                            'medium_critical' => 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200 font-black',
-                            'low_low' => 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100',
-                            'low_medium' => 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100',
-                            'low_high' => 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100',
-                            'low_critical' => 'bg-orange-50 text-orange-900 border-orange-200 hover:bg-orange-100',
+                            'high_low' => 'bg-amber-50/50 hover:bg-amber-50 text-amber-900 border-amber-200',
+                            'high_medium' => 'bg-orange-50/50 hover:bg-orange-50 text-orange-950 border-orange-200',
+                            'high_high' => 'bg-rose-50/50 hover:bg-rose-50 text-rose-950 border-rose-200',
+                            'high_critical' => 'bg-red-50 hover:bg-red-100/70 text-[#c3122e] border-red-200',
+                            'medium_low' => 'bg-emerald-50/40 hover:bg-emerald-50/60 text-emerald-900 border-emerald-200',
+                            'medium_medium' => 'bg-amber-50/40 hover:bg-amber-50/60 text-amber-900 border-amber-200',
+                            'medium_high' => 'bg-orange-50/40 hover:bg-orange-50/60 text-orange-950 border-orange-200',
+                            'medium_critical' => 'bg-rose-50/50 hover:bg-rose-50 text-rose-950 border-rose-200',
+                            'low_low' => 'bg-slate-50/50 hover:bg-slate-50 text-slate-800 border-slate-200',
+                            'low_medium' => 'bg-emerald-50/40 hover:bg-emerald-50/60 text-emerald-900 border-emerald-200',
+                            'low_high' => 'bg-amber-50/40 hover:bg-amber-50/60 text-amber-900 border-amber-200',
+                            'low_critical' => 'bg-orange-50/40 hover:bg-orange-50/60 text-orange-950 border-orange-200',
                         ];
                     @endphp
 
@@ -174,10 +149,10 @@
                         @endphp
                         <button
                             wire:click="filterMatrixCell('high', '{{ $imp }}')"
-                            class="p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-1 {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-4 ring-[#c3122e] scale-95 shadow-md' : '' }}"
+                            class="p-4 rounded-xl border flex flex-col items-center justify-center gap-1 select-none transition-all duration-200 hover:scale-102 hover:shadow-3xs cursor-pointer {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-2 ring-slate-800 ring-offset-2 scale-98 shadow-xs' : '' }}"
                         >
-                            <span class="text-xl font-black">{{ $cnt }}</span>
-                            <span class="text-[10px] font-bold opacity-80 uppercase">Score: {{ 3 * ($loop->index + 1) }}</span>
+                            <span class="text-lg font-black leading-none">{{ $cnt }}</span>
+                            <span class="text-[9px] font-bold opacity-60 uppercase">Score: {{ 3 * ($loop->index + 1) }}</span>
                         </button>
                     @endforeach
 
@@ -193,10 +168,10 @@
                         @endphp
                         <button
                             wire:click="filterMatrixCell('medium', '{{ $imp }}')"
-                            class="p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-1 {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-4 ring-[#c3122e] scale-95 shadow-md' : '' }}"
+                            class="p-4 rounded-xl border flex flex-col items-center justify-center gap-1 select-none transition-all duration-200 hover:scale-102 hover:shadow-3xs cursor-pointer {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-2 ring-slate-800 ring-offset-2 scale-98 shadow-xs' : '' }}"
                         >
-                            <span class="text-xl font-black">{{ $cnt }}</span>
-                            <span class="text-[10px] font-bold opacity-80 uppercase">Score: {{ 2 * ($loop->index + 1) }}</span>
+                            <span class="text-lg font-black leading-none">{{ $cnt }}</span>
+                            <span class="text-[9px] font-bold opacity-60 uppercase">Score: {{ 2 * ($loop->index + 1) }}</span>
                         </button>
                     @endforeach
 
@@ -212,10 +187,10 @@
                         @endphp
                         <button
                             wire:click="filterMatrixCell('low', '{{ $imp }}')"
-                            class="p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-1 {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-4 ring-[#c3122e] scale-95 shadow-md' : '' }}"
+                            class="p-4 rounded-xl border flex flex-col items-center justify-center gap-1 select-none transition-all duration-200 hover:scale-102 hover:shadow-3xs cursor-pointer {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-2 ring-slate-800 ring-offset-2 scale-98 shadow-xs' : '' }}"
                         >
-                            <span class="text-xl font-black">{{ $cnt }}</span>
-                            <span class="text-[10px] font-bold opacity-80 uppercase">Score: {{ 1 * ($loop->index + 1) }}</span>
+                            <span class="text-lg font-black leading-none">{{ $cnt }}</span>
+                            <span class="text-[9px] font-bold opacity-60 uppercase">Score: {{ 1 * ($loop->index + 1) }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -522,9 +497,9 @@
     <!-- 1. ADD RISK MODAL -->
     @if($showAddRiskModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" wire:click="$set('showAddRiskModal', false)"></div>
+            <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-md" wire:click="$set('showAddRiskModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 border border-slate-200/90 z-10 overflow-y-auto max-h-[90vh]">
+            <div class="relative bg-white/95 backdrop-blur-xl border border-white/20 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 z-10 overflow-y-auto max-h-[90vh]">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-black">
@@ -650,9 +625,9 @@
     <!-- 2. EDIT RISK MODAL -->
     @if($showEditRiskModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" wire:click="$set('showEditRiskModal', false)"></div>
+            <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-md" wire:click="$set('showEditRiskModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 border border-slate-200/90 z-10 overflow-y-auto max-h-[90vh]">
+            <div class="relative bg-white/95 backdrop-blur-xl border border-white/20 rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 z-10 overflow-y-auto max-h-[90vh]">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-black">
@@ -770,9 +745,9 @@
     <!-- 3. RESOLVE BLOCKER MODAL -->
     @if($showResolveBlockerModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" wire:click="$set('showResolveBlockerModal', false)"></div>
+            <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-md" wire:click="$set('showResolveBlockerModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200/90 z-10">
+            <div class="relative bg-white/95 backdrop-blur-xl border border-white/20 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 z-10">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center font-black">

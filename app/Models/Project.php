@@ -64,7 +64,7 @@ class Project extends Model
             ->count() + 1;
 
         $code = "{$prefix}-PRJ-" . sprintf('%03d', $count);
-        while (static::where('code', $code)->exists()) {
+        while (static::withTrashed()->where('code', $code)->exists()) {
             $count++;
             $code = "{$prefix}-PRJ-" . sprintf('%03d', $count);
         }

@@ -11,8 +11,12 @@ class ProgressCalculationService
     /**
      * Recalculates progress for a WBS item and bubbles up through all ancestor levels to the Project.
      */
-    public function updateItemProgress(WbsItem $item, string $method = 'weighted'): void
+    public function updateItemProgress(WbsItem $item, ?string $method = null): void
     {
+        if (is_null($method)) {
+            $method = \App\Models\SystemSetting::where('key', 'wbs_calculation_method')->value('value') ?? 'weighted';
+        }
+
         DB::transaction(function () use ($item, $method) {
             // Recalculate up to root
             $current = $item->parent_id ? WbsItem::find($item->parent_id) : null;
@@ -36,8 +40,8 @@ class ProgressCalculationService
                         }
 
                         $calculatedProgress = $totalWeight > 0
-                            ? (int) round($totalWeightedProgress / $totalWeight)
-                            : 0;
+                             ? (int) round($totalWeightedProgress / $totalWeight)
+                             : 0;
                     }
 
                     $current->progress = max(0, min(100, $calculatedProgress));
@@ -55,8 +59,12 @@ class ProgressCalculationService
     /**
      * Recalculates overall project progress from top-level WBS items.
      */
-    public function updateProjectOverallProgress(int $projectId, string $method = 'weighted'): void
+    public function updateProjectOverallProgress(int $projectId, ?string $method = null): void
     {
+        if (is_null($method)) {
+            $method = \App\Models\SystemSetting::where('key', 'wbs_calculation_method')->value('value') ?? 'weighted';
+        }
+
         $project = Project::find($projectId);
         if (!$project) return;
 

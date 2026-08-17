@@ -77,9 +77,11 @@ class WbsTree extends Component
         if ($parentId) {
             $parentTask = WbsItem::find($parentId);
             $this->assigned_user_id = $parentTask->assigned_user_id ?? auth()->id();
+            $this->start_date = $parentTask->start_date ? $parentTask->start_date->toDateString() : ($this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString());
             $this->end_date = $parentTask->end_date ? $parentTask->end_date->toDateString() : null;
         } else {
             $this->assigned_user_id = auth()->id();
+            $this->start_date = $this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString();
         }
 
         $this->updateDefaultTitle();
@@ -174,6 +176,7 @@ class WbsTree extends Component
 
         $this->showItemModal = false;
         $this->dispatch('toast', message: 'WBS item saved successfully!', type: 'success');
+        $this->dispatch('wbsUpdated');
     }
 
     public function updateItemStatus(int $itemId, string $status)
@@ -202,6 +205,7 @@ class WbsTree extends Component
         (new ProgressCalculationService())->updateItemProgress($item);
 
         $this->dispatch('toast', message: 'Status updated to ' . $statusEnum->label(), type: 'success');
+        $this->dispatch('wbsUpdated');
     }
 
     public function updateLeafProgress(int $itemId, int $newProgress)
@@ -225,6 +229,7 @@ class WbsTree extends Component
         (new ProgressCalculationService())->updateItemProgress($item);
 
         $this->dispatch('toast', message: 'Progress updated & recalculated!', type: 'success');
+        $this->dispatch('wbsUpdated');
     }
 
     public function deleteItem(int $id)
@@ -238,6 +243,7 @@ class WbsTree extends Component
         (new ProgressCalculationService())->updateProjectOverallProgress($this->project->id);
 
         $this->dispatch('toast', message: 'WBS item deleted successfully.', type: 'success');
+        $this->dispatch('wbsUpdated');
     }
 
     private function deleteItemRecursive(WbsItem $item)
@@ -273,6 +279,7 @@ class WbsTree extends Component
 
             $this->showDepModal = false;
             $this->dispatch('toast', message: 'Task dependency added successfully!', type: 'success');
+            $this->dispatch('wbsUpdated');
         } catch (InvalidArgumentException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
@@ -284,6 +291,7 @@ class WbsTree extends Component
         if ($dep) {
             $dep->delete();
             $this->dispatch('toast', message: 'Dependency removed.', type: 'success');
+            $this->dispatch('wbsUpdated');
         }
     }
 

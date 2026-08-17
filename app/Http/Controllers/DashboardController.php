@@ -15,7 +15,7 @@ class DashboardController extends Controller
             return view('dashboard.super-admin');
         }
 
-        if ($user->hasRole('project_manager')) {
+        if (\App\Models\Project::where('project_manager_id', $user->id)->exists()) {
             return view('dashboard.project-manager');
         }
 
