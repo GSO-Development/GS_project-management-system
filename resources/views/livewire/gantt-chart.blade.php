@@ -17,58 +17,55 @@
     hideTooltip() { this.tooltip.visible = false; }
 }">
 
-    <!-- ===== GANTT TOOLBAR & CONTROLS ===== -->
-    <div class="card mb-6 p-4 bg-white border border-slate-200 shadow-xs">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#f0dada] flex items-center justify-center text-[#c3122e] flex-shrink-0 shadow-xs">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    <!-- ===== GANTT HERO CARD CONTAINER ===== -->
+    <div class="card p-0 overflow-hidden shadow-xs border border-slate-200/90 bg-white rounded-2xl mb-6">
+        <!-- Top Toolbar & Legend -->
+        <div class="p-4 sm:px-5 bg-gradient-to-r from-slate-50/70 via-white to-slate-50/70 border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Left: Timeline Title & Legend Pills -->
+            <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
+                        <span class="text-[#c3122e]">📊</span> Project Timeline
+                    </span>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-extrabold text-slate-900 text-base tracking-tight">Interactive Gantt Schedule</h3>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fdf4f4] text-[#c3122e] border border-[#f0dada]">
-                            {{ $timelineStart->format('M d') }} &rarr; {{ $timelineEnd->format('M d, Y') }}
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-0.5">Hover any row to see full task details</p>
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50/90 text-[#c3122e] border border-rose-200/90 flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span> In Progress
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50/80 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50/80 text-amber-700 border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Planned
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50/80 text-[#c3122e] border border-rose-200/80 flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-2 h-2 bg-[#c3122e] rotate-45"></span> Milestone
+                    </span>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="relative w-44">
+            <!-- Right: Search & View Controls -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <div class="relative w-44 sm:w-56">
                     <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search tasks..."
-                           class="w-full text-xs rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e] outline-none">
+                           class="w-full text-xs font-medium rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 outline-none bg-white shadow-2xs transition-all">
                     <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-                <select wire:model.live="statusFilter" class="text-xs rounded-xl border border-slate-200 px-3 py-1.5 bg-white text-slate-700 font-medium focus:border-[#c3122e] outline-none">
-                    <option value="all">All Statuses</option>
-                    <option value="not_started">Not Started</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="under_review">Under Review</option>
-                    <option value="completed">Completed</option>
-                    <option value="blocked">Blocked</option>
-                </select>
-                <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 gap-1">
-                    <button wire:click="setTimeframe('day')"   class="px-3 py-1 rounded-lg text-xs font-bold transition-all {{ $timeframe === 'day'   ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Day</button>
-                    <button wire:click="setTimeframe('week')"  class="px-3 py-1 rounded-lg text-xs font-bold transition-all {{ $timeframe === 'week'  ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Week</button>
-                    <button wire:click="setTimeframe('month')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all {{ $timeframe === 'month' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Month</button>
+
+                <div class="inline-flex p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 gap-1 shadow-2xs">
+                    <button wire:click="setTimeframe('day')"   class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'day'   ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Day</button>
+                    <button wire:click="setTimeframe('week')"  class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'week'  ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Week</button>
+                    <button wire:click="setTimeframe('month')" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'month' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Month</button>
+                </div>
+
+                <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+                    <button wire:click="goToPrevious" class="px-2.5 py-1.5 text-slate-600 hover:bg-slate-50 border-r border-slate-200 text-xs font-bold cursor-pointer transition-colors" title="Previous Range">‹</button>
+                    <button wire:click="goToNext" class="px-2.5 py-1.5 text-slate-600 hover:bg-slate-50 border-r border-slate-200 text-xs font-bold cursor-pointer transition-colors" title="Next Range">›</button>
+                    <button wire:click="goToToday" class="px-3 py-1.5 text-slate-700 hover:bg-slate-50 text-xs font-extrabold cursor-pointer transition-colors" title="Go to Today">Today</button>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-600">
-            <span class="font-bold text-slate-700">Legend:</span>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#1a0a0d] inline-block border border-slate-700"></span> Phase</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#c3122e] inline-block"></span> In Progress</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-600 inline-block"></span> Completed</div>
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#c3122e] rotate-45 inline-block border border-white"></span> Milestone</div>
-            <div class="flex items-center gap-1.5 ml-auto"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> Today Line</div>
-        </div>
-    </div>
-
-    <!-- ===== GANTT CHART CONTAINER ===== -->
-    <div class="card p-0 overflow-hidden shadow-xs border border-slate-200/80 bg-white">
         <div class="overflow-x-auto scrollbar-thin">
             {{-- Outer wrapper is exactly: 280px title col + totalCanvasPx --}}
             <div style="min-width: {{ 280 + $totalCanvasPx }}px;" class="flex flex-col">
@@ -77,13 +74,13 @@
                 <div class="bg-slate-50 border-b border-slate-200 flex flex-col flex-shrink-0">
 
                     <!-- Top: Month headers -->
-                    <div class="flex items-stretch border-b border-slate-200/80 text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-                        <div class="flex-shrink-0 border-r border-slate-200 bg-slate-100/80 text-slate-600 flex items-center px-2.5 py-2" style="width:280px;">
-                            WBS Task Breakdown
+                    <div class="flex items-stretch border-b border-slate-200/80 text-[11px] font-black text-slate-700 uppercase tracking-wider">
+                        <div class="flex-shrink-0 border-r border-slate-200 bg-slate-100/90 text-slate-700 flex items-center px-3.5 py-2.5" style="width:280px;">
+                            WORK BREAKDOWN
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($monthHeaders as $mHead)
-                                <div class="text-center border-r border-slate-200 font-bold text-slate-700 bg-slate-100/50 py-2 px-1 truncate"
+                                <div class="text-center border-r border-slate-200 font-black text-slate-700 bg-slate-100/60 py-2.5 px-1 truncate"
                                      style="width:{{ $mHead['pxWidth'] }}px; flex-shrink:0;">
                                     {{ $mHead['label'] }}
                                 </div>
@@ -92,16 +89,16 @@
                     </div>
 
                     <!-- Bottom: Sub-column (day/week/month) headers -->
-                    <div class="flex items-stretch text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        <div class="border-r border-slate-200 flex items-center px-2.5 py-2" style="width:280px; flex-shrink:0;">
-                            Title &amp; Code
+                    <div class="flex items-stretch text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <div class="border-r border-slate-200 flex items-center px-3.5 py-2 bg-slate-50" style="width:280px; flex-shrink:0;">
+                            Phase &amp; Task Name
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($columns as $col)
                                 <div class="text-center border-r border-slate-200 py-1.5 px-1 flex-shrink-0
-                                        {{ ($col['isToday'] ?? false) || ($col['isCurrent'] ?? false) ? 'bg-[#fdf4f4] text-[#c3122e] font-extrabold' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/60' : '') }}"
+                                        {{ ($col['isToday'] ?? false) || ($col['isCurrent'] ?? false) ? 'bg-[#fdf4f4] text-[#c3122e] font-black' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/60' : '') }}"
                                      style="width:{{ $col['px'] }}px;">
-                                    <div class="text-[11px] leading-none">{{ $col['label'] }}</div>
+                                    <div class="text-[11px] leading-none font-bold">{{ $col['label'] }}</div>
                                     <div class="text-[9px] font-mono text-slate-400 mt-0.5">{{ $col['sublabel'] }}</div>
                                 </div>
                             @endforeach
@@ -109,10 +106,17 @@
                     </div>
                 </div>
 
-                <!-- 2. GANTT ROWS -->
-                <div class="relative divide-y divide-slate-100">
+                <!-- 2. GANTT ROWS & TIMELINE CANVAS -->
+                <div class="relative divide-y divide-slate-100/80">
 
-                    @forelse($wbsItems as $item)
+                    <!-- Continuous Single Full-Height Today Laser Line across all rows -->
+                    @if(!is_null($todayPx))
+                        <div class="absolute top-0 bottom-0 z-30 pointer-events-none" style="left:{{ 280 + $todayPx }}px; width:2px; background:linear-gradient(to bottom, #c3122e, #f43f5e);">
+                            <div class="w-3 h-3 rounded-full -translate-x-[5px] -mt-1 shadow-md border-2 border-white" style="background:#c3122e;"></div>
+                        </div>
+                    @endif
+
+                    @forelse($wbsItems as $index => $item)
                         @php
                             /* ── resolve dates ── */
                             $itemStart = $item->start_date
@@ -131,7 +135,7 @@
 
                             $barLeft  = round($dayToPx[$startDayOff], 2);
                             $barRight = round($dayToPx[$endDayOff],   2);
-                            $barWidth = max(6, $barRight - $barLeft);   // min 6px so bar is always visible
+                            $barWidth = max(24, $barRight - $barLeft);   // min 24px
 
                             /* ── indent level ── */
                             $levelIndent = match($item->item_type->value) {
@@ -139,6 +143,22 @@
                                 'task'         => 2,
                                 'subtask'      => 3,
                                 default        => 0,
+                            };
+
+                            /* ── 100% Reliable Inline CSS Gradient Themes for Phases & Items ── */
+                            $phaseStyles = [
+                                ['bg' => 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #6366f1 100%)', 'border' => '#60a5fa', 'shadow' => 'rgba(59, 130, 246, 0.4)'],
+                                ['bg' => 'linear-gradient(135deg, #9f1239 0%, #c3122e 50%, #f43f5e 100%)', 'border' => '#fb7185', 'shadow' => 'rgba(195, 18, 46, 0.4)'],
+                                ['bg' => 'linear-gradient(135deg, #065f46 0%, #0d9488 50%, #06b6d4 100%)', 'border' => '#2dd4bf', 'shadow' => 'rgba(13, 148, 136, 0.4)'],
+                                ['bg' => 'linear-gradient(135deg, #b45309 0%, #ea580c 50%, #f97316 100%)', 'border' => '#fb923c', 'shadow' => 'rgba(234, 88, 12, 0.4)'],
+                                ['bg' => 'linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #d946ef 100%)', 'border' => '#c084fc', 'shadow' => 'rgba(124, 58, 237, 0.4)'],
+                            ];
+                            $pStyle = $phaseStyles[$index % count($phaseStyles)];
+
+                            $taskStyle = match($item->status->value) {
+                                'completed' => ['bg' => 'linear-gradient(135deg, #047857 0%, #10b981 100%)', 'border' => '#34d399', 'shadow' => 'rgba(16, 185, 129, 0.35)'],
+                                'in_progress' => ['bg' => 'linear-gradient(135deg, #c3122e 0%, #fb7185 100%)', 'border' => '#fda4af', 'shadow' => 'rgba(195, 18, 46, 0.35)'],
+                                default => ['bg' => 'linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #38bdf8 100%)', 'border' => '#818cf8', 'shadow' => 'rgba(79, 70, 229, 0.35)'],
                             };
 
                             /* ── tooltip data ── */
@@ -158,14 +178,14 @@
                             ], JSON_HEX_APOS | JSON_HEX_QUOT);
                         @endphp
 
-                        <div class="flex items-center hover:bg-[#fdf4f4]/30 transition-colors py-1.5 text-xs cursor-default">
+                        <div class="flex items-center hover:bg-slate-50/90 transition-colors py-2.5 text-xs cursor-default">
 
                             <!-- Left: WBS Title Column (fixed 280px) -->
-                            <div class="border-r border-slate-100 flex-shrink-0 flex items-center overflow-hidden px-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                            <div class="border-r border-slate-100 flex-shrink-0 flex items-center overflow-hidden px-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
                                  style="width:280px;"
                                  @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                  @mouseleave="hideTooltip()">
-                                <div style="padding-left: {{ $levelIndent * 0.75 }}rem;" class="flex items-center gap-1.5 min-w-0 w-full">
+                                <div style="padding-left: {{ $levelIndent * 0.75 }}rem;" class="flex items-center gap-2 min-w-0 w-full">
                                     @if($item->children->isNotEmpty())
                                         @php $isCollapsed = in_array($item->id, $collapsedIds); @endphp
                                         <button type="button"
@@ -177,60 +197,68 @@
                                             </svg>
                                         </button>
                                     @else
-                                        <span class="w-4 flex-shrink-0 inline-block"></span>
+                                        <span class="w-3.5 flex-shrink-0 inline-block text-slate-300 text-center font-bold">›</span>
                                     @endif
-                                    <span class="font-mono text-[11px] font-bold text-[#c3122e] flex-shrink-0">{{ $item->wbs_code }}</span>
-                                    <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-extrabold text-slate-900 text-xs uppercase tracking-tight' : 'font-semibold' }}">
+
+                                    @if($item->item_type->value === 'phase')
+                                        <span class="text-amber-500 text-sm flex-shrink-0">📁</span>
+                                    @endif
+
+                                    <span class="font-mono text-[11px] font-black text-[#c3122e] flex-shrink-0">{{ $item->wbs_code }}</span>
+
+                                    <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-black text-slate-900 text-xs' : 'font-semibold' }}">
                                         {{ $item->title }}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Right: Timeline canvas (exact totalCanvasPx wide) -->
-                            <div class="relative flex-shrink-0" style="width:{{ $totalCanvasPx }}px; height:28px;">
+                            <div class="relative flex-shrink-0 h-9 flex items-center" style="width:{{ $totalCanvasPx }}px;">
 
-                                <!-- Grid column lines (background) -->
+                                <!-- Grid column lines (subtle background) -->
                                 @php $lineLeft = 0; @endphp
                                 @foreach($columns as $col)
-                                    <div class="absolute top-0 bottom-0 border-r border-slate-100 {{ ($col['isWeekend'] ?? false) ? 'bg-slate-50/50' : '' }}"
+                                    <div class="absolute top-0 bottom-0 border-r border-slate-100/60 {{ ($col['isWeekend'] ?? false) ? 'bg-slate-50/50' : '' }}"
                                          style="left:{{ $lineLeft }}px; width:{{ $col['px'] }}px;"></div>
                                     @php $lineLeft += $col['px']; @endphp
                                 @endforeach
 
-                                <!-- Today line -->
-                                @if(!is_null($todayPx))
-                                    <div class="absolute top-0 bottom-0 z-20 pointer-events-none" style="left:{{ $todayPx }}px; width:2px; background:#f43f5e;">
-                                        <div class="w-2.5 h-2.5 rounded-full -translate-x-[4px] -mt-0.5 shadow-xs border border-white" style="background:#e11d48;"></div>
-                                    </div>
-                                @endif
-
                                 @if($item->is_milestone)
-                                    <!-- Milestone diamond -->
-                                    <div class="absolute top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10"
+                                    <!-- Milestone 3D Diamond -->
+                                    <div class="absolute top-1/2 -translate-y-1/2 flex items-center gap-2 z-20"
                                          style="left:{{ $barLeft }}px;">
-                                        <div class="w-4 h-4 bg-[#c3122e] rotate-45 border-2 border-white shadow-md flex-shrink-0"></div>
-                                        <span class="text-[10px] font-bold text-[#a00e24] whitespace-nowrap bg-white/95 px-2 py-0.5 rounded-md shadow-xs border border-[#f0dada]">{{ $item->title }}</span>
+                                        <div class="w-5 h-5 bg-gradient-to-br from-[#c3122e] via-rose-600 to-amber-500 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-rose-200"></div>
+                                        <span class="text-[11px] font-black text-[#c3122e] whitespace-nowrap bg-white/95 px-2.5 py-0.5 rounded-lg shadow-sm border border-rose-200">
+                                            ◆ {{ $item->title }}
+                                        </span>
                                     </div>
 
                                 @elseif($item->item_type->value === 'phase')
-                                    <!-- Phase bar -->
-                                    <div class="absolute top-1 bottom-1 rounded-lg bg-[#1a0a0d] border border-slate-700 shadow-xs flex items-center overflow-hidden z-10"
-                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px;">
-                                        <div class="h-full bg-gradient-to-r from-[#c3122e] to-[#b8860b] rounded-lg" style="width:{{ $item->progress }}%"></div>
-                                        <span class="absolute inset-0 flex items-center px-2.5 text-[10px] font-extrabold text-white truncate">
-                                            {{ $item->wbs_code }} {{ $item->title }} ({{ $item->progress }}%)
+                                    <!-- Phase bar: 100% Vibrant Solid Gradient Pill with Glossy Highlight -->
+                                    <div class="absolute h-7 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-110 transition-all cursor-pointer shadow-md"
+                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $pStyle['bg'] }}; border:1px solid {{ $pStyle['border'] }}; box-shadow: 0 4px 14px {{ $pStyle['shadow'] }};">
+                                        <!-- Top gloss highlight -->
+                                        <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 rounded-t-full pointer-events-none"></div>
+                                        @if($item->progress > 0)
+                                            <div class="h-full bg-black/20 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
+                                        @endif
+                                        <span class="absolute inset-0 flex items-center px-3.5 text-[11px] font-black text-white truncate drop-shadow-sm tracking-wide">
+                                            📁 {{ $item->title }} ({{ $item->progress }}%)
                                         </span>
                                     </div>
 
                                 @else
-                                    <!-- Task / Subtask bar -->
-                                    <div class="absolute top-1 bottom-1 rounded-lg shadow-xs flex items-center overflow-hidden border z-10
-                                            {{ $item->status->value === 'completed' ? 'bg-emerald-50 border-emerald-300' : 'bg-[#fdf4f4] border-[#f0dada]' }}"
-                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px;">
-                                        <div class="h-full rounded-md {{ $item->status->value === 'completed' ? 'bg-emerald-600' : 'bg-[#c3122e]' }}" style="width:{{ $item->progress }}%"></div>
-                                        <span class="absolute inset-0 flex items-center px-2 text-[10px] font-bold truncate {{ $item->progress > 35 ? 'text-white' : 'text-slate-800' }}">
+                                    <!-- Task / Subtask bar: 100% Vibrant Solid Gradient Pill -->
+                                    <div class="absolute h-6 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-105 transition-all cursor-pointer shadow-sm"
+                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $taskStyle['bg'] }}; border:1px solid {{ $taskStyle['border'] }}; box-shadow: 0 2px 10px {{ $taskStyle['shadow'] }};">
+                                        <!-- Top gloss -->
+                                        <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 rounded-t-full pointer-events-none"></div>
+                                        @if($item->progress > 0)
+                                            <div class="h-full bg-black/20 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
+                                        @endif
+                                        <span class="absolute inset-0 flex items-center px-3 text-[10px] font-black truncate text-white drop-shadow-xs">
                                             @if($item->status->value === 'completed') ✓ {{ $item->title }} (100%)
-                                            @else {{ $item->progress }}%
+                                            @else {{ $item->title }} ({{ $item->progress }}%)
                                             @endif
                                         </span>
                                     </div>
@@ -239,7 +267,7 @@
                         </div>
 
                     @empty
-                        <div class="text-center py-12 text-slate-400 text-xs">No WBS items matching your filter.</div>
+                        <div class="text-center py-12 text-slate-400 text-xs font-semibold">No WBS items matching your filter.</div>
                     @endforelse
 
                 </div>

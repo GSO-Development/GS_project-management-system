@@ -58,6 +58,21 @@ class NotificationManager extends Component
         $this->dispatch('toast', message: 'Cleared all read notifications.', type: 'info');
     }
 
+    public function acceptProjectAssignment(string $notificationId, int $projectId)
+    {
+        $user = auth()->user();
+        $notification = $user->notifications()->where('id', $notificationId)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+
+        $project = \App\Models\Project::findOrFail($projectId);
+        $project->acceptByPm($user);
+
+        $this->dispatch('toast', message: "🎉 Project '{$project->name}' leadership accepted successfully!", type: 'success');
+        return redirect()->route('projects.show', $project->id);
+    }
+
     public function seedSampleNotifications(): void
     {
         $user = auth()->user();
@@ -170,7 +185,7 @@ class NotificationManager extends Component
             if ($cat) return $cat;
 
             $msg = strtolower($n->data['message'] ?? $n->data['title'] ?? '');
-            if (str_contains($msg, 'approval') || str_contains($msg, 'baseline') || str_contains($msg, 'request')) {
+            if (str_contains($msg, 'approval') || str_contains($msg, 'baseline') || str_contains($msg, 'request') || str_contains($msg, 'assignment') || str_contains($msg, 'declined') || str_contains($msg, 'accepted') || str_contains($msg, 'designated')) {
                 return 'approvals';
             }
             if (str_contains($msg, 'completed') || str_contains($msg, 'done') || str_contains($msg, 'finished') || str_contains($msg, 'milestone')) {

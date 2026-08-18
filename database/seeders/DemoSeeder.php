@@ -100,7 +100,7 @@ class DemoSeeder extends Seeder
         //    This is the only pre-seeded user.
         //    All real users will log in via Microsoft Azure SSO.
         // -------------------------------------------------------
-        $gssSub = Subsidiary::where('code', 'GSS')->first();
+        $gsoptSub = Subsidiary::where('code', 'GSOPT')->first() ?? Subsidiary::first();
 
         $admin = User::firstOrCreate(
             ['email' => 'superadmin@georgesteuart.com'],
@@ -108,7 +108,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'password' => Hash::make('Password@123'),
                 'phone_number' => '+94 11 234 5678',
-                'subsidiary_id' => $gssSub?->id,
+                'subsidiary_id' => $gsoptSub?->id,
                 'is_active' => true,
                 'must_change_password' => false,
                 'email_verified_at' => now(),

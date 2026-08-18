@@ -54,6 +54,11 @@ class ApprovalRequest extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(ApprovalDocument::class);

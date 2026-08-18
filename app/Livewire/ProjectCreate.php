@@ -19,6 +19,9 @@ class ProjectCreate extends Component
 {
     use WithFileUploads;
 
+    // Step Wizard state
+    public int $currentStep = 1;
+
     public string $code = '';
     public string $name = '';
     public ?string $description = null;
@@ -27,7 +30,9 @@ class ProjectCreate extends Component
     public array $selected_participant_ids = [];
     public ?string $start_date = null;
     public ?string $deadline = null;
+    public string $leaderSearch = '';
     public string $participantSearch = '';
+    public string $templateSearch = '';
 
     // Breakdown Method Properties
     public string $creation_option = 'template'; // 'template' or 'manual'
@@ -43,6 +48,7 @@ class ProjectCreate extends Component
 
     public function mount()
     {
+        $this->currentStep = 1;
         $this->start_date = now()->format('Y-m-d');
         $this->deadline = null;
 
@@ -51,14 +57,49 @@ class ProjectCreate extends Component
             $this->subsidiary_id = $firstSub->id;
         }
 
-        $this->autoSelectPmAndParticipants();
+        $this->project_manager_id = null;
+        $this->selected_participant_ids = [];
+
+        $firstTpl = \App\Models\ProjectTemplate::first();
+        if ($firstTpl) {
+            $this->selected_template_id = $firstTpl->id;
+        }
+
         $this->generateCode();
+        $this->calculateTemplateDeadline();
+    }
+
+    public function nextStep(): void
+    {
+        if ($this->currentStep === 1) {
+            $this->validate([
+                'subsidiary_id' => 'required|exists:subsidiaries,id',
+                'name'          => 'required|string|max:255',
+            ]);
+        }
+
+        if ($this->currentStep === 2) {
+            $this->validate([
+                'project_manager_id' => 'required|exists:users,id',
+            ]);
+        }
+
+        if ($this->currentStep < 3) {
+            $this->currentStep++;
+        }
+    }
+
+    public function prevStep(): void
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
     }
 
     public function updatedCreationOption($value)
     {
         if ($value === 'manual') {
-            $this->showManualDatesModal = true;
+            $this->showManualDatesModal = false;
             if (!$this->start_date) {
                 $this->start_date = now()->format('Y-m-d');
             }
@@ -67,8 +108,52 @@ class ProjectCreate extends Component
             }
         } else {
             $this->showManualDatesModal = false;
+            if (!$this->selected_template_id) {
+                $firstTpl = \App\Models\ProjectTemplate::first();
+                if ($firstTpl) $this->selected_template_id = $firstTpl->id;
+            }
             $this->calculateTemplateDeadline();
         }
+    }
+
+    public function selectBlankCanvas(): void
+    {
+        $this->creation_option = 'manual';
+        $this->selected_template_id = null;
+        $this->calculatedDeadline = null;
+        if (!$this->start_date) {
+            $this->start_date = now()->format('Y-m-d');
+        }
+        if (!$this->deadline) {
+            $this->deadline = now()->addMonths(3)->format('Y-m-d');
+        }
+    }
+
+    public function selectTemplate(int $templateId): void
+    {
+        $this->creation_option = 'template';
+        $this->selected_template_id = $templateId;
+        $this->calculateTemplateDeadline();
+    }
+
+    public function setQuickStartDate(string $preset): void
+    {
+        if ($preset === 'today') {
+            $this->start_date = now()->format('Y-m-d');
+        } elseif ($preset === 'next_monday') {
+            $this->start_date = now()->next(\Carbon\Carbon::MONDAY)->format('Y-m-d');
+        } elseif ($preset === 'next_month') {
+            $this->start_date = now()->addMonth()->startOfMonth()->format('Y-m-d');
+        }
+        $this->calculateTemplateDeadline();
+    }
+
+    public function setManualDuration(int $months): void
+    {
+        if (!$this->start_date) {
+            $this->start_date = now()->format('Y-m-d');
+        }
+        $this->deadline = \Carbon\Carbon::parse($this->start_date)->addMonths($months)->format('Y-m-d');
     }
 
     public function updatedSelectedTemplateId()
@@ -132,19 +217,14 @@ class ProjectCreate extends Component
 
     public function autoSelectPmAndParticipants()
     {
-        if (!$this->subsidiary_id) return;
-
-        // Auto select Project Manager for the selected Subsidiary
-        $pms = User::getPmsForSubsidiary($this->subsidiary_id);
-        if ($pms->count() > 0) {
-            $this->project_manager_id = $pms->first()->id;
-        } else {
-            $firstPm = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin'))->first() ?? User::where('is_active', true)->first();
-            $this->project_manager_id = $firstPm?->id;
-        }
-
-        // Do not auto select participants (keep unchecked as requested by the user)
+        // Do not auto select Project Leader or participants - leave empty until user selects
+        $this->project_manager_id = null;
         $this->selected_participant_ids = [];
+    }
+
+    public function selectLeader(int $userId): void
+    {
+        $this->project_manager_id = $userId;
     }
 
     public function generateCode()
@@ -202,6 +282,13 @@ class ProjectCreate extends Component
         $this->dispatch('toast', message: 'Charter file parsed and pre-filled successfully!', type: 'success');
     }
 
+    public function clearCharter(): void
+    {
+        $this->charterFile = null;
+        $this->extractedData = null;
+        $this->rawTextPreview = null;
+    }
+
     public function save()
     {
         if (empty($this->code) || Project::withTrashed()->where('code', $this->code)->exists()) {
@@ -243,12 +330,16 @@ class ProjectCreate extends Component
             $this->calculateTemplateDeadline();
         }
 
+        $isSelfAssigned = (auth()->id() == $this->project_manager_id);
+
         $project = Project::create([
             'code' => strtoupper($this->code),
             'name' => $this->name,
             'description' => $this->description,
             'subsidiary_id' => $this->subsidiary_id,
             'project_manager_id' => $this->project_manager_id,
+            'pm_accepted' => $isSelfAssigned,
+            'pm_accepted_at' => $isSelfAssigned ? now() : null,
             'created_by' => auth()->id(),
             'priority' => Priority::MEDIUM,
             'status' => ProjectStatus::PLANNING,
@@ -256,6 +347,7 @@ class ProjectCreate extends Component
             'deadline' => $this->deadline ?: null,
             'estimated_budget' => 0,
             'wbs_breakdown_type' => $this->creation_option,
+            'template_id' => ($this->creation_option === 'template') ? $this->selected_template_id : null,
             'health' => ProjectHealth::ON_TRACK,
         ]);
 
@@ -291,17 +383,43 @@ class ProjectCreate extends Component
             'user_agent'  => request()->userAgent(),
         ]);
 
-        // Send project assignment emails to all assigned members
+        // Register official Project Leadership Approval Request for the designated PM
+        if (!$isSelfAssigned) {
+            \App\Models\ApprovalRequest::create([
+                'project_id' => $project->id,
+                'request_type' => \App\Enums\ApprovalType::NEW_PROJECT_PLAN,
+                'requested_by' => auth()->id(),
+                'current_value' => null,
+                'requested_value' => [
+                    'project_name' => $project->name,
+                    'project_code' => $project->code,
+                    'assigned_pm_id' => $project->project_manager_id,
+                    'start_date' => $project->start_date?->toDateString(),
+                    'deadline' => $project->deadline?->toDateString(),
+                    'template_name' => $project->template?->name ?? ($this->creation_option === 'template' ? 'Standard Blueprint' : 'Custom Agile WBS'),
+                ],
+                'reason' => "PMO Administration has assigned you as Project Leader for '{$project->name}' ({$project->code}). Review project details & blueprint to accept leadership.",
+                'status' => \App\Enums\ApprovalStatus::PENDING,
+                'submitted_at' => now(),
+            ]);
+        }
+
+        // Send project assignment emails and in-app database notifications to all assigned members
         try {
             $assignedUsers = User::whereIn('id', array_keys($syncData))->get();
             foreach ($assignedUsers as $assignedUser) {
                 $memberRole = $syncData[$assignedUser->id]['role'] ?? 'member';
+
+                // In-App Database Notification
+                $assignedUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, $memberRole));
+
+                // External SMTP Email Notification
                 Mail::to($assignedUser->email)
                     ->send(new ProjectAssignedMail($project, $assignedUser, $memberRole));
             }
         } catch (\Throwable $e) {
-            // Log mail error but never block project creation
-            \Log::error('ProjectAssignedMail failed: ' . $e->getMessage());
+            // Log mail/notification error but never block project creation
+            \Log::error('ProjectAssignedNotification / Mail failed: ' . $e->getMessage());
         }
 
         session()->flash('message', 'Project initialized successfully!');
@@ -400,10 +518,23 @@ class ProjectCreate extends Component
     {
         $subsidiaries = Subsidiary::all();
         $currentSub = $this->subsidiary_id ? Subsidiary::find($this->subsidiary_id) : null;
-
-        $pms = $this->subsidiary_id ? User::getPmsForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
+        $allPms = $this->subsidiary_id ? User::getPmsForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
         $allParticipants = $this->subsidiary_id ? User::getUsersForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
-        $templates = \App\Models\ProjectTemplate::all();
+        $allTemplates = \App\Models\ProjectTemplate::all();
+
+        // Filter Leaders by search query (name, email, or subsidiary)
+        $lSearch = trim($this->leaderSearch);
+        if ($lSearch !== '') {
+            $lowerLSearch = strtolower($lSearch);
+            $pms = $allPms->filter(function ($user) use ($lowerLSearch) {
+                return str_contains(strtolower($user->name), $lowerLSearch)
+                    || str_contains(strtolower($user->email), $lowerLSearch)
+                    || str_contains(strtolower($user->subsidiary->code ?? ''), $lowerLSearch)
+                    || str_contains(strtolower($user->subsidiary->name ?? ''), $lowerLSearch);
+            })->values();
+        } else {
+            $pms = $allPms;
+        }
 
         // Filter participants by search query (name or email)
         $search = trim($this->participantSearch);
@@ -411,12 +542,26 @@ class ProjectCreate extends Component
             $lowerSearch = strtolower($search);
             $participants = $allParticipants->filter(function ($user) use ($lowerSearch) {
                 return str_contains(strtolower($user->name), $lowerSearch)
-                    || str_contains(strtolower($user->email), $lowerSearch);
+                    || str_contains(strtolower($user->email), $lowerSearch)
+                    || str_contains(strtolower($user->subsidiary->code ?? ''), $lowerSearch)
+                    || str_contains(strtolower($user->subsidiary->name ?? ''), $lowerSearch);
             })->values();
         } else {
             $participants = $allParticipants;
         }
 
-        return view('livewire.project-create', compact('subsidiaries', 'currentSub', 'pms', 'participants', 'allParticipants', 'templates'));
+        // Filter templates by search query
+        $tSearch = trim($this->templateSearch);
+        if ($tSearch !== '') {
+            $lowerTSearch = strtolower($tSearch);
+            $templates = $allTemplates->filter(function ($tpl) use ($lowerTSearch) {
+                return str_contains(strtolower($tpl->name), $lowerTSearch)
+                    || str_contains(strtolower($tpl->description ?? ''), $lowerTSearch);
+            })->values();
+        } else {
+            $templates = $allTemplates;
+        }
+
+        return view('livewire.project-create', compact('subsidiaries', 'currentSub', 'pms', 'allPms', 'participants', 'allParticipants', 'templates', 'allTemplates'));
     }
 }

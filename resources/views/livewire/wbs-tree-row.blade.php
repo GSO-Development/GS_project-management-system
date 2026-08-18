@@ -3,6 +3,7 @@
 @php
     $isSubTask = ($level > 1) || !empty($item->parent_id);
     $hasChildren = $item->children && $item->children->count() > 0;
+    $isCollapsed = in_array($item->id, $collapsedIds);
 
     $wbsCode = (string)($item->wbs_code ?: '1');
 
@@ -20,24 +21,31 @@
     }
 @endphp
 
-<tr class="border-b border-slate-100 hover:bg-[#fdf4f4]/40 transition-colors {{ $isSubTask ? 'bg-slate-50/40' : '' }}">
+<tr class="border-b border-slate-100 hover:bg-[#fdf4f4]/40 transition-colors {{ $isSubTask ? 'bg-slate-50/50' : 'bg-white' }}">
     <!-- 1. TASK NUMBER (#) -->
-    <td class="py-4 pl-6 pr-4 font-mono text-xs font-black text-[#c3122e] whitespace-nowrap align-middle">
+    <td class="py-4 pl-6 pr-4 font-mono text-xs font-black whitespace-nowrap align-middle">
         @if($isSubTask)
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
-                ↳ {{ $taskOrdinalLabel }}
+            <span class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200/90 shadow-2xs inline-flex items-center gap-1">
+                <span>↳</span>
+                <span>{{ $taskOrdinalLabel }}</span>
             </span>
         @else
-            <span>{{ $taskOrdinalLabel }}</span>
+            <span class="text-[#c3122e] font-black text-xs">{{ $taskOrdinalLabel }}</span>
         @endif
     </td>
 
     <!-- 2. TASK NAME -->
-    <td class="py-4 px-4 align-middle min-w-[220px]" style="padding-left: {{ ($level - 1) * 24 + 16 }}px">
-        <div class="flex items-center gap-2">
+    <td class="py-4 px-4 align-middle min-w-[240px]" style="padding-left: {{ ($level - 1) * 24 + 16 }}px">
+        <div class="flex items-center gap-2 flex-wrap">
             @if($hasChildren)
-                <button wire:click="toggleCollapse({{ $item->id }})" type="button" class="w-5 h-5 rounded bg-slate-100 text-slate-700 hover:bg-[#c3122e] hover:text-white font-bold text-[10px] flex items-center justify-center transition-all cursor-pointer shadow-2xs">
-                    {{ in_array($item->id, $collapsedIds) ? '▶' : '▼' }}
+                <button 
+                    wire:click="toggleCollapse({{ $item->id }})" 
+                    type="button" 
+                    class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-[#c3122e] hover:text-white text-slate-700 font-extrabold text-[11px] flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs border border-slate-200"
+                    title="{{ $isCollapsed ? 'Click to expand subtasks' : 'Click to collapse subtasks' }}"
+                >
+                    <span class="text-[10px]">{{ $isCollapsed ? '▶' : '▼' }}</span>
+                    <span class="text-[10px] font-bold font-sans">{{ $item->children->count() }} Subtasks</span>
                 </button>
             @endif
 
@@ -45,49 +53,86 @@
                 <span class="text-slate-400 font-bold text-xs">↳</span>
             @endif
 
-            <span class="text-xs font-extrabold text-slate-900">
+            <span class="text-xs font-black text-slate-900 {{ !$isSubTask ? 'text-sm' : '' }}">
                 {{ $item->title }}
             </span>
 
             @if($isSubTask)
-                <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">Sub-task</span>
+                <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">Sub-task</span>
             @endif
         </div>
     </td>
 
-    <!-- 3. DEADLINE -->
-    <td class="py-4 px-4 text-xs text-slate-700 font-mono align-middle whitespace-nowrap">
-        @if($item->end_date)
-            <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-extrabold border border-slate-200/90 text-slate-800 flex items-center gap-1.5 w-fit">
-                <span>📅</span>
-                <span>{{ $item->end_date->format('M d, Y') }}</span>
+    <!-- 3. START DATE -->
+    <td class="py-4 px-4 text-xs font-mono align-middle whitespace-nowrap">
+        @if($item->start_date)
+            @php
+                $isStartedOrPast = $item->start_date->lte(now()->today());
+            @endphp
+            <span class="px-2.5 py-1 rounded-lg {{ $isStartedOrPast ? 'bg-emerald-50 font-black text-emerald-800 border border-emerald-200/90' : 'bg-slate-100 font-extrabold text-slate-800 border border-slate-200/90' }} flex items-center gap-1.5 w-fit shadow-2xs">
+                <span>🚀</span>
+                <span>{{ $item->start_date->format('M d, Y') }}</span>
             </span>
+        @else
+            <span class="text-slate-400 font-normal italic">No start date</span>
+        @endif
+    </td>
+
+    <!-- 4. DEADLINE -->
+    <td class="py-4 px-4 text-xs font-mono align-middle whitespace-nowrap">
+        @if($item->end_date)
+            @php
+                $isOverdue = $item->end_date->lt(now()->today()) && $item->status->value !== 'completed';
+            @endphp
+            @if($isOverdue)
+                <div class="flex flex-col gap-1">
+                    <span class="px-2.5 py-1 rounded-lg bg-rose-50 font-black border border-rose-200 text-rose-700 flex items-center gap-1.5 w-fit shadow-2xs">
+                        <span>📅</span>
+                        <span>{{ $item->end_date->format('M d, Y') }}</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-[#c3122e] text-white tracking-wider uppercase w-fit shadow-2xs flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                        <span>Deadline Over</span>
+                    </span>
+                </div>
+            @else
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-extrabold border border-slate-200/90 text-slate-800 flex items-center gap-1.5 w-fit">
+                    <span>📅</span>
+                    <span>{{ $item->end_date->format('M d, Y') }}</span>
+                </span>
+            @endif
         @else
             <span class="text-slate-400 font-normal italic">No deadline set</span>
         @endif
     </td>
 
-    <!-- 4. STATUS (Interactive Dropdown) -->
+    <!-- 4. STATUS (Interactive 3-Option Dropdown: Incomplete, In Progress, Completed) -->
     <td class="py-4 px-4 align-middle whitespace-nowrap">
-        <select
-            wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
-            class="text-[11px] font-extrabold rounded-xl px-3 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c3122e]/30 transition-all shadow-2xs
-                {{ match($item->status->value) {
-                    'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                    'in_progress' => 'bg-[#fdf8e8] text-[#8a6508] border-[#f0e0a0]',
-                    'blocked' => 'bg-rose-50 text-rose-700 border-rose-200',
-                    'under_review' => 'bg-amber-50 text-amber-700 border-amber-200',
-                    'on_hold' => 'bg-slate-100 text-slate-700 border-slate-200',
-                    default => 'bg-slate-50 text-slate-600 border-slate-200',
-                } }}"
-            title="Update Task Status"
-        >
-            @foreach(\App\Enums\WbsStatus::cases() as $st)
-                <option value="{{ $st->value }}" @selected($item->status->value === $st->value) class="bg-white text-slate-900 font-medium">
-                    {{ $st->label() }}
+        @php
+            $isOverdue = $item->end_date && $item->end_date->lt(now()->today()) && $item->status->value !== 'completed';
+        @endphp
+        <div class="flex flex-col gap-1">
+            <select
+                wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
+                class="text-[11px] font-extrabold rounded-xl px-3 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c3122e]/30 transition-all shadow-2xs
+                    {{ match($item->status->value) {
+                        'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        'in_progress' => 'bg-[#fdf8e8] text-[#8a6508] border-[#f0e0a0]',
+                        default => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-50 text-slate-600 border-slate-200'),
+                    } }}"
+                title="Update Task Status"
+            >
+                <option value="not_started" @selected($item->status->value === 'not_started' || $item->status->value === 'backlog' || $item->status->value === 'on_hold') class="bg-white text-slate-900 font-medium">
+                    Incomplete
                 </option>
-            @endforeach
-        </select>
+                <option value="in_progress" @selected($item->status->value === 'in_progress' || $item->status->value === 'under_review' || $item->status->value === 'blocked') class="bg-white text-slate-900 font-medium">
+                    In Progress
+                </option>
+                <option value="completed" @selected($item->status->value === 'completed') class="bg-white text-slate-900 font-medium">
+                    Completed
+                </option>
+            </select>
+        </div>
     </td>
 
     <!-- 5. ASSIGNED USER -->
@@ -129,7 +174,7 @@
     </td>
 </tr>
 
-@if(!in_array($item->id, $collapsedIds))
+@if(!$isCollapsed)
     @foreach($item->children as $child)
         @include('livewire.wbs-tree-row', ['item' => $child, 'level' => $level + 1, 'collapsedIds' => $collapsedIds])
     @endforeach

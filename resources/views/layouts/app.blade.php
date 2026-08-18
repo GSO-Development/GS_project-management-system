@@ -7,10 +7,10 @@
     <title>{{ $title ?? 'Projects' }} — {{ $appName }}</title>
     <meta name="description" content="George Steuart Group — Enterprise Project Management">
 
-    <!-- Google Fonts: Inter + Playfair Display -->
+    <!-- Google Fonts: Inter + Plus Jakarta Sans + Outfit + Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -51,17 +51,22 @@
 
             @php
                 $user = auth()->user();
-                $isSuperAdmin = $user->hasRole('super_admin');
-                $isPM = $user->hasRole('project_manager');
-                // Dynamic pending approval count & unread notifications count
+                $isSuperAdmin = $user ? ($user->hasRole('super_admin') || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
+                $isPM = $user ? $user->hasRole('project_manager') : false;
+
+                // Accurate dynamic pending approval count matching Approvals Hub
                 $pendingApprovalsCount = 0;
-                if ($isSuperAdmin || $isPM) {
-                    $pendingApprovalsCount = \App\Models\ApprovalRequest::where('status', 'pending')
-                        ->when($isPM && !$isSuperAdmin, function($q) use ($user) {
-                            $pmProjectIds = \App\Models\Project::where('project_manager_id', $user->id)->pluck('id');
-                            $q->whereIn('project_id', $pmProjectIds);
-                        })
-                        ->count();
+                if ($user) {
+                    if ($isSuperAdmin) {
+                        $pendingApprovalsCount = \App\Models\ApprovalRequest::where('status', 'pending')->count();
+                    } else {
+                        $pendingApprovalsCount = \App\Models\ApprovalRequest::where('status', 'pending')
+                            ->where(function($q) use ($user) {
+                                $q->where('requested_by', $user->id)
+                                  ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id));
+                            })
+                            ->count();
+                    }
                 }
                 $unreadNotificationsCount = $user ? $user->unreadNotifications()->count() : 0;
                 $openRisksAndBlockersCount = \App\Models\ProjectRisk::where('status', 'open')->count() + \App\Models\TaskBlocker::where('status', '!=', 'resolved')->count();
@@ -84,7 +89,22 @@
                 <span x-show="!sidebarCollapsed" class="truncate">Dashboard</span>
             </a>
 
-            <!-- Projects Dropdown -->
+            {{-- Projects Navigation --}}
+            @php
+                // Compute lead/collab counts for badge display (for non-admin users)
+                $myLeadCount = 0;
+                $myCollabCount = 0;
+                if (!$isSuperAdmin) {
+                    $myLeadCount = \App\Models\Project::where('project_manager_id', $user->id)->count();
+                    $myCollabCount = \App\Models\Project::whereHas('members', fn($q) => $q
+                        ->where('user_id', $user->id)
+                        ->where('role', 'member')
+                    )->where('project_manager_id', '!=', $user->id)->count();
+                }
+            @endphp
+
+            @if($isSuperAdmin)
+            {{-- PMO Admin: Manage All Projects + Templates dropdown --}}
             <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
                 <button @click="open = !open" type="button" class="{{ $navItem(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full justify-between" style="{{ $navStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}" @if(!(request()->routeIs('projects.*') || request()->routeIs('templates.*'))) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
                     <div class="flex items-center gap-3">
@@ -96,10 +116,46 @@
                     </svg>
                 </button>
                 <div x-show="open && !sidebarCollapsed" x-collapse class="mt-1 space-y-1 pl-9 pr-2">
-                    <a href="{{ route('projects.index') }}" class="block px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('projects.*') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">Manage Projects</a>
+                    <a href="{{ route('projects.index') }}" class="block px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('projects.index') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">Manage All Projects</a>
                     <a href="{{ route('templates.index') }}" class="block px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('templates.*') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">Manage Templates</a>
                 </div>
             </div>
+            @else
+            {{-- Regular User: Lead Projects & Collaborator Projects dropdown --}}
+            <div x-data="{ open: {{ request()->routeIs('projects.*') ? 'true' : 'false' }} }" class="relative">
+                <button @click="open = !open" type="button" class="{{ $navItem(request()->routeIs('projects.*')) }} w-full justify-between" style="{{ $navStyle(request()->routeIs('projects.*')) }}" @if(!request()->routeIs('projects.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <span x-show="!sidebarCollapsed" class="truncate">Projects</span>
+                    </div>
+                    <svg x-show="!sidebarCollapsed" :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open && !sidebarCollapsed" x-collapse class="mt-1 space-y-0.5 pl-9 pr-2">
+                    {{-- Lead Projects sub-link with count badge --}}
+                    <a href="{{ route('projects.my-leads') }}" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('projects.my-leads') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                            Lead Projects
+                        </span>
+                        @if($myLeadCount > 0)
+                            <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black" style="background:#c3122e; color:#fff;">{{ $myLeadCount }}</span>
+                        @endif
+                    </a>
+                    {{-- Collaborator Projects sub-link with count badge --}}
+                    <a href="{{ route('projects.my-collaborations') }}" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('projects.my-collaborations') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Collaborator Projects
+                        </span>
+                        @if($myCollabCount > 0)
+                            <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-600 text-white">{{ $myCollabCount }}</span>
+                        @endif
+                    </a>
+                </div>
+            </div>
+            @endif
 
             <!-- My Tasks -->
             <a href="{{ route('my-tasks.index') }}" class="{{ $navItem(request()->routeIs('my-tasks.*')) }}" style="{{ $navStyle(request()->routeIs('my-tasks.*')) }}" @if(!request()->routeIs('my-tasks.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
@@ -117,6 +173,28 @@
             <a href="{{ route('calendar.index') }}" class="{{ $navItem(request()->routeIs('calendar.*')) }}" style="{{ $navStyle(request()->routeIs('calendar.*')) }}" @if(!request()->routeIs('calendar.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 <span x-show="!sidebarCollapsed" class="truncate">Calendar</span>
+            </a>
+
+            <!-- Approvals Hub -->
+            <a href="{{ route('approvals.index') }}" class="{{ $navItem(request()->routeIs('approvals.*')) }} justify-between" style="{{ $navStyle(request()->routeIs('approvals.*')) }}" @if(!request()->routeIs('approvals.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
+                <div class="flex items-center gap-3 min-w-0">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span x-show="!sidebarCollapsed" class="truncate">Approvals Hub</span>
+                </div>
+                @if($pendingApprovalsCount > 0)
+                <span x-show="!sidebarCollapsed" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#c3122e;">{{ $pendingApprovalsCount }}</span>
+                @endif
+            </a>
+
+            <!-- Risks & Blockers -->
+            <a href="{{ route('risks.index') }}" class="{{ $navItem(request()->routeIs('risks.*')) }} justify-between" style="{{ $navStyle(request()->routeIs('risks.*')) }}" @if(!request()->routeIs('risks.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
+                <div class="flex items-center gap-3 min-w-0">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span x-show="!sidebarCollapsed" class="truncate">Risks &amp; Blockers</span>
+                </div>
+                @if($openRisksAndBlockersCount > 0)
+                <span x-show="!sidebarCollapsed" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#d97706;">{{ $openRisksAndBlockersCount }}</span>
+                @endif
             </a>
 
             <!-- Subsidiaries (SA only) -->
@@ -140,27 +218,7 @@
             </a>
             @endif
 
-            <!-- Approvals -->
-            <a href="{{ route('approvals.index') }}" class="{{ $navItem(request()->routeIs('approvals.*')) }} justify-between" style="{{ $navStyle(request()->routeIs('approvals.*')) }}" @if(!request()->routeIs('approvals.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
-                <div class="flex items-center gap-3 min-w-0">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span x-show="!sidebarCollapsed" class="truncate">Approvals</span>
-                </div>
-                @if($pendingApprovalsCount > 0)
-                <span x-show="!sidebarCollapsed" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#c3122e;">{{ $pendingApprovalsCount }}</span>
-                @endif
-            </a>
 
-            <!-- Risks & Blockers -->
-            <a href="{{ route('risks.index') }}" class="{{ $navItem(request()->routeIs('risks.*')) }} justify-between" style="{{ $navStyle(request()->routeIs('risks.*')) }}" @if(!request()->routeIs('risks.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
-                <div class="flex items-center gap-3 min-w-0">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span x-show="!sidebarCollapsed" class="truncate">Risks & Blockers</span>
-                </div>
-                @if(($openRisksAndBlockersCount ?? 0) > 0)
-                <span x-show="!sidebarCollapsed" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#c3122e;">{{ $openRisksAndBlockersCount }}</span>
-                @endif
-            </a>
 
             <!-- Reports -->
             @if($isSuperAdmin || $isPM)
@@ -248,16 +306,54 @@
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
 
-                <nav class="hidden md:flex items-center gap-2 text-xs font-semibold" style="color: #706565;">
-                    <a href="{{ route('projects.index') }}" class="font-bold transition-colors" style="color: #c3122e;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">Projects</a>
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #c8bfbf;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    <span style="color: #2b2525;">All Projects</span>
+                <nav class="hidden md:flex items-center gap-2 text-xs font-semibold">
+                    @if(request()->routeIs('dashboard*'))
+                        <span class="font-bold text-[#c3122e]">Workspace</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Executive Dashboard</span>
+                    @elseif(request()->routeIs('approvals*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Approval Workflows</span>
+                    @elseif(request()->routeIs('my-tasks*'))
+                        <span class="font-bold text-[#c3122e]">Execution</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">My Tasks</span>
+                    @elseif(request()->routeIs('daily-updates*'))
+                        <span class="font-bold text-[#c3122e]">Execution</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Daily Updates</span>
+                    @elseif(request()->routeIs('calendar*'))
+                        <span class="font-bold text-[#c3122e]">Planning</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Corporate Calendar</span>
+                    @elseif(request()->routeIs('risks-blockers*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Risks &amp; Blockers</span>
+                    @elseif(request()->routeIs('projects.create'))
+                        <a href="{{ route('projects.index') }}" class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Create Project</span>
+                    @elseif(request()->routeIs('projects.my-leads'))
+                        <a href="{{ route('projects.index') }}" class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Lead Projects</span>
+                    @elseif(request()->routeIs('projects.my-collaborations'))
+                        <a href="{{ route('projects.index') }}" class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Collaborator Projects</span>
+                    @else
+                        <a href="{{ route('projects.index') }}" class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">All Projects</span>
+                    @endif
                 </nav>
             </div>
 
             <!-- Center Search -->
             <div x-data="{ searchOpen: false }" class="relative flex-1 max-w-md mx-4 hidden sm:block">
-                <button @click="searchOpen = !searchOpen" class="w-full flex items-center justify-between gap-2 rounded-xl px-3.5 py-2 text-xs text-left transition-all" style="border: 1px solid #e9e4e4; background: #faf9f9; color: #9c9090; box-shadow: 0 1px 4px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#c3122e'; this.style.background='#fff';" onmouseout="this.style.borderColor='#e9e4e4'; this.style.background='#faf9f9';">
+                <button @click="searchOpen = !searchOpen" data-search-trigger class="w-full flex items-center justify-between gap-2 rounded-xl px-3.5 py-2 text-xs text-left transition-all cursor-pointer" style="border: 1px solid #e9e4e4; background: #faf9f9; color: #9c9090; box-shadow: 0 1px 4px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#c3122e'; this.style.background='#fff';" onmouseout="this.style.borderColor='#e9e4e4'; this.style.background='#faf9f9';">
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span>Search projects, codes, managers...</span>
@@ -270,7 +366,67 @@
             </div>
 
             <!-- Right Actions -->
-            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+                
+                <!-- ⚡ Universal Quick Actions Dropdown -->
+                <div x-data="{ quickActionOpen: false }" class="relative">
+                    <button 
+                        @click="quickActionOpen = !quickActionOpen" 
+                        type="button" 
+                        class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-[#c3122e] to-[#a00e24] hover:from-[#a00e24] hover:to-[#800a1d] shadow-sm shadow-rose-900/20 hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        title="Quick Actions (1-Click Shortcuts)"
+                    >
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span class="hidden sm:inline">Quick Action</span>
+                        <svg class="w-3 h-3 transition-transform text-rose-200" :class="{ 'rotate-180': quickActionOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div 
+                        x-show="quickActionOpen" 
+                        @click.away="quickActionOpen = false"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                        class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 p-1.5 z-50 overflow-hidden space-y-0.5"
+                    >
+                        <div class="px-3 py-2 border-b border-slate-100">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">1-Click Shortcuts</p>
+                        </div>
+
+                        @if($isSuperAdmin || $isPM)
+                            <a href="{{ route('projects.create') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
+                                <span class="w-6 h-6 rounded-lg bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center text-xs">🚀</span>
+                                <span>Create New Project</span>
+                            </a>
+                        @endif
+
+                        <a href="{{ route('daily-updates.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
+                            <span class="w-6 h-6 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center text-xs">💬</span>
+                            <span>Post Daily Status</span>
+                        </a>
+
+                        <a href="{{ route('my-tasks.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
+                            <span class="w-6 h-6 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-xs">✅</span>
+                            <span>My Tasks Workspace</span>
+                        </a>
+
+                        <a href="{{ route('approvals.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-xs">🛡️</span>
+                            <span>Formal Approvals</span>
+                        </a>
+
+                        <a href="{{ route('calendar.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
+                            <span class="w-6 h-6 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center text-xs">📅</span>
+                            <span>Corporate Calendar</span>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Mobile Search Button -->
                 <div x-data="{ mobileSearchOpen: false }" class="sm:hidden relative">
                     <button @click="mobileSearchOpen = !mobileSearchOpen" class="p-2 rounded-xl text-slate-600 hover:text-[#c3122e] hover:bg-rose-50 transition-all" title="Search">
@@ -413,6 +569,22 @@
     window.nexusConfirm = function(title, message, confirmText = 'Delete') {
         return Alpine.store ? Alpine.$data(document.getElementById('confirm-modal')).open(title, message, confirmText) : Promise.resolve(confirm(message));
     };
+
+    // Global Command Palette / Search Hotkey (Cmd+K / Ctrl+K)
+    window.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            const searchBtn = document.querySelector('[data-search-trigger]') || document.querySelector('header button[class*="search"]');
+            if (searchBtn) {
+                searchBtn.click();
+            } else {
+                const globalSearchInput = document.querySelector('#global-search-input') || document.querySelector('input[placeholder*="Search"]');
+                if (globalSearchInput) {
+                    globalSearchInput.focus();
+                }
+            }
+        }
+    });
     </script>
 </body>
 </html>

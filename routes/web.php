@@ -9,7 +9,10 @@ use App\Livewire\AuditLogViewer;
 use App\Livewire\CalendarView;
 use App\Livewire\DocumentManager;
 use App\Livewire\MyTasks;
+use App\Livewire\MyLeadProjects;
+use App\Livewire\MyCollaboratorProjects;
 use App\Livewire\NotificationManager;
+use App\Livewire\PmTeamMembers;
 use App\Livewire\ProjectIndex;
 use App\Livewire\ProjectWorkspace;
 use App\Livewire\ReportViewer;
@@ -17,14 +20,7 @@ use App\Livewire\RiskBlockerManager;
 use App\Livewire\SettingsManager;
 use App\Livewire\SubsidiaryManager;
 use App\Livewire\UserManager;
-use App\Livewire\PmTeamMembers;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes - NexusPM Enterprise Application
-|--------------------------------------------------------------------------
-*/
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -41,11 +37,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Projects Directory & Workspace
     Route::get('/projects', ProjectIndex::class)->name('projects.index');
     Route::get('/projects/create', \App\Livewire\ProjectCreate::class)->name('projects.create');
+
+    // User-facing sub-pages: My Lead Projects & My Collaborator Projects
+    Route::get('/projects/my-leads', MyLeadProjects::class)->name('projects.my-leads');
+    Route::get('/projects/my-collaborations', MyCollaboratorProjects::class)->name('projects.my-collaborations');
+
     Route::get('/projects/{project}', ProjectWorkspace::class)->name('projects.show');
-    
-    // Templates
-    Route::get('/templates', \App\Livewire\ManageTemplates::class)->name('templates.index');
-    Route::get('/templates/{template}/manage', \App\Livewire\TemplateGanttBuilder::class)->name('templates.manage');
 
     // My Tasks (Team Member & PM task workspace)
     Route::get('/my-tasks', MyTasks::class)->name('my-tasks.index');
@@ -77,15 +74,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/team-members', PmTeamMembers::class)->name('team-members.index');
     });
 
-    // Super Admin Only Governance Routes
+    // Super Admin / PMO Admin Only Governance Routes
     Route::middleware(['role:super_admin'])->group(function () {
+        // Templates (PMO Admin Only)
+        Route::get('/templates', \App\Livewire\ManageTemplates::class)->name('templates.index');
+        Route::get('/templates/{template}/manage', \App\Livewire\TemplateGanttBuilder::class)->name('templates.manage');
+
         Route::get('/team-monitor', \App\Livewire\TeamMonitor::class)->name('team-monitor.index');
         Route::get('/subsidiaries', SubsidiaryManager::class)->name('subsidiaries.index');
         Route::get('/users', UserManager::class)->name('users.index');
         Route::get('/audit-logs', AuditLogViewer::class)->name('audit-logs.index');
         Route::get('/settings', SettingsManager::class)->name('settings.index');
     });
-
 
     // Profile Settings
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

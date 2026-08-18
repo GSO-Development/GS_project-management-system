@@ -23,9 +23,16 @@ class ProjectIndex extends Component
     public string $priorityFilter = 'all';
     public string $healthFilter = 'all';
     public int $perPage = 10;
+    public bool $showMoreFilters = false;
 
     public bool $showModal = false;
     public ?int $editingId = null;
+
+    // Slide-Over Quick Preview Drawer properties
+    public bool $showQuickDrawer = false;
+    public ?int $drawerProjectId = null;
+    public string $drawerQuickNote = '';
+    public string $drawerNoteTitle = 'Quick Status Update';
 
     public string $code = '';
     public string $name = '';
@@ -69,6 +76,17 @@ class ProjectIndex extends Component
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedPriorityFilter() { $this->resetPage(); }
     public function updatedHealthFilter() { $this->resetPage(); }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->subsidiaryFilter = 'all';
+        $this->managerFilter = 'all';
+        $this->statusFilter = 'all';
+        $this->priorityFilter = 'all';
+        $this->healthFilter = 'all';
+        $this->resetPage();
+    }
 
     public function isAuthorizedUser(): bool
     {
@@ -205,6 +223,72 @@ class ProjectIndex extends Component
         $this->dispatch('toast', message: 'Project moved to trash successfully.', type: 'info');
     }
 
+    public function openQuickDrawer(int $id): void
+    {
+        $this->drawerProjectId = $id;
+        $this->drawerQuickNote = '';
+        $this->drawerNoteTitle = 'Quick Status Update';
+        $this->showQuickDrawer = true;
+    }
+
+    public function closeQuickDrawer(): void
+    {
+        $this->showQuickDrawer = false;
+        $this->drawerProjectId = null;
+        $this->drawerQuickNote = '';
+    }
+
+    public function saveDrawerQuickUpdate(): void
+    {
+        $this->validate([
+            'drawerQuickNote' => 'required|string|min:3|max:1000',
+        ]);
+
+        if (!$this->drawerProjectId) return;
+
+        $project = Project::findOrFail($this->drawerProjectId);
+        $user = auth()->user();
+
+        \App\Models\ProjectStatusUpdate::create([
+            'project_id'   => $project->id,
+            'user_id'      => $user->id,
+            'title'        => $this->drawerNoteTitle ?: 'Quick Status Update',
+            'summary'      => $this->drawerQuickNote,
+            'publish_date' => now()->toDateString(),
+        ]);
+
+        ActivityLog::create([
+            'user_id'     => $user->id,
+            'action'      => 'logged_quick_status_update',
+            'module'      => 'projects',
+            'record_type' => Project::class,
+            'record_id'   => $project->id,
+            'new_values'  => ['note' => $this->drawerQuickNote],
+            'ip_address'  => request()->ip(),
+            'user_agent'  => request()->userAgent(),
+        ]);
+
+        $this->drawerQuickNote = '';
+        $this->dispatch('toast', message: '✅ Quick update logged successfully!', type: 'success');
+    }
+
+    public function toggleDrawerTask(int $taskId): void
+    {
+        $task = \App\Models\WbsItem::findOrFail($taskId);
+        
+        if ($task->status->value === 'completed') {
+            $task->status = \App\Enums\WbsStatus::IN_PROGRESS;
+            $task->progress = 50;
+        } else {
+            $task->status = \App\Enums\WbsStatus::COMPLETED;
+            $task->progress = 100;
+        }
+
+        $task->save();
+        (new \App\Services\ProgressCalculationService())->updateItemProgress($task);
+
+        $this->dispatch('toast', message: "Task '{$task->title}' updated to " . $task->status->label(), type: 'success');
+    }
 
     public function render()
     {
@@ -214,19 +298,18 @@ class ProjectIndex extends Component
         $baseQuery = Project::query();
 
         if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-            $isPm = Project::where('project_manager_id', $user->id)->exists();
-            if ($isPm) {
-                $baseQuery->where(function($q) use ($user) {
-                    $q->where('project_manager_id', $user->id)
-                      ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
-                });
-            } else {
-                // Team member sees projects where they are assigned as member OR assigned a task
-                $baseQuery->where(function($q) use ($user) {
-                    $q->whereHas('members', fn($mq) => $mq->where('user_id', $user->id))
-                      ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
-                });
-            }
+            $baseQuery->where(function($q) use ($user) {
+                // If user is PM on the project, they can see it
+                $q->where('project_manager_id', $user->id)
+                  // If user is a collaborator / team member, project MUST be accepted by PM first
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('pm_accepted', true)
+                          ->where(function($memberSub) use ($user) {
+                              $memberSub->whereHas('members', fn($mq) => $mq->where('users.id', $user->id))
+                                        ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
+                          });
+                  });
+            });
         }
 
         // 5 Summary metrics strictly scoped to user's authorized projects
@@ -242,7 +325,12 @@ class ProjectIndex extends Component
         $query = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'members']);
 
         if ($this->search) {
-            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%"));
+            $query->where(fn($q) => $q
+                ->where('name', 'like', "%{$this->search}%")
+                ->orWhere('code', 'like', "%{$this->search}%")
+                ->orWhereHas('subsidiary', fn($sq) => $sq->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%"))
+                ->orWhereHas('projectManager', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"))
+            );
         }
 
         if ($this->subsidiaryFilter !== 'all') {
@@ -270,11 +358,16 @@ class ProjectIndex extends Component
         $pms = User::where('is_active', true)->get();
         $allUsers = User::where('is_active', true)->get();
 
+        $selectedDrawerProject = $this->drawerProjectId 
+            ? Project::with(['subsidiary', 'projectManager', 'members', 'wbsItems.assignedUser', 'statusUpdates.user', 'risks'])->find($this->drawerProjectId)
+            : null;
+
         return view('livewire.project-index', compact(
             'projects',
             'subsidiaries',
             'pms',
             'allUsers',
+            'selectedDrawerProject',
             'totalCount',
             'activeCount',
             'completedCount',

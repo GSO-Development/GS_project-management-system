@@ -1,26 +1,66 @@
 <div>
-    <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-2.5">
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Subsidiaries</h1>
-                <div class="w-7 h-7 rounded-lg bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e]">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                </div>
-            </div>
-            <p class="text-xs text-slate-500 mt-1 font-medium">Manage all subsidiaries in the organization. View performance, projects, and team members.</p>
+    <!-- ═══════════════════════════════════════════════════════════════
+         1. TOP EXECUTIVE HERO BANNER (SUBSIDIARIES MANAGEMENT)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
+        <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
+
+        <!-- Right Background Cityscape Dark Illustration with Smooth Fade -->
+        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
+            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
         </div>
 
-        <button
-            wire:click="openCreateModal"
-            @click="$wire.showModal = true"
-            type="button"
-            class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-        >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-            <span>Add New Subsidiary</span>
-            <svg class="w-3.5 h-3.5 opacity-70 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-        </button>
+        <!-- Gold Elegant Wave Swoosh Vector Overlay -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
+            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" />
+                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5" />
+            </svg>
+        </div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <!-- Left Side: 3D Building Icon + Title + Meta -->
+            <div class="flex items-center gap-5 min-w-0">
+                <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                            Subsidiary Companies
+                        </h1>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
+                            <span>🏢</span>
+                            <span>{{ $totalSubsidiaries }} Corporate Entities</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
+                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>George Steuart Group Entities</span>
+                        </span>
+                        <span class="text-slate-500 font-normal">|</span>
+                        <span class="text-slate-300 font-medium">Manage subsidiaries, track entity-level performance, active projects, and assigned personnel</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Primary Action -->
+            <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
+                <button
+                    wire:click="openCreateModal"
+                    type="button"
+                    class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Add New Subsidiary</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 5 Key Summary Cards Bar -->

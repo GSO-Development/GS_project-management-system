@@ -23,8 +23,13 @@ class ManageTemplates extends Component
     protected function checkSuperAdmin()
     {
         if (!auth()->user()?->isSuperAdmin()) {
-            abort(403, 'Unauthorized. Only PMO Admins can create or modify project templates.');
+            abort(403, 'Unauthorized. Only PMO Admins can access or modify project templates.');
         }
+    }
+
+    public function mount(): void
+    {
+        $this->checkSuperAdmin();
     }
 
     public function editTemplate($id)

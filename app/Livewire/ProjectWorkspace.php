@@ -25,6 +25,11 @@ class ProjectWorkspace extends Component
     public Project $project;
     public string $activeTab = 'overview';
 
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
     // Status Update Form
     public string $statusTitle = '';
     public string $statusSummary = '';
@@ -99,6 +104,107 @@ class ProjectWorkspace extends Component
     public string $newCollabPhone = '';
     public string $newCollabRole = 'team_member';
     public string $newCollabTempPassword = 'Password@123';
+
+    public bool $showRejectionModal = false;
+    public string $rejectionReasonInput = '';
+    public bool $showReassignModal = false;
+    public ?int $newLeaderId = null;
+
+    // Comprehensive Project Details Sheet/Modal
+    public bool $showProjectDetailsModal = false;
+
+    public function openProjectDetailsModal(): void
+    {
+        $this->showProjectDetailsModal = true;
+    }
+
+    public function closeProjectDetailsModal(): void
+    {
+        $this->showProjectDetailsModal = false;
+    }
+
+    public function acceptAssignment(): void
+    {
+        $user = auth()->user();
+        if ($this->project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+            $this->dispatch('toast', message: 'Unauthorized. Only the designated Project Manager can accept this assignment.', type: 'error');
+            return;
+        }
+
+        $this->project->acceptByPm($user);
+        $this->project->refresh();
+
+        $this->dispatch('toast', message: '🎉 Project leadership accepted! You now have full Project Manager workspace control.', type: 'success');
+    }
+
+    public function openRejectionModal(): void
+    {
+        $this->rejectionReasonInput = '';
+        $this->showRejectionModal = true;
+    }
+
+    public function submitRejection(): void
+    {
+        $this->validate([
+            'rejectionReasonInput' => 'required|string|min:5|max:1000',
+        ], [
+            'rejectionReasonInput.required' => 'Please provide the reason or issue for declining this project assignment.',
+            'rejectionReasonInput.min' => 'The reason must be at least 5 characters.',
+        ]);
+
+        $user = auth()->user();
+        if ($this->project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+            $this->dispatch('toast', message: 'Unauthorized. Only the designated Project Leader can decline this assignment.', type: 'error');
+            return;
+        }
+
+        $this->project->rejectByPm($user, $this->rejectionReasonInput);
+        $this->project->refresh();
+        $this->showRejectionModal = false;
+
+        $this->dispatch('toast', message: 'Project assignment declined. PMO Admin has been notified of your feedback.', type: 'warning');
+    }
+
+    public function openReassignModal(): void
+    {
+        $this->newLeaderId = $this->project->project_manager_id;
+        $this->showReassignModal = true;
+    }
+
+    public function submitReassign(): void
+    {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin()) {
+            $this->dispatch('toast', message: 'Only PMO Admin can reassign project leadership.', type: 'error');
+            return;
+        }
+
+        $this->validate([
+            'newLeaderId' => 'required|exists:users,id',
+        ]);
+
+        $this->project->update([
+            'project_manager_id' => $this->newLeaderId,
+            'pm_accepted' => false,
+            'pm_accepted_at' => null,
+            'pm_rejection_reason' => null,
+            'pm_rejected_at' => null,
+        ]);
+
+        // Sync new leader as lead role
+        $this->project->members()->syncWithoutDetaching([
+            $this->newLeaderId => ['role' => 'lead']
+        ]);
+
+        $newLeader = User::find($this->newLeaderId);
+        if ($newLeader) {
+            $newLeader->notify(new \App\Notifications\ProjectAssignmentNotification($this->project, 'lead'));
+        }
+
+        $this->project->refresh();
+        $this->showReassignModal = false;
+        $this->dispatch('toast', message: "Project reassigned to {$newLeader->name}. Acceptance notification sent.", type: 'success');
+    }
 
     public function saveSetupModal()
     {
@@ -211,8 +317,8 @@ class ProjectWorkspace extends Component
     public function openCollaboratorsModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can manage project collaborators.', type: 'error');
+        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can manage project team members.', type: 'error');
             return;
         }
 
@@ -224,8 +330,8 @@ class ProjectWorkspace extends Component
     public function saveCollaborators()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can manage project collaborators.', type: 'error');
+        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can manage project team members.', type: 'error');
             return;
         }
 
@@ -233,7 +339,7 @@ class ProjectWorkspace extends Component
         $existingMemberIds = $this->project->members->pluck('id')->toArray();
 
         $intIds = array_filter(array_map('intval', $this->selectedCollaboratorIds));
-        $membersToSync = array_unique(array_merge([$this->project->project_manager_id], $intIds));
+        $membersToSync = array_unique(array_merge(array_filter([$this->project->project_manager_id]), $intIds));
         $syncData = [];
         foreach ($membersToSync as $memberId) {
             $syncData[$memberId] = ['role' => ($memberId == $this->project->project_manager_id) ? 'lead' : 'member'];
@@ -243,7 +349,7 @@ class ProjectWorkspace extends Component
         $this->project->load('members', 'subsidiary');
 
         // Send mail only to newly added collaborators (not existing, not PM)
-        $newMemberIds = array_diff(array_keys($syncData), $existingMemberIds, [$this->project->project_manager_id]);
+        $newMemberIds = array_diff(array_keys($syncData), $existingMemberIds, array_filter([$this->project->project_manager_id]));
         if (!empty($newMemberIds)) {
             try {
                 $newMembers = User::whereIn('id', $newMemberIds)->get();
@@ -257,33 +363,33 @@ class ProjectWorkspace extends Component
         }
 
         $this->showCollaboratorsModal = false;
-        $this->dispatch('toast', message: 'Project collaborators updated successfully!', type: 'success');
+        $this->dispatch('toast', message: 'Project team members updated successfully!', type: 'success');
     }
 
     public function removeCollaborator(int $userId)
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can remove collaborators.', type: 'error');
+        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can remove team members.', type: 'error');
             return;
         }
 
         if ($userId === $this->project->project_manager_id) {
-            $this->dispatch('toast', message: 'Cannot remove the Project Owner.', type: 'error');
+            $this->dispatch('toast', message: 'Cannot remove the Project Leader.', type: 'error');
             return;
         }
 
         $this->project->members()->detach($userId);
         $this->selectedCollaboratorIds = array_values(array_diff($this->selectedCollaboratorIds, [(string) $userId, $userId]));
         $this->project->load('members');
-        $this->dispatch('toast', message: 'Collaborator removed from project.', type: 'info');
+        $this->dispatch('toast', message: 'Team member removed from project.', type: 'info');
     }
 
     public function deleteUserFromSystem(int $userId)
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can delete users.', type: 'error');
+        if (!$user->hasRole('super_admin') && !$user->hasRole('pmo_admin')) {
+            $this->dispatch('toast', message: 'Only Administrators can delete users from the system.', type: 'error');
             return;
         }
 
@@ -321,8 +427,8 @@ class ProjectWorkspace extends Component
     public function quickCreateCollaborator()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or Super Admin can create collaborators.', type: 'error');
+        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
+            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can create team members.', type: 'error');
             return;
         }
 
@@ -400,15 +506,20 @@ class ProjectWorkspace extends Component
         $user = auth()->user();
 
         // Security check: Check if user is authorized to view this project
-        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local') {
+        if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local') {
             $isPm = ($project->project_manager_id === $user->id);
             $isMember = $project->members->contains($user->id);
             
             if (!$isPm && !$isMember) {
                 abort(403, 'Unauthorized project access.');
             }
-        }
 
+            // If project is awaiting PM acceptance and current user is only a team member/collaborator:
+            if (!$project->isPmAccepted() && !$isPm) {
+                session()->flash('warning', "Project '{$project->name}' ({$project->code}) is currently awaiting Project Leader acceptance and initialization before opening to the team.");
+                return redirect()->route('dashboard');
+            }
+        }
     }
 
     public function postComment()
@@ -820,6 +931,7 @@ class ProjectWorkspace extends Component
         $project = $this->project->load([
             'subsidiary',
             'projectManager',
+            'template.tasks',
             'members',
             'wbsItems.assignedUser',
             'statusUpdates.creator',
@@ -832,13 +944,7 @@ class ProjectWorkspace extends Component
         ]);
 
         $previewDoc = $this->previewDocId ? ProjectDocument::with(['project', 'uploader'])->find($this->previewDocId) : null;
-        $availableUsers = \App\Models\User::where('is_active', true)
-            ->where(function($q) {
-                $q->where('subsidiary_id', $this->project->subsidiary_id)
-                  ->orWhereIn('id', $this->project->members->pluck('id')->toArray());
-            })
-            ->orderBy('name', 'asc')
-            ->get();
+        $availableUsers = \App\Models\User::getUsersForSubsidiary($this->project->subsidiary_id);
 
         return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers'));
     }

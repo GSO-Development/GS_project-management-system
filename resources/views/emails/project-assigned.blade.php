@@ -135,10 +135,10 @@
                     <td align="center">
                         <table cellpadding="0" cellspacing="0" border="0">
                             <tr>
-                                <td bgcolor="#2563eb" style="background-color:#2563eb;border-radius:8px;">
+                                <td bgcolor="#c3122e" style="background-color:#c3122e;border-radius:8px;">
                                     <a href="{{ url('/projects/' . $project->id) }}"
-                                       style="display:inline-block;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:16px 44px;border-radius:8px;letter-spacing:0.3px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-                                        View Project Dashboard &nbsp;&rarr;
+                                       style="display:inline-block;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 44px;border-radius:8px;letter-spacing:0.3px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                                        {{ $role === 'lead' ? 'Accept & Open Project Workspace' : 'View Project Workspace' }} &nbsp;&rarr;
                                     </a>
                                 </td>
                             </tr>

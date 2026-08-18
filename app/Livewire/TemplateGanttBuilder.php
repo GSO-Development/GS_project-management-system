@@ -30,6 +30,10 @@ class TemplateGanttBuilder extends Component
 
     public function mount(ProjectTemplate $template)
     {
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Only PMO Admins can access or build project templates.');
+        }
+
         $this->template = $template;
         
         $existingTasks = $this->template->tasks()->orderBy('order_index')->get();

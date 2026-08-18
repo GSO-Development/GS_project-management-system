@@ -228,14 +228,18 @@ class DailyStatusUpdates extends Component
 
         // Super Admin sees ALL projects in the entire organization
         if (!$this->isSuperAdminUser($user)) {
-            $isPm = Project::where('project_manager_id', $user->id)->exists();
-            if ($isPm) {
-                $query->where('project_manager_id', $user->id)
-                      ->orWhereHas('members', fn($q) => $q->where('user_id', $user->id));
-            } else {
-                $query->whereHas('members', fn($q) => $q->where('user_id', $user->id))
-                      ->orWhereHas('wbsItems', fn($q) => $q->where('assigned_user_id', $user->id));
-            }
+            $query->where(function($q) use ($user) {
+                // PM sees their project
+                $q->where('project_manager_id', $user->id)
+                  // Collaborator sees project ONLY after PM accepts it
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('pm_accepted', true)
+                          ->where(function($memberSub) use ($user) {
+                              $memberSub->whereHas('members', fn($mq) => $mq->where('users.id', $user->id))
+                                        ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
+                          });
+                  });
+            });
         }
 
         return $query->orderBy('name')->get();

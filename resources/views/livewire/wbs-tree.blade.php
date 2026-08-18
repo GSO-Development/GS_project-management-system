@@ -4,17 +4,27 @@
         <div class="flex items-center gap-2.5 flex-wrap">
             <h3 class="font-black text-slate-900 text-base tracking-tight">Project Tasks Execution List</h3>
             <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea] shadow-2xs">
-                Sequential Tasks
+                Sequential Phases &amp; Tasks
             </span>
         </div>
-        @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']))
-        <div class="flex items-center gap-2 self-start sm:self-auto">
-            <button wire:click="openAddItemModal(null, 'task')" class="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>Add Task</span>
-            </button>
+        <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            <!-- Expand All / Collapse All Buttons -->
+            <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/90 shadow-2xs">
+                <button wire:click="expandAll" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Expand all phases and subtasks">
+                    <span>▼ Expand All</span>
+                </button>
+                <button wire:click="collapseAll" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Collapse to main phases only">
+                    <span>▶ Collapse All</span>
+                </button>
+            </div>
+
+            @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']))
+                <button wire:click="openAddItemModal(null, 'task')" class="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Add Task</span>
+                </button>
+            @endif
         </div>
-        @endif
     </div>
 
     <!-- Responsive Card & Table Container -->
@@ -23,10 +33,11 @@
             <table class="w-full text-left border-collapse min-w-[768px]">
                 <thead>
                     <tr class="bg-slate-50/90 border-b border-slate-200">
-                        <th class="py-4 pl-6 pr-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[100px] whitespace-nowrap">#</th>
-                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[220px] whitespace-nowrap">Task Name</th>
-                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[140px] whitespace-nowrap">Deadline</th>
-                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[150px] whitespace-nowrap">Status</th>
+                        <th class="py-4 pl-6 pr-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[90px] whitespace-nowrap">#</th>
+                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[200px] whitespace-nowrap">Task Name</th>
+                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[130px] whitespace-nowrap">Start Date</th>
+                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[130px] whitespace-nowrap">Deadline</th>
+                        <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[140px] whitespace-nowrap">Status</th>
                         <th class="py-4 px-4 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[160px] whitespace-nowrap">Assigned User</th>
                         <th class="py-4 pl-4 pr-6 text-xs font-extrabold uppercase tracking-wider text-slate-600 min-w-[160px] text-right whitespace-nowrap">Actions</th>
                     </tr>
@@ -37,7 +48,7 @@
                     @endforeach
 
                     @if($wbsItems->isEmpty())
-                        <tr><td colspan="6" class="text-center py-12 text-slate-400 text-xs font-medium">No tasks created yet. Click "+ Add Task" to add your first project task.</td></tr>
+                        <tr><td colspan="7" class="text-center py-12 text-slate-400 text-xs font-medium">No tasks created yet. Click "+ Add Task" to add your first project task.</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -107,9 +118,9 @@
                 <div class="form-group">
                     <label class="form-label font-extrabold text-slate-800 text-xs mb-1.5 block">Task Status</label>
                     <select wire:model="status" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-900 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 transition-all outline-none">
-                        @foreach(\App\Enums\WbsStatus::cases() as $st)
-                            <option value="{{ $st->value }}">{{ $st->label() }}</option>
-                        @endforeach
+                        <option value="not_started">Incomplete</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
                     </select>
                 </div>
 

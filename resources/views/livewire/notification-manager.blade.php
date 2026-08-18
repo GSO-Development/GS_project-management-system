@@ -159,9 +159,14 @@
 
                     // Categorize icon and style
                     $cat = $n->data['category'] ?? null;
+                    $actionType = $n->data['action'] ?? null;
                     $lowerMsg = strtolower($msg);
 
-                    if ($cat === 'approvals' || str_contains($lowerMsg, 'approval') || str_contains($lowerMsg, 'request') || str_contains($lowerMsg, 'baseline')) {
+                    if ($actionType === 'project_assignment' || str_contains($lowerMsg, 'assigned as project manager') || str_contains($lowerMsg, 'project leadership') || str_contains($lowerMsg, 'designated as')) {
+                        $catName = '🚀 Project Assignment';
+                        $pillStyle = 'bg-amber-50 text-amber-900 border-amber-300';
+                        $iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>';
+                    } elseif ($cat === 'approvals' || str_contains($lowerMsg, 'approval') || str_contains($lowerMsg, 'request') || str_contains($lowerMsg, 'baseline')) {
                         $catName = 'Approval Request';
                         $pillStyle = 'bg-[#fdf4f4] text-[#c3122e] border-[#faeaea]';
                         $iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>';
@@ -188,7 +193,7 @@
                                 </span>
                                 @if($isUnread)
                                     <span class="w-2 h-2 rounded-full bg-[#c3122e] animate-pulse"></span>
-                                    <span class="text-[9px] font-black text-[#c3122e] uppercase">New</span>
+                                    <span class="text-[9px] font-black text-[#c3122e] uppercase">Action Required</span>
                                 @endif
                             </div>
                             <p class="text-xs font-extrabold text-slate-900 leading-snug mt-1">{{ $msg }}</p>
@@ -200,14 +205,24 @@
 
                     <!-- Card Actions -->
                     <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-                        @if($url)
+                        @if(($actionType === 'project_assignment' || isset($n->data['project_id'])) && $isUnread)
+                            <button 
+                                wire:click="acceptProjectAssignment('{{ $n->id }}', {{ $n->data['project_id'] }})"
+                                type="button"
+                                style="background-color: #c3122e; color: #ffffff;"
+                                class="px-4 py-2 rounded-xl text-xs font-extrabold shadow-sm hover:brightness-110 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            >
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span>Accept &amp; Open Workspace</span>
+                            </button>
+                        @elseif($url)
                             <a href="{{ $url }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#fceaea] border border-[#faeaea] transition-all flex items-center gap-1 cursor-pointer">
                                 <span>View Details</span>
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </a>
                         @endif
 
-                        @if($isUnread)
+                        @if($isUnread && !($actionType === 'project_assignment'))
                             <button wire:click="markAsRead('{{ $n->id }}')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer">
                                 Mark Read
                             </button>

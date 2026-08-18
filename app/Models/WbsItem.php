@@ -108,4 +108,33 @@ class WbsItem extends Model
     {
         return $this->children()->count() === 0;
     }
+
+    public function isOverdue(): bool
+    {
+        return $this->end_date && $this->end_date->isPast() && $this->status !== WbsStatus::COMPLETED;
+    }
+
+    /**
+     * Automatically transition tasks whose start_date has arrived to in_progress
+     */
+    public static function autoStartDueTasks(?int $projectId = null): int
+    {
+        $today = now()->today()->toDateString();
+
+        $query = static::whereNotNull('start_date')
+            ->whereDate('start_date', '<=', $today)
+            ->whereIn('status', [
+                WbsStatus::NOT_STARTED->value, 
+                WbsStatus::BACKLOG->value, 
+                'not_started', 
+                'backlog', 
+                'draft'
+            ]);
+
+        if ($projectId) {
+            $query->where('project_id', $projectId);
+        }
+
+        return $query->update(['status' => WbsStatus::IN_PROGRESS->value]);
+    }
 }

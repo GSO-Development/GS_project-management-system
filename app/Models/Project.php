@@ -24,6 +24,10 @@ class Project extends Model
         'subsidiary_id',
         'category',
         'project_manager_id',
+        'pm_accepted',
+        'pm_accepted_at',
+        'pm_rejection_reason',
+        'pm_rejected_at',
         'created_by',
         'priority',
         'start_date',
@@ -36,6 +40,7 @@ class Project extends Model
         'estimated_hours',
         'actual_hours',
         'wbs_breakdown_type',
+        'template_id',
     ];
 
     protected function casts(): array
@@ -44,6 +49,9 @@ class Project extends Model
             'priority' => Priority::class,
             'status' => ProjectStatus::class,
             'health' => ProjectHealth::class,
+            'pm_accepted' => 'boolean',
+            'pm_accepted_at' => 'datetime',
+            'pm_rejected_at' => 'datetime',
             'start_date' => 'date',
             'deadline' => 'date',
             'estimated_budget' => 'decimal:2',
@@ -52,6 +60,116 @@ class Project extends Model
             'actual_hours' => 'decimal:2',
             'overall_progress' => 'integer',
         ];
+    }
+
+    public function isPmAccepted(): bool
+    {
+        return (bool) $this->pm_accepted;
+    }
+
+    public function isPmRejected(): bool
+    {
+        return !$this->pm_accepted && !empty($this->pm_rejection_reason);
+    }
+
+    public function isPendingPmAcceptance(): bool
+    {
+        return !$this->pm_accepted && empty($this->pm_rejection_reason);
+    }
+
+    public function acceptByPm(User $user): bool
+    {
+        if ($this->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+            return false;
+        }
+
+        $this->update([
+            'pm_accepted' => true,
+            'pm_accepted_at' => now(),
+            'pm_rejection_reason' => null,
+            'pm_rejected_at' => null,
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'accepted_project_assignment',
+            'module' => 'projects',
+            'record_type' => self::class,
+            'record_id' => $this->id,
+            'new_values' => [
+                'pm_accepted' => true,
+                'pm_accepted_at' => now()->toDateTimeString(),
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        // Sync any pending ApprovalRequest of type NEW_PROJECT_PLAN
+        ApprovalRequest::where('project_id', $this->id)
+            ->where('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN)
+            ->where('status', \App\Enums\ApprovalStatus::PENDING)
+            ->update([
+                'status' => \App\Enums\ApprovalStatus::APPROVED,
+                'reviewed_by' => $user->id,
+                'reviewed_at' => now(),
+                'review_comment' => 'Project Leadership Accepted & Confirmed by ' . $user->name,
+            ]);
+
+        // Notify PMO Super Admins that the project was accepted
+        $pmoAdmins = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin'))->get();
+        foreach ($pmoAdmins as $admin) {
+            $admin->notify(new \App\Notifications\ProjectLeaderDecisionNotification($this, $user, 'accepted'));
+        }
+
+        return true;
+    }
+
+    public function rejectByPm(User $user, string $reason): bool
+    {
+        if ($this->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+            return false;
+        }
+
+        $this->update([
+            'pm_accepted' => false,
+            'pm_accepted_at' => null,
+            'pm_rejection_reason' => $reason,
+            'pm_rejected_at' => now(),
+        ]);
+
+        // Sync any pending ApprovalRequest of type NEW_PROJECT_PLAN
+        ApprovalRequest::where('project_id', $this->id)
+            ->where('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN)
+            ->where('status', \App\Enums\ApprovalStatus::PENDING)
+            ->update([
+                'status' => \App\Enums\ApprovalStatus::REJECTED,
+                'reviewed_by' => $user->id,
+                'reviewed_at' => now(),
+                'review_comment' => $reason,
+            ]);
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'rejected_project_assignment',
+            'module' => 'projects',
+            'record_type' => self::class,
+            'record_id' => $this->id,
+            'new_values' => [
+                'pm_accepted' => false,
+                'pm_rejection_reason' => $reason,
+                'pm_rejected_at' => now()->toDateTimeString(),
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        // Notify PMO Super Admins about the rejection with the issue
+        $pmoAdmins = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin'))->get();
+        foreach ($pmoAdmins as $admin) {
+            $admin->notify(new \App\Notifications\ProjectLeaderDecisionNotification($this, $user, 'rejected', $reason));
+        }
+
+        return true;
     }
 
     public static function generateCodeForSubsidiary(?int $subsidiaryId): string
@@ -73,9 +191,13 @@ class Project extends Model
     }
 
     public function subsidiary(): BelongsTo
-
     {
         return $this->belongsTo(Subsidiary::class);
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(ProjectTemplate::class, 'template_id');
     }
 
     public function projectManager(): BelongsTo

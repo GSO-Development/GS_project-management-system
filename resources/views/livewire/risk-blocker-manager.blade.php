@@ -1,23 +1,65 @@
 <div class="space-y-6 sm:space-y-8 pb-12">
-    <!-- Redesigned Low-profile Breadcrumb Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 border-b border-slate-200">
-        <div>
-            <!-- Breadcrumbs -->
-            <nav class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition-colors">Dashboard</a>
-                <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                <span class="text-slate-600">Risks & Blockers</span>
-            </nav>
-            <h1 class="text-2xl font-black text-slate-800 tracking-tight" style="font-family: Georgia, 'Times New Roman', serif;">
-                Risks & Blockers Hub
-            </h1>
+    <!-- ═══════════════════════════════════════════════════════════════
+         1. TOP EXECUTIVE HERO BANNER (RISKS & BLOCKERS HUB)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
+        <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
+
+        <!-- Right Background Cityscape Dark Illustration with Smooth Fade -->
+        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
+            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
         </div>
 
-        <button wire:click="openAddRiskModal()"
-                class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-black text-white bg-slate-900 hover:bg-slate-800 shadow-2xs transition-all cursor-pointer gap-2 border border-slate-900 select-none">
-            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
-            <span>Log Project Risk</span>
-        </button>
+        <!-- Gold Elegant Wave Swoosh Vector Overlay -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
+            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" />
+                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5" />
+            </svg>
+        </div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <!-- Left Side: 3D Warning/Shield Icon + Title + Meta -->
+            <div class="flex items-center gap-5 min-w-0">
+                <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                            Risks &amp; Blockers Hub
+                        </h1>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-amber-200 border border-amber-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(245, 158, 11, 0.25);">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span>{{ $openRisksCount }} Active Risks · {{ $openBlockersCount }} Open Blockers</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
+                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>{{ now()->format('l, M d, Y') }}</span>
+                        </span>
+                        <span class="text-slate-500 font-normal">|</span>
+                        <span class="text-slate-300 font-medium">Enterprise risk registry, mitigation tracking, and escalation resolutions</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Primary Action -->
+            <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
+                <button
+                    wire:click="openAddRiskModal()"
+                    class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);"
+                >
+                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Log Project Risk</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 2. KPI SUMMARY METRICS -->

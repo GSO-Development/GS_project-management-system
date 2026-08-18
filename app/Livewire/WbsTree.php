@@ -59,13 +59,40 @@ class WbsTree extends Component
         ];
     }
 
-    public function toggleCollapse(int $id)
+    public function mount(Project $project): void
+    {
+        $this->project = $project;
+        
+        // Automatically transition tasks to in_progress if their start_date has arrived
+        WbsItem::autoStartDueTasks($this->project->id);
+
+        // Default: collapse all items that have children so initially only main phases/tasks are visible
+        $this->collapsedIds = WbsItem::where('project_id', $project->id)
+            ->whereHas('children')
+            ->pluck('id')
+            ->toArray();
+    }
+
+    public function toggleCollapse(int $id): void
     {
         if (in_array($id, $this->collapsedIds)) {
-            $this->collapsedIds = array_diff($this->collapsedIds, [$id]);
+            $this->collapsedIds = array_values(array_diff($this->collapsedIds, [$id]));
         } else {
             $this->collapsedIds[] = $id;
         }
+    }
+
+    public function expandAll(): void
+    {
+        $this->collapsedIds = [];
+    }
+
+    public function collapseAll(): void
+    {
+        $this->collapsedIds = WbsItem::where('project_id', $this->project->id)
+            ->whereHas('children')
+            ->pluck('id')
+            ->toArray();
     }
 
     public function openAddItemModal(?int $parentId = null, string $type = 'task')
@@ -160,6 +187,11 @@ class WbsTree extends Component
             'weight' => $this->weight,
             'is_milestone' => $this->item_type === 'milestone',
         ];
+
+        // Auto-set status to in_progress if start_date has arrived and status is not_started
+        if (!empty($data['start_date']) && $data['start_date'] <= now()->today()->toDateString() && $data['status'] === 'not_started') {
+            $data['status'] = 'in_progress';
+        }
 
         if ($this->editingItemId) {
             $item = WbsItem::findOrFail($this->editingItemId);
@@ -298,6 +330,9 @@ class WbsTree extends Component
     public function render()
     {
         $user = auth()->user();
+
+        // Automatically transition tasks whose start_date has arrived to in_progress
+        WbsItem::autoStartDueTasks($this->project->id);
 
         $isSuperAdminOrPM = $user->hasRole('super_admin') 
             || $user->email === 'admin@nexuspm.local' 

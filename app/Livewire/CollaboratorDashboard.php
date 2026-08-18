@@ -106,20 +106,47 @@ class CollaboratorDashboard extends Component
         $this->dispatch('toast', message: "Sub-task '{$subTask->title}' created successfully!", type: 'success');
     }
 
+    public function acceptProjectAssignment(int $projectId)
+    {
+        $user = auth()->user();
+        $project = Project::where('project_manager_id', $user->id)->findOrFail($projectId);
+
+        $project->acceptByPm($user);
+
+        $this->dispatch('toast', message: '🎉 Project assignment accepted! Opening project workspace...', type: 'success');
+
+        return redirect()->route('projects.show', $project->id);
+    }
+
     public function render()
     {
         $userId = auth()->id();
         $today = now()->today();
 
-        // Projects where this user is attached as a Collaborator
-        $attachedProjects = Project::whereHas('members', fn($q) => $q->where('users.id', $userId))
-            ->orWhere('project_manager_id', $userId)
+        // Pending Invitations awaiting acceptance by this PM
+        $pendingInvitations = Project::where('project_manager_id', $userId)
+            ->where('pm_accepted', false)
+            ->with(['subsidiary', 'creator'])
+            ->latest()
+            ->get();
+
+        // Projects where this user is attached as a Collaborator or PM
+        $attachedProjects = Project::where(function($q) use ($userId) {
+                $q->where('project_manager_id', $userId)
+                  ->orWhere(function($sub) use ($userId) {
+                      $sub->where('pm_accepted', true)
+                          ->whereHas('members', fn($mq) => $mq->where('users.id', $userId));
+                  });
+            })
             ->with(['subsidiary', 'projectManager', 'wbsItems'])
             ->latest()
             ->get();
 
-        // Tasks assigned to this Collaborator
-        $myTasks = WbsItem::whereHas('project')
+        // Tasks assigned to this Collaborator (only from accepted projects or PM's own projects)
+        $myTasks = WbsItem::whereHas('project', function($pq) use ($userId) {
+                $pq->where('pm_accepted', true)
+                   ->orWhere('project_manager_id', $userId);
+            })
             ->with(['project.projectManager', 'children.assignedUser'])
             ->where('assigned_user_id', $userId)
             ->orderBy('end_date', 'asc')
@@ -135,6 +162,7 @@ class CollaboratorDashboard extends Component
         $completionPct = $totalCount > 0 ? round(($completed->count() / $totalCount) * 100) : 0;
 
         return view('livewire.collaborator-dashboard', compact(
+            'pendingInvitations',
             'attachedProjects',
             'myTasks',
             'dueToday',

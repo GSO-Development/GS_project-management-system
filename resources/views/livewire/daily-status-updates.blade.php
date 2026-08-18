@@ -1,62 +1,104 @@
-<div class="py-6 space-y-6 pb-12">
-    
-    <!-- 1. HEADER & NAVIGATION AREA -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-        <div>
-            <!-- Breadcrumbs -->
-            <nav class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                <a href="{{ route('dashboard') }}" class="hover:text-[#c3122e] transition-colors">Dashboard</a>
-                <svg class="w-2.5 h-2.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-                <span class="text-slate-600">Daily Updates</span>
-            </nav>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Daily Project Updates</h1>
-            <p class="text-xs text-slate-500 font-medium mt-0.5">Track, review, and collaborate on project execution logs across your teams.</p>
+<div class="space-y-6 pb-12">
+    <style>
+        .daily-update-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .daily-update-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .daily-update-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .daily-update-scroll::-webkit-scrollbar-thumb:hover {
+            background: #c3122e;
+        }
+    </style>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         1. TOP EXECUTIVE HERO BANNER (DAILY PROJECT UPDATES)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
+        <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
+
+        <!-- Right Background Cityscape Dark Illustration with Smooth Fade -->
+        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
+            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
         </div>
 
-        <div class="flex items-center gap-3">
-            <!-- Date Widget -->
-            <div class="px-3.5 py-1.5 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-[#c3122e] flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        <!-- Gold Elegant Wave Swoosh Vector Overlay -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
+            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" />
+                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5" />
+            </svg>
+        </div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <!-- Left Side: 3D Log Icon + Title + Meta -->
+            <div class="flex items-center gap-5 min-w-0">
+                <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                 </div>
-                <div>
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block leading-none">Today</span>
-                    <span class="text-xs font-bold text-slate-800 font-mono mt-0.5 block">{{ now()->format('M d, Y') }}</span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                            Daily Project Updates
+                        </h1>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>{{ $updatedTodayCount }} Logged Today</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
+                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>{{ now()->format('l, M d, Y') }}</span>
+                        </span>
+                        <span class="text-slate-500 font-normal">|</span>
+                        <span class="text-slate-300 font-medium">Track, review, and collaborate on project execution logs across your teams</span>
+                    </div>
                 </div>
             </div>
 
-            @if(!$this->isSuperAdminUser(auth()->user()))
-                <button
-                    wire:click="openStatusUpdateModal()"
-                    class="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
-                >
-                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Publish Daily Log</span>
-                </button>
-            @endif
+            <!-- Right Side: Action Button -->
+            <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
+                @if(!$this->isSuperAdminUser(auth()->user()))
+                    <button
+                        wire:click="openStatusUpdateModal()"
+                        class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer"
+                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);"
+                    >
+                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Publish Daily Log</span>
+                    </button>
+                @endif
+            </div>
         </div>
     </div>
 
-    <!-- 2. KPI METRICS SUMMARY -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- ═══════════════════════════════════════════════════════════════
+         2. KPI METRICS SUMMARY (4-GRID BENTO)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <!-- Reports Logged Today -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-300 flex items-start gap-4 group">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-100 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-emerald-300 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4 border-l-4 border-l-emerald-500 group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-100 mt-0.5 shadow-2xs group-hover:scale-105 transition-transform">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
             <div class="space-y-0.5 flex-1 min-w-0">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Logged Today</p>
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Logged Today</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $updatedTodayCount }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $updatedTodayCount }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Active
                     </span>
@@ -66,80 +108,82 @@
         </div>
 
         <!-- Participant Task Logs -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-rose-200 transition-all duration-300 flex items-start gap-4 group">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-50 text-[#c3122e] border border-rose-100 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-rose-300 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4 border-l-4 border-l-[#c3122e] group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-50 text-[#c3122e] border border-rose-100 mt-0.5 shadow-2xs group-hover:scale-105 transition-transform">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                 </svg>
             </div>
             <div class="space-y-0.5 flex-1 min-w-0">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Task Logs</p>
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Task Logs</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $taskUpdatesCount }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-[#c3122e] border border-rose-100">Tasks</span>
+                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $taskUpdatesCount }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-[#c3122e] border border-rose-100">Tasks</span>
                 </div>
                 <p class="text-[10px] text-slate-400 font-medium truncate">Visible to Project Managers</p>
             </div>
         </div>
 
         <!-- PM Overall Reports -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-all duration-300 flex items-start gap-4 group">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50 text-amber-600 border border-amber-100 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 00-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-amber-300 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4 border-l-4 border-l-amber-500 group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50 text-amber-600 border border-amber-100 mt-0.5 shadow-2xs group-hover:scale-105 transition-transform">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 00-2-2M5 11V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
             </div>
             <div class="space-y-0.5 flex-1 min-w-0">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Overall Reports</p>
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Overall Reports</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $projectUpdatesCount }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-100">Overall</span>
+                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $projectUpdatesCount }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-800 border border-amber-100">Overall</span>
                 </div>
                 <p class="text-[10px] text-slate-400 font-medium truncate">Visible to PMO Admins</p>
             </div>
         </div>
 
-        <!-- Pending Review / Uncommented Logs -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-300 flex items-start gap-4 group">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 text-indigo-600 border border-indigo-100 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <!-- Pending Feedback / Uncommented Logs -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-indigo-300 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4 border-l-4 border-l-indigo-500 group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 text-indigo-600 border border-indigo-100 mt-0.5 shadow-2xs group-hover:scale-105 transition-transform">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
                 </svg>
             </div>
             <div class="space-y-0.5 flex-1 min-w-0">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Pending Feedback</p>
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Pending Feedback</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $uncommentedUpdatesCount }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">Review</span>
+                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $uncommentedUpdatesCount }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-100">Review</span>
                 </div>
                 <p class="text-[10px] text-slate-400 font-medium truncate">Unanswered status logs</p>
             </div>
         </div>
     </div>
 
-    <!-- 3. CONTROLS, SEARCH & FILTER TOOLBAR -->
-    <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-4">
+    <!-- ═══════════════════════════════════════════════════════════════
+         3. CONTROLS, SEARCH & FILTER TOOLBAR
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs space-y-4">
         <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <!-- Left: Scope Pills Segment Controller -->
-            <div class="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl flex-wrap max-w-max">
+            <div class="flex items-center gap-1 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60 shadow-inner flex-wrap max-w-max">
                 <button
                     wire:click="$set('selectedScope', 'all')"
-                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 {{ $selectedScope === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                    class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer flex items-center gap-1.5 {{ $selectedScope === 'all' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-900' }}"
                 >
                     <span>All Reports ({{ $totalUpdatesCount }})</span>
                 </button>
                 <button
                     wire:click="$set('selectedScope', 'task')"
-                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 {{ $selectedScope === 'task' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                    class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer flex items-center gap-1.5 {{ $selectedScope === 'task' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-900' }}"
                 >
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                    <span class="w-2 h-2 rounded-full bg-[#c3122e] shadow-2xs"></span>
                     <span>Participant Task Logs</span>
                 </button>
                 <button
                     wire:click="$set('selectedScope', 'project')"
-                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 {{ $selectedScope === 'project' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                    class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer flex items-center gap-1.5 {{ $selectedScope === 'project' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-900' }}"
                 >
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#b8860b]"></span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shadow-2xs"></span>
                     <span>PM Overall Project Reports</span>
                 </button>
             </div>
@@ -152,7 +196,7 @@
                         type="text"
                         wire:model.live.debounce.300ms="searchQuery"
                         placeholder="Search logs, reporter, task..."
-                        class="w-full text-xs font-semibold py-2.5 pl-9 pr-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all"
+                        class="w-full text-xs font-semibold py-2.5 pl-9 pr-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all placeholder:text-slate-400"
                     >
                     <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -163,7 +207,7 @@
                 <div class="relative min-w-[180px]">
                     <select
                         wire:model.live="selectedProjectId"
-                        class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800"
+                        class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800 shadow-2xs"
                     >
                         <option value="">🌐 All Accessible Projects</option>
                         @foreach($accessibleProjects as $p)
@@ -179,7 +223,7 @@
                 <div class="relative">
                     <select
                         wire:model.live="dateFilter"
-                        class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800"
+                        class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800 shadow-2xs"
                     >
                         <option value="all">📅 All Time</option>
                         <option value="today">Today</option>
@@ -193,21 +237,23 @@
         </div>
     </div>
 
-    <!-- 4. PROJECTS DAILY UPDATES TABLE -->
-    <div class="w-full rounded-2xl bg-white shadow-sm overflow-hidden" style="border: 1px solid #e2e8f0;">
+    <!-- ═══════════════════════════════════════════════════════════════
+         4. PROJECTS DAILY UPDATES TABLE (LUXURY EXECUTIVE CONTAINER)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="w-full rounded-3xl bg-white shadow-2xs border border-slate-200/90 overflow-hidden">
         <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                        <th class="py-3.5 pl-6 pr-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-[260px]">Project Code & Name</th>
-                        <th class="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-[170px]">Subsidiary</th>
-                        <th class="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-[180px]">Project Manager</th>
-                        <th class="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-[260px]">Latest Update Log</th>
-                        <th class="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-[130px]">Last Log Date</th>
-                        <th class="py-3.5 pl-4 pr-6 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right min-w-[200px]">Actions</th>
+                    <tr class="bg-slate-50/80 border-b border-slate-200/80">
+                        <th class="py-4 pl-6 pr-4 text-[10px] font-black uppercase tracking-wider text-slate-400 min-w-[260px]">Project Code & Name</th>
+                        <th class="py-4 px-4 text-[10px] font-black uppercase tracking-wider text-slate-400 min-w-[170px]">Subsidiary</th>
+                        <th class="py-4 px-4 text-[10px] font-black uppercase tracking-wider text-slate-400 min-w-[180px]">Project Manager</th>
+                        <th class="py-4 px-4 text-[10px] font-black uppercase tracking-wider text-slate-400 min-w-[260px]">Latest Update Log</th>
+                        <th class="py-4 px-4 text-[10px] font-black uppercase tracking-wider text-slate-400 min-w-[130px]">Last Log Date</th>
+                        <th class="py-4 pl-4 pr-6 text-[10px] font-black uppercase tracking-wider text-slate-400 text-right min-w-[200px]">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100">
                     @forelse($groupedProjectUpdates as $group)
                         @php
                             $project = $group['project'];
@@ -218,18 +264,18 @@
                             $subsidiary = $project->subsidiary;
                         @endphp
 
-                        <tr class="hover:bg-slate-50/80 transition-colors" style="border-bottom: 1px solid #f1f5f9;">
+                        <tr class="hover:bg-rose-50/20 transition-colors group">
                             <!-- Project Code & Name -->
                             <td class="py-4 pl-6 pr-4 align-middle">
                                 <div class="flex items-center gap-3">
-                                    <span class="shadow-sm flex-shrink-0" style="background: #fff1f2; color: #c3122e; border: 1px solid #ffe4e6; font-family: monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px;">
+                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black font-mono bg-rose-50 text-[#c3122e] border border-rose-200 shadow-2xs flex-shrink-0">
                                         {{ $project->code ?? 'PRJ' }}
                                     </span>
                                     <div class="min-w-0 space-y-0.5">
-                                        <a href="{{ route('projects.show', $project) }}" class="font-bold text-xs text-slate-900 hover:text-[#c3122e] transition-colors truncate block max-w-[200px]" title="{{ $project->name }}">
+                                        <a href="{{ route('projects.show', $project) }}" class="font-black text-xs text-slate-900 hover:text-[#c3122e] transition-colors truncate block max-w-[200px]" title="{{ $project->name }}">
                                             {{ $project->name }}
                                         </a>
-                                        <span class="text-[10px] text-slate-400 font-medium block">{{ $allUpdatesCount }} Log(s) recorded</span>
+                                        <span class="text-[10px] text-slate-400 font-bold block">{{ $allUpdatesCount }} Log(s) recorded</span>
                                     </div>
                                 </div>
                             </td>
@@ -238,25 +284,27 @@
                             <td class="py-4 px-4 align-middle">
                                 @if($subsidiary)
                                     <div class="flex items-center gap-2 min-w-0 text-slate-700">
-                                        <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                        </svg>
-                                        <span class="font-semibold text-xs text-slate-700 truncate max-w-[150px]" title="{{ $subsidiary->name }}">{{ $subsidiary->name }}</span>
+                                        <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 text-slate-500">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                            </svg>
+                                        </div>
+                                        <span class="font-bold text-xs text-slate-700 truncate max-w-[150px]" title="{{ $subsidiary->name }}">{{ $subsidiary->name }}</span>
                                     </div>
                                 @else
-                                    <span class="text-slate-400 font-medium italic text-[11px]">-</span>
+                                    <span class="text-slate-400 font-medium italic text-[11px]">—</span>
                                 @endif
                             </td>
 
                             <!-- Project Manager -->
                             <td class="py-4 px-4 align-middle">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white flex-shrink-0 shadow-sm" style="background: linear-gradient(135deg, #c3122e, #a00e24);">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs text-white flex-shrink-0 shadow-xs" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
                                         {{ strtoupper(substr($pm->name ?? 'P', 0, 1)) }}
                                     </div>
                                     <div class="min-w-0 space-y-0.5">
                                         <span class="font-bold text-slate-800 block truncate text-xs max-w-[120px]" title="{{ $pm->name ?? 'Unassigned' }}">{{ $pm->name ?? 'Unassigned' }}</span>
-                                        <span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 8px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-block; letter-spacing: 0.5px;">PM</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200/80 inline-block">PM</span>
                                     </div>
                                 </div>
                             </td>
@@ -264,9 +312,9 @@
                             <!-- Latest Update Summary -->
                             <td class="py-4 px-4 align-middle max-w-xs">
                                 @if($update)
-                                    <div class="min-w-0 space-y-0.5">
-                                        <span class="font-bold text-slate-800 block truncate text-xs max-w-[240px]" title="{{ $update->title }}">{{ $update->title }}</span>
-                                        <p class="text-[11px] text-slate-450 italic font-medium truncate max-w-[240px]">"{{ $update->summary }}"</p>
+                                    <div class="min-w-0 space-y-1">
+                                        <span class="font-black text-slate-800 block truncate text-xs max-w-[240px]" title="{{ $update->title }}">{{ $update->title }}</span>
+                                        <p class="text-[11px] text-slate-500 italic font-medium truncate max-w-[240px] bg-slate-50 px-2 py-0.5 rounded border border-slate-100">"{{ $update->summary }}"</p>
                                     </div>
                                 @else
                                     <div class="flex items-center gap-1.5 text-slate-400 italic text-[11px] font-medium">
@@ -277,14 +325,14 @@
                             </td>
 
                             <!-- Last Log Date -->
-                            <td class="py-4 px-4 align-middle font-mono text-[10px] text-slate-400 font-semibold whitespace-nowrap">
+                            <td class="py-4 px-4 align-middle font-mono text-[10px] text-slate-400 font-bold whitespace-nowrap">
                                 @if($update)
                                     <div class="flex items-center gap-1.5 text-slate-500">
                                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>{{ $update->created_at->diffForHumans() }}</span>
                                     </div>
                                 @else
-                                    <span class="text-slate-300 font-light">-</span>
+                                    <span class="text-slate-300 font-light">—</span>
                                 @endif
                             </td>
 
@@ -295,7 +343,7 @@
                                         <button
                                             wire:click="openStatusUpdateModal({{ $project->id }})"
                                             type="button"
-                                            class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm transition-all cursor-pointer"
+                                            class="px-3.5 py-1.5 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#8b0d1f] shadow-2xs hover:shadow-xs transition-all cursor-pointer hover:-translate-y-0.5"
                                         >
                                             + Log Update
                                         </button>
@@ -305,11 +353,10 @@
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
                                         type="button"
-                                        class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 hover:text-[#c3122e] hover:border-slate-300 transition-all cursor-pointer flex items-center gap-1 group shadow-sm"
-                                        style="border: 1px solid #e2e8f0;"
+                                        class="px-3.5 py-1.5 rounded-xl text-xs font-black text-slate-600 bg-white hover:bg-slate-50 hover:text-[#c3122e] border border-slate-200 hover:border-slate-300 transition-all cursor-pointer flex items-center gap-1.5 group shadow-2xs hover:-translate-y-0.5"
                                         title="Click to view status update history for {{ $project->name }}"
                                     >
-                                        <span class="text-[11px] font-semibold">Updates ({{ $allUpdatesCount }})</span>
+                                        <span class="text-[11px] font-bold">Updates ({{ $allUpdatesCount }})</span>
                                         <svg class="w-3 h-3 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                                         </svg>
@@ -320,9 +367,11 @@
                     @empty
                         <tr>
                             <td colspan="6" class="py-16 text-center text-xs font-bold text-slate-400 space-y-2">
-                                <svg class="w-10 h-10 text-slate-200 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                                <p class="text-slate-500 font-bold">No Projects Found</p>
-                                <p class="text-slate-400 font-medium text-[11px]">We couldn't find any projects matching your current query.</p>
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400 shadow-inner mb-2">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                                </div>
+                                <p class="text-slate-600 font-black text-sm">No Projects Found</p>
+                                <p class="text-slate-400 font-medium text-xs">We couldn't find any projects matching your current query.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -331,7 +380,9 @@
         </div>
     </div>
 
-    <!-- MODAL: PROJECT STATUS UPDATE HISTORY & FEEDBACK LOOP POPUP -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         5. MODAL: PROJECT STATUS UPDATE HISTORY & FEEDBACK LOOP POPUP
+         ═══════════════════════════════════════════════════════════════ -->
     @if($showHistoryModal && $historyProjectId)
         @php
             $historyGroup = collect($groupedProjectUpdates)->firstWhere(fn($g) => $g['project']->id === $historyProjectId);
@@ -347,25 +398,25 @@
 
             <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10 animate-fade-in">
                 <!-- Overlay Backdrop with soft blur -->
-                <div class="fixed inset-0 backdrop-blur-sm transition-opacity bg-slate-900/40" wire:click="closeHistoryModal"></div>
+                <div class="fixed inset-0 backdrop-blur-sm transition-opacity bg-slate-900/50" wire:click="closeHistoryModal"></div>
 
                 <!-- Popup Content Box -->
-                <div class="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl z-10 flex flex-col max-h-[90vh] md:max-h-[85vh] overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+                <div class="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl z-10 flex flex-col max-h-[90vh] md:max-h-[85vh] overflow-hidden border border-slate-200/90 animate-in fade-in zoom-in-95 duration-200">
                     <!-- Modal Header -->
-                    <div class="px-6 py-4 flex items-center justify-between border-b border-rose-900/20 flex-shrink-0" style="background: linear-gradient(135deg, #7a0b1d 0%, #c3122e 100%); color: #ffffff;">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 shadow-inner" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+                    <div class="px-6 py-4.5 flex items-center justify-between border-b border-rose-900/20 flex-shrink-0" style="background: linear-gradient(135deg, #18060c 0%, #300a16 50%, #1b0710 100%); color: #ffffff;">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0 shadow-inner bg-white/10 border border-white/20">
                                 📊
                             </div>
                             <div class="min-w-0">
-                                <h3 class="text-sm font-bold text-white leading-tight truncate">
+                                <h3 class="text-sm font-black text-white leading-tight truncate">
                                     Project Execution Logs: {{ $historyProject->name }}
                                 </h3>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <span style="background: rgba(255,255,255,0.2); color: #ffffff; padding: 1px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                                    <span class="px-2 py-0.5 rounded-full font-mono text-[9px] font-black bg-rose-500/30 text-rose-200 border border-rose-400/40">
                                         {{ $historyProject->code }}
                                     </span>
-                                    <span style="color: #fecdd3; font-size: 11px; font-weight: 600;">
+                                    <span class="text-rose-200/80 text-[11px] font-bold">
                                         • {{ $historyUpdatesCount }} Log(s) recorded
                                     </span>
                                 </div>
@@ -374,8 +425,7 @@
                         <button 
                             wire:click="closeHistoryModal" 
                             type="button" 
-                            class="px-3 py-1.5 rounded-xl text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 hover:bg-white/25"
-                            style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);"
+                            class="px-3.5 py-1.5 rounded-xl text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 shadow-2xs"
                             title="Close Window"
                         >
                             <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -386,37 +436,37 @@
                     </div>
 
                     <!-- Modal Body Grid -->
-                    <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 scrollbar-thin bg-slate-50/40">
+                    <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 daily-update-scroll bg-slate-50/50">
                         @if($historyLatestUpdate)
                             <div class="flex flex-col md:flex-row gap-6 items-start">
                                 <!-- Left side: Latest Update Details (58%) -->
                                 <div class="w-full md:w-[58%] space-y-4">
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200">
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Latest Status Update Log
                                     </div>
 
-                                    <div class="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-5">
+                                    <div class="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-2xs space-y-5">
                                         <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-wrap gap-2.5">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-9 h-9 rounded-full font-bold flex items-center justify-center text-xs text-white shadow-sm" style="background: linear-gradient(135deg, #c3122e, #a00e24);">
+                                                <div class="w-9 h-9 rounded-xl font-black flex items-center justify-center text-xs text-white shadow-2xs" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
                                                     {{ strtoupper(substr($historyLatestUpdate->creator->name ?? 'U', 0, 1)) }}
                                                 </div>
                                                 <div>
-                                                    <span class="font-bold text-xs text-slate-900 block leading-tight">{{ $historyLatestUpdate->creator->name ?? 'User' }}</span>
+                                                    <span class="font-black text-xs text-slate-900 block leading-tight">{{ $historyLatestUpdate->creator->name ?? 'User' }}</span>
                                                     <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wide block mt-0.5">{{ $historyLatestUpdate->created_at->diffForHumans() }}</span>
                                                 </div>
                                             </div>
-                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-[#c3122e] text-white shadow-sm">
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-black bg-[#c3122e] text-white shadow-2xs">
                                                 Log #{{ $historyUpdatesCount }}
                                             </span>
                                         </div>
 
                                         <div class="space-y-3">
-                                            <h4 class="font-bold text-sm text-slate-900 leading-snug">{{ $historyLatestUpdate->title }}</h4>
+                                            <h4 class="font-black text-sm text-slate-900 leading-snug">{{ $historyLatestUpdate->title }}</h4>
                                             
                                             <!-- Beautiful Quote Box with straight left border & GS Crimson tint -->
-                                            <div class="relative p-4 rounded-r-xl rounded-l-none text-slate-800 font-semibold text-xs leading-relaxed shadow-sm" style="background: #fff1f2; border-left: 4px solid #c3122e;">
+                                            <div class="relative p-4 rounded-2xl text-slate-800 font-semibold text-xs leading-relaxed shadow-2xs bg-rose-50/60 border border-rose-100/80 border-l-4 border-l-[#c3122e]">
                                                 <span class="absolute top-2 left-2 text-2xl text-[#c3122e]/10 font-serif leading-none select-none">“</span>
                                                 <p class="pl-2 pr-1 italic">"{{ $historyLatestUpdate->summary }}"</p>
                                             </div>
@@ -425,19 +475,19 @@
                                         @if($historyLatestUpdate->work_completed || $historyLatestUpdate->current_blockers)
                                             <div class="space-y-2 text-xs pt-1">
                                                 @if($historyLatestUpdate->work_completed)
-                                                    <div class="p-3 rounded-xl bg-emerald-50/80 text-emerald-800 border border-emerald-100 font-semibold flex items-start gap-2">
+                                                    <div class="p-3.5 rounded-2xl bg-emerald-50 text-emerald-900 border border-emerald-200/80 font-bold flex items-start gap-2.5 shadow-2xs">
                                                         <svg class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                         <div>
-                                                            <strong class="text-emerald-950 font-bold">Work Completed:</strong> 
+                                                            <strong class="text-emerald-950 font-black">Work Completed:</strong> 
                                                             <span>{{ $historyLatestUpdate->work_completed }}</span>
                                                         </div>
                                                     </div>
                                                 @endif
                                                 @if($historyLatestUpdate->current_blockers)
-                                                    <div class="p-3 rounded-xl bg-rose-50/80 text-rose-800 border border-rose-100 font-semibold flex items-start gap-2">
+                                                    <div class="p-3.5 rounded-2xl bg-rose-50 text-rose-900 border border-rose-200/80 font-bold flex items-start gap-2.5 shadow-2xs">
                                                         <svg class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                                         <div>
-                                                            <strong class="text-rose-950 font-bold">Current Blockers:</strong> 
+                                                            <strong class="text-rose-950 font-black">Current Blockers:</strong> 
                                                             <span>{{ $historyLatestUpdate->current_blockers }}</span>
                                                         </div>
                                                     </div>
@@ -449,7 +499,7 @@
 
                                 <!-- Right side: Comments & Feedback Loop (42%) -->
                                 <div class="w-full md:w-[42%] space-y-4">
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-rose-800 bg-rose-50 border border-rose-200">
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-rose-800 bg-rose-50 border border-rose-200">
                                         💬 PM & PMO Admin Feedback Loop
                                     </div>
 
@@ -457,12 +507,12 @@
                                         $visibleComments = $historyLatestUpdate->comments;
                                     @endphp
 
-                                    <div class="space-y-3 max-h-[300px] overflow-y-auto p-4 bg-white border border-slate-100 rounded-2xl shadow-sm scrollbar-thin">
+                                    <div class="space-y-3 max-h-[320px] overflow-y-auto p-4 bg-white border border-slate-200/90 rounded-3xl shadow-2xs daily-update-scroll">
                                         @forelse($visibleComments as $comment)
                                             @php
                                                 $commentUser = $comment->user;
                                                 $commenterRole = 'Team Member';
-                                                $commentBadgeStyle = 'background:#e2e8f0; color:#334155; border:1px solid #cbd5e1;';
+                                                $commentBadgeStyle = 'background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;';
 
                                                 if ($commentUser) {
                                                     if ($commentUser->hasRole('super_admin')) {
@@ -474,24 +524,24 @@
                                                     }
                                                 }
                                             @endphp
-                                            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm">
-                                                <div class="w-6.5 h-6.5 rounded-full flex items-center justify-center font-bold text-[9px] text-white shadow-sm flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #a00e24);">
+                                            <div class="flex items-start gap-2.5 p-3 rounded-2xl bg-slate-50/80 border border-slate-100 shadow-2xs">
+                                                <div class="w-7 h-7 rounded-xl flex items-center justify-center font-black text-[10px] text-white shadow-2xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
                                                     {{ strtoupper(substr($commentUser->name ?? 'U', 0, 1)) }}
                                                 </div>
                                                 <div class="flex-1 min-w-0 space-y-0.5">
                                                     <div class="flex items-center justify-between gap-1 flex-wrap">
                                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                                            <span class="text-xs font-bold text-slate-900">{{ $commentUser->name ?? 'User' }}</span>
-                                                            <span class="px-1.5 py-0.2 rounded text-[7px] font-bold uppercase tracking-wide" style="{{ $commentBadgeStyle }}">{{ $commenterRole }}</span>
+                                                            <span class="text-xs font-black text-slate-900">{{ $commentUser->name ?? 'User' }}</span>
+                                                            <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wide" style="{{ $commentBadgeStyle }}">{{ $commenterRole }}</span>
                                                         </div>
                                                         <span class="text-[9px] font-bold text-slate-400 font-mono">{{ $comment->created_at->diffForHumans() }}</span>
                                                     </div>
-                                                    <p class="text-xs font-semibold text-slate-700 leading-relaxed">{{ $comment->content }}</p>
+                                                    <p class="text-xs font-medium text-slate-700 leading-relaxed">{{ $comment->content }}</p>
                                                 </div>
                                             </div>
                                         @empty
                                             <div class="py-14 text-center text-xs font-semibold text-slate-400 italic space-y-2.5">
-                                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                                                <div class="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400 shadow-inner">
                                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                                 </div>
                                                 <p>No feedback comments posted yet.</p>
@@ -506,11 +556,11 @@
                                             wire:model="newCommentContent.{{ $historyLatestUpdate->id }}"
                                             wire:keydown.enter="addComment({{ $historyLatestUpdate->id }})"
                                             placeholder="Write feedback comment..."
-                                            class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all flex-1"
+                                            class="w-full text-xs font-semibold py-2.5 px-3 rounded-2xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all flex-1 shadow-2xs"
                                         >
                                         <button
                                             wire:click="addComment({{ $historyLatestUpdate->id }})"
-                                            class="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm transition-all cursor-pointer flex-shrink-0"
+                                            class="px-4 py-2.5 rounded-2xl font-black text-xs text-white bg-[#c3122e] hover:bg-[#8b0d1f] shadow-2xs hover:shadow-xs transition-all cursor-pointer flex-shrink-0"
                                         >
                                             Send
                                         </button>
@@ -518,14 +568,14 @@
                                 </div>
                             </div>
                         @else
-                            <div class="py-12 text-center text-xs font-medium text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div class="py-12 text-center text-xs font-medium text-slate-400 bg-slate-50 rounded-3xl border border-slate-200">
                                 No status update logs posted yet for this project.
                             </div>
                         @endif
 
                         <!-- ALL UPDATES LOG TIMELINE (PAST HISTORY) -->
-                        <div class="space-y-4 pt-5 border-t border-slate-100">
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200/60">
+                        <div class="space-y-4 pt-5 border-t border-slate-200">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200">
                                 📜 All Execution Logs Timeline ({{ $historyUpdatesCount }})
                             </div>
 
@@ -548,38 +598,38 @@
                                     @endphp
                                     <div class="relative group">
                                         <!-- Timeline Dot Node -->
-                                        <span class="absolute -left-[24px] top-1.5 w-3.5 h-3.5 rounded-full border-[3px] border-white shadow-sm flex-shrink-0 transition-transform group-hover:scale-110" style="background: {{ $pIndex === 0 ? '#c3122e' : '#cbd5e1' }};"></span>
+                                        <span class="absolute -left-[24px] top-2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-2xs flex-shrink-0 transition-transform group-hover:scale-125" style="background: {{ $pIndex === 0 ? '#c3122e' : '#cbd5e1' }};"></span>
 
                                         <!-- Log Card Content -->
-                                        <div class="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-slate-200 transition-all duration-200 space-y-3">
+                                        <div class="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all duration-200 space-y-3">
                                             <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-wrap gap-2">
                                                 <div class="flex items-center gap-2">
-                                                    <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#c3122e] text-white shadow-sm">
+                                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-mono font-black bg-[#c3122e] text-white shadow-2xs">
                                                         #{{ $historyUpdatesCount - $pIndex }}
                                                     </span>
-                                                    <h6 class="font-bold text-xs text-slate-900 leading-snug">{{ $pUpdate->title }}</h6>
+                                                    <h6 class="font-black text-xs text-slate-900 leading-snug">{{ $pUpdate->title }}</h6>
                                                 </div>
                                                 <div class="flex items-center gap-2 text-xs flex-wrap">
                                                     <span class="font-bold text-slate-800">{{ $pCreator->name ?? 'User' }}</span>
-                                                    <span class="px-1.5 py-0.2 rounded text-[7px] font-bold uppercase tracking-wide shadow-sm" style="{{ $pRoleBadgeStyle }}">{{ $pCreatorRole }}</span>
+                                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wide shadow-2xs" style="{{ $pRoleBadgeStyle }}">{{ $pCreatorRole }}</span>
                                                     <span class="text-slate-400 font-mono text-[9px] font-bold">{{ $pUpdate->created_at->diffForHumans() }}</span>
                                                 </div>
                                             </div>
                                             
                                             <!-- Quote Panel inside timeline card with straight left border -->
-                                            <div class="p-3.5 rounded-r-xl rounded-l-none italic text-xs bg-slate-50 text-slate-800 leading-relaxed font-semibold shadow-sm" style="border-left: 4px solid #cbd5e1;">
+                                            <div class="p-3.5 rounded-2xl italic text-xs bg-slate-50 text-slate-800 leading-relaxed font-semibold shadow-2xs border border-slate-100 border-l-4 border-l-slate-300">
                                                 "{{ $pUpdate->summary }}"
                                             </div>
                                             
                                             @if($pUpdate->work_completed || $pUpdate->current_blockers)
                                                 <div class="flex flex-wrap gap-2.5 text-[10px] pt-1">
                                                     @if($pUpdate->work_completed)
-                                                        <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-100 font-bold flex items-center gap-1 shadow-sm">
+                                                        <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold flex items-center gap-1 shadow-2xs">
                                                             ✓ {{ $pUpdate->work_completed }}
                                                         </span>
                                                     @endif
                                                     @if($pUpdate->current_blockers)
-                                                        <span class="px-2.5 py-1 rounded bg-rose-50 text-rose-800 border border-rose-100 font-bold flex items-center gap-1 shadow-sm">
+                                                        <span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 font-bold flex items-center gap-1 shadow-2xs">
                                                             ⚠ {{ $pUpdate->current_blockers }}
                                                         </span>
                                                     @endif
@@ -588,7 +638,7 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <div class="py-10 text-center text-xs font-semibold text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div class="py-10 text-center text-xs font-bold text-slate-400 bg-slate-50 rounded-2xl border border-slate-200">
                                         No past status update logs found.
                                     </div>
                                 @endforelse
@@ -600,29 +650,30 @@
         @endif
     @endif
 
-    <!-- MODAL: POST DAILY STATUS UPDATE -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         6. MODAL: POST DAILY STATUS UPDATE
+         ═══════════════════════════════════════════════════════════════ -->
     @if($showUpdateModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10 animate-fade-in">
             <!-- Overlay Backdrop with soft blur -->
-            <div class="fixed inset-0 backdrop-blur-sm transition-opacity bg-slate-900/40" wire:click="$set('showUpdateModal', false)"></div>
+            <div class="fixed inset-0 backdrop-blur-sm transition-opacity bg-slate-900/50" wire:click="$set('showUpdateModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl max-w-xl w-full p-0 overflow-hidden shadow-2xl z-10 border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div class="relative bg-white rounded-3xl max-w-xl w-full p-0 overflow-hidden shadow-2xl z-10 border border-slate-200/90 animate-in fade-in zoom-in-95 duration-200">
                 <!-- Modal Header -->
-                <div class="px-6 py-4 flex items-center justify-between border-b border-rose-900/20 flex-shrink-0" style="background: linear-gradient(135deg, #7a0b1d 0%, #c3122e 100%); color: #ffffff;">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 shadow-inner" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+                <div class="px-6 py-4.5 flex items-center justify-between border-b border-rose-900/20 flex-shrink-0" style="background: linear-gradient(135deg, #18060c 0%, #300a16 50%, #1b0710 100%); color: #ffffff;">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0 shadow-inner bg-white/10 border border-white/20">
                             📝
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-white leading-tight">Publish Daily Progress Log</h3>
-                            <p style="color: #fecdd3; font-size: 11px; font-weight: 500; margin-top: 2px;">Log task execution progress or overall project status update</p>
+                            <h3 class="text-sm font-black text-white leading-tight">Publish Daily Progress Log</h3>
+                            <p class="text-rose-200/80 text-[11px] font-bold mt-0.5">Log task execution progress or overall project status update</p>
                         </div>
                     </div>
                     <button 
                         wire:click="$set('showUpdateModal', false)" 
                         type="button" 
-                        class="px-3 py-1.5 rounded-xl text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 hover:bg-white/25"
-                        style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);"
+                        class="px-3.5 py-1.5 rounded-xl text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 shadow-2xs"
                         title="Close Window"
                     >
                         <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -635,11 +686,11 @@
                 <form wire:submit="saveStatusUpdate" class="p-6 space-y-4">
                     <!-- Target Project Select -->
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700">Target Project <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-black text-slate-700">Target Project <span class="text-rose-500">*</span></label>
                         <div class="relative">
                             <select
                                 wire:model.live="updateProjectId"
-                                class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800"
+                                class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800 shadow-2xs"
                             >
                                 @foreach($accessibleProjects as $p)
                                     <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code }})</option>
@@ -654,18 +705,18 @@
 
                     <!-- Scope Selector (Task vs Project Overall) -->
                     @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']))
-                        <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+                        <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200/60 shadow-inner">
                             <button
                                 type="button"
                                 wire:click="$set('updateScopeType', 'task')"
-                                class="flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer text-center {{ $updateScopeType === 'task' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                                class="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer text-center {{ $updateScopeType === 'task' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-900' }}"
                             >
                                 📍 Task-Specific Log
                             </button>
                             <button
                                 type="button"
                                 wire:click="$set('updateScopeType', 'project')"
-                                class="flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer text-center {{ $updateScopeType === 'project' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                                class="flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer text-center {{ $updateScopeType === 'project' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-900' }}"
                             >
                                 🌐 Full Project Report
                             </button>
@@ -675,11 +726,11 @@
                     <!-- Task Linker if Task Scope -->
                     @if($updateScopeType === 'task')
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700">📍 WBS Scope Task</label>
+                            <label class="block text-xs font-black text-slate-700">📍 WBS Scope Task</label>
                             <div class="relative">
                                 <select
                                     wire:model="updateWbsItemId"
-                                    class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800"
+                                    class="w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all appearance-none cursor-pointer text-slate-800 shadow-2xs"
                                 >
                                     <option value="">Select Task...</option>
                                     @foreach($modalWbsItems as $wbs)
@@ -696,24 +747,24 @@
 
                     <!-- Log Title -->
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700">Log Title <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-black text-slate-700">Log Title <span class="text-rose-500">*</span></label>
                         <input
                             type="text"
                             wire:model="updateTitle"
                             placeholder="e.g. Completed Payment Gateway API integration tests"
-                            class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800"
+                            class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                         >
                         @error('updateTitle') <span class="text-rose-500 text-[10px] font-bold block mt-1">⚠ {{ $message }}</span> @enderror
                     </div>
 
                     <!-- Daily Executive Summary -->
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700">Daily Executive Summary <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-black text-slate-700">Daily Executive Summary <span class="text-rose-500">*</span></label>
                         <textarea
                             wire:model="updateSummary"
                             rows="3"
                             placeholder="Detail main work completed, progress made, or key highlights..."
-                            class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800"
+                            class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                         ></textarea>
                         @error('updateSummary') <span class="text-rose-500 text-[10px] font-bold block mt-1">⚠ {{ $message }}</span> @enderror
                     </div>
@@ -721,22 +772,22 @@
                     <!-- Deliverables and Blockers -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700">Work Completed Today</label>
+                            <label class="block text-xs font-black text-slate-700">Work Completed Today</label>
                             <input
                                 type="text"
                                 wire:model="updateWorkCompleted"
                                 placeholder="Deliverables finished..."
-                                class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800"
+                                class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                             >
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700">Blockers / Issues (If Any)</label>
+                            <label class="block text-xs font-black text-slate-700">Blockers / Issues (If Any)</label>
                             <input
                                 type="text"
                                 wire:model="updateBlockers"
                                 placeholder="Execution blockers faced..."
-                                class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800"
+                                class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                             >
                         </div>
                     </div>
@@ -746,13 +797,13 @@
                         <button
                             type="button"
                             wire:click="$set('showUpdateModal', false)"
-                            class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                            class="px-4 py-2.5 rounded-xl text-xs font-black text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm transition-all cursor-pointer"
+                            class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#8b0d1f] shadow-2xs hover:shadow-xs transition-all cursor-pointer hover:-translate-y-0.5"
                         >
                             Publish Daily Update
                         </button>

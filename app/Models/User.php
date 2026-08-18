@@ -55,6 +55,25 @@ class User extends Authenticatable
         return $this->hasMany(Project::class, 'project_manager_id');
     }
 
+    /**
+     * Projects where this user is the designated Project Leader.
+     */
+    public function leadProjects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'project_manager_id');
+    }
+
+    /**
+     * Projects where this user is a Collaborator (member, not leader).
+     */
+    public function collaboratorProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_members')
+                    ->wherePivot('role', 'member')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_members')
@@ -75,23 +94,33 @@ class User extends Authenticatable
     public static function getUsersForSubsidiary(?int $subsidiaryId)
     {
         if (!$subsidiaryId) {
-            return static::where('is_active', true)->get();
+            return static::with(['subsidiary', 'roles'])->where('is_active', true)->orderBy('name')->get();
         }
 
         $sub = Subsidiary::find($subsidiaryId);
         $subCode = $sub ? strtolower($sub->code) : '';
 
-        $users = static::where('is_active', true)
-            ->where(function($q) use ($subsidiaryId, $subCode) {
-                $q->where('subsidiary_id', $subsidiaryId);
-                if (!empty($subCode)) {
-                    $q->orWhere('email', 'like', "%{$subCode}%");
-                }
+        // Find Optimize subsidiary ID(s) so they are always available across all corporate entities
+        $optimizeSubIds = Subsidiary::where('code', 'like', '%GSOPT%')
+            ->orWhere('name', 'like', '%Optimize%')
+            ->pluck('id')
+            ->toArray();
+
+        $targetSubsidiaryIds = array_unique(array_merge([$subsidiaryId], $optimizeSubIds));
+
+        $users = static::with(['subsidiary', 'roles'])
+            ->where('is_active', true)
+            ->where(function($q) use ($targetSubsidiaryIds, $subCode) {
+                // Strictly belongs to selected subsidiary OR Optimize subsidiary OR has Optimize domain
+                $q->whereIn('subsidiary_id', $targetSubsidiaryIds)
+                  ->when(!empty($subCode), fn($sq) => $sq->orWhere('email', 'like', "%{$subCode}%"))
+                  ->orWhere('email', 'like', '%gsoptimize%');
             })
+            ->orderBy('name')
             ->get();
 
         if ($users->isEmpty()) {
-            return static::where('is_active', true)->get();
+            return static::with(['subsidiary', 'roles'])->where('is_active', true)->orderBy('name')->get();
         }
 
         return $users;
@@ -115,13 +144,15 @@ class User extends Authenticatable
         if ($this->isSuperAdmin()) {
             return 'PMO Admin';
         }
-        if ($this->hasRole('project_manager')) {
-            return 'Project Manager';
-        }
-        if ($this->hasRole('team_member')) {
-            return 'Team Member';
-        }
-        return 'Regular User';
+        return 'User';
+    }
+
+    /**
+     * Whether this user is a project leader in at least one project.
+     */
+    public function isProjectLeader(): bool
+    {
+        return $this->leadProjects()->exists();
     }
 }
 

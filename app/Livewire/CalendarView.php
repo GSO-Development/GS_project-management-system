@@ -159,7 +159,10 @@ class CalendarView extends Component
         if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
             $wbsQuery->where(function($q) use ($user) {
                 $q->whereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
-                  ->orWhere('assigned_user_id', $user->id);
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('assigned_user_id', $user->id)
+                          ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
+                  });
             });
         }
 
@@ -175,6 +178,15 @@ class CalendarView extends Component
 
         // Fetch Project Deadlines
         $projectQuery = Project::query()->whereNotNull('deadline');
+        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+            $projectQuery->where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('pm_accepted', true)
+                          ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                  });
+            });
+        }
         if ($this->subsidiaryFilter !== 'all') {
             $projectQuery->where('subsidiary_id', $this->subsidiaryFilter);
         }

@@ -10,7 +10,7 @@ use Livewire\Component;
 class GanttChart extends Component
 {
     public Project $project;
-    public string $timeframe = 'week'; // 'day', 'week', 'month'
+    public string $timeframe = 'month'; // Default to month view
     public string $search = '';
     public string $statusFilter = 'all';
 

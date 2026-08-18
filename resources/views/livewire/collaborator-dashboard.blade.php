@@ -3,6 +3,64 @@
      ============================================================ --}}
 <div class="space-y-6 pb-12 font-sans">
 
+    {{-- ═══════════════════ PENDING PM ASSIGNMENT INVITATIONS ═══════════════════ --}}
+    @if(isset($pendingInvitations) && $pendingInvitations->count() > 0)
+        <div class="mb-6 rounded-2xl overflow-hidden shadow-md border-2 border-amber-300 bg-white animate-in fade-in duration-300">
+            <!-- Header Bar -->
+            <div class="px-5 py-4 bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 flex items-center justify-between gap-4 flex-wrap text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
+                        🔔
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-base font-black text-white tracking-tight">Project Leadership Assignment Required</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-white text-rose-700 shadow-xs uppercase tracking-wider">
+                                {{ $pendingInvitations->count() }} Action Required
+                            </span>
+                        </div>
+                        <p class="text-xs text-amber-100 font-medium mt-0.5">PMO Admin has designated you as the Project Manager. Please accept to confirm leadership and open the workspace.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Cards Grid -->
+            <div class="p-5 bg-slate-50/60 space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach($pendingInvitations as $inv)
+                        <div class="p-4 rounded-2xl border-2 border-amber-200 bg-white flex items-center justify-between gap-4 shadow-sm hover:border-rose-400 hover:shadow-md transition-all">
+                            <div class="space-y-1.5 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-mono text-xs font-black text-[#c3122e] bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-md">
+                                        {{ $inv->code }}
+                                    </span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Pending Acceptance
+                                    </span>
+                                </div>
+                                <h4 class="text-sm font-black text-slate-900 leading-snug truncate">{{ $inv->name }}</h4>
+                                <p class="text-xs text-slate-500 font-medium truncate">🏢 {{ $inv->subsidiary->name ?? 'George Steuart' }}</p>
+                            </div>
+
+                            <button 
+                                wire:click="acceptProjectAssignment({{ $inv->id }})"
+                                type="button" 
+                                style="background-color: #c3122e; color: #ffffff;"
+                                class="px-4 py-2.5 rounded-xl text-xs font-black shadow-sm hover:bg-[#a00e24] hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 active:scale-95"
+                            >
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span>Accept &amp; Open</span>
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- ═══════════════════ 1. HERO BANNER ═══════════════════ --}}
     <div class="relative rounded-3xl overflow-hidden shadow-xl" style="background: linear-gradient(135deg, #160a0f 0%, #200d14 45%, #13060b 100%); border: 1px solid rgba(195,18,46,0.25);">
         

@@ -56,6 +56,12 @@ class ApprovalService
                     $project->save();
                     break;
 
+                case 'new_project_plan':
+                    $project->pm_accepted = true;
+                    $project->pm_accepted_at = now();
+                    $project->save();
+                    break;
+
                 case 'project_cancellation':
                     $project->status = \App\Enums\ProjectStatus::CANCELLED;
                     $project->save();
@@ -148,6 +154,16 @@ class ApprovalService
             'reviewed_at' => now(),
             'review_comment' => $reason,
         ]);
+
+        if ($request->request_type->value === 'new_project_plan') {
+            $project = $request->project;
+            if ($project) {
+                $project->pm_accepted = false;
+                $project->pm_rejected_at = now();
+                $project->pm_rejection_reason = $reason;
+                $project->save();
+            }
+        }
 
         ActivityLog::create([
             'user_id' => $reviewer->id,

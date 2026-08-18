@@ -11,14 +11,10 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('super_admin')) {
+        if ($user->isSuperAdmin()) {
             return view('dashboard.super-admin');
         }
 
-        if (\App\Models\Project::where('project_manager_id', $user->id)->exists()) {
-            return view('dashboard.project-manager');
-        }
-
-        return view('dashboard.collaborator');
+        return view('dashboard.project-manager');
     }
 }

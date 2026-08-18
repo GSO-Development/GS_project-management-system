@@ -1,51 +1,86 @@
 <div>
-    <!-- Top Title & Navigation Bar -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-2.5">
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Project Calendar</h1>
-                <div class="w-7 h-7 rounded-lg bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e]">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
-            </div>
-            <p class="text-xs text-slate-500 mt-1 font-medium">Schedule view for deadlines, milestones, and project deliverables</p>
+    <!-- ═══════════════════════════════════════════════════════════════
+         1. TOP EXECUTIVE HERO BANNER (PROJECT CALENDAR)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
+        <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
+
+        <!-- Right Background Cityscape Dark Illustration with Smooth Fade -->
+        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
+            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
         </div>
 
-        <div class="flex items-center gap-3 self-start md:self-auto">
-            <!-- Month Navigation & Today Button -->
-            <div class="flex items-center bg-white border border-slate-200 shadow-xs rounded-xl p-1">
-                <button wire:click="prevMonth" type="button" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" title="Previous Month">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-                <button wire:click="today" type="button" class="px-3 py-1 text-xs font-bold text-slate-800 hover:text-[#c3122e] transition-colors">
-                    Today
-                </button>
-                <button wire:click="nextMonth" type="button" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" title="Next Month">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
+        <!-- Gold Elegant Wave Swoosh Vector Overlay -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
+            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" />
+                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5" />
+            </svg>
+        </div>
+
+        <div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <!-- Left Side: 3D Calendar Icon + Title + Meta -->
+            <div class="flex items-center gap-5 min-w-0">
+                <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                            Project Calendar
+                        </h1>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
+                            <span>📅</span>
+                            <span class="font-mono">{{ $currentDate->format('F Y') }}</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
+                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Corporate Timeline Engine</span>
+                        </span>
+                        <span class="text-slate-500 font-normal">|</span>
+                        <span class="text-slate-300 font-medium">Schedule view for deadlines, milestones, and project deliverables</span>
+                    </div>
+                </div>
             </div>
 
-            <h2 class="text-base font-extrabold text-slate-900 font-mono min-w-36 text-center">
-                {{ $currentDate->format('F Y') }}
-            </h2>
+            <!-- Right Side: Month Navigation & View Switcher -->
+            <div class="flex items-center gap-3 flex-wrap self-start xl:self-center">
+                <!-- Month Navigation -->
+                <div class="inline-flex items-center p-1 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl" style="background: rgba(0, 0, 0, 0.45);">
+                    <button wire:click="prevMonth" type="button" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer" title="Previous Month">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button wire:click="today" type="button" class="px-3.5 py-1.5 text-xs font-black text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer">
+                        Today
+                    </button>
+                    <button wire:click="nextMonth" type="button" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer" title="Next Month">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
 
-            <!-- View Switcher (Grid vs List) -->
-            <div class="flex items-center bg-slate-100 p-1 rounded-xl">
-                <button wire:click="$set('viewMode', 'calendar')" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $viewMode === 'calendar' ? 'bg-white text-[#c3122e] shadow-xs' : 'text-slate-500 hover:text-slate-800' }}">
-                    Month Grid
-                </button>
-                <button wire:click="$set('viewMode', 'list')" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $viewMode === 'list' ? 'bg-white text-[#c3122e] shadow-xs' : 'text-slate-500 hover:text-slate-800' }}">
-                    List View
-                </button>
+                <!-- View Switcher -->
+                <div class="inline-flex p-1 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl" style="background: rgba(0, 0, 0, 0.45);">
+                    <button wire:click="$set('viewMode', 'calendar')" type="button" class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer {{ $viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-md scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}">
+                        Month Grid
+                    </button>
+                    <button wire:click="$set('viewMode', 'list')" type="button" class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer {{ $viewMode === 'list' ? 'bg-white text-slate-900 shadow-md scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}">
+                        List View
+                    </button>
+                </div>
+
+                <!-- Add Event Button -->
+                @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']))
+                    <button wire:click="openCreateEventModal" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        <span>Add Event</span>
+                    </button>
+                @endif
             </div>
-
-            <!-- Add Event Button -->
-            @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']))
-            <button wire:click="openCreateEventModal" @click="$wire.showCreateEventModal = true" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>Add Event</span>
-            </button>
-            @endif
         </div>
     </div>
 

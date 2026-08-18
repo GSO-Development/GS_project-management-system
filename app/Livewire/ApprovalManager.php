@@ -185,6 +185,92 @@ class ApprovalManager extends Component
         }
     }
 
+    // Project Leadership Acceptance State
+    public bool   $showDeclineModal       = false;
+    public ?int   $decliningProjectId     = null;
+    public string $declineReason          = '';
+
+    // Delete Approval Request State
+    public bool   $showDeleteConfirmModal = false;
+    public ?int   $deletingRequestId      = null;
+
+    public function openDeleteModal(int $id): void
+    {
+        $this->deletingRequestId = $id;
+        $this->showDeleteConfirmModal = true;
+    }
+
+    public function closeDeleteModal(): void
+    {
+        $this->showDeleteConfirmModal = false;
+        $this->deletingRequestId = null;
+    }
+
+    public function confirmDelete(): void
+    {
+        $user = auth()->user();
+        $request = ApprovalRequest::findOrFail($this->deletingRequestId);
+
+        if (!$user->hasRole('super_admin') && $request->requested_by !== $user->id) {
+            $this->dispatch('toast', message: 'You are not authorized to delete this approval record.', type: 'error');
+            return;
+        }
+
+        $request->delete();
+        $this->closeDeleteModal();
+        $this->dispatch('toast', message: '🗑️ Approval request deleted successfully.', type: 'success');
+    }
+
+    public function acceptProject(int $projectId)
+    {
+        $user = auth()->user();
+        $project = Project::findOrFail($projectId);
+
+        if ($project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+            $this->dispatch('toast', message: 'Only the assigned Project Manager or PMO Admin can accept project leadership.', type: 'error');
+            return;
+        }
+
+        $project->acceptByPm($user);
+        $this->dispatch('toast', message: "🎉 Project '{$project->name}' leadership accepted! You can now access the full workspace.", type: 'success');
+    }
+
+    public function openDeclineProjectModal(int $projectId): void
+    {
+        $this->decliningProjectId = $projectId;
+        $this->declineReason = '';
+        $this->showDeclineModal = true;
+    }
+
+    public function closeDeclineProjectModal(): void
+    {
+        $this->showDeclineModal = false;
+        $this->decliningProjectId = null;
+        $this->declineReason = '';
+    }
+
+    public function submitDeclineProject(): void
+    {
+        $this->validate([
+            'declineReason' => 'required|string|min:5|max:1000',
+        ], [
+            'declineReason.required' => 'Please state the reason or issue for declining this leadership assignment.',
+            'declineReason.min' => 'The reason must be at least 5 characters.',
+        ]);
+
+        $project = Project::findOrFail($this->decliningProjectId);
+        $user = auth()->user();
+
+        if ($project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+            $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
+        $project->rejectByPm($user, $this->declineReason);
+        $this->closeDeclineProjectModal();
+        $this->dispatch('toast', message: 'Project leadership assignment declined. PMO Admin has been notified.', type: 'warning');
+    }
+
     public function render()
     {
         $user = auth()->user();
@@ -199,7 +285,10 @@ class ApprovalManager extends Component
             $query->where(function($q) use ($user) {
                 $q->where('requested_by', $user->id)
                   ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
-                  ->orWhereHas('project.members', fn($mq) => $mq->where('user_id', $user->id));
+                  ->orWhere(function($memberQuery) use ($user) {
+                      $memberQuery->whereHas('project.members', fn($mq) => $mq->where('users.id', $user->id))
+                                  ->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                  });
             });
         }
 
@@ -217,6 +306,21 @@ class ApprovalManager extends Component
             ? ApprovalRequest::with(['project', 'requester', 'reviewer'])->find($this->selectedRequestId)
             : null;
 
+        // Pending Leadership Projects
+        $pendingLeadershipProjects = collect();
+        if ($user->hasRole('super_admin')) {
+            $pendingLeadershipProjects = Project::where('pm_accepted', false)
+                ->with(['subsidiary', 'template', 'projectManager', 'wbsItems'])
+                ->latest()
+                ->get();
+        } else {
+            $pendingLeadershipProjects = Project::where('project_manager_id', $user->id)
+                ->where('pm_accepted', false)
+                ->with(['subsidiary', 'template', 'projectManager', 'wbsItems'])
+                ->latest()
+                ->get();
+        }
+
         // Data for Create Modal
         $userProjects = $user->hasRole('super_admin')
             ? Project::all()
@@ -231,6 +335,6 @@ class ApprovalManager extends Component
                 ->get()
             : collect();
 
-        return view('livewire.approval-manager', compact('requests', 'selectedRequest', 'userProjects', 'userWbsTasks'));
+        return view('livewire.approval-manager', compact('requests', 'selectedRequest', 'userProjects', 'userWbsTasks', 'pendingLeadershipProjects'));
     }
 }
