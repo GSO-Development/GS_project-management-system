@@ -67,10 +67,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Daily Status Updates (Accessible by all authenticated users)
     Route::get('/daily-updates', \App\Livewire\DailyStatusUpdates::class)->name('daily-updates.index');
 
+    // Reports (Protected by report.view and report.export permissions)
+    Route::get('/reports', ReportViewer::class)->name('reports.index');
+    Route::get('/reports/export-pdf', [ReportExportController::class, 'exportPdf'])->name('reports.export-pdf');
+    Route::get('/reports/export-csv', [ReportExportController::class, 'exportCsv'])->name('reports.export-csv');
+
     Route::middleware(['role:super_admin|project_manager'])->group(function () {
-        Route::get('/reports', ReportViewer::class)->name('reports.index');
-        Route::get('/reports/export-pdf', [ReportExportController::class, 'exportPdf'])->name('reports.export-pdf');
-        Route::get('/reports/export-csv', [ReportExportController::class, 'exportCsv'])->name('reports.export-csv');
         Route::get('/team-members', PmTeamMembers::class)->name('team-members.index');
     });
 
@@ -83,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/team-monitor', \App\Livewire\TeamMonitor::class)->name('team-monitor.index');
         Route::get('/subsidiaries', SubsidiaryManager::class)->name('subsidiaries.index');
         Route::get('/users', UserManager::class)->name('users.index');
+        Route::get('/roles-permissions', \App\Livewire\RolePermissionManager::class)->name('roles-permissions.index');
         Route::get('/audit-logs', AuditLogViewer::class)->name('audit-logs.index');
         Route::get('/settings', SettingsManager::class)->name('settings.index');
     });

@@ -7,6 +7,8 @@ use App\Models\Project;
 use App\Models\ProjectStatusUpdate;
 use App\Models\User;
 use App\Models\WbsItem;
+use App\Notifications\DailyUpdateNotification;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class DailyStatusUpdates extends Component
@@ -16,6 +18,12 @@ class DailyStatusUpdates extends Component
     public string $selectedScope = 'all'; // 'all', 'task', 'project'
     public string $dateFilter = 'all'; // 'all', 'today', 'this_week'
     public string $searchQuery = '';
+    public string $viewMode = 'table'; // 'table' or 'feed'
+
+    public function setViewMode(string $mode): void
+    {
+        $this->viewMode = $mode;
+    }
 
     // Modal State for Posting Updates
     public bool $showUpdateModal = false;
@@ -182,6 +190,48 @@ class DailyStatusUpdates extends Component
             $project->update(['status' => $this->updateStatus]);
         }
 
+        // ═══════════════════════════════════════════════════════════════
+        // DISPATCH NOTIFICATIONS TO PM, TEAM MEMBERS, AND SUPER ADMINS
+        // ═══════════════════════════════════════════════════════════════
+        try {
+            $recipients = collect();
+
+            // 1. If author is PM or Admin -> notify all assigned project team members
+            if ($project->project_manager_id === $user->id || $this->isSuperAdminUser($user)) {
+                $members = $project->members()->where('users.id', '!=', $user->id)->get();
+                foreach ($members as $m) {
+                    $recipients->push($m);
+                }
+            } else {
+                // 2. If author is a team member -> notify the designated Project Manager
+                if ($project->projectManager && $project->projectManager->id !== $user->id) {
+                    $recipients->push($project->projectManager);
+                }
+            }
+
+            // Also notify super admins
+            $superAdmins = User::role('super_admin')->where('id', '!=', $user->id)->get();
+            foreach ($superAdmins as $admin) {
+                $recipients->push($admin);
+            }
+
+            $recipients = $recipients->unique('id');
+            $actionType = ($this->updateScopeType === 'task') ? 'task_log' : 'daily_update';
+
+            foreach ($recipients as $recipient) {
+                $recipient->notify(new DailyUpdateNotification(
+                    updateTitle: $this->updateTitle,
+                    reporterName: $user->name,
+                    projectName: $project->name,
+                    url: route('daily-updates.index', ['project' => $project->id]),
+                    actionType: $actionType,
+                    summary: Str::limit($this->updateSummary, 120)
+                ));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to dispatch daily update notification: ' . $e->getMessage());
+        }
+
         $this->showUpdateModal = false;
         $this->dispatch('toast', message: 'Daily status update published successfully!', type: 'success');
     }
@@ -195,13 +245,47 @@ class DailyStatusUpdates extends Component
         }
 
         $update = ProjectStatusUpdate::findOrFail($updateId);
+        $user = auth()->user();
 
         Comment::create([
             'commentable_id' => $update->id,
             'commentable_type' => ProjectStatusUpdate::class,
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'content' => $content,
         ]);
+
+        // ═══════════════════════════════════════════════════════════════
+        // DISPATCH COMMENT NOTIFICATIONS
+        // ═══════════════════════════════════════════════════════════════
+        try {
+            $commentRecipients = collect();
+
+            // Notify original update author if different from commenter
+            if ($update->created_by && $update->created_by !== $user->id) {
+                $creator = User::find($update->created_by);
+                if ($creator) $commentRecipients->push($creator);
+            }
+
+            // If commenter is not PM, notify the PM
+            if ($update->project && $update->project->projectManager && $update->project->projectManager->id !== $user->id) {
+                $commentRecipients->push($update->project->projectManager);
+            }
+
+            $commentRecipients = $commentRecipients->unique('id');
+
+            foreach ($commentRecipients as $recipient) {
+                $recipient->notify(new DailyUpdateNotification(
+                    updateTitle: $update->title,
+                    reporterName: $user->name,
+                    projectName: $update->project->name ?? 'Project',
+                    url: route('daily-updates.index', ['project' => $update->project_id]),
+                    actionType: 'comment',
+                    summary: Str::limit($content, 120)
+                ));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to dispatch comment notification: ' . $e->getMessage());
+        }
 
         $this->newCommentContent[$updateId] = '';
         $this->dispatch('toast', message: 'Feedback comment posted successfully!', type: 'success');

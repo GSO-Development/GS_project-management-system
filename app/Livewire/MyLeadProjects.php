@@ -12,6 +12,7 @@ class MyLeadProjects extends Component
 
     public string $search = '';
     public string $statusFilter = 'all';
+    public string $roleFilter = 'all';
     public int $perPage = 12;
 
     public bool $showReviewModal = false;
@@ -21,11 +22,13 @@ class MyLeadProjects extends Component
 
     public function updatedSearch() { $this->resetPage(); }
     public function updatedStatusFilter() { $this->resetPage(); }
+    public function updatedRoleFilter() { $this->resetPage(); }
 
     public function clearFilters(): void
     {
         $this->search = '';
         $this->statusFilter = 'all';
+        $this->roleFilter = 'all';
         $this->resetPage();
     }
 
@@ -93,49 +96,81 @@ class MyLeadProjects extends Component
     {
         $user = auth()->user();
 
-        // PMO Admin sees all projects they created / all projects in the system
-        // Regular users see only projects where they are the designated leader
-        if ($user->isSuperAdmin()) {
-            $query = Project::query()->with(['subsidiary', 'projectManager', 'members']);
+        // Base query: all projects this user is involved in (any role)
+        if ($user->isPmoAdmin()) {
+            // PMO Admin sees all projects
+            $baseQuery = Project::query()->with(['subsidiary', 'projectManager', 'members']);
         } else {
-            $query = Project::query()
-                ->where('project_manager_id', $user->id)
+            // Regular users:
+            // - If user is the designated PM: sees their assigned projects (both accepted and pending acceptance)
+            // - If user is any other member (sponsor, owner, committee, team member): ONLY sees projects where pm_accepted is true
+            $baseQuery = Project::query()
+                ->where(function($q) use ($user) {
+                    $q->where('project_manager_id', $user->id)
+                      ->orWhere(function($subQ) use ($user) {
+                          $subQ->where('pm_accepted', true)
+                               ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                      });
+                })
                 ->with(['subsidiary', 'projectManager', 'members']);
         }
 
-        // Summary counts before filters
-        $totalLeadCount = (clone $query)->count();
-        $activeLeadCount = (clone $query)->where('status', 'in_progress')->count();
-        $overdueLeadCount = (clone $query)
-            ->where('deadline', '<', now())
-            ->whereNotIn('status', ['completed', 'cancelled'])
-            ->count();
-        $completedLeadCount = (clone $query)->where('status', 'completed')->count();
+        // Summary counts (before filters)
+        $totalCount      = (clone $baseQuery)->count();
+        $activeCount     = (clone $baseQuery)->where('status', 'in_progress')->count();
+        $overdueCount    = (clone $baseQuery)->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled'])->count();
+        $completedCount  = (clone $baseQuery)->where('status', 'completed')->count();
 
-        // Apply search
+        // Role filter
+        if ($this->roleFilter !== 'all') {
+            if ($this->roleFilter === 'lead') {
+                $baseQuery->where('project_manager_id', $user->id);
+            } else {
+                $baseQuery->whereHas('members', fn($mq) =>
+                    $mq->where('users.id', $user->id)->where('role', $this->roleFilter)
+                );
+            }
+        }
+
+        // Search
         if ($this->search) {
-            $query->where(fn($q) => $q
+            $baseQuery->where(fn($q) => $q
                 ->where('name', 'like', "%{$this->search}%")
                 ->orWhere('code', 'like', "%{$this->search}%")
                 ->orWhereHas('subsidiary', fn($sq) => $sq->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%"))
             );
         }
 
-        // Apply status filter
+        // Status filter
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            $baseQuery->where('status', $this->statusFilter);
         }
 
-        $projects = $query->latest()->paginate($this->perPage);
+        $projects = $baseQuery->latest()->paginate($this->perPage);
+
+        // Compute user role per project for display
+        $userRoles = [];
+        foreach ($projects as $p) {
+            if ($user->isPmoAdmin()) {
+                $userRoles[$p->id] = 'pmo_admin';
+            } elseif ($p->project_manager_id === $user->id) {
+                $userRoles[$p->id] = 'lead';
+            } else {
+                $member = $p->members->firstWhere('id', $user->id);
+                $userRoles[$p->id] = $member?->pivot?->role ?? 'member';
+            }
+        }
+
         $reviewProject = $this->reviewProjectId ? Project::with(['subsidiary', 'projectManager', 'template.tasks', 'wbsItems', 'members'])->find($this->reviewProjectId) : null;
 
         return view('livewire.my-lead-projects', compact(
             'projects',
             'reviewProject',
-            'totalLeadCount',
-            'activeLeadCount',
-            'overdueLeadCount',
-            'completedLeadCount'
-        ))->title('Lead Projects — GS NexusPM');
+            'totalCount',
+            'activeCount',
+            'overdueCount',
+            'completedCount',
+            'userRoles'
+        ))->title('My Projects — GS NexusPM');
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\WbsStatus;
 use App\Models\Project;
 use App\Models\TaskBlocker;
 use App\Models\WbsItem;
+use App\Notifications\TaskCompletedNotification;
 use App\Services\ProgressCalculationService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,13 +18,13 @@ class MyTasks extends Component
 
     public string $search = '';
     public string $projectFilter = 'all';
-    public string $projectRoleFilter = 'all'; // 'all', 'lead', 'collaborator'
     public string $priorityFilter = 'all';
     public string $statusFilter = 'incomplete'; // default: show incomplete only
     public string $dueDateFilter = 'all';
     public int $perPage = 10;
     public string $saView = 'mine'; // 'mine' or 'team'
-    public string $viewMode = 'all'; // 'all', 'kanban', or 'table'
+    public string $viewMode = 'kanban'; // 'kanban' or 'table'
+    public string $kanbanMode = 'time'; // 'time' (Due, Today, Tomorrow, Next Week, Later, Completed) or 'status' (To Do, In Progress, In Review, Completed, Blocked)
 
     // Blocker Modal
     public bool $showBlockerModal = false;
@@ -60,22 +61,20 @@ class MyTasks extends Component
     public string $subTaskPriority = 'medium';
     public ?float $subTaskEstimatedHours = null;
 
+    // Task Detail Drawer / Quick Modal
+    public bool $showTaskDetailModal = false;
+    public ?int $detailTaskId = null;
+    public string $newSubtaskTitle = '';
+
     public function updatedSearch() { $this->resetPage(); }
     public function updatedProjectFilter() { $this->resetPage(); }
-    public function updatedProjectRoleFilter() { $this->resetPage(); }
     public function updatedPriorityFilter() { $this->resetPage(); }
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedDueDateFilter() { $this->resetPage(); }
 
     public function clearFilters()
     {
-        $this->reset(['search', 'projectFilter', 'projectRoleFilter', 'priorityFilter', 'statusFilter', 'dueDateFilter']);
-        $this->resetPage();
-    }
-
-    public function setProjectRoleFilter(string $role): void
-    {
-        $this->projectRoleFilter = $role;
+        $this->reset(['search', 'projectFilter', 'priorityFilter', 'statusFilter', 'dueDateFilter']);
         $this->resetPage();
     }
 
@@ -239,6 +238,7 @@ class MyTasks extends Component
 
         if ($status === 'completed') {
             $task->progress = 100;
+            $this->notifyTaskCompletion($task);
         } elseif ($status === 'in_progress' && $task->progress == 0) {
             $task->progress = 10;
         } elseif ($status === 'not_started') {
@@ -259,6 +259,7 @@ class MyTasks extends Component
 
         if ($progress === 100) {
             $task->status = WbsStatus::COMPLETED;
+            $this->notifyTaskCompletion($task);
         } elseif ($progress > 0 && $task->status->value === 'not_started') {
             $task->status = WbsStatus::IN_PROGRESS;
         }
@@ -267,9 +268,137 @@ class MyTasks extends Component
         $this->dispatch('toast', message: 'Task progress saved.', type: 'success');
     }
 
+    public function toggleTaskComplete(int $taskId): void
+    {
+        $task = WbsItem::findOrFail($taskId);
+        if ($task->status === WbsStatus::COMPLETED) {
+            $task->status = WbsStatus::IN_PROGRESS;
+            $task->progress = 50;
+            $this->dispatch('toast', message: 'Task marked as In Progress.', type: 'info');
+        } else {
+            $task->status = WbsStatus::COMPLETED;
+            $task->progress = 100;
+            $this->notifyTaskCompletion($task);
+            $this->dispatch('toast', message: 'Task completed! 🎉', type: 'success');
+        }
+        $task->save();
+        (new ProgressCalculationService())->updateItemProgress($task);
+    }
+
+    protected function notifyTaskCompletion(WbsItem $task): void
+    {
+        try {
+            $user = auth()->user();
+            $pm = $task->project->projectManager ?? null;
+            if ($pm && $pm->id !== $user->id) {
+                $pm->notify(new TaskCompletedNotification(
+                    taskTitle: $task->title,
+                    projectName: $task->project->name ?? 'Project',
+                    completedByName: $user->name,
+                    url: route('projects.show', $task->project_id)
+                ));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('TaskCompletedNotification error: ' . $e->getMessage());
+        }
+    }
+
+    public function quickMoveTask(int $taskId, string $destination): void
+    {
+        $task = WbsItem::findOrFail($taskId);
+        switch ($destination) {
+            case 'today':
+                $task->end_date = now()->toDateString();
+                if ($task->status === WbsStatus::NOT_STARTED || $task->status === WbsStatus::BLOCKED) {
+                    $task->status = WbsStatus::IN_PROGRESS;
+                }
+                $this->dispatch('toast', message: 'Moved to Today’s focus', type: 'success');
+                break;
+            case 'tomorrow':
+                $task->end_date = now()->addDay()->toDateString();
+                $this->dispatch('toast', message: 'Rescheduled for Tomorrow', type: 'success');
+                break;
+            case 'next_week':
+                $task->end_date = now()->addDays(7)->toDateString();
+                $this->dispatch('toast', message: 'Moved to Next Week', type: 'success');
+                break;
+            case 'in_progress':
+                $task->status = WbsStatus::IN_PROGRESS;
+                if ($task->progress == 0) $task->progress = 10;
+                $this->dispatch('toast', message: 'Status updated to In Progress', type: 'success');
+                break;
+            case 'under_review':
+                $task->status = WbsStatus::UNDER_REVIEW;
+                $this->dispatch('toast', message: 'Submitted for Review', type: 'info');
+                break;
+            case 'completed':
+                $this->toggleTaskComplete($taskId);
+                return;
+        }
+        $task->save();
+        (new ProgressCalculationService())->updateItemProgress($task);
+    }
+
+    public function openTaskDetail(int $taskId): void
+    {
+        $this->detailTaskId = $taskId;
+        $this->showTaskDetailModal = true;
+    }
+
+    public function addQuickSubtask(): void
+    {
+        if (!$this->detailTaskId || empty(trim($this->newSubtaskTitle))) return;
+        $parent = WbsItem::findOrFail($this->detailTaskId);
+        $subCount = WbsItem::where('parent_id', $parent->id)->count();
+
+        WbsItem::create([
+            'project_id' => $parent->project_id,
+            'parent_id' => $parent->id,
+            'wbs_code' => $parent->wbs_code . '.' . ($subCount + 1),
+            'item_type' => \App\Enums\ItemType::SUBTASK,
+            'title' => trim($this->newSubtaskTitle),
+            'assigned_user_id' => auth()->id(),
+            'start_date' => now()->toDateString(),
+            'end_date' => $parent->end_date ?? now()->addDays(3)->toDateString(),
+            'status' => WbsStatus::NOT_STARTED,
+            'priority' => $parent->priority,
+            'progress' => 0,
+            'weight' => 1.0,
+        ]);
+
+        $this->newSubtaskTitle = '';
+        (new ProgressCalculationService())->updateItemProgress($parent);
+        $this->dispatch('toast', message: 'Sub-task added successfully', type: 'success');
+    }
+
+    public function toggleSubtask(int $subtaskId): void
+    {
+        $sub = WbsItem::findOrFail($subtaskId);
+        if ($sub->status === WbsStatus::COMPLETED) {
+            $sub->status = WbsStatus::IN_PROGRESS;
+            $sub->progress = 0;
+        } else {
+            $sub->status = WbsStatus::COMPLETED;
+            $sub->progress = 100;
+        }
+        $sub->save();
+
+        if ($sub->parent_id) {
+            $parent = WbsItem::find($sub->parent_id);
+            if ($parent) {
+                (new ProgressCalculationService())->updateItemProgress($parent);
+            }
+        }
+    }
+
     public function setViewMode(string $mode): void
     {
         $this->viewMode = $mode;
+    }
+
+    public function setKanbanMode(string $mode): void
+    {
+        $this->kanbanMode = $mode;
     }
 
     public function updatedSelectAll($value): void
@@ -286,17 +415,58 @@ class MyTasks extends Component
         }
     }
 
-    public function openAddTaskModal(string $status = 'not_started'): void
+    public function openAddTaskModal(string $target = 'not_started'): void
     {
-        $this->createTaskStatus = $status;
         $this->createTaskTitle = '';
         $this->createTaskStartDate = now()->toDateString();
-        $this->createTaskEndDate = now()->addDays(3)->toDateString();
         $this->createTaskPriority = 'medium';
         $this->createTaskEstimatedHours = null;
+
+        switch ($target) {
+            case 'today':
+                $this->createTaskStatus = 'in_progress';
+                $this->createTaskStartDate = now()->toDateString();
+                $this->createTaskEndDate = now()->toDateString();
+                break;
+            case 'tomorrow':
+                $this->createTaskStatus = 'in_progress';
+                $this->createTaskStartDate = now()->toDateString();
+                $this->createTaskEndDate = now()->addDay()->toDateString();
+                break;
+            case 'next_week':
+                $this->createTaskStatus = 'in_progress';
+                $this->createTaskStartDate = now()->addDays(2)->toDateString();
+                $this->createTaskEndDate = now()->addDays(7)->toDateString();
+                break;
+            case 'later':
+                $this->createTaskStatus = 'not_started';
+                $this->createTaskStartDate = now()->addDays(8)->toDateString();
+                $this->createTaskEndDate = now()->addDays(14)->toDateString();
+                break;
+            case 'completed':
+                $this->createTaskStatus = 'completed';
+                $this->createTaskStartDate = now()->subDays(2)->toDateString();
+                $this->createTaskEndDate = now()->toDateString();
+                break;
+            case 'blocked':
+            case 'overdue':
+                $this->createTaskStatus = 'blocked';
+                $this->createTaskStartDate = now()->toDateString();
+                $this->createTaskEndDate = now()->addDays(2)->toDateString();
+                break;
+            default:
+                $this->createTaskStatus = $target;
+                $this->createTaskEndDate = now()->addDays(3)->toDateString();
+                break;
+        }
         
-        $firstProject = Project::where('project_manager_id', auth()->id())
-            ->orWhereHas('members', fn($m) => $m->where('users.id', auth()->id()))
+        $firstProject = Project::where(function($q) {
+                $q->where('project_manager_id', auth()->id())
+                  ->orWhere(function($sub) {
+                      $sub->where('pm_accepted', true)
+                          ->whereHas('members', fn($m) => $m->where('users.id', auth()->id()));
+                  });
+            })
             ->first();
         $this->createTaskProjectId = $firstProject?->id;
         $this->showCreateTaskModal = true;
@@ -470,20 +640,20 @@ class MyTasks extends Component
         $notStartedCount = (clone $allUserTasks)->where('status', 'not_started')->count();
         $blockedCount = (clone $allUserTasks)->where('status', 'blocked')->count();
 
-        // Separate Lead Projects vs Collaborator Projects for clean dropdown grouping
+        // Assigned Projects for clean dropdown selector
         if ($user->hasRole('super_admin')) {
             $myProjects = Project::with('subsidiary')->orderBy('name')->get();
-            $leadProjects = Project::where('project_manager_id', $user->id)->with('subsidiary')->orderBy('name')->get();
-            $collabProjects = Project::where('project_manager_id', '!=', $user->id)->with('subsidiary')->orderBy('name')->get();
         } else {
-            $leadProjects = Project::where('project_manager_id', $user->id)->with('subsidiary')->orderBy('name')->get();
-            $collabProjects = Project::where('pm_accepted', true)
-                ->whereHas('members', fn($q) => $q->where('users.id', $user->id))
-                ->where('project_manager_id', '!=', $user->id)
+            $myProjects = Project::where(function($q) use ($user) {
+                    $q->where('project_manager_id', $user->id)
+                      ->orWhere(function($sub) use ($user) {
+                          $sub->where('pm_accepted', true)
+                              ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                      });
+                })
                 ->with('subsidiary')
                 ->orderBy('name')
                 ->get();
-            $myProjects = $leadProjects->merge($collabProjects);
         }
 
         // Query for task list table (only include tasks from active accepted projects)
@@ -500,13 +670,6 @@ class MyTasks extends Component
         } else {
             // Only tasks assigned directly to the current logged in user (PM or Team Member)
             $query->where('assigned_user_id', $user->id);
-        }
-
-        // Lead vs Collaborator project filter
-        if ($this->projectRoleFilter === 'lead') {
-            $query->whereHas('project', fn($p) => $p->where('project_manager_id', $user->id));
-        } elseif ($this->projectRoleFilter === 'collaborator') {
-            $query->whereHas('project', fn($p) => $p->where('project_manager_id', '!=', $user->id));
         }
 
         if ($this->search) {
@@ -639,13 +802,6 @@ class MyTasks extends Component
             $kanbanBase->where('assigned_user_id', $user->id);
         }
 
-        // Lead vs Collaborator project filter for Kanban
-        if ($this->projectRoleFilter === 'lead') {
-            $kanbanBase->whereHas('project', fn($p) => $p->where('project_manager_id', $user->id));
-        } elseif ($this->projectRoleFilter === 'collaborator') {
-            $kanbanBase->whereHas('project', fn($p) => $p->where('project_manager_id', '!=', $user->id));
-        }
-
         if ($this->search) {
             $kanbanBase->where(function($q) {
                 $q->where('title', 'like', "%{$this->search}%")
@@ -659,6 +815,8 @@ class MyTasks extends Component
         if ($this->priorityFilter !== 'all') {
             $kanbanBase->where('priority', $this->priorityFilter);
         }
+
+        $allKanbanTasks = $kanbanBase->orderBy('priority', 'desc')->orderBy('end_date', 'asc')->get();
 
         // ══════════════════════════════════════════════════════════
         // 📊 5-STATUS KANBAN BOARD DATA (Matching Design)
@@ -688,21 +846,60 @@ class MyTasks extends Component
             return $t->status->value === 'blocked' || ($t->blockers && $t->blockers->where('status', 'open')->count() > 0);
         });
 
-        // Legacy / Time horizon compatibility
-        $kanbanOverdue = $kanbanBlocked;
-        $kanbanToday = $kanbanInProgress;
-        $kanbanTomorrow = $kanbanInReview;
-        $kanbanNextWeek = $kanbanToDo;
-        $kanbanLater = $kanbanToDo;
+        // ══════════════════════════════════════════════════════════
+        // 📊 TIME-HORIZON KANBAN COLLECTIONS (Schedule-based)
+        // ══════════════════════════════════════════════════════════
+        $todayDate = now()->startOfDay();
+        $tomorrowDate = now()->addDay()->startOfDay();
+        $nextWeekEndDate = now()->addDays(7)->endOfDay();
+
+        // 1. Overdue & Blocked (Due Tasks needing immediate attention)
+        $kanbanOverdue = $allKanbanTasks->filter(function($t) use ($todayDate) {
+            if ($t->status->value === 'completed' || $t->status->value === 'cancelled') return false;
+            $isOverdue = $t->end_date && $t->end_date->lt($todayDate);
+            $isBlocked = $t->status->value === 'blocked' || ($t->blockers && $t->blockers->where('status', 'open')->count() > 0);
+            return $isOverdue || $isBlocked;
+        });
+
+        // 2. Today's Tasks (Due Today)
+        $kanbanToday = $allKanbanTasks->filter(function($t) use ($todayDate) {
+            if ($t->status->value === 'completed' || $t->status->value === 'cancelled' || $t->status->value === 'blocked') return false;
+            if ($t->end_date && $t->end_date->lt($todayDate)) return false;
+            if ($t->end_date && $t->end_date->isSameDay($todayDate)) return true;
+            if (!$t->end_date && $t->start_date && $t->start_date->isSameDay($todayDate)) return true;
+            return false;
+        });
+
+        // 3. Tomorrow's Tasks (Due Tomorrow)
+        $kanbanTomorrow = $allKanbanTasks->filter(function($t) use ($tomorrowDate) {
+            if ($t->status->value === 'completed' || $t->status->value === 'cancelled' || $t->status->value === 'blocked') return false;
+            return $t->end_date && $t->end_date->isSameDay($tomorrowDate);
+        });
+
+        // 4. Next Week's Tasks (Next 7 Days)
+        $kanbanNextWeek = $allKanbanTasks->filter(function($t) use ($tomorrowDate, $nextWeekEndDate) {
+            if ($t->status->value === 'completed' || $t->status->value === 'cancelled' || $t->status->value === 'blocked') return false;
+            return $t->end_date && $t->end_date->gt($tomorrowDate) && $t->end_date->lte($nextWeekEndDate);
+        });
+
+        // 5. Later & Backlog (Future / >7 days or unscheduled)
+        $kanbanLater = $allKanbanTasks->filter(function($t) use ($todayDate, $nextWeekEndDate) {
+            if ($t->status->value === 'completed' || $t->status->value === 'cancelled' || $t->status->value === 'blocked') return false;
+            if ($t->end_date && $t->end_date->lt($todayDate)) return false;
+            if ($t->end_date && $t->end_date->isSameDay($todayDate)) return false;
+            if ($t->end_date && $t->end_date->lte($nextWeekEndDate)) return false;
+            return true;
+        });
+
+        $detailTask = null;
+        if ($this->showTaskDetailModal && $this->detailTaskId) {
+            $detailTask = WbsItem::with(['project.subsidiary', 'project.projectManager', 'assignedUser', 'blockers', 'children.assignedUser'])->find($this->detailTaskId);
+        }
 
         return view('livewire.my-tasks', compact(
             'tasks',
             'myProjects',
-            'leadProjects',
-            'collabProjects',
             'totalCount',
-            'leadTasksCount',
-            'collabTasksCount',
             'inProgressCount',
             'dueTodayCount',
             'overdueCount',
@@ -722,7 +919,8 @@ class MyTasks extends Component
             'kanbanToday',
             'kanbanTomorrow',
             'kanbanNextWeek',
-            'kanbanLater'
+            'kanbanLater',
+            'detailTask'
         ));
     }
 }

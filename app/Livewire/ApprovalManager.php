@@ -42,8 +42,13 @@ class ApprovalManager extends Component
     public function openCreateModal(): void
     {
         $user = auth()->user();
-        $myProject = Project::whereHas('members', fn($q) => $q->where('user_id', $user->id))
-            ->orWhere('project_manager_id', $user->id)
+        $myProject = Project::where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('pm_accepted', true)
+                          ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                  });
+            })
             ->first();
 
         $this->projectId = $myProject?->id ?? Project::first()?->id;
@@ -78,7 +83,7 @@ class ApprovalManager extends Component
             $requestedValue['wbs_item_id'] = $this->wbsItemId;
         }
 
-        ApprovalRequest::create([
+        $approval = ApprovalRequest::create([
             'project_id' => $this->projectId,
             'request_type' => $this->requestType,
             'requested_by' => auth()->id(),
@@ -88,6 +93,19 @@ class ApprovalManager extends Component
             'status' => ApprovalStatus::PENDING,
             'submitted_at' => now(),
         ]);
+
+        try {
+            $recipients = \App\Models\User::role('super_admin')->where('id', '!=', auth()->id())->get();
+            if ($approval->project && $approval->project->projectManager && $approval->project->projectManager->id !== auth()->id()) {
+                $recipients->push($approval->project->projectManager);
+            }
+            $recipients = $recipients->unique('id');
+            foreach ($recipients as $recipient) {
+                $recipient->notify(new \App\Notifications\ApprovalStatusNotification($approval, 'submitted'));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Approval notification error: ' . $e->getMessage());
+        }
 
         $this->showCreateModal = false;
         $this->reset(['reason', 'newDeadline', 'newBudget', 'scopeDescription', 'wbsItemId']);
@@ -126,13 +144,7 @@ class ApprovalManager extends Component
     {
         $user = auth()->user();
         $request = ApprovalRequest::with(['project', 'requester'])->findOrFail($this->selectedRequestId);
-        $isPm = ($request->project?->project_manager_id === $user->id);
-        if (!$user->hasRole('super_admin') && !$isPm) {
-            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can approve formal requests.', type: 'error');
-            return;
-        }
-
-        $request = ApprovalRequest::with(['project', 'requester'])->findOrFail($this->selectedRequestId);
+        abort_if(!$request->project?->userCan($user, 'approval.approve') && !$request->project?->userCan($user, 'approval.final_approve'), 403, 'You do not have permission to approve formal requests.');
 
         if ($request->status->value !== 'pending') {
             $this->dispatch('toast', message: 'This request has already been processed.', type: 'error');
@@ -156,16 +168,7 @@ class ApprovalManager extends Component
     {
         $user = auth()->user();
         $request = ApprovalRequest::with(['project', 'requester'])->findOrFail($this->selectedRequestId);
-        $isPm = ($request->project?->project_manager_id === $user->id);
-        if (!$user->hasRole('super_admin') && !$isPm) {
-            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can reject requests.', type: 'error');
-            return;
-        }
-
-        $this->validate(['reviewComment' => 'required|string|min:5'],
-            ['reviewComment.required' => 'A rejection reason is required.']);
-
-        $request = ApprovalRequest::with(['project', 'requester'])->findOrFail($this->selectedRequestId);
+        abort_if(!$request->project?->userCan($user, 'approval.reject'), 403, 'You do not have permission to reject formal requests.');
 
         if ($request->status->value !== 'pending') {
             $this->dispatch('toast', message: 'This request has already been processed.', type: 'error');
@@ -173,11 +176,11 @@ class ApprovalManager extends Component
         }
 
         try {
-            (new ApprovalService())->reject($request, $user, $this->reviewComment);
+            (new ApprovalService())->reject($request, $user, $this->reviewComment ?: null);
             $this->showReviewModal   = false;
             $this->selectedRequestId = null;
             $this->reviewComment     = '';
-            $this->dispatch('toast', message: '❌ Request has been REJECTED.', type: 'warning');
+            $this->dispatch('toast', message: '❌ Request REJECTED.', type: 'warning');
         } catch (InvalidArgumentException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
@@ -303,7 +306,7 @@ class ApprovalManager extends Component
         $requests = $query->paginate(10);
 
         $selectedRequest = $this->selectedRequestId
-            ? ApprovalRequest::with(['project', 'requester', 'reviewer'])->find($this->selectedRequestId)
+            ? ApprovalRequest::with(['project.subsidiary', 'project.projectManager', 'project.members', 'project.wbsItems.assignedUser', 'requester', 'reviewer'])->find($this->selectedRequestId)
             : null;
 
         // Pending Leadership Projects
@@ -324,9 +327,13 @@ class ApprovalManager extends Component
         // Data for Create Modal
         $userProjects = $user->hasRole('super_admin')
             ? Project::all()
-            : Project::whereHas('members', fn($q) => $q->where('user_id', $user->id))
-                ->orWhere('project_manager_id', $user->id)
-                ->get();
+            : Project::where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('pm_accepted', true)
+                          ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                  });
+            })->get();
 
         $isPmOrAdmin = $user->hasRole('super_admin') || ($this->projectId && Project::where('id', $this->projectId)->where('project_manager_id', $user->id)->exists());
         $userWbsTasks = $this->projectId

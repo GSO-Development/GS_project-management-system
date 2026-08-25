@@ -14,6 +14,8 @@ class ReportExportController extends Controller
      */
     public function exportPdf(Request $request)
     {
+        abort_if(!auth()->user()->hasProjectPermission('report.export'), 403, 'Unauthorized to export reports.');
+
         $projects = Project::with(['subsidiary', 'projectManager'])->get();
 
         $pdf = Pdf::loadView('reports.pdf-summary', compact('projects'));
@@ -25,6 +27,7 @@ class ReportExportController extends Controller
      */
     public function exportCsv(Request $request): StreamedResponse
     {
+        abort_if(!auth()->user()->hasProjectPermission('report.export'), 403, 'Unauthorized to export reports.');
         $projects = Project::with(['subsidiary', 'projectManager'])->get();
 
         $headers = [

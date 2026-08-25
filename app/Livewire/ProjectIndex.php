@@ -297,11 +297,11 @@ class ProjectIndex extends Component
         // Base query with strict role-based access scoping
         $baseQuery = Project::query();
 
-        if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+        if ($user && !$user->isPmoAdmin()) {
             $baseQuery->where(function($q) use ($user) {
-                // If user is PM on the project, they can see it
+                // If user is the designated PM, they can see it (to review & accept)
                 $q->where('project_manager_id', $user->id)
-                  // If user is a collaborator / team member, project MUST be accepted by PM first
+                  // For all other users (members, sponsors, owners, steering committee), the project MUST be accepted by PM first
                   ->orWhere(function($sub) use ($user) {
                       $sub->where('pm_accepted', true)
                           ->where(function($memberSub) use ($user) {

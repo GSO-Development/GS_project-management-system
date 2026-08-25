@@ -196,9 +196,7 @@
 {{-- ══════════════════════════════════════════════════════════════ --}}
 {{-- 2 · BENTO GRID: Stats + Due Today + Upcoming                  --}}
 {{-- ══════════════════════════════════════════════════════════════ --}}
-<div class="f3-2" style="display:grid;gap:14px;
-                          grid-template-columns: repeat(2,1fr) repeat(2,1fr);
-                          grid-template-rows: auto auto;">
+<div class="f3-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
 
     {{-- ── 4 Stat tiles ── --}}
     @php
@@ -225,7 +223,7 @@
     @endforeach
 
     {{-- ── Due Today Panel (spans 2 cols) ── --}}
-    <div class="c3" style="grid-column:span 2;border-color:#fed7aa;box-shadow:0 2px 10px rgba(234,88,12,.05);overflow:hidden;">
+    <div class="c3 sm:col-span-2" style="border-color:#fed7aa;box-shadow:0 2px 10px rgba(234,88,12,.05);overflow:hidden;">
         {{-- Header --}}
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
                     background:linear-gradient(135deg,#fff7ed,#fff);border-bottom:1px solid #fed7aa;">
@@ -285,7 +283,7 @@
     </div>
 
     {{-- ── Upcoming Panel (spans 2 cols) ── --}}
-    <div class="c3" style="grid-column:span 2;border-color:#fde68a;box-shadow:0 2px 10px rgba(217,119,6,.05);overflow:hidden;">
+    <div class="c3 sm:col-span-2" style="border-color:#fde68a;box-shadow:0 2px 10px rgba(217,119,6,.05);overflow:hidden;">
         {{-- Header --}}
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
                     background:linear-gradient(135deg,#fffbeb,#fff);border-bottom:1px solid #fde68a;">

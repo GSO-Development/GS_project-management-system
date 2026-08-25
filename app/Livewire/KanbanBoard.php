@@ -13,12 +13,23 @@ class KanbanBoard extends Component
 {
     public Project $project;
 
+    public function mount(Project $project): void
+    {
+        $this->project = $project;
+        $user = auth()->user();
+
+        // If project is not yet accepted by the Project Manager, only PMO Admin and the designated Project Manager can access it
+        if (!$project->isPmAccepted() && !$user->isPmoAdmin() && $project->project_manager_id !== $user->id) {
+            abort(403, 'This project is pending Project Manager acceptance.');
+        }
+    }
+
     public function updateCardStatus(int $taskId, string $newStatus)
     {
         $task = WbsItem::where('project_id', $this->project->id)->findOrFail($taskId);
         $user = auth()->user();
 
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id && $task->assigned_user_id !== $user->id) {
+        if (!$this->project->canUserManage($user) && $task->assigned_user_id !== $user->id) {
             $this->dispatch('toast', message: 'You can only move tasks assigned to you.', type: 'error');
             return;
         }
@@ -51,16 +62,13 @@ class KanbanBoard extends Component
     public function render()
     {
         $user = auth()->user();
-        $isSuperAdminOrPM = $user->hasRole('super_admin') 
-            || $user->email === 'admin@nexuspm.local' 
-            || $user->id === 1
-            || $this->project->project_manager_id === $user->id;
+        $canViewAllTasks = $this->project->userCan($user, 'task.view_all');
 
         $query = WbsItem::with(['assignedUser', 'comments', 'blockers'])
             ->where('project_id', $this->project->id);
 
-        if (!$isSuperAdminOrPM) {
-            // Collaborators / Team Members: ONLY see tasks assigned directly to them!
+        if (!$canViewAllTasks) {
+            // Collaborators / Core Team Members: ONLY see tasks assigned directly to them!
             $query->where('assigned_user_id', $user->id);
         }
 

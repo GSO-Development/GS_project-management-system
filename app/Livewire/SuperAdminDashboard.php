@@ -94,6 +94,21 @@ class SuperAdminDashboard extends Component
             $newLeader->notify(new \App\Notifications\ProjectAssignmentNotification($project, 'lead'));
         }
 
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'reassigned_project_leader',
+            'module' => 'projects',
+            'record_type' => Project::class,
+            'record_id' => $project->id,
+            'new_values' => [
+                'project_name' => $project->name,
+                'new_leader_id' => $this->newLeaderId,
+                'new_leader_name' => $newLeader?->name,
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         $this->showReassignModal = false;
         $this->reassignProjectId = null;
         $this->dispatch('toast', message: "Project reassigned to {$newLeader->name}. Acceptance notification sent.", type: 'success');
@@ -187,6 +202,20 @@ class SuperAdminDashboard extends Component
             $blocker->wbsItem->update(['status' => \App\Enums\WbsStatus::IN_PROGRESS]);
         }
 
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'resolved_blocker',
+            'module' => 'wbs',
+            'record_type' => TaskBlocker::class,
+            'record_id' => $blocker->id,
+            'new_values' => [
+                'resolution' => trim($this->blockerResolutionInput),
+                'task_title' => $blocker->wbsItem?->title,
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         $this->showResolveBlockerModal = false;
         $this->selectedBlockerId = null;
         $this->blockerResolutionInput = '';
@@ -219,7 +248,7 @@ class SuperAdminDashboard extends Component
         $impWeights  = ['low' => 1, 'medium' => 2, 'high' => 3];
         $score = ($probWeights[$this->riskProbability] ?? 2) * ($impWeights[$this->riskImpact] ?? 2);
 
-        ProjectRisk::create([
+        $risk = ProjectRisk::create([
             'project_id' => $this->riskProjectId,
             'title' => trim($this->riskTitle),
             'category' => $this->riskCategory,
@@ -229,6 +258,22 @@ class SuperAdminDashboard extends Component
             'owner_id' => $this->riskOwnerId ?: auth()->id(),
             'mitigation_plan' => trim($this->riskMitigation),
             'status' => 'open',
+        ]);
+
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'created_risk',
+            'module' => 'projects',
+            'record_type' => ProjectRisk::class,
+            'record_id' => $risk->id,
+            'new_values' => [
+                'title' => $risk->title,
+                'category' => $risk->category,
+                'risk_score' => $risk->risk_score,
+                'project_id' => $risk->project_id,
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
 
         $this->showAddRiskModal = false;
@@ -260,7 +305,13 @@ class SuperAdminDashboard extends Component
         // Total Tasks & Overdue Tasks
         $totalTasksCount = WbsItem::count();
         $completedTasksCount = WbsItem::where('status', 'completed')->count();
+        $inProgressTasksCount = WbsItem::where('status', 'in_progress')->count();
         $overdueTasksCount = WbsItem::where('end_date', '<', now()->today())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->count();
+        
+        $upcomingDeadlinesCount = WbsItem::where('end_date', '>=', now()->today())
+            ->where('end_date', '<=', now()->today()->addDays(7))
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->count();
         
@@ -319,6 +370,19 @@ class SuperAdminDashboard extends Component
             ->take(4)
             ->get();
 
+        // 5 Key Overview Projects for Middle-Right Box
+        $overviewProjects = Project::with('subsidiary')
+            ->whereNotIn('status', ['cancelled'])
+            ->orderByRaw("CASE 
+                WHEN status = 'in_progress' THEN 1 
+                WHEN status = 'planning' THEN 2 
+                WHEN status = 'on_hold' THEN 3 
+                WHEN status = 'completed' THEN 4 
+                ELSE 5 END")
+            ->latest('updated_at')
+            ->take(5)
+            ->get();
+
         // Top Subsidiaries Overview Table
         $topSubsidiaries = Subsidiary::withCount([
             'projects',
@@ -329,11 +393,32 @@ class SuperAdminDashboard extends Component
         ->take(5)
         ->get();
 
+        // Upcoming Deadlines (Tasks & Milestones) for Bottom-Left Box
+        $upcomingTasks = WbsItem::with('project')
+            ->whereNotNull('end_date')
+            ->where('end_date', '>=', now()->today())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->orderBy('end_date', 'asc')
+            ->take(3)
+            ->get();
+
+        if ($upcomingTasks->isEmpty()) {
+            $upcomingTasks = WbsItem::with('project')
+                ->whereNotNull('end_date')
+                ->orderBy('end_date', 'desc')
+                ->take(3)
+                ->get();
+        }
+
         // Real Activity Logs & Updates
         $recentUpdates = ProjectStatusUpdate::with(['project', 'creator'])
             ->latest()
             ->take(4)
             ->get();
+
+        $latestUpdate = ProjectStatusUpdate::with(['project', 'creator'])
+            ->latest()
+            ->first();
 
         $recentActivityLogs = ActivityLog::with('user')
             ->latest()
@@ -487,7 +572,12 @@ class SuperAdminDashboard extends Component
             'activeBlockersCount',
             'allProjectsList',
             'allUsersList',
-            'allSubsidiaries'
+            'allSubsidiaries',
+            'inProgressTasksCount',
+            'upcomingDeadlinesCount',
+            'overviewProjects',
+            'upcomingTasks',
+            'latestUpdate'
         ));
     }
 }

@@ -24,7 +24,10 @@ class GlobalSearch extends Component
             if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
                 $pQuery->where(function($q) use ($user) {
                     $q->where('project_manager_id', $user->id)
-                      ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                      ->orWhere(function($subQ) use ($user) {
+                          $subQ->where('pm_accepted', true)
+                               ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                      });
                 });
             }
             $results['projects'] = $pQuery->take(5)->get();
@@ -33,8 +36,11 @@ class GlobalSearch extends Component
             $wQuery = WbsItem::where('title', 'like', "%{$this->query}%")->orWhere('wbs_code', 'like', "%{$this->query}%");
             if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
                 $wQuery->where(function($q) use ($user) {
-                    $q->whereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
-                      ->orWhere('assigned_user_id', $user->id);
+                    $q->whereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id)->orWhere('pm_accepted', true))
+                      ->where(function($wq) use ($user) {
+                          $wq->where('assigned_user_id', $user->id)
+                             ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id));
+                      });
                 });
             }
             $results['wbs'] = $wQuery->take(5)->get();
@@ -50,7 +56,10 @@ class GlobalSearch extends Component
             if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
                 $dQuery->whereHas('project', function($pq) use ($user) {
                     $pq->where('project_manager_id', $user->id)
-                      ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                      ->orWhere(function($subQ) use ($user) {
+                          $subQ->where('pm_accepted', true)
+                               ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                      });
                 });
             }
             $results['documents'] = $dQuery->take(5)->get();

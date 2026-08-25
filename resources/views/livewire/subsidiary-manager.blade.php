@@ -129,18 +129,18 @@
     </div>
 
     <!-- Filters Bar -->
-    <div class="card mb-6 p-3 flex flex-col lg:flex-row gap-3 items-center justify-between">
+    <div class="card mb-6 p-4 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
         <div class="relative w-full lg:w-72">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search subsidiaries by name or code..." class="form-input pl-9 text-xs">
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search subsidiaries by name or code..." class="form-input pl-9 text-xs w-full">
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center gap-2.5 w-full lg:w-auto">
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase font-bold text-slate-400 ml-1 mb-0.5">Status</span>
-                <select wire:model.live="statusFilter" class="form-select text-xs min-w-32 py-1.5">
+                <select wire:model.live="statusFilter" class="form-select text-xs w-full lg:min-w-32 py-2">
                     <option value="all">All</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -150,15 +150,15 @@
 
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase font-bold text-slate-400 ml-1 mb-0.5">Sort By</span>
-                <select wire:model.live="sortBy" class="form-select text-xs min-w-36 py-1.5">
+                <select wire:model.live="sortBy" class="form-select text-xs w-full lg:min-w-36 py-2">
                     <option value="created_at">Created Date</option>
                     <option value="name">Subsidiary Name</option>
                     <option value="code">Subsidiary Code</option>
                 </select>
             </div>
 
-            <div class="flex items-center gap-2 ml-auto mt-4 lg:mt-0">
-                <a href="{{ route('reports.export-csv') }}" class="btn-secondary btn-sm text-xs py-1.5 flex items-center gap-1.5">
+            <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-1 lg:ml-auto mt-2 lg:mt-4">
+                <a href="{{ route('reports.export-csv') }}" class="btn-secondary btn-sm text-xs py-2 w-full lg:w-auto flex items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     <span>Export</span>
                 </a>

@@ -42,7 +42,7 @@ test('team member cannot create projects', function () {
     $member = User::factory()->create(['is_active' => true]);
 
     $response = $this->actingAs($member)->get('/projects/create');
-    $response->assertOk(); // Returns project list view with no create button / disabled state
+    $response->assertRedirect(route('projects.index')); // Regular team members without project creation permissions are redirected
 });
 
 test('unauthorized project access is blocked', function () {

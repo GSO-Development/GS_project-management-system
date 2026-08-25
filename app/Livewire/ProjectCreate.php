@@ -27,10 +27,16 @@ class ProjectCreate extends Component
     public ?string $description = null;
     public ?int $subsidiary_id = null;
     public ?int $project_manager_id = null;
+    public array $sponsor_ids = [];
+    public array $owner_ids = [];
+    public array $steering_committee_ids = [];
     public array $selected_participant_ids = [];
     public ?string $start_date = null;
     public ?string $deadline = null;
     public string $leaderSearch = '';
+    public string $sponsorSearch = '';
+    public string $ownerSearch = '';
+    public string $steeringSearch = '';
     public string $participantSearch = '';
     public string $templateSearch = '';
 
@@ -44,10 +50,16 @@ class ProjectCreate extends Component
     public $charterFile;
     public ?array $extractedData = null;
     public ?string $rawTextPreview = null;
-    public bool $showExtractor = true;
+    public bool $showExtractor = false;
 
     public function mount()
     {
+        $user = auth()->user();
+        if (!$user || !$user->isPmoAdmin()) {
+            session()->flash('error', 'Unauthorized. Only PMO Administrators are authorized to initiate new projects.');
+            return redirect()->route('projects.index');
+        }
+
         $this->currentStep = 1;
         $this->start_date = now()->format('Y-m-d');
         $this->deadline = null;
@@ -222,8 +234,45 @@ class ProjectCreate extends Component
         $this->selected_participant_ids = [];
     }
 
+    public function updatedSponsorIds(): void
+    {
+        $sStr = array_map('strval', $this->sponsor_ids);
+        $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), $sStr));
+        $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), $sStr));
+        $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $sStr));
+        if ($this->project_manager_id && in_array((string)$this->project_manager_id, $sStr)) {
+            $this->project_manager_id = null;
+        }
+    }
+
+    public function updatedOwnerIds(): void
+    {
+        $oStr = array_map('strval', $this->owner_ids);
+        $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), $oStr));
+        $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), $oStr));
+        $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $oStr));
+        if ($this->project_manager_id && in_array((string)$this->project_manager_id, $oStr)) {
+            $this->project_manager_id = null;
+        }
+    }
+
+    public function updatedSteeringCommitteeIds(): void
+    {
+        $scStr = array_map('strval', $this->steering_committee_ids);
+        $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), $scStr));
+        $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), $scStr));
+        $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $scStr));
+        if ($this->project_manager_id && in_array((string)$this->project_manager_id, $scStr)) {
+            $this->project_manager_id = null;
+        }
+    }
+
     public function selectLeader(int $userId): void
     {
+        $uStr = (string)$userId;
+        $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), [$uStr]));
+        $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), [$uStr]));
+        $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), [$uStr]));
         $this->project_manager_id = $userId;
     }
 
@@ -235,12 +284,26 @@ class ProjectCreate extends Component
     public function toggleAllParticipants()
     {
         if (!$this->subsidiary_id) return;
-        $allIds = User::getUsersForSubsidiary($this->subsidiary_id)->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        
+        $excludedIds = array_map('strval', array_merge(
+            $this->sponsor_ids,
+            $this->owner_ids,
+            $this->steering_committee_ids
+        ));
+        if ($this->project_manager_id) {
+            $excludedIds[] = (string)$this->project_manager_id;
+        }
 
-        if (count($this->selected_participant_ids) === count($allIds)) {
+        $availableIds = User::getUsersForSubsidiary($this->subsidiary_id)
+            ->reject(fn($u) => in_array((string)$u->id, $excludedIds))
+            ->pluck('id')
+            ->map(fn($id) => (string)$id)
+            ->toArray();
+
+        if (count($this->selected_participant_ids) >= count($availableIds) && count($availableIds) > 0) {
             $this->selected_participant_ids = [];
         } else {
-            $this->selected_participant_ids = $allIds;
+            $this->selected_participant_ids = $availableIds;
         }
     }
 
@@ -282,11 +345,10 @@ class ProjectCreate extends Component
         $this->dispatch('toast', message: 'Charter file parsed and pre-filled successfully!', type: 'success');
     }
 
-    public function clearCharter(): void
+    public function clearCharterFile()
     {
-        $this->charterFile = null;
-        $this->extractedData = null;
-        $this->rawTextPreview = null;
+        $this->reset(['charterFile', 'extractedData', 'rawTextPreview']);
+        $this->dispatch('toast', message: 'Charter cleared. You can edit fields manually.', type: 'info');
     }
 
     public function save()
@@ -312,6 +374,9 @@ class ProjectCreate extends Component
             'name' => 'required|string|max:255',
             'project_manager_id' => 'required|exists:users,id',
             'description' => 'nullable|string',
+            'sponsor_ids' => 'nullable|array',
+            'owner_ids' => 'nullable|array',
+            'steering_committee_ids' => 'nullable|array',
             'selected_participant_ids' => 'nullable|array',
             'creation_option' => 'required|in:template,manual',
         ];
@@ -351,12 +416,36 @@ class ProjectCreate extends Component
             'health' => ProjectHealth::ON_TRACK,
         ]);
 
-        // Sync Project Owner (lead) and selected Subsidiary Participants (members)
-        $membersToSync = array_unique(array_merge([$this->project_manager_id], array_map('intval', $this->selected_participant_ids)));
+        // Sync all Governance roles (Sponsors, Owners, Steering Committee, Project Leader, Core Team)
         $syncData = [];
-        foreach ($membersToSync as $memberId) {
-            $syncData[$memberId] = ['role' => ($memberId == $this->project_manager_id) ? 'lead' : 'member'];
+
+        // 1. Project Sponsors
+        foreach (array_map('intval', $this->sponsor_ids) as $sId) {
+            if ($sId > 0) $syncData[$sId] = ['role' => 'sponsor'];
         }
+
+        // 2. Project Owners
+        foreach (array_map('intval', $this->owner_ids) as $oId) {
+            if ($oId > 0) $syncData[$oId] = ['role' => 'owner'];
+        }
+
+        // 3. Steering Committee
+        foreach (array_map('intval', $this->steering_committee_ids) as $scId) {
+            if ($scId > 0) $syncData[$scId] = ['role' => 'steering_committee'];
+        }
+
+        // 4. Project Leader (lead) - Highest Priority
+        if ($this->project_manager_id) {
+            $syncData[(int)$this->project_manager_id] = ['role' => 'lead'];
+        }
+
+        // 5. Core Project Team (members)
+        foreach (array_map('intval', $this->selected_participant_ids) as $mId) {
+            if ($mId > 0 && !isset($syncData[$mId])) {
+                $syncData[$mId] = ['role' => 'member'];
+            }
+        }
+
         $project->members()->sync($syncData);
 
         // Copy WBS items if created from template
@@ -404,18 +493,23 @@ class ProjectCreate extends Component
             ]);
         }
 
-        // Send project assignment emails and in-app database notifications to all assigned members
+        // Send project assignment emails and in-app database notifications
         try {
-            $assignedUsers = User::whereIn('id', array_keys($syncData))->get();
-            foreach ($assignedUsers as $assignedUser) {
-                $memberRole = $syncData[$assignedUser->id]['role'] ?? 'member';
-
-                // In-App Database Notification
-                $assignedUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, $memberRole));
-
-                // External SMTP Email Notification
-                Mail::to($assignedUser->email)
-                    ->send(new ProjectAssignedMail($project, $assignedUser, $memberRole));
+            if ($isSelfAssigned) {
+                // If PM created it directly, it is already accepted; notify all members
+                $assignedUsers = User::whereIn('id', array_keys($syncData))->get();
+                foreach ($assignedUsers as $assignedUser) {
+                    $memberRole = $syncData[$assignedUser->id]['role'] ?? 'member';
+                    $assignedUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, $memberRole));
+                    Mail::to($assignedUser->email)->send(new ProjectAssignedMail($project, $assignedUser, $memberRole));
+                }
+            } else {
+                // If created by PMO Admin for a designated PM, ONLY notify the PM to review & accept first
+                $pmUser = User::find($project->project_manager_id);
+                if ($pmUser) {
+                    $pmUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, 'lead'));
+                    Mail::to($pmUser->email)->send(new ProjectAssignedMail($project, $pmUser, 'lead'));
+                }
             }
         } catch (\Throwable $e) {
             // Log mail/notification error but never block project creation
@@ -452,51 +546,32 @@ class ProjectCreate extends Component
 
         $lastEndDate = $currentStartDate->copy();
 
-        foreach ($tasks as $index => $task) {
-            $days = $this->getDurationInDays($task->duration, $task->unit);
+        foreach ($tasks as $task) {
+            $durationInDays = $this->getDurationInDays($task->duration, $task->unit);
+            $taskStartDate = $lastEndDate->copy();
+            $taskEndDate = $taskStartDate->copy()->addDays(max(1, $durationInDays))->subDay();
 
-            // First task starts at current start date; subsequent tasks start the next day after previous sibling ends
-            $taskStartDate = ($index === 0) ? $currentStartDate->copy() : $lastEndDate->copy()->addDay();
-            $taskEndDate = $taskStartDate->copy()->addDays($days)->subDay();
-
-            // Determine depth
-            $depth = 0;
-            $p = $task;
-            while ($p->parent_id) {
-                $depth++;
-                $p = $p->parent;
-            }
-
-            $itemType = match($depth) {
-                0 => \App\Enums\ItemType::PHASE,
-                1 => \App\Enums\ItemType::TASK,
-                default => \App\Enums\ItemType::SUBTASK,
-            };
+            $itemType = $parentWbsItemId ? \App\Enums\ItemType::TASK : \App\Enums\ItemType::PHASE;
 
             $wbsItem = \App\Models\WbsItem::create([
-                'project_id' => $project->id,
-                'parent_id' => $parentWbsItemId,
-                'wbs_code' => '', // computed by WbsNumberingService
-                'item_type' => $itemType,
-                'title' => $task->name,
-                'description' => '',
-                'assigned_user_id' => $project->project_manager_id,
-                'start_date' => $taskStartDate->toDateString(),
-                'end_date' => $taskEndDate->toDateString(),
-                'duration' => $days,
-                'status' => \App\Enums\WbsStatus::NOT_STARTED,
-                'priority' => \App\Enums\Priority::MEDIUM,
-                'progress' => 0,
-                'weight' => 1.0,
+                'project_id'   => $project->id,
+                'parent_id'    => $parentWbsItemId,
+                'wbs_code'     => 'TEMP',
+                'item_type'    => $itemType,
+                'title'        => $task->name ?? 'Task',
+                'description'  => null,
+                'duration'     => $durationInDays,
+                'start_date'   => $taskStartDate->toDateString(),
+                'end_date'     => $taskEndDate->toDateString(),
+                'status'       => \App\Enums\WbsStatus::NOT_STARTED,
+                'priority'     => \App\Enums\Priority::MEDIUM,
+                'progress'     => 0,
                 'is_milestone' => false,
-                'sort_order' => $index + 1,
-                'created_by' => auth()->id(),
+                'created_by'   => auth()->id(),
             ]);
 
-            if ($tasksByParent->has($task->id)) {
-                // Children of this sibling start at the sibling's start date
-                $this->scheduleAndCreateTasks($project, $tasksByParent, $task->id, $taskStartDate, $wbsItem->id);
-            }
+            // Recursively create children
+            $childEndDate = $this->scheduleAndCreateTasks($project, $tasksByParent, (string)$task->id, $taskStartDate, $wbsItem->id);
 
             $lastEndDate = $taskEndDate;
         }
@@ -522,7 +597,7 @@ class ProjectCreate extends Component
         $allParticipants = $this->subsidiary_id ? User::getUsersForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
         $allTemplates = \App\Models\ProjectTemplate::all();
 
-        // Filter Leaders by search query (name, email, or subsidiary)
+        // Filter Leaders by search query
         $lSearch = trim($this->leaderSearch);
         if ($lSearch !== '') {
             $lowerLSearch = strtolower($lSearch);
@@ -536,7 +611,46 @@ class ProjectCreate extends Component
             $pms = $allPms;
         }
 
-        // Filter participants by search query (name or email)
+        // Filter Sponsors by search query
+        $sSearch = trim($this->sponsorSearch);
+        if ($sSearch !== '') {
+            $lowerSSearch = strtolower($sSearch);
+            $sponsors = $allParticipants->filter(function ($user) use ($lowerSSearch) {
+                return str_contains(strtolower($user->name), $lowerSSearch)
+                    || str_contains(strtolower($user->email), $lowerSSearch)
+                    || str_contains(strtolower($user->subsidiary->code ?? ''), $lowerSSearch);
+            })->values();
+        } else {
+            $sponsors = $allParticipants;
+        }
+
+        // Filter Owners by search query
+        $oSearch = trim($this->ownerSearch);
+        if ($oSearch !== '') {
+            $lowerOSearch = strtolower($oSearch);
+            $owners = $allParticipants->filter(function ($user) use ($lowerOSearch) {
+                return str_contains(strtolower($user->name), $lowerOSearch)
+                    || str_contains(strtolower($user->email), $lowerOSearch)
+                    || str_contains(strtolower($user->subsidiary->code ?? ''), $lowerOSearch);
+            })->values();
+        } else {
+            $owners = $allParticipants;
+        }
+
+        // Filter Steering Committee by search query
+        $scSearch = trim($this->steeringSearch);
+        if ($scSearch !== '') {
+            $lowerScSearch = strtolower($scSearch);
+            $steeringCommittee = $allParticipants->filter(function ($user) use ($lowerScSearch) {
+                return str_contains(strtolower($user->name), $lowerScSearch)
+                    || str_contains(strtolower($user->email), $lowerScSearch)
+                    || str_contains(strtolower($user->subsidiary->code ?? ''), $lowerScSearch);
+            })->values();
+        } else {
+            $steeringCommittee = $allParticipants;
+        }
+
+        // Filter participants by search query
         $search = trim($this->participantSearch);
         if ($search !== '') {
             $lowerSearch = strtolower($search);
@@ -562,6 +676,10 @@ class ProjectCreate extends Component
             $templates = $allTemplates;
         }
 
-        return view('livewire.project-create', compact('subsidiaries', 'currentSub', 'pms', 'allPms', 'participants', 'allParticipants', 'templates', 'allTemplates'));
+        return view('livewire.project-create', compact(
+            'subsidiaries', 'currentSub', 'pms', 'allPms',
+            'sponsors', 'owners', 'steeringCommittee',
+            'participants', 'allParticipants', 'templates', 'allTemplates'
+        ));
     }
 }

@@ -4,13 +4,13 @@
     ══════════════════════════════════════════════════════ --}}
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER (APPROVAL WORKFLOWS)
+         1. TOP EXECUTIVE HERO BANNER
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
+    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-5 sm:p-7 lg:p-8 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
         <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
 
-        <!-- Right Background Cityscape Dark Illustration with Smooth Fade -->
+        <!-- Right Background Cityscape Dark Illustration -->
         <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
             <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
         </div>
@@ -23,27 +23,27 @@
             </svg>
         </div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <!-- Left Side: 3D Check/Shield Icon + Title + Meta -->
-            <div class="flex items-center gap-5 min-w-0">
-                <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            <!-- Left Side: Shield Icon + Title + Meta -->
+            <div class="flex items-center gap-4 sm:gap-5 min-w-0">
+                <div class="w-12 h-12 sm:w-15 sm:h-15 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                    <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-md">
                             Approval Workflows
                         </h1>
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
+                        <span class="px-3 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
                             <span>✓</span>
                             <span>Governance Sign-Off Desk</span>
                         </span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
-                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-300 mt-1 sm:mt-2 flex-wrap">
+                        <span class="text-rose-200 font-extrabold flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             <span>{{ now()->format('l, M d, Y') }}</span>
                         </span>
                         <span class="text-slate-500 font-normal">|</span>
@@ -53,11 +53,11 @@
             </div>
 
             <!-- Right Side: Primary Action -->
-            <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
+            <div class="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto">
                 <button
                     wire:click="openCreateModal"
                     type="button"
-                    class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer w-full sm:w-auto"
                     style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);"
                 >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -67,42 +67,53 @@
         </div>
     </div>
 
-    {{-- ── Filters Bar ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mb-6 p-4 flex flex-col lg:flex-row items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+    {{-- ═══════════════════════════════════════════════════════════════
+         2. FILTERS & METRICS TOOLBAR
+         ═══════════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xs mb-6 p-4 sm:p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto flex-1 max-w-3xl">
+            {{-- Scope Filter --}}
             <div class="flex flex-col">
-                <span class="text-[9px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Scope</span>
-                <select wire:model.live="scopeFilter" class="text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none min-w-44 text-slate-800 transition-all">
-                    <option value="all">All Accessible Requests</option>
-                    <option value="my_requests">My Submitted Requests</option>
-                </select>
+                <label class="text-[10px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Scope</label>
+                <div class="relative">
+                    <select wire:model.live="scopeFilter" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer">
+                        <option value="all">🌐 All Accessible Requests</option>
+                        <option value="my_requests">👤 My Submitted Requests</option>
+                    </select>
+                </div>
             </div>
 
+            {{-- Status Filter --}}
             <div class="flex flex-col">
-                <span class="text-[9px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Status</span>
-                <select wire:model.live="statusFilter" class="text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none min-w-36 text-slate-800 transition-all">
-                    <option value="all">All Statuses</option>
-                    <option value="pending">Pending Review</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="revision_required">Revision Required</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
+                <label class="text-[10px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Status</label>
+                <div class="relative">
+                    <select wire:model.live="statusFilter" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer">
+                        <option value="all">📋 All Statuses</option>
+                        <option value="pending">⏳ Pending Review</option>
+                        <option value="approved">✅ Approved</option>
+                        <option value="rejected">❌ Rejected</option>
+                        <option value="revision_required">🔄 Revision Required</option>
+                        <option value="cancelled">🚫 Cancelled</option>
+                    </select>
+                </div>
             </div>
 
+            {{-- Request Type Filter --}}
             <div class="flex flex-col">
-                <span class="text-[9px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Request Type</span>
-                <select wire:model.live="typeFilter" class="text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none min-w-48 text-slate-800 transition-all">
-                    <option value="all">All Request Types</option>
-                    @foreach(\App\Enums\ApprovalType::cases() as $t)
-                        <option value="{{ $t->value }}">{{ $t->label() }}</option>
-                    @endforeach
-                </select>
+                <label class="text-[10px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Request Type</label>
+                <div class="relative">
+                    <select wire:model.live="typeFilter" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer">
+                        <option value="all">📂 All Request Types</option>
+                        @foreach(\App\Enums\ApprovalType::cases() as $t)
+                            <option value="{{ $t->value }}">{{ $t->label() }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
 
-        {{-- Summary KPI Chips --}}
-        <div class="flex items-center gap-2.5 text-xs flex-wrap self-start lg:self-center">
+        {{-- Summary KPI Badges --}}
+        <div class="flex items-center gap-2 text-xs flex-wrap w-full lg:w-auto justify-start lg:justify-end">
             @php
                 $user = auth()->user();
                 $baseQuery = \App\Models\ApprovalRequest::query();
@@ -122,38 +133,40 @@
                 $approvedCount = (clone $baseQuery)->where('status','approved')->count();
                 $rejectedCount = (clone $baseQuery)->where('status','rejected')->count();
             @endphp
-            <div class="px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-black flex items-center gap-2 shadow-2xs">
+            <div class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200/90 text-amber-900 font-black flex items-center gap-2 shadow-2xs">
                 <span class="w-2 h-2 rounded-full bg-amber-500 {{ $pendingCount > 0 ? 'animate-pulse' : '' }}"></span>
                 <span>{{ $pendingCount }} Pending</span>
             </div>
-            <div class="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-black flex items-center gap-2 shadow-2xs">
+            <div class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200/90 text-emerald-900 font-black flex items-center gap-2 shadow-2xs">
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span>{{ $approvedCount }} Approved</span>
             </div>
-            <div class="px-3.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 font-black flex items-center gap-2 shadow-2xs">
+            <div class="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-900 font-black flex items-center gap-2 shadow-2xs">
                 <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                 <span>{{ $rejectedCount }} Rejected</span>
             </div>
         </div>
     </div>
 
-    {{-- ── Approval Requests Table ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden mb-6">
-        <div class="overflow-x-auto">
-            <table class="data-table w-full">
+    {{-- ═══════════════════════════════════════════════════════════════
+         3. APPROVAL REQUESTS TABLE
+         ═══════════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden mb-6">
+        <div class="overflow-x-auto scrollbar-thin">
+            <table class="w-full text-left border-collapse min-w-[1000px]">
                 <thead>
-                    <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-wider">
-                        <th class="py-3.5 px-4 text-left">PROJECT &amp; SUBSIDIARY</th>
-                        <th class="py-3.5 px-4 text-left">REQUEST TYPE &amp; DETAILS</th>
-                        <th class="py-3.5 px-4 text-left">REQUESTED BY</th>
-                        <th class="py-3.5 px-4 text-left">REASON / JUSTIFICATION</th>
-                        <th class="py-3.5 px-4 text-left">REVIEWED / SIGNED BY</th>
-                        <th class="py-3.5 px-4 text-left">SUBMITTED</th>
-                        <th class="py-3.5 px-4 text-left">STATUS</th>
-                        <th class="py-3.5 px-4 text-right">ACTION</th>
+                    <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
+                        <th class="py-4 px-5">Project &amp; Subsidiary</th>
+                        <th class="py-4 px-4">Request Type &amp; Details</th>
+                        <th class="py-4 px-4">Requested By</th>
+                        <th class="py-4 px-4">Reason / Justification</th>
+                        <th class="py-4 px-4">Reviewed / Signed By</th>
+                        <th class="py-4 px-4">Submitted</th>
+                        <th class="py-4 px-4">Status</th>
+                        <th class="py-4 px-5 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="divide-y divide-slate-100 text-xs">
                     @forelse($requests as $req)
                         @php
                             $rv = $req->requested_value ?? [];
@@ -162,132 +175,162 @@
                             $projectCode = $req->project->code ?? ($rv['project_code'] ?? null);
                             $subsidiaryName = $req->project?->subsidiary?->name ?? null;
 
-                            $typeSubLabel = match($req->request_type->value) {
-                                'deadline_extension' => isset($rv['new_deadline'])
-                                    ? ['📅 New deadline: ' . \Carbon\Carbon::parse($rv['new_deadline'])->format('M d, Y'), 'text-indigo-700 bg-indigo-50 border-indigo-200']
-                                    : null,
-                                'budget_change' => isset($rv['new_budget'])
-                                    ? ['💰 New budget: Rs. ' . number_format($rv['new_budget'], 0), 'text-emerald-700 bg-emerald-50 border-emerald-200']
-                                    : null,
-                                'scope_change' => isset($rv['scope_description'])
-                                    ? ['📝 ' . \Illuminate\Support\Str::limit($rv['scope_description'], 40), 'text-amber-800 bg-amber-50 border-amber-200']
-                                    : null,
-                                'wbs_baseline'       => ['📋 WBS Milestone Baseline Sign-off', 'text-slate-700 bg-slate-100 border-slate-200'],
-                                'project_completion' => ['✅ Mark project as Completed (100%)', 'text-emerald-700 bg-emerald-50 border-emerald-200'],
-                                'project_cancellation' => ['🚫 Cancel project permanently', 'text-rose-700 bg-rose-50 border-rose-200'],
-                                'new_project_plan'   => ['👑 Project Leadership Assignment', 'text-[#c3122e] bg-[#fdf4f4] border-[#faeaea]'],
-                                'updated_wbs_plan'   => ['🔄 Updated WBS structure for review', 'text-violet-700 bg-violet-50 border-violet-200'],
-                                default              => null,
+                            $typeBadge = match($req->request_type->value) {
+                                'new_project_plan'   => ['icon' => '⭐', 'label' => 'Project Manager Assignment', 'bg' => 'bg-rose-50',    'text' => 'text-[#c3122e]', 'border' => 'border-rose-200'],
+                                'deadline_extension' => ['icon' => '📅', 'label' => 'Deadline Extension',        'bg' => 'bg-blue-50',    'text' => 'text-blue-800',  'border' => 'border-blue-200'],
+                                'budget_change'      => ['icon' => '💰', 'label' => 'Budget Change',             'bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-200'],
+                                'scope_change'       => ['icon' => '📝', 'label' => 'Scope Change',              'bg' => 'bg-amber-50',   'text' => 'text-amber-800', 'border' => 'border-amber-200'],
+                                'wbs_baseline'       => ['icon' => '📋', 'label' => 'Milestone Baseline',        'bg' => 'bg-purple-50',  'text' => 'text-purple-800','border' => 'border-purple-200'],
+                                'project_completion' => ['icon' => '✅', 'label' => 'Project Completion',        'bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-200'],
+                                'project_cancellation'=>['icon' => '🚫', 'label' => 'Project Cancellation',       'bg' => 'bg-slate-100',  'text' => 'text-slate-800', 'border' => 'border-slate-300'],
+                                'updated_wbs_plan'   => ['icon' => '🔄', 'label' => 'WBS Revision Plan',         'bg' => 'bg-violet-50',  'text' => 'text-violet-800','border' => 'border-violet-200'],
+                                default              => ['icon' => '📌', 'label' => $req->request_type->label(), 'bg' => 'bg-slate-50',   'text' => 'text-slate-800', 'border' => 'border-slate-200'],
+                            };
+
+                            $subDetail = match($req->request_type->value) {
+                                'deadline_extension' => isset($rv['new_deadline']) ? 'New date: ' . \Carbon\Carbon::parse($rv['new_deadline'])->format('M d, Y') : null,
+                                'budget_change' => isset($rv['new_budget']) ? 'New budget: Rs. ' . number_format($rv['new_budget'], 0) : null,
+                                'scope_change' => isset($rv['scope_description']) ? \Illuminate\Support\Str::limit($rv['scope_description'], 35) : null,
+                                'new_project_plan' => 'PM Review & Workspace Setup',
+                                default => null,
                             };
                         @endphp
-                        <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="py-3.5 px-4">
-                                <div class="font-black text-slate-900 text-xs">{{ $projectName }}</div>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    @if($projectCode)
-                                        <span class="text-[10px] text-[#c3122e] font-mono font-black bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">{{ $projectCode }}</span>
-                                    @else
-                                        <span class="text-[10px] text-slate-400 font-mono">-</span>
-                                    @endif
-                                    @if($subsidiaryName)
-                                        <span class="text-[10px] text-slate-500 font-medium">• {{ $subsidiaryName }}</span>
-                                    @endif
+                        <tr class="hover:bg-slate-50/75 transition-colors group">
+                            {{-- 1. Project & Subsidiary --}}
+                            <td class="py-4 px-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs shadow-sm" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                        {{ strtoupper(substr($projectName, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-black text-slate-900 text-xs truncate max-w-xs block">{{ $projectName }}</div>
+                                        <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                            @if($projectCode)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black font-mono bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap shadow-2xs">
+                                                    {{ $projectCode }}
+                                                </span>
+                                            @endif
+                                            @if($subsidiaryName)
+                                                <span class="text-[10px] text-slate-500 font-bold truncate max-w-[140px] flex items-center gap-1">
+                                                    <span>🏢</span>
+                                                    <span>{{ $subsidiaryName }}</span>
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="py-3.5 px-4">
+
+                            {{-- 2. Request Type & Details --}}
+                            <td class="py-4 px-4">
                                 <div class="space-y-1">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#fdf4f4] text-[#c3122e] border border-[#f0dada]/80 whitespace-nowrap inline-block shadow-2xs">
-                                        {{ $req->request_type->label() }}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black {{ $typeBadge['bg'] }} {{ $typeBadge['text'] }} border {{ $typeBadge['border'] }} whitespace-nowrap shadow-2xs">
+                                        <span>{{ $typeBadge['icon'] }}</span>
+                                        <span>{{ $typeBadge['label'] }}</span>
                                     </span>
-                                    @if($typeSubLabel)
-                                        <div class="text-[10px] font-bold px-2 py-0.5 rounded-md border block w-fit shadow-2xs {{ $typeSubLabel[1] }}">
-                                            {{ $typeSubLabel[0] }}
+                                    @if($subDetail)
+                                        <div class="text-[10px] font-bold text-slate-500 font-mono pl-1">
+                                            ↳ {{ $subDetail }}
                                         </div>
                                     @endif
                                 </div>
                             </td>
-                            <td class="py-3.5 px-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center text-white text-[10px] font-black flex-shrink-0 shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+
+                            {{-- 3. Requested By --}}
+                            <td class="py-4 px-4">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-[10px] font-black flex-shrink-0 shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                                         {{ strtoupper(substr($req->requester->name ?? 'U', 0, 1)) }}
                                     </div>
-                                    <div>
-                                        <span class="text-xs text-slate-800 font-bold block leading-tight">{{ $req->requester->name ?? '—' }}</span>
+                                    <div class="min-w-0">
+                                        <span class="text-xs text-slate-900 font-black block truncate">{{ $req->requester->name ?? '—' }}</span>
                                         @if($req->requested_by === auth()->id())
-                                            <span class="text-[9px] text-[#c3122e] font-black uppercase">You</span>
+                                            <span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-rose-50 text-[#c3122e] border border-rose-200">You</span>
+                                        @else
+                                            <span class="text-[10px] text-slate-400 font-medium block">PMO Admin</span>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-3.5 px-4 text-xs text-slate-600 max-w-52">
-                                <p class="line-clamp-2 leading-relaxed" title="{{ $req->reason }}">{{ $req->reason }}</p>
+
+                            {{-- 4. Reason / Justification --}}
+                            <td class="py-4 px-4 text-xs text-slate-600 max-w-xs">
+                                <p class="line-clamp-2 leading-relaxed font-medium" title="{{ $req->reason }}">{{ $req->reason }}</p>
                             </td>
-                            <td class="py-3.5 px-4">
+
+                            {{-- 5. Reviewed / Signed By --}}
+                            <td class="py-4 px-4">
                                 @if($req->reviewer)
                                     <div class="flex items-center gap-2 min-w-0">
-                                        <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-bold flex-shrink-0 border border-emerald-200 shadow-2xs">
+                                        <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-black flex-shrink-0 border border-emerald-200 shadow-2xs">
                                             {{ strtoupper(substr($req->reviewer->name, 0, 1)) }}
                                         </div>
                                         <div class="min-w-0">
-                                            <span class="text-xs text-slate-800 font-bold block truncate">{{ $req->reviewer->name }}</span>
+                                            <span class="text-xs text-slate-900 font-bold block truncate">{{ $req->reviewer->name }}</span>
                                             @if($req->reviewed_at)
-                                                <span class="text-[10px] text-slate-500 font-bold block">{{ $req->reviewed_at->format('M d, Y') }}</span>
+                                                <span class="text-[10px] text-slate-400 font-bold block">{{ $req->reviewed_at->format('M d, Y') }}</span>
                                             @endif
                                         </div>
                                     </div>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 italic">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-300">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                         Awaiting Sign-off
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4 text-xs text-slate-700 font-extrabold whitespace-nowrap">
+
+                            {{-- 6. Submitted Date --}}
+                            <td class="py-4 px-4 text-xs text-slate-800 font-extrabold whitespace-nowrap">
                                 <div>{{ $req->created_at->format('M d, Y') }}</div>
                                 <div class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $req->created_at->diffForHumans() }}</div>
                             </td>
-                            <td class="py-3.5 px-4">
+
+                            {{-- 7. Status --}}
+                            <td class="py-4 px-4">
                                 @php
                                     $statusColors = [
-                                        'pending'           => 'bg-amber-50 text-amber-800 border-amber-200',
-                                        'approved'          => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                        'rejected'          => 'bg-rose-50 text-rose-800 border-rose-200',
-                                        'revision_required' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
-                                        'cancelled'         => 'bg-slate-50 text-slate-500 border-slate-200',
-                                        'draft'             => 'bg-slate-50 text-slate-500 border-slate-200',
+                                        'pending'           => ['bg' => 'bg-amber-50',   'text' => 'text-amber-800',  'border' => 'border-amber-300',   'dot' => 'bg-amber-500 animate-pulse'],
+                                        'approved'          => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-300', 'dot' => 'bg-emerald-500'],
+                                        'rejected'          => ['bg' => 'bg-rose-50',    'text' => 'text-rose-800',   'border' => 'border-rose-300',    'dot' => 'bg-rose-500'],
+                                        'revision_required' => ['bg' => 'bg-cyan-50',    'text' => 'text-cyan-800',   'border' => 'border-cyan-300',    'dot' => 'bg-cyan-500'],
+                                        'cancelled'         => ['bg' => 'bg-slate-100',  'text' => 'text-slate-600',  'border' => 'border-slate-300',   'dot' => 'bg-slate-400'],
+                                        'draft'             => ['bg' => 'bg-slate-50',   'text' => 'text-slate-500',  'border' => 'border-slate-200',   'dot' => 'bg-slate-300'],
                                     ];
-                                    $sc = $statusColors[$req->status->value] ?? 'bg-slate-50 text-slate-500 border-slate-200';
+                                    $sc = $statusColors[$req->status->value] ?? ['bg' => 'bg-slate-50', 'text' => 'text-slate-500', 'border' => 'border-slate-200', 'dot' => 'bg-slate-400'];
                                 @endphp
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black border {{ $sc }} whitespace-nowrap shadow-2xs">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $req->status->value === 'approved' ? 'bg-emerald-500' : ($req->status->value === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-rose-500') }}"></span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black {{ $sc['bg'] }} {{ $sc['text'] }} border {{ $sc['border'] }} whitespace-nowrap shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $sc['dot'] }}"></span>
                                     <span>{{ $req->status->label() }}</span>
                                 </span>
                             </td>
-                            <td class="py-3.5 px-4 text-right">
+
+                            {{-- 8. Actions --}}
+                            <td class="py-4 px-5 text-right">
                                 <div class="flex items-center justify-end gap-1.5 flex-wrap">
                                     @if($req->status->value === 'pending')
-                                        @if($isNewProjectPlan && $req->project?->project_manager_id === auth()->id())
+                                        @if($isNewProjectPlan && ($req->project?->project_manager_id === auth()->id() || auth()->user()->isSuperAdmin()))
                                             <button wire:click="review({{ $req->id }})"
-                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                                                     style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                                                <span>👑 Review &amp; Accept</span>
+                                                <span>⭐ Review &amp; Accept</span>
                                             </button>
                                         @elseif(auth()->user()->isSuperAdmin() || $req->project?->project_manager_id === auth()->id())
                                             <button wire:click="review({{ $req->id }})"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black text-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                                                     style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                <span>Review</span>
+                                                <span>Review &amp; Sign</span>
                                             </button>
                                         @else
                                             <button wire:click="review({{ $req->id }})"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs">
+                                                    class="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-black text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs">
                                                 <span>Details</span>
                                             </button>
                                         @endif
                                     @else
                                         <button wire:click="review({{ $req->id }})"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs">
+                                                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs">
                                             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             <span>Details</span>
                                         </button>
@@ -296,15 +339,15 @@
                                     @if($req->status->value === 'pending' && $req->requested_by === auth()->id() && !$isNewProjectPlan)
                                         <button wire:click="cancelRequest({{ $req->id }})"
                                                 wire:confirm="Are you sure you want to withdraw this request?"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-all cursor-pointer">
+                                                class="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-all cursor-pointer">
                                             <span>Withdraw</span>
                                         </button>
                                     @endif
 
                                     @if(auth()->user()->isSuperAdmin() || $req->requested_by === auth()->id())
                                         <button wire:click="openDeleteModal({{ $req->id }})"
-                                                class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer shadow-2xs"
-                                                title="Delete Approval Record">
+                                                class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+                                                title="Delete Record">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     @endif
@@ -313,12 +356,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-12 bg-white">
-                                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <td colspan="8" class="text-center py-16 bg-white">
+                                <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center mx-auto mb-3 shadow-xs">
+                                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
-                                <h3 class="text-sm font-bold text-slate-800">No approval requests found</h3>
-                                <p class="text-xs text-slate-400 mt-1">Submit a new request or adjust filters to view request items.</p>
+                                <h3 class="text-base font-black text-slate-900">No approval requests found</h3>
+                                <p class="text-xs text-slate-500 font-medium mt-1 max-w-sm mx-auto">There are no pending or logged governance sign-offs matching your current filter criteria.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -426,36 +469,57 @@
          MODAL 2: REVIEW & APPROVE/REJECT MODAL
     ══════════════════════════════════════════════════════ --}}
     @if($showReviewModal && $selectedRequest)
+        @php
+            $proj = $selectedRequest->project;
+            $wbsItems = $proj ? ($proj->wbsItems ?? collect()) : collect();
+            $phases = $wbsItems->where('item_type.value', 'phase');
+            if ($phases->isEmpty()) {
+                $phases = $wbsItems->where('parent_id', null);
+            }
+            $tasksCount = $wbsItems->where('item_type.value', 'task')->count();
+            $milestonesCount = $wbsItems->where('is_milestone', true)->count();
+
+            $sponsors = $proj ? $proj->members->where('pivot.role', 'sponsor') : collect();
+            $owners = $proj ? $proj->members->where('pivot.role', 'owner') : collect();
+            $committee = $proj ? $proj->members->where('pivot.role', 'steering_committee') : collect();
+            $members = $proj ? $proj->members->where('pivot.role', 'member') : collect();
+            $totalTeam = $sponsors->count() + $owners->count() + $committee->count() + $members->count() + 1;
+
+            $durationDays = ($proj && $proj->start_date && $proj->deadline) 
+                ? (int) $proj->start_date->diffInDays($proj->deadline) + 1 
+                : null;
+        @endphp
         <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md">
-            <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col overflow-hidden my-auto">
+            <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col overflow-hidden my-auto">
                 <div class="flex-shrink-0 flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] text-[#c3122e] flex items-center justify-center font-bold text-lg shadow-2xs flex-shrink-0">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-2xl bg-[#fdf4f4] text-[#c3122e] flex items-center justify-center font-bold text-lg shadow-2xs flex-shrink-0">
                             @if($selectedRequest->request_type->value === 'new_project_plan')
-                                👑
+                                ⭐
                             @else
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             @endif
                         </div>
-                        <div>
-                            <h3 class="text-base font-black text-slate-900">
+                        <div class="min-w-0">
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 truncate">
                                 @if($selectedRequest->request_type->value === 'new_project_plan')
-                                    Project Leadership Assignment Sign-Off
+                                    Project Manager Assignment Sign-Off
                                 @else
                                     {{ $selectedRequest->status->value === 'pending' ? 'Review Approval Request' : 'Governance Sign-Off Audit Trail' }}
                                 @endif
                             </h3>
-                            <span class="text-[10px] text-slate-400 font-medium">Request Reference #{{ $selectedRequest->id }}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">Request Reference #{{ $selectedRequest->id }} · {{ $proj->code ?? 'GST' }}</span>
                         </div>
                     </div>
                     <button wire:click="$set('showReviewModal', false)" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer flex-shrink-0">&times;</button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
+                    {{-- 1. Request Overview Banner --}}
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
                         <div class="flex justify-between items-center">
                             <span class="text-slate-500 font-bold">Project:</span>
-                            <span class="font-black text-slate-900">{{ $selectedRequest->project->name ?? '—' }} ({{ $selectedRequest->project->code ?? '—' }})</span>
+                            <span class="font-black text-slate-900">{{ $proj->name ?? '—' }} ({{ $proj->code ?? '—' }})</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-slate-500 font-bold">Request Type:</span>
@@ -473,7 +537,118 @@
                         </div>
                     </div>
 
-                    @if(!empty($selectedRequest->requested_value))
+                    {{-- 2. Timeline & Project Parameters --}}
+                    @if($proj)
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                            <div class="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">📅 Start Date</span>
+                                <span class="font-mono font-black text-slate-900 block mt-0.5">{{ $proj->start_date ? $proj->start_date->format('M d, Y') : 'Immediate' }}</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">🏁 Target Deadline</span>
+                                <span class="font-mono font-black text-slate-900 block mt-0.5">{{ $proj->deadline ? $proj->deadline->format('M d, Y') : 'TBD' }}</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">⏳ Est. Duration</span>
+                                <span class="font-bold text-slate-900 block mt-0.5">{{ $durationDays ? "{$durationDays} Days" : 'Flexible' }}</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">💰 Est. Budget</span>
+                                <span class="font-mono font-bold text-slate-900 block mt-0.5">{{ $proj->estimated_budget > 0 ? 'Rs. ' . number_format($proj->estimated_budget, 0) : 'Not Set' }}</span>
+                            </div>
+                        </div>
+
+                        {{-- 3. WBS Structure Breakdown --}}
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5 text-xs">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm">📋</span>
+                                    <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">WBS Execution Structure</h5>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">{{ $wbsItems->count() }} Items</span>
+                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">{{ $phases->count() }} Phases</span>
+                                    @if($milestonesCount > 0)
+                                        <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">🎯 {{ $milestonesCount }} Milestones</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @if($wbsItems->count() > 0)
+                                <div class="max-h-40 overflow-y-auto space-y-1 pr-1 scrollbar-thin rounded-xl bg-white p-2 border border-slate-200/70">
+                                    @foreach($wbsItems as $item)
+                                        @php $isPhase = ($item->item_type?->value === 'phase' || !$item->parent_id); @endphp
+                                        <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg text-xs {{ $isPhase ? 'bg-slate-50 font-black text-slate-900' : 'pl-5 text-slate-600 font-medium' }}">
+                                            <div class="flex items-center gap-1.5 min-w-0">
+                                                <span class="text-[10px] font-mono {{ $isPhase ? 'text-[#c3122e] font-black' : 'text-slate-400' }}">{{ $isPhase ? '📁' : '↳' }}</span>
+                                                <span class="truncate">{{ $item->title }}</span>
+                                            </div>
+                                            <span class="text-slate-400 font-mono text-[10px]">{{ $item->duration ? $item->duration . 'd' : '' }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- 4. Governance Team Roster --}}
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5 text-xs">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm">👥</span>
+                                    <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">Governance Team Roster</h5>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black font-mono bg-rose-50 text-[#c3122e] border border-rose-200">{{ $totalTeam }} Assigned</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div class="flex items-center gap-2 p-2 rounded-xl bg-white border border-[#c3122e]/30 shadow-2xs">
+                                    <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-black text-[10px] flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                        {{ strtoupper(substr($proj->projectManager->name ?? 'PM', 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-black text-slate-900 block truncate">{{ $proj->projectManager->name ?? 'Unassigned' }}</span>
+                                        <span class="text-[9px] text-[#c3122e] font-bold">⭐ Project Manager</span>
+                                    </div>
+                                </div>
+                                @foreach($sponsors as $sp)
+                                    <div class="flex items-center gap-2 p-2 rounded-xl bg-white border border-amber-200 shadow-2xs">
+                                        <div class="w-6 h-6 rounded-md bg-amber-500 text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">{{ strtoupper(substr($sp->name, 0, 1)) }}</div>
+                                        <div class="min-w-0">
+                                            <span class="font-black text-slate-900 block truncate">{{ $sp->name }}</span>
+                                            <span class="text-[9px] text-amber-800 font-bold">💼 Sponsor</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                                @foreach($owners as $ow)
+                                    <div class="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-200 shadow-2xs">
+                                        <div class="w-6 h-6 rounded-md bg-emerald-600 text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">{{ strtoupper(substr($ow->name, 0, 1)) }}</div>
+                                        <div class="min-w-0">
+                                            <span class="font-black text-slate-900 block truncate">{{ $ow->name }}</span>
+                                            <span class="text-[9px] text-emerald-800 font-bold">👑 Owner</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                                @foreach($committee as $cm)
+                                    <div class="flex items-center gap-2 p-2 rounded-xl bg-white border border-violet-200 shadow-2xs">
+                                        <div class="w-6 h-6 rounded-md bg-violet-600 text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">{{ strtoupper(substr($cm->name, 0, 1)) }}</div>
+                                        <div class="min-w-0">
+                                            <span class="font-black text-slate-900 block truncate">{{ $cm->name }}</span>
+                                            <span class="text-[9px] text-violet-800 font-bold">🏛️ Committee</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                                @foreach($members as $mb)
+                                    <div class="flex items-center gap-2 p-2 rounded-xl bg-white border border-blue-200 shadow-2xs">
+                                        <div class="w-6 h-6 rounded-md bg-blue-500 text-white font-black text-[10px] flex items-center justify-center flex-shrink-0">{{ strtoupper(substr($mb->name, 0, 1)) }}</div>
+                                        <div class="min-w-0">
+                                            <span class="font-black text-slate-900 block truncate">{{ $mb->name }}</span>
+                                            <span class="text-[9px] text-blue-700 font-bold">🤝 Team Member</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if(!empty($selectedRequest->requested_value) && $selectedRequest->request_type->value !== 'new_project_plan')
                         <div class="p-4 rounded-2xl bg-[#fdf4f4] border border-[#faeaea] space-y-2 text-xs">
                             <h4 class="font-black text-[#c3122e] uppercase text-[10px] tracking-wider">Requested Modifications</h4>
                             @foreach($selectedRequest->requested_value as $k => $v)
@@ -525,12 +700,12 @@
                     @if($selectedRequest->status->value === 'pending')
                         <div class="flex items-center justify-between gap-2 flex-wrap">
                             <button type="button" wire:click="rejectRequest" class="btn bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold cursor-pointer shadow-sm">
-                                ✕ {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Decline Leadership' : 'Reject Request' }}
+                                ✕ {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Decline Assignment' : 'Reject Request' }}
                             </button>
                             <div class="flex items-center gap-2">
                                 <button type="button" wire:click="$set('showReviewModal', false)" class="btn btn-secondary text-xs px-3.5 py-2.5 rounded-xl">Cancel</button>
                                 <button type="button" wire:click="approveRequest" class="btn text-white text-xs px-5 py-2.5 rounded-xl font-black shadow-md cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                                    ✓ {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Accept Leadership Sign-off' : 'Approve Request' }}
+                                    ✓ {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Accept Assignment & Launch →' : 'Approve Request' }}
                                 </button>
                             </div>
                         </div>
@@ -545,7 +720,7 @@
     @endif
 
     {{-- ══════════════════════════════════════════════════════
-         MODAL 3: DECLINE PROJECT LEADERSHIP ASSIGNMENT
+         MODAL 3: DECLINE PROJECT ASSIGNMENT
     ══════════════════════════════════════════════════════ --}}
     @if($showDeclineModal)
         <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md">
@@ -556,7 +731,7 @@
                             ✕
                         </div>
                         <div>
-                            <h3 class="text-sm font-black text-slate-900">Decline Project Leadership</h3>
+                            <h3 class="text-sm font-black text-slate-900">Decline Project Manager Assignment</h3>
                             <span class="text-[10px] text-slate-400 font-medium">Notify PMO Administration of Issues</span>
                         </div>
                     </div>
@@ -564,7 +739,7 @@
                 </div>
 
                 <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 font-medium space-y-1">
-                    <p class="font-bold">⚠️ Are you sure you want to decline this project leadership?</p>
+                    <p class="font-bold">⚠️ Are you sure you want to decline this project assignment?</p>
                     <p class="text-[11px] text-amber-800">Please provide a clear reason or report any scope, timeline, or resource blockers for the PMO Admin.</p>
                 </div>
 
@@ -573,7 +748,7 @@
                     <textarea 
                         wire:model="declineReason" 
                         rows="3" 
-                        placeholder="State why you cannot take leadership of this project (e.g. resource conflict, timeline constraint, scope mismatch)..." 
+                        placeholder="State why you cannot take management of this project (e.g. resource conflict, timeline constraint, scope mismatch)..." 
                         class="form-input text-xs w-full mt-1.5 rounded-xl border-slate-200"
                     ></textarea>
                     @error('declineReason') <p class="form-error text-[11px] mt-1">{{ $message }}</p> @enderror

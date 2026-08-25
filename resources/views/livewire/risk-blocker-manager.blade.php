@@ -2,45 +2,45 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP EXECUTIVE HERO BANNER (RISKS & BLOCKERS HUB)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
+    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-xl p-5 sm:p-6 lg:p-7 text-white mb-5" style="background: linear-gradient(135deg, #18060c 0%, #2e0915 50%, #18060c 100%);">
         <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
 
         <!-- Right Background Cityscape Dark Illustration with Smooth Fade -->
-        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
-            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
+        <div class="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none opacity-20 overflow-hidden hidden md:flex items-center justify-end">
+            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 50%); mask-image: linear-gradient(to right, transparent 0%, black 50%);">
         </div>
 
-        <!-- Gold Elegant Wave Swoosh Vector Overlay -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
-            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" />
-                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5" />
+        <!-- Gold Wave Swoosh Vector Overlay -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-25 hidden md:block">
+            <svg viewBox="0 0 1200 300" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 400 0 C 520 120 580 200 750 300" stroke="#f59e0b" stroke-width="2" opacity="0.7" />
+                <path d="M 420 0 C 540 120 600 200 770 300" stroke="#c3122e" stroke-width="1.5" opacity="0.4" />
             </svg>
         </div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <!-- Left Side: 3D Warning/Shield Icon + Title + Meta -->
-            <div class="flex items-center gap-5 min-w-0">
-                <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <!-- Left Side: 3D Warning Shield Icon + Title + Meta -->
+            <div class="flex items-center gap-4 min-w-0">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-xl flex-shrink-0 border border-white/25 ring-4 ring-amber-500/20 flex items-center justify-center p-2.5" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-7 h-7 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                             Risks &amp; Blockers Hub
                         </h1>
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-amber-200 border border-amber-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(245, 158, 11, 0.25);">
-                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black text-amber-200 border border-amber-400/40 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(245, 158, 11, 0.3);">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                             <span>{{ $openRisksCount }} Active Risks · {{ $openBlockersCount }} Open Blockers</span>
                         </span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
-                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>{{ now()->format('l, M d, Y') }}</span>
+                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-300 mt-1 flex-wrap">
+                        <span class="text-rose-200 font-bold flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>{{ now()->format('D, M d, Y') }}</span>
                         </span>
                         <span class="text-slate-500 font-normal">|</span>
                         <span class="text-slate-300 font-medium">Enterprise risk registry, mitigation tracking, and escalation resolutions</span>
@@ -52,8 +52,8 @@
             <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
                 <button
                     wire:click="openAddRiskModal()"
-                    class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer"
-                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);"
+                    class="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer active:scale-95"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.25);"
                 >
                     <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>Log Project Risk</span>
@@ -125,205 +125,115 @@
         </div>
     </div>
 
-    <!-- 3. EXECUTIVE 3x4 PROBABILITY vs IMPACT RISK HEATMAP MATRIX -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-[#fdf4f4] border border-[#faeaea] text-[#c3122e] flex items-center justify-center font-black">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                </div>
-                <div>
-                    <h2 class="text-base font-black text-slate-900">Executive Risk Heatmap Matrix</h2>
-                    <p class="text-xs text-slate-500 font-medium">Click any matrix cell to instantly filter open risks by threat density</p>
-                </div>
-            </div>
-
-            @if($matrixFilterProb && $matrixFilterImp)
+    <!-- 3. CONTROLS, SEARCH & TAB SWITCHER -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+        <!-- Top Row: Tab Switcher (Full Width & Uncramped) + Action Stats -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <!-- Segmented Tab Navigation -->
+            <div class="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 border border-slate-200/60 shadow-inner">
                 <button
-                    wire:click="resetMatrixFilter()"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-                >
-                    <span>Clear Heatmap Filter ({{ strtoupper($matrixFilterProb) }} Prob / {{ strtoupper($matrixFilterImp) }} Impact)</span>
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            @endif
-        </div>
-
-        <!-- MATRIX GRID -->
-        <div class="overflow-x-auto">
-            <div class="min-w-[650px]">
-                <div style="display: grid; grid-template-columns: 140px repeat(4, 1fr); gap: 10px;" class="text-center text-xs font-extrabold text-slate-700">
-                    <!-- Column Header Spacer -->
-                    <div class="p-2 flex items-center justify-center text-[10px] uppercase tracking-wider text-slate-400 font-black">
-                        Prob \ Impact
-                    </div>
-                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-slate-700">Low (1)</div>
-                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-slate-700">Medium (2)</div>
-                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-slate-700">High (3)</div>
-                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-slate-700">Critical (4)</div>
-
-                    <!-- Row 1: HIGH PROBABILITY -->
-                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-center font-black text-slate-800">
-                        High (3)
-                    </div>
-                    @php
-                        $cellStyles = [
-                            'high_low' => 'bg-amber-50/50 hover:bg-amber-50 text-amber-900 border-amber-200',
-                            'high_medium' => 'bg-orange-50/50 hover:bg-orange-50 text-orange-950 border-orange-200',
-                            'high_high' => 'bg-rose-50/50 hover:bg-rose-50 text-rose-950 border-rose-200',
-                            'high_critical' => 'bg-red-50 hover:bg-red-100/70 text-[#c3122e] border-red-200',
-                            'medium_low' => 'bg-emerald-50/40 hover:bg-emerald-50/60 text-emerald-900 border-emerald-200',
-                            'medium_medium' => 'bg-amber-50/40 hover:bg-amber-50/60 text-amber-900 border-amber-200',
-                            'medium_high' => 'bg-orange-50/40 hover:bg-orange-50/60 text-orange-950 border-orange-200',
-                            'medium_critical' => 'bg-rose-50/50 hover:bg-rose-50 text-rose-950 border-rose-200',
-                            'low_low' => 'bg-slate-50/50 hover:bg-slate-50 text-slate-800 border-slate-200',
-                            'low_medium' => 'bg-emerald-50/40 hover:bg-emerald-50/60 text-emerald-900 border-emerald-200',
-                            'low_high' => 'bg-amber-50/40 hover:bg-amber-50/60 text-amber-900 border-amber-200',
-                            'low_critical' => 'bg-orange-50/40 hover:bg-orange-50/60 text-orange-950 border-orange-200',
-                        ];
-                    @endphp
-
-                    @foreach(['low', 'medium', 'high', 'critical'] as $imp)
-                        @php
-                            $cnt = $heatmapMatrix['high'][$imp] ?? 0;
-                            $key = 'high_' . $imp;
-                            $isSelected = ($matrixFilterProb === 'high' && $matrixFilterImp === $imp);
-                        @endphp
-                        <button
-                            wire:click="filterMatrixCell('high', '{{ $imp }}')"
-                            class="p-4 rounded-xl border flex flex-col items-center justify-center gap-1 select-none transition-all duration-200 hover:scale-102 hover:shadow-3xs cursor-pointer {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-2 ring-slate-800 ring-offset-2 scale-98 shadow-xs' : '' }}"
-                        >
-                            <span class="text-lg font-black leading-none">{{ $cnt }}</span>
-                            <span class="text-[9px] font-bold opacity-60 uppercase">Score: {{ 3 * ($loop->index + 1) }}</span>
-                        </button>
-                    @endforeach
-
-                    <!-- Row 2: MEDIUM PROBABILITY -->
-                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-center font-black text-slate-800">
-                        Medium (2)
-                    </div>
-                    @foreach(['low', 'medium', 'high', 'critical'] as $imp)
-                        @php
-                            $cnt = $heatmapMatrix['medium'][$imp] ?? 0;
-                            $key = 'medium_' . $imp;
-                            $isSelected = ($matrixFilterProb === 'medium' && $matrixFilterImp === $imp);
-                        @endphp
-                        <button
-                            wire:click="filterMatrixCell('medium', '{{ $imp }}')"
-                            class="p-4 rounded-xl border flex flex-col items-center justify-center gap-1 select-none transition-all duration-200 hover:scale-102 hover:shadow-3xs cursor-pointer {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-2 ring-slate-800 ring-offset-2 scale-98 shadow-xs' : '' }}"
-                        >
-                            <span class="text-lg font-black leading-none">{{ $cnt }}</span>
-                            <span class="text-[9px] font-bold opacity-60 uppercase">Score: {{ 2 * ($loop->index + 1) }}</span>
-                        </button>
-                    @endforeach
-
-                    <!-- Row 3: LOW PROBABILITY -->
-                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-center font-black text-slate-800">
-                        Low (1)
-                    </div>
-                    @foreach(['low', 'medium', 'high', 'critical'] as $imp)
-                        @php
-                            $cnt = $heatmapMatrix['low'][$imp] ?? 0;
-                            $key = 'low_' . $imp;
-                            $isSelected = ($matrixFilterProb === 'low' && $matrixFilterImp === $imp);
-                        @endphp
-                        <button
-                            wire:click="filterMatrixCell('low', '{{ $imp }}')"
-                            class="p-4 rounded-xl border flex flex-col items-center justify-center gap-1 select-none transition-all duration-200 hover:scale-102 hover:shadow-3xs cursor-pointer {{ $cellStyles[$key] }} {{ $isSelected ? 'ring-2 ring-slate-800 ring-offset-2 scale-98 shadow-xs' : '' }}"
-                        >
-                            <span class="text-lg font-black leading-none">{{ $cnt }}</span>
-                            <span class="text-[9px] font-bold opacity-60 uppercase">Score: {{ 1 * ($loop->index + 1) }}</span>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. CONTROLS, SEARCH & TAB SWITCHER -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-4">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <!-- Left: Tab Switcher Buttons -->
-            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl w-full lg:w-auto overflow-x-auto">
-                <button
+                    type="button"
                     wire:click="$set('activeTab', 'risks')"
-                    class="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap {{ $activeTab === 'risks' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                    class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'risks' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80 scale-[1.02]' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60' }}"
                 >
-                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span>Project Risks Register ({{ $risks->count() }})</span>
+                    <div class="w-2 h-2 rounded-full {{ $activeTab === 'risks' ? 'bg-amber-500 ring-2 ring-amber-400/40' : 'bg-slate-400' }}"></div>
+                    <span>Project Risks Register</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $activeTab === 'risks' ? 'bg-amber-50 text-amber-800 border border-amber-200/80' : 'bg-slate-200 text-slate-600' }}">{{ $risks->count() }}</span>
                 </button>
+
                 <button
+                    type="button"
                     wire:click="$set('activeTab', 'blockers')"
-                    class="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap {{ $activeTab === 'blockers' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}"
+                    class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'blockers' ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80 scale-[1.02]' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60' }}"
                 >
-                    <svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                    <span>Active Task Blockers ({{ $blockers->count() }})</span>
+                    <div class="w-2 h-2 rounded-full {{ $activeTab === 'blockers' ? 'bg-[#c3122e] ring-2 ring-rose-400/40' : 'bg-slate-400' }}"></div>
+                    <span>Active Task Blockers</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $activeTab === 'blockers' ? 'bg-rose-50 text-[#c3122e] border border-rose-200/80' : 'bg-slate-200 text-slate-600' }}">{{ $blockers->count() }}</span>
                 </button>
             </div>
 
-            <!-- Right: Project Selector & Filters -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto flex-wrap">
-                <!-- Search Box -->
-                <div class="relative w-full sm:w-auto sm:min-w-[220px]">
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="searchQuery"
-                        placeholder="Search risk, blocker, code..."
-                        class="w-full text-xs font-medium py-2.5 pl-9 pr-4 rounded-xl border border-slate-200 focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e]"
-                    >
-                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </div>
+            <!-- Quick Summary & Filter Reset Action -->
+            <div class="text-xs font-bold text-slate-500 flex items-center gap-2.5">
+                <span>Showing: <strong class="text-slate-800">{{ $activeTab === 'risks' ? $risks->count() . ' Risks' : $blockers->count() . ' Blockers' }}</strong></span>
+                @if($searchQuery || $selectedProjectId || ($activeTab === 'risks' && ($selectedCategory || $selectedStatus !== 'all')) || ($activeTab === 'blockers' && $selectedSeverity !== 'all'))
+                    <button wire:click="$set('searchQuery', ''); $set('selectedProjectId', null); $set('selectedCategory', ''); $set('selectedStatus', 'all'); $set('selectedSeverity', 'all');" class="text-xs font-bold text-[#c3122e] hover:underline cursor-pointer flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span>Reset Filters</span>
+                    </button>
+                @endif
+            </div>
+        </div>
 
-                <!-- Project Selector Dropdown -->
+        <!-- Bottom Row: Clean Filter Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- Search Box -->
+            <div class="relative">
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="searchQuery"
+                    placeholder="Search by title, keyword, code..."
+                    class="w-full text-xs font-medium py-2.5 pl-9 pr-3 rounded-xl border border-slate-200 focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e] bg-slate-50/50"
+                >
+                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+
+            <!-- Project Selector Dropdown -->
+            <div>
                 <select
                     wire:model.live="selectedProjectId"
-                    class="w-full sm:w-auto text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-[#c3122e]"
+                    class="w-full text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:border-[#c3122e]"
                 >
                     <option value="">🌐 All Accessible Projects</option>
                     @foreach($projects as $p)
                         <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code ?? 'PRJ' }})</option>
                     @endforeach
                 </select>
+            </div>
 
-                @if($activeTab === 'risks')
-                    <!-- Category Dropdown -->
+            @if($activeTab === 'risks')
+                <!-- Category Dropdown -->
+                <div>
                     <select
                         wire:model.live="selectedCategory"
-                        class="text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-[#c3122e]"
+                        class="w-full text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:border-[#c3122e]"
                     >
-                        <option value="">All Categories</option>
+                        <option value="">All Risk Categories</option>
                         <option value="Technical">Technical</option>
                         <option value="Financial">Financial</option>
                         <option value="Schedule">Schedule</option>
                         <option value="Resource">Resource</option>
                         <option value="External">External Vendor</option>
                     </select>
+                </div>
 
-                    <!-- Status Filter -->
+                <!-- Status Filter -->
+                <div>
                     <select
                         wire:model.live="selectedStatus"
-                        class="text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-[#c3122e]"
+                        class="w-full text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:border-[#c3122e]"
                     >
-                        <option value="all">All Statuses</option>
-                        <option value="open">Open</option>
+                        <option value="all">All Risk Statuses</option>
+                        <option value="open">Open (Active)</option>
                         <option value="monitoring">Monitoring</option>
                         <option value="mitigated">Mitigated</option>
                         <option value="closed">Closed</option>
                     </select>
-                @else
-                    <!-- Severity Filter for Blockers -->
+                </div>
+            @else
+                <!-- Severity Filter for Blockers -->
+                <div class="sm:col-span-2 lg:col-span-2">
                     <select
                         wire:model.live="selectedSeverity"
-                        class="text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-[#c3122e]"
+                        class="w-full text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:border-[#c3122e]"
                     >
-                        <option value="all">All Severities</option>
-                        <option value="critical">Critical</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
+                        <option value="all">All Blocker Severities</option>
+                        <option value="critical">Critical Severity</option>
+                        <option value="high">High Severity</option>
+                        <option value="medium">Medium Severity</option>
+                        <option value="low">Low Severity</option>
                     </select>
-                @endif
-            </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -361,7 +271,7 @@
                                     Category: {{ $r->category }}
                                 </span>
 
-                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-mono font-black bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea]">
+                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-rose-50 text-[#c3122e] border border-rose-200">
                                     @if($r->wbsItem)
                                         📍 Scope Task: {{ $r->wbsItem->title }} (Code: {{ $r->wbsItem->wbs_code }})
                                     @else
@@ -441,12 +351,24 @@
                     </div>
                 </div>
             @empty
-                <div class="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 space-y-3">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto">
-                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-center py-16 px-6 bg-white rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
-                    <h3 class="text-sm font-extrabold text-slate-800">No Project Risks Found</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto font-medium">No project risks matching your selected filter criteria are recorded.</p>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">No Project Risks Recorded</h3>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto font-medium mt-1">No active risks match your current filter criteria. You can log a new potential threat or reset filters.</p>
+                    </div>
+                    <div class="flex items-center justify-center gap-3 pt-2">
+                        <button
+                            wire:click="openAddRiskModal()"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:scale-105 transition-all cursor-pointer active:scale-95"
+                            style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                        >
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>Log Project Risk</span>
+                        </button>
+                    </div>
                 </div>
             @endforelse
         </div>
@@ -470,7 +392,7 @@
                                 {{ $b->wbsItem->project->name ?? 'Project' }}
                             </span>
 
-                            <span class="px-2.5 py-1 rounded-xl text-[10px] font-mono font-black bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea]">
+                            <span class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-rose-50 text-[#c3122e] border border-rose-200">
                                 📍 Task: {{ $b->wbsItem->title ?? 'General Scope' }} (Code: {{ $b->wbsItem->wbs_code ?? '-' }})
                             </span>
 
@@ -523,12 +445,14 @@
                     </div>
                 </div>
             @empty
-                <div class="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 space-y-3">
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-center py-16 px-6 bg-white rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h3 class="text-sm font-extrabold text-slate-800">No Active Task Blockers</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto font-medium">All tasks are currently executing without reported execution blockers.</p>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">No Active Task Blockers</h3>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto font-medium mt-1">All project deliverables and scope tasks are currently executing smoothly without active blockers.</p>
+                    </div>
                 </div>
             @endforelse
         </div>

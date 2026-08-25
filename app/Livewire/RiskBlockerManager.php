@@ -122,6 +122,9 @@ class RiskBlockerManager extends Component
             'riskContingency' => 'nullable|string',
         ]);
 
+        $project = Project::findOrFail($this->riskProjectId);
+        abort_if(!$project->userCan(auth()->user(), 'risk.create'), 403, 'You do not have permission to create risks for this project.');
+
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
         $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
         $score = ($probScores[$this->riskProbability] ?? 2) * ($impScores[$this->riskImpact] ?? 2);
@@ -149,6 +152,8 @@ class RiskBlockerManager extends Component
     public function openEditRiskModal(int $riskId)
     {
         $risk = ProjectRisk::findOrFail($riskId);
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit'), 403, 'You do not have permission to edit this risk.');
+
         $this->editingRiskId = $risk->id;
         $this->riskProjectId = $risk->project_id;
         $this->riskWbsItemId = $risk->wbs_item_id;
@@ -177,11 +182,13 @@ class RiskBlockerManager extends Component
             'riskContingency' => 'nullable|string',
         ]);
 
+        $risk = ProjectRisk::findOrFail($this->editingRiskId);
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit'), 403, 'You do not have permission to edit this risk.');
+
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
         $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
         $score = ($probScores[$this->riskProbability] ?? 2) * ($impScores[$this->riskImpact] ?? 2);
 
-        $risk = ProjectRisk::findOrFail($this->editingRiskId);
         $risk->update([
             'project_id' => $this->riskProjectId,
             'wbs_item_id' => $this->riskWbsItemId ?: null,
@@ -204,6 +211,8 @@ class RiskBlockerManager extends Component
     public function updateRiskStatus(int $riskId, string $status)
     {
         $risk = ProjectRisk::findOrFail($riskId);
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit'), 403, 'Unauthorized.');
+
         $risk->status = $status;
         $risk->save();
         $this->dispatch('toast', message: 'Risk status updated to ' . ucfirst($status), type: 'success');
@@ -212,12 +221,17 @@ class RiskBlockerManager extends Component
     public function deleteRisk(int $riskId)
     {
         $risk = ProjectRisk::findOrFail($riskId);
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.delete'), 403, 'You do not have permission to delete this risk.');
+
         $risk->delete();
         $this->dispatch('toast', message: 'Risk record removed.', type: 'info');
     }
 
     public function openResolveBlockerModal(int $blockerId)
     {
+        $blocker = TaskBlocker::findOrFail($blockerId);
+        abort_if(!$blocker->task?->project?->userCan(auth()->user(), 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+
         $this->selectedBlockerId = $blockerId;
         $this->blockerResolutionInput = '';
         $this->showResolveBlockerModal = true;
@@ -230,6 +244,8 @@ class RiskBlockerManager extends Component
         ]);
 
         $blocker = TaskBlocker::findOrFail($this->selectedBlockerId);
+        abort_if(!$blocker->task?->project?->userCan(auth()->user(), 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+
         $blocker->resolution = $this->blockerResolutionInput;
         $blocker->resolved_by = auth()->id();
         $blocker->resolved_at = now();
@@ -316,7 +332,10 @@ class RiskBlockerManager extends Component
         if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
             $projectsQuery->where(function($q) use ($user) {
                 $q->where('project_manager_id', $user->id)
-                  ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                  ->orWhere(function($subQ) use ($user) {
+                      $subQ->where('pm_accepted', true)
+                           ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                  });
             });
         }
         $projects = $projectsQuery->orderBy('name')->get();
@@ -377,25 +396,6 @@ class RiskBlockerManager extends Component
 
         $blockers = (clone $blockersQuery)->latest()->get();
 
-        // Risk Heatmap Matrix Counts across allowed projects
-        $heatmapMatrix = [];
-        $probabilities = ['high', 'medium', 'low'];
-        $impacts = ['critical', 'high', 'medium', 'low'];
-
-        $allProjectRisks = ProjectRisk::whereIn('project_id', $allowedProjectIds)
-            ->when($this->selectedProjectId, fn($q) => $q->where('project_id', $this->selectedProjectId))
-            ->get();
-
-        foreach ($probabilities as $p) {
-            foreach ($impacts as $i) {
-                $heatmapMatrix[$p][$i] = $allProjectRisks
-                    ->where('probability', $p)
-                    ->where('impact', $i)
-                    ->where('status', '!=', 'closed')
-                    ->count();
-            }
-        }
-
         // Available WBS Items for Add/Edit Risk Modal dropdown
         $modalWbsItems = collect();
         if ($this->riskProjectId) {
@@ -408,6 +408,9 @@ class RiskBlockerManager extends Component
         $users = User::orderBy('name')->get();
 
         // KPI Counts
+        $allProjectRisks = ProjectRisk::whereIn('project_id', $allowedProjectIds)
+            ->when($this->selectedProjectId, fn($q) => $q->where('project_id', $this->selectedProjectId))
+            ->get();
         $totalRisksCount = $allProjectRisks->count();
         $openRisksCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->count();
         $criticalHighRiskCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->whereIn('impact', ['high', 'critical'])->count();
@@ -422,7 +425,6 @@ class RiskBlockerManager extends Component
             'projects',
             'risks',
             'blockers',
-            'heatmapMatrix',
             'modalWbsItems',
             'users',
             'totalRisksCount',

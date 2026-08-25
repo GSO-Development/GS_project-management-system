@@ -99,6 +99,16 @@ class WbsItem extends Model
         return $this->hasMany(TaskBlocker::class);
     }
 
+    public function risks(): HasMany
+    {
+        return $this->hasMany(ProjectRisk::class, 'wbs_item_id');
+    }
+
+    public function openRisks(): HasMany
+    {
+        return $this->hasMany(ProjectRisk::class, 'wbs_item_id')->where('status', 'open');
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');

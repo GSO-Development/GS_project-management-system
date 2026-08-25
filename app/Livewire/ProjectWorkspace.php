@@ -23,7 +23,7 @@ class ProjectWorkspace extends Component
     use WithFileUploads;
 
     public Project $project;
-    public string $activeTab = 'overview';
+    public string $activeTab = 'wbs';
 
     public function setTab(string $tab): void
     {
@@ -83,9 +83,18 @@ class ProjectWorkspace extends Component
 
     public bool $showEditProjectModal = false;
     public ?string $editName = null;
+    public ?string $editCode = null;
+    public ?int $editSubsidiaryId = null;
+    public ?string $editCategory = null;
+    public ?int $editProjectManagerId = null;
     public ?string $editDescription = null;
     public ?string $editPriority = null;
+    public ?string $editStatus = null;
+    public ?string $editHealth = null;
+    public ?string $editStartDate = null;
+    public ?string $editDeadline = null;
     public ?float $editEstimatedBudget = null;
+    public ?float $editActualCost = null;
 
     public bool $showSetupModal = false;
     public ?string $setupDescription = null;
@@ -122,6 +131,7 @@ class ProjectWorkspace extends Component
     {
         $this->showProjectDetailsModal = false;
     }
+
 
     public function acceptAssignment(): void
     {
@@ -209,8 +219,8 @@ class ProjectWorkspace extends Component
     public function saveSetupModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can setup the project workspace.', type: 'error');
+        if (!$this->project->userCan($user, 'project.edit') && !$this->project->canUserManage($user)) {
+            $this->dispatch('toast', message: 'You do not have permission to setup the project workspace.', type: 'error');
             return;
         }
 
@@ -226,11 +236,20 @@ class ProjectWorkspace extends Component
         $this->project->estimated_budget = $this->setupEstimatedBudget ?: 0;
         $this->project->save();
 
-        // Sync collaborators
-        $membersToSync = array_unique(array_merge([$this->project->project_manager_id], $this->setupCollaboratorIds));
+        // Sync collaborators preserving existing roles
+        $existingMembers = $this->project->members()->withPivot('role')->get()->keyBy('id');
+        $intIds = array_filter(array_map('intval', $this->setupCollaboratorIds));
+        $membersToSync = array_unique(array_merge(array_filter([$this->project->project_manager_id]), $intIds));
+        
         $syncData = [];
         foreach ($membersToSync as $memberId) {
-            $syncData[$memberId] = ['role' => ($memberId == $this->project->project_manager_id) ? 'lead' : 'member'];
+            if ($memberId == $this->project->project_manager_id) {
+                $syncData[$memberId] = ['role' => 'lead'];
+            } elseif (isset($existingMembers[$memberId])) {
+                $syncData[$memberId] = ['role' => $existingMembers[$memberId]->pivot->role ?? 'member'];
+            } else {
+                $syncData[$memberId] = ['role' => 'member'];
+            }
         }
 
         $this->project->members()->sync($syncData);
@@ -243,48 +262,87 @@ class ProjectWorkspace extends Component
     public function openEditProjectModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit project details.', type: 'error');
+        if (!$this->project->userCan($user, 'project.edit')) {
+            $this->dispatch('toast', message: 'You do not have permission to edit project details.', type: 'error');
             return;
         }
 
         $this->editName = $this->project->name;
-        $this->editDescription = $this->project->description;
-        $this->editPriority = $this->project->priority->value;
-        $this->editEstimatedBudget = (float) $this->project->estimated_budget;
+        $this->editCode = $this->project->code;
+        $this->editSubsidiaryId = $this->project->subsidiary_id;
+        $this->editCategory = $this->project->category ?? 'Corporate Strategy';
+        $this->editProjectManagerId = $this->project->project_manager_id;
+        $this->editDescription = $this->project->description ?? '';
+        $this->editPriority = $this->project->priority ? $this->project->priority->value : 'medium';
+        $this->editStatus = $this->project->status ? $this->project->status->value : 'planning';
+        $this->editHealth = $this->project->health ? $this->project->health->value : 'on_track';
+        $this->editStartDate = $this->project->start_date ? $this->project->start_date->format('Y-m-d') : null;
+        $this->editDeadline = $this->project->deadline ? $this->project->deadline->format('Y-m-d') : null;
+        $this->editEstimatedBudget = (float) ($this->project->estimated_budget ?? 0);
+        $this->editActualCost = (float) ($this->project->actual_cost ?? 0);
+
+        $this->showProjectDetailsModal = false;
         $this->showEditProjectModal = true;
     }
 
     public function saveProjectDetails()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit project details.', type: 'error');
-            return;
-        }
+        abort_if(!$this->project->userCan($user, 'project.edit'), 403, 'Unauthorized to edit project details.');
 
         $this->validate([
             'editName' => 'required|string|max:255',
+            'editCode' => 'nullable|string|max:50',
+            'editSubsidiaryId' => 'nullable|exists:subsidiaries,id',
+            'editCategory' => 'nullable|string|max:100',
+            'editProjectManagerId' => 'nullable|exists:users,id',
             'editDescription' => 'nullable|string',
             'editPriority' => 'required|string',
+            'editStatus' => 'required|string',
+            'editHealth' => 'required|string',
+            'editStartDate' => 'nullable|date',
+            'editDeadline' => 'nullable|date',
             'editEstimatedBudget' => 'nullable|numeric|min:0',
+            'editActualCost' => 'nullable|numeric|min:0',
         ]);
 
         $this->project->name = $this->editName;
+        if ($this->editCode) {
+            $this->project->code = $this->editCode;
+        }
+        if ($this->editSubsidiaryId) {
+            $this->project->subsidiary_id = $this->editSubsidiaryId;
+        }
+        $this->project->category = $this->editCategory ?: 'Corporate Strategy';
+        
+        // If Project Manager changed by PMO Admin
+        if ($this->editProjectManagerId && $this->editProjectManagerId != $this->project->project_manager_id && ($user->isSuperAdmin() || $user->hasRole('pmo_admin'))) {
+            $this->project->project_manager_id = $this->editProjectManagerId;
+            if (!$this->project->members()->where('user_id', $this->editProjectManagerId)->exists()) {
+                $this->project->members()->attach($this->editProjectManagerId, ['role' => 'lead']);
+            }
+        }
+
         $this->project->description = $this->editDescription;
         $this->project->priority = $this->editPriority;
+        $this->project->status = $this->editStatus;
+        $this->project->health = $this->editHealth;
+        $this->project->start_date = $this->editStartDate ?: null;
+        $this->project->deadline = $this->editDeadline ?: null;
         $this->project->estimated_budget = $this->editEstimatedBudget ?: 0;
+        $this->project->actual_cost = $this->editActualCost ?: 0;
         $this->project->save();
 
+        $this->project->refresh();
         $this->showEditProjectModal = false;
-        $this->dispatch('toast', message: 'Project details updated successfully!', type: 'success');
+        $this->dispatch('toast', message: 'All project parameters and details updated successfully!', type: 'success');
     }
 
     public function openTimelineModal()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit the project deadline.', type: 'error');
+        if (!$this->project->userCan($user, 'project.manage_schedule') && !$this->project->userCan($user, 'schedule.edit')) {
+            $this->dispatch('toast', message: 'You do not have permission to edit timeline dates.', type: 'error');
             return;
         }
 
@@ -296,10 +354,7 @@ class ProjectWorkspace extends Component
     public function saveTimeline()
     {
         $user = auth()->user();
-        if (!$user->hasRole('pmo_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Owner or PMO Admin can edit the project deadline.', type: 'error');
-            return;
-        }
+        abort_if(!$this->project->userCan($user, 'project.manage_schedule') && !$this->project->userCan($user, 'schedule.edit'), 403, 'Unauthorized to edit project timeline.');
 
         $this->validate([
             'startDateInput' => 'nullable|date',
@@ -311,14 +366,14 @@ class ProjectWorkspace extends Component
         $this->project->save();
 
         $this->showTimelineModal = false;
-        $this->dispatch('toast', message: 'Project deadline updated successfully!', type: 'success');
+        $this->dispatch('toast', message: 'Project timeline updated successfully!', type: 'success');
     }
 
     public function openCollaboratorsModal()
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can manage project team members.', type: 'error');
+        if (!$this->project->userCan($user, 'team.add') && !$this->project->userCan($user, 'team.view')) {
+            $this->dispatch('toast', message: 'You do not have permission to manage team members.', type: 'error');
             return;
         }
 
@@ -330,19 +385,23 @@ class ProjectWorkspace extends Component
     public function saveCollaborators()
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can manage project team members.', type: 'error');
-            return;
-        }
+        abort_if(!$this->project->userCan($user, 'team.add'), 403, 'Unauthorized to add or edit project team members.');
 
-        // Track existing member IDs before sync (to detect newly added ones)
-        $existingMemberIds = $this->project->members->pluck('id')->toArray();
+        // Track existing member roles before sync so roles like 'sponsor', 'owner', 'steering_committee' are PRESERVED
+        $existingMembers = $this->project->members()->withPivot('role')->get()->keyBy('id');
+        $existingMemberIds = $existingMembers->keys()->toArray();
 
         $intIds = array_filter(array_map('intval', $this->selectedCollaboratorIds));
         $membersToSync = array_unique(array_merge(array_filter([$this->project->project_manager_id]), $intIds));
         $syncData = [];
         foreach ($membersToSync as $memberId) {
-            $syncData[$memberId] = ['role' => ($memberId == $this->project->project_manager_id) ? 'lead' : 'member'];
+            if ($memberId == $this->project->project_manager_id) {
+                $syncData[$memberId] = ['role' => 'lead'];
+            } elseif (isset($existingMembers[$memberId])) {
+                $syncData[$memberId] = ['role' => $existingMembers[$memberId]->pivot->role ?? 'member'];
+            } else {
+                $syncData[$memberId] = ['role' => 'member'];
+            }
         }
 
         $this->project->members()->sync($syncData);
@@ -354,8 +413,9 @@ class ProjectWorkspace extends Component
             try {
                 $newMembers = User::whereIn('id', $newMemberIds)->get();
                 foreach ($newMembers as $newMember) {
+                    $mRole = $syncData[$newMember->id]['role'] ?? 'member';
                     Mail::to($newMember->email)
-                        ->send(new ProjectAssignedMail($this->project, $newMember, 'member'));
+                        ->send(new ProjectAssignedMail($this->project, $newMember, $mRole));
                 }
             } catch (\Throwable $e) {
                 \Log::error('ProjectAssignedMail (collaborator) failed: ' . $e->getMessage());
@@ -369,13 +429,10 @@ class ProjectWorkspace extends Component
     public function removeCollaborator(int $userId)
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can remove team members.', type: 'error');
-            return;
-        }
+        abort_if(!$this->project->userCan($user, 'team.remove'), 403, 'Unauthorized to remove team members.');
 
         if ($userId === $this->project->project_manager_id) {
-            $this->dispatch('toast', message: 'Cannot remove the Project Leader.', type: 'error');
+            $this->dispatch('toast', message: 'Cannot remove the designated Project Leader.', type: 'error');
             return;
         }
 
@@ -479,8 +536,8 @@ class ProjectWorkspace extends Component
     public function saveFinancialsAndHours()
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only Project Manager or PMO Admin can edit financial metrics.', type: 'error');
+        if (!$this->project->canUserManage($user)) {
+            $this->dispatch('toast', message: 'Only the Project Leader, Sponsors, Owners, Steering Committee or PMO Admin can edit financial metrics.', type: 'error');
             return;
         }
 
@@ -506,17 +563,19 @@ class ProjectWorkspace extends Component
         $user = auth()->user();
 
         // Security check: Check if user is authorized to view this project
-        if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local') {
-            $isPm = ($project->project_manager_id === $user->id);
+        if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && !$user->isPmoAdmin()) {
+            $isGov = $project->isGovernanceMember($user);
+            $isPm = ($project->project_manager_id === $user->id) || ($project->getUserRole($user) === 'lead');
             $isMember = $project->members->contains($user->id);
+            $hasTask = $project->wbsItems()->where('assigned_user_id', $user->id)->exists();
             
-            if (!$isPm && !$isMember) {
+            if (!$isGov && !$isPm && !$isMember && !$hasTask) {
                 abort(403, 'Unauthorized project access.');
             }
 
-            // If project is awaiting PM acceptance and current user is only a team member/collaborator:
+            // If project is awaiting PM acceptance, only the designated Project Manager can access it
             if (!$project->isPmAccepted() && !$isPm) {
-                session()->flash('warning', "Project '{$project->name}' ({$project->code}) is currently awaiting Project Leader acceptance and initialization before opening to the team.");
+                session()->flash('warning', "Project '{$project->name}' ({$project->code}) is currently awaiting Project Manager acceptance and initialization before opening to the team.");
                 return redirect()->route('dashboard');
             }
         }
@@ -602,6 +661,9 @@ class ProjectWorkspace extends Component
 
     public function addRisk()
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'risk.create'), 403, 'You do not have permission to create risks.');
+
         $this->validate([
             'riskTitle' => 'required|string|max:255',
             'riskDescription' => 'required|string',
@@ -636,6 +698,9 @@ class ProjectWorkspace extends Component
 
     public function openEditRiskModal(int $riskId)
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'risk.edit'), 403, 'You do not have permission to edit risks.');
+
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
             $this->editingRiskId = $risk->id;
@@ -654,6 +719,9 @@ class ProjectWorkspace extends Component
 
     public function updateRisk()
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'risk.edit'), 403, 'You do not have permission to edit risks.');
+
         $this->validate([
             'riskTitle' => 'required|string|max:255',
             'riskDescription' => 'required|string',
@@ -690,6 +758,9 @@ class ProjectWorkspace extends Component
 
     public function updateRiskStatus(int $riskId, string $status)
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'risk.resolve') && !$this->project->userCan($user, 'risk.edit'), 403, 'Unauthorized.');
+
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
             $risk->status = $status;
@@ -700,6 +771,9 @@ class ProjectWorkspace extends Component
 
     public function deleteRisk(int $riskId)
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'risk.delete'), 403, 'You do not have permission to delete risks.');
+
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
             $risk->delete();
@@ -709,6 +783,9 @@ class ProjectWorkspace extends Component
 
     public function openResolveBlockerModal(int $blockerId)
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+
         $this->selectedBlockerId = $blockerId;
         $this->blockerResolutionInput = '';
         $this->showResolveBlockerModal = true;
@@ -716,6 +793,9 @@ class ProjectWorkspace extends Component
 
     public function saveBlockerResolution()
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+
         $this->validate([
             'blockerResolutionInput' => 'required|string|min:3',
         ]);
@@ -735,6 +815,9 @@ class ProjectWorkspace extends Component
 
     public function submitApprovalRequest()
     {
+        $user = auth()->user();
+        abort_if(!$this->project->userCan($user, 'approval.submit'), 403, 'You do not have permission to submit approval requests.');
+
         $rules = ['reqReason' => 'required|string|min:5'];
 
         if ($this->reqType === 'deadline_extension') {
@@ -756,7 +839,7 @@ class ProjectWorkspace extends Component
             $requestedValue['scope_description'] = $this->reqValue;
         }
 
-        ApprovalRequest::create([
+        $approval = ApprovalRequest::create([
             'project_id'      => $this->project->id,
             'request_type'    => $this->reqType,
             'requested_by'    => auth()->id(),
@@ -766,6 +849,19 @@ class ProjectWorkspace extends Component
             'submitted_at'    => now(),
         ]);
 
+        try {
+            $recipients = \App\Models\User::role('super_admin')->where('id', '!=', auth()->id())->get();
+            if ($this->project->projectManager && $this->project->projectManager->id !== auth()->id()) {
+                $recipients->push($this->project->projectManager);
+            }
+            $recipients = $recipients->unique('id');
+            foreach ($recipients as $recipient) {
+                $recipient->notify(new \App\Notifications\ApprovalStatusNotification($approval, 'submitted'));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Approval notification error: ' . $e->getMessage());
+        }
+
         $this->reset(['reqReason', 'reqValue']);
         $this->dispatch('toast', message: '✅ Approval request submitted for review!', type: 'success');
     }
@@ -773,11 +869,7 @@ class ProjectWorkspace extends Component
     public function approveRequestInWorkspace(int $id)
     {
         $user = auth()->user();
-        $isPm = ($this->project->project_manager_id === $user->id);
-        if (!$user->hasRole('super_admin') && !$isPm) {
-            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can approve requests.', type: 'error');
-            return;
-        }
+        abort_if(!$this->project->userCan($user, 'approval.approve') && !$this->project->userCan($user, 'approval.final_approve'), 403, 'You do not have permission to approve requests.');
 
         $req = ApprovalRequest::where('project_id', $this->project->id)->findOrFail($id);
         try {
@@ -791,11 +883,7 @@ class ProjectWorkspace extends Component
     public function rejectRequestInWorkspace(int $id)
     {
         $user = auth()->user();
-        $isPm = ($this->project->project_manager_id === $user->id);
-        if (!$user->hasRole('super_admin') && !$isPm) {
-            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can reject requests.', type: 'error');
-            return;
-        }
+        abort_if(!$this->project->userCan($user, 'approval.reject'), 403, 'You do not have permission to reject requests.');
 
         $req = ApprovalRequest::where('project_id', $this->project->id)->findOrFail($id);
         try {
@@ -945,7 +1033,9 @@ class ProjectWorkspace extends Component
 
         $previewDoc = $this->previewDocId ? ProjectDocument::with(['project', 'uploader'])->find($this->previewDocId) : null;
         $availableUsers = \App\Models\User::getUsersForSubsidiary($this->project->subsidiary_id);
+        $allSubsidiaries = \App\Models\Subsidiary::orderBy('name')->get();
+        $allPms = \App\Models\User::where('is_active', true)->orderBy('name')->get();
 
-        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers'));
+        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'allSubsidiaries', 'allPms'));
     }
 }

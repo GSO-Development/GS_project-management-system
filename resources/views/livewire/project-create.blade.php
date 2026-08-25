@@ -49,15 +49,15 @@
 
     <!-- ─── Sticky Header & Step Navigator ─── -->
     <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-2xs">
-        <div class="max-w-4xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="max-w-4xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2">
             <!-- Left: Breadcrumb / Code Identity -->
-            <div class="flex items-center gap-2 min-w-0">
-                <a href="{{ route('projects.index') }}" class="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors flex items-center gap-1">
+            <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <a href="{{ route('projects.index') }}" class="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors flex items-center gap-1 flex-shrink-0">
                     <span>Projects</span>
                     <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </a>
-                <span class="text-xs font-black text-slate-900 truncate hidden xs:inline">Create Project</span>
-                <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-black font-mono text-[#c3122e] shadow-2xs">
+                <span class="text-xs font-black text-slate-900 truncate hidden md:inline">Create Project</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-black font-mono text-[#c3122e] shadow-2xs truncate">
                     {{ $code ?: '—' }}
                 </span>
             </div>
@@ -301,246 +301,657 @@
         @endif
 
         {{-- ══════════════════════════════════════════════════════════════ --}}
-        {{-- STEP 2 — Ownership & Collaboration                             --}}
+        {{-- STEP 2 — Governance Structure & Team Assignment                --}}
         {{-- ══════════════════════════════════════════════════════════════ --}}
         @if($currentStep === 2)
         <div class="space-y-5">
+
+            <!-- Step Label (Matches Step 1) -->
             <div class="mb-2">
-                <h2 class="text-lg font-black text-slate-900">Ownership & Collaboration</h2>
-                <p class="text-xs text-slate-400 mt-0.5 font-medium">Search & assign a Project Leader, then select team collaborators.</p>
+                <h2 class="text-lg font-black text-slate-900">Project Governance &amp; Team Structure</h2>
+                <p class="text-xs text-slate-400 mt-0.5 font-medium">Assign executive sponsors, business owners, steering committee members, the project manager, and core team.</p>
             </div>
 
-            <!-- Project Leader Card with Searchable Dropdown -->
-            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4" x-data="{ open: false }">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-7 h-7 rounded-lg bg-[#fdf4f4] border border-[#faeaea] text-[#c3122e] flex items-center justify-center shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-xs font-black text-slate-900">Project Leader <span class="text-rose-500">*</span></span>
-                            <p class="text-[10px] text-slate-400 font-medium">Designated owner who is accountable for project delivery</p>
-                        </div>
-                    </div>
-
-                    @php $selectedPm = $project_manager_id ? $allPms->firstWhere('id', $project_manager_id) : null; @endphp
-                    @if($selectedPm)
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-50 text-[#c3122e] border border-rose-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
-                            Leader Assigned
-                        </span>
-                    @else
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                            Not Selected
-                        </span>
-                    @endif
-                </div>
-
-                <!-- Searchable Combobox Dropdown Container -->
-                <div class="relative" @click.outside="open = false">
-                    <!-- Dropdown Trigger Button -->
-                    <button
-                        type="button"
-                        @click="open = !open"
-                        class="w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left bg-slate-50/70 hover:bg-white hover:border-[#c3122e] focus:outline-none {{ $selectedPm ? 'border-slate-300 shadow-2xs bg-white' : 'border-slate-200' }}"
-                        :class="{ 'border-[#c3122e] ring-3 ring-[#c3122e]/10 bg-white': open }"
-                    >
-                        @if($selectedPm)
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#c3122e] to-[#8b0d1f] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
-                                    {{ strtoupper(substr($selectedPm->name, 0, 1)) }}
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <span class="text-xs font-black text-slate-900 truncate">{{ $selectedPm->name }}</span>
-                                        @if($selectedPm->subsidiary)
-                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-white text-[#c3122e] border border-rose-200">
-                                                {{ $selectedPm->subsidiary->code }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <span class="text-[10px] text-slate-400 font-mono block truncate">{{ $selectedPm->email }}</span>
-                                </div>
+            {{-- ─── ORG TIER 1: PROJECT SPONSOR ─── --}}
+            <div class="relative" x-data="{ expanded: true }">
+                <div class="absolute left-6 top-full w-px h-3 bg-gradient-to-b from-amber-400/60 to-transparent z-10 hidden sm:block"></div>
+                <div class="rounded-3xl overflow-hidden shadow-sm border" style="border-color: rgba(245,158,11,0.35); background: linear-gradient(135deg, #fffbeb 0%, #ffffff 60%);">
+                    {{-- Card Header --}}
+                    <button type="button" @click="expanded = !expanded" class="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-amber-50/50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: 2px solid rgba(245,158,11,0.3);">
+                                <span class="text-xl">💼</span>
                             </div>
-                        @else
-                            <div class="flex items-center gap-3 text-slate-400">
-                                <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-black text-slate-900">Project Sponsor(s)</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">Tier 1 — Executive</span>
+                                    @if(count($sponsor_ids) > 0)
+                                        <span class="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center shadow-sm">{{ count($sponsor_ids) }}</span>
+                                    @endif
                                 </div>
-                                <div>
-                                    <span class="text-xs font-bold text-slate-600 block">Select Project Leader...</span>
-                                    <span class="text-[10px] text-slate-400 font-medium block">Click to search and assign a leader</span>
-                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Senior executive providing strategic alignment &amp; financial backing</p>
                             </div>
-                        @endif
-
-                        <div class="flex items-center gap-1.5 text-slate-400 ml-2">
-                            <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180 text-[#c3122e]': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                            </svg>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-[10px] font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">Optional</span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
 
-                    <!-- Floating Dropdown Menu -->
-                    <div
-                        x-show="open"
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 translate-y-1 scale-98"
-                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                        x-transition:leave="transition ease-in duration-100"
-                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                        x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                        class="absolute left-0 right-0 z-30 mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-2.5"
-                        style="display: none;"
-                    >
-                        <!-- Search Bar inside dropdown -->
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                wire:model.live.debounce.200ms="leaderSearch"
-                                placeholder="Search leader by name, email, or subsidiary..."
-                                class="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all"
-                                @click.stop
-                            >
-                            @if($leaderSearch)
-                                <button type="button" wire:click="$set('leaderSearch', '')" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md" @click.stop>
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </button>
-                            @endif
+                    {{-- Selected Sponsors Preview Strip --}}
+                    @if(count($sponsor_ids) > 0)
+                        <div class="px-5 pb-2 flex items-center gap-2 flex-wrap">
+                            @foreach($allPms->whereIn('id', $sponsor_ids) as $sel)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                                    <span class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">{{ strtoupper(substr($sel->name, 0, 1)) }}</span>
+                                    {{ $sel->name }}
+                                </span>
+                            @endforeach
                         </div>
+                    @endif
 
-                        <!-- Candidates List -->
-                        <div class="max-h-56 overflow-y-auto space-y-1 pr-1">
-                            @forelse($pms as $pm)
-                                @php
-                                    $isSelected = ($project_manager_id == $pm->id);
-                                    $isOpt = str_contains(strtolower($pm->subsidiary->code ?? ''), 'opt') || str_contains(strtolower($pm->email), 'optimize');
-                                @endphp
-                                <button
-                                    type="button"
-                                    wire:click="selectLeader({{ $pm->id }})"
-                                    @click="open = false"
-                                    class="w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all cursor-pointer {{ $isSelected ? 'bg-[#fdf4f4] border border-[#faeaea]' : 'hover:bg-slate-50 border border-transparent' }}"
-                                >
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $isSelected ? 'bg-[#c3122e] text-white' : ($isOpt ? 'bg-rose-50 text-[#c3122e] border border-rose-200' : 'bg-slate-100 text-slate-700') }}">
-                                            {{ strtoupper(substr($pm->name, 0, 1)) }}
+                    {{-- Expanded Body --}}
+                    <div x-show="expanded" x-collapse class="border-t border-amber-100">
+                        <div class="p-5 space-y-3">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                                <input type="text" wire:model.live.debounce.250ms="sponsorSearch" placeholder="Search sponsors by name, email, or subsidiary..." class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-amber-200 bg-amber-50/50 text-xs font-bold text-slate-900 placeholder:text-amber-400/70 focus:bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-400/15 outline-none transition-all">
+                                @if($sponsorSearch)<button type="button" wire:click="$set('sponsorSearch', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>@endif
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+                                @forelse($sponsors as $user)
+                                    @php 
+                                        $uIdStr = (string)$user->id;
+                                        $isSponsorSelected = in_array($uIdStr, $sponsor_ids);
+                                        $otherRole = match(true) {
+                                            in_array($uIdStr, $owner_ids) => 'Owner',
+                                            in_array($uIdStr, $steering_committee_ids) => 'Committee',
+                                            $project_manager_id == $user->id => 'PM',
+                                            default => null
+                                        };
+                                    @endphp
+                                    <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-150 {{ $otherRole ? 'border-slate-100 bg-slate-50/80 opacity-60 cursor-not-allowed' : ($isSponsorSelected ? 'border-amber-400 bg-gradient-to-r from-amber-50 to-amber-50/30 shadow-xs cursor-pointer' : 'border-transparent bg-slate-50 hover:bg-amber-50/40 hover:border-amber-200 cursor-pointer') }}">
+                                        @if($otherRole)
+                                            <div class="w-4 h-4 rounded-md bg-slate-200/80 text-slate-400 flex items-center justify-center flex-shrink-0" title="Assigned as {{ $otherRole }}">
+                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            </div>
+                                        @else
+                                            <input type="checkbox" wire:model.live="sponsor_ids" value="{{ $user->id }}" class="w-4 h-4 text-amber-500 rounded border-amber-300 focus:ring-amber-400 cursor-pointer flex-shrink-0">
+                                        @endif
+
+                                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $otherRole ? 'bg-slate-200 text-slate-500' : ($isSponsorSelected ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-200 text-slate-600') }}">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="text-xs font-black text-slate-900 truncate">{{ $pm->name }}</span>
-                                                @if($pm->subsidiary)
-                                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black {{ $isOpt ? 'bg-rose-100 text-[#c3122e]' : 'bg-slate-100 text-slate-600' }}">
-                                                        {{ $pm->subsidiary->code }}
-                                                    </span>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="text-xs font-bold text-slate-900 truncate" title="{{ $user->name }}">{{ $user->name }}</div>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                                <span class="font-mono">{{ $user->subsidiary->code ?? 'GS' }}</span>
+                                                @if($otherRole)
+                                                    <span class="text-slate-300 mx-1">·</span>
+                                                    <span class="text-slate-500 font-semibold">🔒 {{ $otherRole }}</span>
                                                 @endif
                                             </div>
-                                            <span class="text-[10px] text-slate-400 font-mono truncate block">{{ $pm->email }}</span>
                                         </div>
-                                    </div>
-                                    <div class="flex-shrink-0 ml-2">
-                                        @if($isSelected)
-                                            <div class="w-5 h-5 rounded-full bg-[#c3122e] text-white flex items-center justify-center shadow-2xs">
-                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                            </div>
+
+                                        @if($isSponsorSelected && !$otherRole)
+                                            <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                         @endif
-                                    </div>
-                                </button>
-                            @empty
-                                <div class="py-6 text-center text-xs font-bold text-slate-400">
-                                    No leader candidates found matching "{{ $leaderSearch }}".
-                                </div>
-                            @endforelse
+                                    </label>
+                                @empty
+                                    <div class="col-span-3 py-5 text-center text-xs font-bold text-slate-400">No sponsor candidates found.</div>
+                                @endforelse
+                            </div>
                         </div>
                     </div>
                 </div>
-                @error('project_manager_id') <span class="text-[10px] text-rose-600 font-bold block">{{ $message }}</span> @enderror
             </div>
 
-            <!-- Collaborators Card -->
-            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3.5">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
+            {{-- ─── ORG TIER 2: PROJECT OWNER ─── --}}
+            <div class="relative" x-data="{ expanded: true }">
+                <div class="absolute left-6 top-full w-px h-3 bg-gradient-to-b from-emerald-400/60 to-transparent z-10 hidden sm:block"></div>
+                <div class="rounded-3xl overflow-hidden shadow-sm border" style="border-color: rgba(16,185,129,0.35); background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 60%);">
+                    <button type="button" @click="expanded = !expanded" class="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-emerald-50/50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 2px solid rgba(16,185,129,0.3);">
+                                <span class="text-xl">👑</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-black text-slate-900">Project Owner(s)</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">Tier 2 — Business</span>
+                                    @if(count($owner_ids) > 0)
+                                        <span class="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shadow-sm">{{ count($owner_ids) }}</span>
+                                    @endif
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Business outcome owner &amp; primary beneficiary of project deliverables</p>
+                            </div>
                         </div>
-                        <div>
-                            <span class="text-xs font-black text-slate-900">Project Collaborators</span>
-                            <span class="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black border border-slate-200">{{ count($selected_participant_ids) }} selected</span>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">Optional</span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    @if(count($owner_ids) > 0)
+                        <div class="px-5 pb-2 flex items-center gap-2 flex-wrap">
+                            @foreach($allPms->whereIn('id', $owner_ids) as $sel)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">{{ strtoupper(substr($sel->name, 0, 1)) }}</span>
+                                    {{ $sel->name }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div x-show="expanded" x-collapse class="border-t border-emerald-100">
+                        <div class="p-5 space-y-3">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                                <input type="text" wire:model.live.debounce.250ms="ownerSearch" placeholder="Search owners by name, email, or subsidiary..." class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/50 text-xs font-bold text-slate-900 placeholder:text-emerald-400/70 focus:bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 outline-none transition-all">
+                                @if($ownerSearch)<button type="button" wire:click="$set('ownerSearch', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>@endif
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+                                @forelse($owners as $user)
+                                    @php 
+                                        $uIdStr = (string)$user->id;
+                                        $isOwnerSelected = in_array($uIdStr, $owner_ids);
+                                        $otherRole = match(true) {
+                                            in_array($uIdStr, $sponsor_ids) => 'Sponsor',
+                                            in_array($uIdStr, $steering_committee_ids) => 'Committee',
+                                            $project_manager_id == $user->id => 'PM',
+                                            default => null
+                                        };
+                                    @endphp
+                                    <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-150 {{ $otherRole ? 'border-slate-100 bg-slate-50/80 opacity-60 cursor-not-allowed' : ($isOwnerSelected ? 'border-emerald-400 bg-gradient-to-r from-emerald-50 to-emerald-50/30 shadow-xs cursor-pointer' : 'border-transparent bg-slate-50 hover:bg-emerald-50/40 hover:border-emerald-200 cursor-pointer') }}">
+                                        @if($otherRole)
+                                            <div class="w-4 h-4 rounded-md bg-slate-200/80 text-slate-400 flex items-center justify-center flex-shrink-0" title="Assigned as {{ $otherRole }}">
+                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            </div>
+                                        @else
+                                            <input type="checkbox" wire:model.live="owner_ids" value="{{ $user->id }}" class="w-4 h-4 text-emerald-500 rounded border-emerald-300 focus:ring-emerald-400 cursor-pointer flex-shrink-0">
+                                        @endif
+
+                                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $otherRole ? 'bg-slate-200 text-slate-500' : ($isOwnerSelected ? 'bg-emerald-500 text-white shadow-xs' : 'bg-slate-200 text-slate-600') }}">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="text-xs font-bold text-slate-900 truncate" title="{{ $user->name }}">{{ $user->name }}</div>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                                <span class="font-mono">{{ $user->subsidiary->code ?? 'GS' }}</span>
+                                                @if($otherRole)
+                                                    <span class="text-slate-300 mx-1">·</span>
+                                                    <span class="text-slate-500 font-semibold">🔒 {{ $otherRole }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        @if($isOwnerSelected && !$otherRole)
+                                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        @endif
+                                    </label>
+                                @empty
+                                    <div class="col-span-3 py-5 text-center text-xs font-bold text-slate-400">No owner candidates found.</div>
+                                @endforelse
+                            </div>
                         </div>
                     </div>
-                    <button type="button" wire:click="toggleAllParticipants" class="text-[11px] font-black text-[#c3122e] hover:underline cursor-pointer">
+                </div>
+            </div>
+
+            {{-- ─── ORG TIER 3: STEERING COMMITTEE ─── --}}
+            <div class="relative" x-data="{ expanded: true }">
+                <div class="absolute left-6 top-full w-px h-3 bg-gradient-to-b from-violet-400/60 to-transparent z-10 hidden sm:block"></div>
+                <div class="rounded-3xl overflow-hidden shadow-sm border" style="border-color: rgba(124,58,237,0.35); background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 60%);">
+                    <button type="button" @click="expanded = !expanded" class="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-violet-50/50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border: 2px solid rgba(124,58,237,0.3);">
+                                <span class="text-xl">🏛️</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-black text-slate-900">Steering Committee</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-violet-100 text-violet-800 border border-violet-200">Tier 3 — Governance</span>
+                                    @if(count($steering_committee_ids) > 0)
+                                        <span class="w-5 h-5 rounded-full bg-violet-500 text-white text-[10px] font-black flex items-center justify-center shadow-sm">{{ count($steering_committee_ids) }}</span>
+                                    @endif
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Cross-functional governance panel reviewing milestones &amp; strategic decisions</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-[10px] font-black text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-200">Optional</span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    @if(count($steering_committee_ids) > 0)
+                        <div class="px-5 pb-2 flex items-center gap-2 flex-wrap">
+                            @foreach($allPms->whereIn('id', $steering_committee_ids) as $sel)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-violet-100 text-violet-800 border border-violet-300">
+                                    <span class="w-4 h-4 rounded-full bg-violet-500 text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">{{ strtoupper(substr($sel->name, 0, 1)) }}</span>
+                                    {{ $sel->name }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div x-show="expanded" x-collapse class="border-t border-violet-100">
+                        <div class="p-5 space-y-3">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><svg class="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                                <input type="text" wire:model.live.debounce.250ms="steeringSearch" placeholder="Search committee members by name, email, or subsidiary..." class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-violet-200 bg-violet-50/50 text-xs font-bold text-slate-900 placeholder:text-violet-400/70 focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-400/15 outline-none transition-all">
+                                @if($steeringSearch)<button type="button" wire:click="$set('steeringSearch', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>@endif
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+                                @forelse($steeringCommittee as $user)
+                                    @php 
+                                        $uIdStr = (string)$user->id;
+                                        $isScSelected = in_array($uIdStr, $steering_committee_ids);
+                                        $otherRole = match(true) {
+                                            in_array($uIdStr, $sponsor_ids) => 'Sponsor',
+                                            in_array($uIdStr, $owner_ids) => 'Owner',
+                                            $project_manager_id == $user->id => 'PM',
+                                            default => null
+                                        };
+                                    @endphp
+                                    <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-150 {{ $otherRole ? 'border-slate-100 bg-slate-50/80 opacity-60 cursor-not-allowed' : ($isScSelected ? 'border-violet-400 bg-gradient-to-r from-violet-50 to-violet-50/30 shadow-xs cursor-pointer' : 'border-transparent bg-slate-50 hover:bg-violet-50/40 hover:border-violet-200 cursor-pointer') }}">
+                                        @if($otherRole)
+                                            <div class="w-4 h-4 rounded-md bg-slate-200/80 text-slate-400 flex items-center justify-center flex-shrink-0" title="Assigned as {{ $otherRole }}">
+                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            </div>
+                                        @else
+                                            <input type="checkbox" wire:model.live="steering_committee_ids" value="{{ $user->id }}" class="w-4 h-4 text-violet-500 rounded border-violet-300 focus:ring-violet-400 cursor-pointer flex-shrink-0">
+                                        @endif
+
+                                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $otherRole ? 'bg-slate-200 text-slate-500' : ($isScSelected ? 'bg-violet-500 text-white shadow-xs' : 'bg-slate-200 text-slate-600') }}">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="text-xs font-bold text-slate-900 truncate" title="{{ $user->name }}">{{ $user->name }}</div>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                                <span class="font-mono">{{ $user->subsidiary->code ?? 'GS' }}</span>
+                                                @if($otherRole)
+                                                    <span class="text-slate-300 mx-1">·</span>
+                                                    <span class="text-slate-500 font-semibold">🔒 {{ $otherRole }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        @if($isScSelected && !$otherRole)
+                                            <svg class="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        @endif
+                                    </label>
+                                @empty
+                                    <div class="col-span-3 py-5 text-center text-xs font-bold text-slate-400">No committee members found.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ─── ORG TIER 4: PROJECT MANAGER (REQUIRED) ─── --}}
+            <div class="rounded-3xl overflow-hidden shadow-md border-2" style="border-color: {{ $project_manager_id ? '#c3122e' : '#f43f5e' }}; background: linear-gradient(135deg, #fff8f8 0%, #ffffff 60%);">
+                <div class="flex items-center justify-between p-5 border-b border-rose-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 2px solid rgba(195,18,46,0.3);">
+                            <span class="text-xl">⭐</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-black text-slate-900">Project Manager (PM)</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-200">Tier 4 — Required <span class="text-rose-500">*</span></span>
+                                @if($project_manager_id)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#c3122e] text-white shadow-xs">
+                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        PM Selected
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Designated Project Manager accountable for day-to-day delivery &amp; team coordination</p>
+                        </div>
+                    </div>
+                    @if(!$project_manager_id)
+                        <span class="text-[10px] font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 animate-pulse">Required *</span>
+                    @endif
+                </div>
+
+                <div class="p-5 space-y-3.5">
+                    @php $selectedPm = $project_manager_id ? $allPms->firstWhere('id', $project_manager_id) : null; @endphp
+
+                    {{-- Selected Project Manager Active Card --}}
+                    @if($selectedPm)
+                        <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#fdf4f4] border-2 border-[#c3122e] shadow-xs">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-xl font-black text-xs text-white flex items-center justify-center flex-shrink-0 shadow-sm" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                    {{ strtoupper(substr($selectedPm->name, 0, 1)) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-black text-xs text-slate-900 truncate">{{ $selectedPm->name }}</span>
+                                        @if($selectedPm->subsidiary)
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-white text-[#c3122e] border border-rose-200">{{ $selectedPm->subsidiary->code }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-mono truncate block">{{ $selectedPm->email }}</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider bg-[#c3122e] text-white shadow-xs flex-shrink-0">PROJECT MANAGER</span>
+                        </div>
+                    @endif
+
+                    {{-- Search Project Manager --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                        <input type="text" wire:model.live.debounce.200ms="leaderSearch" placeholder="Search Project Manager by name, email, or subsidiary..." class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-rose-200 bg-rose-50/40 text-xs font-bold text-slate-900 placeholder:text-rose-400/70 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/15 outline-none transition-all">
+                        @if($leaderSearch)<button type="button" wire:click="$set('leaderSearch', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>@endif
+                    </div>
+
+                    {{-- Candidates Grid (Open & Scrollable) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1 scrollbar-thin p-1 rounded-xl bg-rose-50/20">
+                        @forelse($pms as $pm)
+                            @php
+                                $uIdStr = (string)$pm->id;
+                                $isSelected = ($project_manager_id == $pm->id);
+                                $otherRole = match(true) {
+                                    in_array($uIdStr, $sponsor_ids) => 'Sponsor',
+                                    in_array($uIdStr, $owner_ids) => 'Owner',
+                                    in_array($uIdStr, $steering_committee_ids) => 'Committee',
+                                    default => null
+                                };
+                                $isOpt = str_contains(strtolower($pm->subsidiary->code ?? ''), 'opt') || str_contains(strtolower($pm->email), 'optimize');
+                            @endphp
+                            <button
+                                type="button"
+                                @if(!$otherRole) wire:click="selectLeader({{ $pm->id }})" @endif
+                                @if($otherRole) disabled @endif
+                                class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl border-2 text-left transition-all duration-150 {{ $otherRole ? 'border-slate-100 bg-white/60 opacity-60 cursor-not-allowed' : ($isSelected ? 'border-[#c3122e] bg-gradient-to-r from-rose-50 to-white shadow-xs ring-1 ring-[#c3122e]/20 cursor-pointer' : 'border-transparent bg-white hover:bg-rose-50/40 hover:border-rose-200 cursor-pointer') }}"
+                            >
+                                <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $otherRole ? 'bg-slate-200 text-slate-500' : ($isSelected ? 'bg-[#c3122e] text-white shadow-xs' : ($isOpt ? 'bg-rose-50 text-[#c3122e] border border-rose-200' : 'bg-slate-100 text-slate-700')) }}">
+                                    {{ strtoupper(substr($pm->name, 0, 1)) }}
+                                </div>
+
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-xs font-bold text-slate-900 truncate" title="{{ $pm->name }}">{{ $pm->name }}</div>
+                                    <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                        <span class="font-mono">{{ $pm->subsidiary->code ?? 'GS' }}</span>
+                                        @if($otherRole)
+                                            <span class="text-slate-300 mx-1">·</span>
+                                            <span class="text-slate-500 font-semibold">🔒 {{ $otherRole }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if($isSelected && !$otherRole)
+                                    <div class="w-5 h-5 rounded-full bg-[#c3122e] text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                @endif
+                            </button>
+                        @empty
+                            <div class="col-span-3 py-6 text-center text-xs font-bold text-slate-400">
+                                No Project Manager candidates found matching "{{ $leaderSearch }}".
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            {{-- ─── ORG TIER 5: CORE TEAM (MEMBERS) ─── --}}
+            <div class="rounded-3xl overflow-hidden shadow-sm border" style="border-color: rgba(59,130,246,0.35); background: linear-gradient(135deg, #eff6ff 0%, #ffffff 60%);">
+                <div class="flex items-center justify-between p-5 border-b border-blue-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border: 2px solid rgba(59,130,246,0.3);">
+                            <span class="text-xl">🤝</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-black text-slate-900">Core Project Team</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">Tier 5 — Execution</span>
+                                @if(count($selected_participant_ids) > 0)
+                                    <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-black flex items-center justify-center shadow-sm">{{ count($selected_participant_ids) }}</span>
+                                @endif
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Cross-functional team members executing daily deliverables and WBS tasks</p>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="toggleAllParticipants" class="text-[11px] font-black text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 cursor-pointer transition-colors flex-shrink-0">
                         {{ count($selected_participant_ids) === $allParticipants->count() ? 'Deselect All' : 'Select All' }}
                     </button>
                 </div>
 
-                <!-- Search Collaborators -->
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                <div class="p-5 space-y-3">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><svg class="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                        <input type="text" wire:model.live.debounce.250ms="participantSearch" placeholder="Search team members by name, email, or subsidiary..." class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-blue-200 bg-blue-50/50 text-xs font-bold text-slate-900 placeholder:text-blue-400/70 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15 outline-none transition-all">
+                        @if($participantSearch)<button type="button" wire:click="$set('participantSearch', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>@endif
                     </div>
-                    <input
-                        type="text"
-                        wire:model.live.debounce.250ms="participantSearch"
-                        placeholder="Filter collaborators by name, email, or subsidiary..."
-                        class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#c3122e] focus:ring-3 focus:ring-[#c3122e]/10 outline-none transition-all"
-                    >
-                    @if($participantSearch)
-                        <button type="button" wire:click="$set('participantSearch', '')" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    @endif
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin p-1 rounded-xl bg-blue-50/20">
+                        @forelse($participants as $part)
+                            @php
+                                $uIdStr = (string)$part->id;
+                                $isPm = ($part->id == $project_manager_id);
+                                $isSponsor = in_array($uIdStr, $sponsor_ids);
+                                $isOwner = in_array($uIdStr, $owner_ids);
+                                $isSc = in_array($uIdStr, $steering_committee_ids);
+                                $otherRole = match(true) {
+                                    $isPm => 'PM',
+                                    $isSponsor => 'Sponsor',
+                                    $isOwner => 'Owner',
+                                    $isSc => 'Committee',
+                                    default => null
+                                };
+                                $isSelected = in_array($uIdStr, $selected_participant_ids) || $otherRole !== null;
+                            @endphp
+                            <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-150 {{ $otherRole ? ($isPm ? 'border-[#c3122e]/30 bg-rose-50/50 cursor-default' : 'border-slate-100 bg-white/70 opacity-70 cursor-not-allowed') : ($isSelected ? 'border-blue-400 bg-gradient-to-r from-blue-50 to-blue-50/30 shadow-xs cursor-pointer' : 'border-transparent bg-white hover:bg-blue-50/40 hover:border-blue-200 cursor-pointer') }}">
+                                @if($otherRole)
+                                    <div class="w-4 h-4 rounded-md {{ $isPm ? 'bg-rose-100 text-[#c3122e]' : 'bg-slate-200/80 text-slate-400' }} flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    </div>
+                                @else
+                                    <input type="checkbox" wire:model.live="selected_participant_ids" value="{{ $part->id }}" class="w-4 h-4 text-blue-500 rounded border-blue-300 focus:ring-blue-400 cursor-pointer flex-shrink-0">
+                                @endif
+
+                                <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $isPm ? 'bg-[#c3122e] text-white shadow-xs' : ($otherRole ? 'bg-slate-200 text-slate-600' : ($isSelected ? 'bg-blue-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600')) }}">
+                                    {{ strtoupper(substr($part->name, 0, 1)) }}
+                                </div>
+
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-xs font-bold text-slate-900 truncate" title="{{ $part->name }}">{{ $part->name }}</div>
+                                    <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                        <span class="font-mono">{{ $part->subsidiary->code ?? 'GS' }}</span>
+                                        @if($otherRole)
+                                            <span class="text-slate-300 mx-1">·</span>
+                                            <span class="{{ $isPm ? 'text-[#c3122e] font-bold' : 'text-slate-500 font-semibold' }}">🔒 {{ $otherRole }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if($isSelected && !$otherRole)
+                                    <svg class="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                @endif
+                            </label>
+                        @empty
+                            <div class="col-span-3 py-6 text-center text-xs font-bold text-slate-400">No team members found matching "{{ $participantSearch }}".</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            {{-- ─── LIVE GOVERNANCE SUMMARY CARD (WITH SELECTED USERS LIST) ─── --}}
+            @php
+                $selSponsors = $allParticipants->whereIn('id', $sponsor_ids);
+                $selOwners = $allParticipants->whereIn('id', $owner_ids);
+                $selCommittee = $allParticipants->whereIn('id', $steering_committee_ids);
+                $selLeader = $project_manager_id ? $allPms->firstWhere('id', $project_manager_id) : null;
+                $selMembers = $allParticipants->whereIn('id', $selected_participant_ids)->where('id', '!=', $project_manager_id);
+                $totalAssigned = $selSponsors->count() + $selOwners->count() + $selCommittee->count() + ($selLeader ? 1 : 0) + $selMembers->count();
+            @endphp
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" x-data="{ showDetailList: true }">
+                {{-- Header Bar --}}
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-slate-100">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-xs sm:text-sm font-black text-slate-900">Governance &amp; Team Summary</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black font-mono {{ $totalAssigned > 0 ? 'bg-rose-50 text-[#c3122e] border border-rose-200' : 'bg-slate-100 text-slate-500' }}">
+                                    {{ $totalAssigned }} {{ $totalAssigned === 1 ? 'Person' : 'People' }} Selected
+                                </span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Assigned roles and team roster for this project</p>
+                        </div>
+                    </div>
+
+                    {{-- Role count badges (Only show active counts) --}}
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        @if($selLeader)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-50 text-[#c3122e] border border-rose-200 shadow-2xs">
+                                ⭐ 1 PM
+                            </span>
+                        @endif
+                        @if($selSponsors->count() > 0)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200/90">
+                                💼 {{ $selSponsors->count() }} Sponsor{{ $selSponsors->count() !== 1 ? 's' : '' }}
+                            </span>
+                        @endif
+                        @if($selOwners->count() > 0)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90">
+                                👑 {{ $selOwners->count() }} Owner{{ $selOwners->count() !== 1 ? 's' : '' }}
+                            </span>
+                        @endif
+                        @if($selCommittee->count() > 0)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-violet-50 text-violet-800 border border-violet-200/90">
+                                🏛️ {{ $selCommittee->count() }} Committee
+                            </span>
+                        @endif
+                        @if($selMembers->count() > 0)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200/90">
+                                🤝 {{ $selMembers->count() }} Member{{ $selMembers->count() !== 1 ? 's' : '' }}
+                            </span>
+                        @endif
+                    </div>
                 </div>
 
-                <!-- Collaborator Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-0.5 p-1 rounded-xl bg-slate-50/30">
-                    @forelse($participants as $part)
-                        @php
-                            $isPm = ($part->id == $project_manager_id);
-                            $isSelected = in_array((string)$part->id, $selected_participant_ids) || $isPm;
-                            $isOpt = str_contains(strtolower($part->subsidiary->code ?? ''), 'opt') || str_contains(strtolower($part->email), 'optimize');
-                        @endphp
-                        <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all {{ $isSelected ? 'border-[#c3122e] bg-[#fdf4f4]/70 shadow-2xs' : 'border-slate-200/80 bg-white hover:bg-slate-50/80 hover:border-slate-300' }}">
-                            <input
-                                type="checkbox"
-                                wire:model.live="selected_participant_ids"
-                                value="{{ $part->id }}"
-                                class="w-4 h-4 text-[#c3122e] rounded border-slate-300 focus:ring-[#c3122e] cursor-pointer"
-                                {{ $isPm ? 'disabled checked' : '' }}
-                            >
-                            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $isPm ? 'bg-[#c3122e] text-white' : ($isOpt ? 'bg-rose-50 text-[#c3122e] border border-rose-200' : 'bg-slate-100 text-slate-700') }}">
-                                {{ strtoupper(substr($part->name, 0, 1)) }}
+                {{-- Selected Users Display Grid --}}
+                <div class="p-4 sm:p-5 bg-slate-50/50 space-y-4">
+                    @if($totalAssigned > 0)
+                        {{-- 1. Project Manager (Prominent) --}}
+                        @if($selLeader)
+                            <div class="p-3.5 rounded-xl bg-gradient-to-r from-rose-50/80 via-white to-white border border-rose-200/90 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs text-white flex-shrink-0 shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                        {{ strtoupper(substr($selLeader->name, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-black text-slate-900 truncate">{{ $selLeader->name }}</span>
+                                            @if($selLeader->subsidiary)
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-white text-[#c3122e] border border-rose-200">{{ $selLeader->subsidiary->code }}</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono truncate block mt-0.5">{{ $selLeader->email }}</span>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg text-[9.5px] font-black uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-200 shadow-2xs flex-shrink-0">
+                                    ⭐ Project Manager (PM)
+                                </span>
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="text-xs font-black text-slate-900 truncate">{{ $part->name }}</div>
-                                <div class="text-[10px] text-slate-400 font-mono truncate">{{ $part->subsidiary->code ?? 'GS' }} · {{ $part->email }}</div>
+                        @endif
+
+                        {{-- 2. Governance Stakeholders (Sponsors, Owners, Steering Committee) --}}
+                        @if($selSponsors->count() > 0 || $selOwners->count() > 0 || $selCommittee->count() > 0)
+                            <div class="space-y-2">
+                                <span class="text-[10.5px] font-black text-slate-500 uppercase tracking-wider block">Governance &amp; Leadership Oversight</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                    @foreach($selSponsors as $u)
+                                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200/90 hover:border-amber-300 shadow-2xs transition-all">
+                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-[10.5px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-xs font-bold text-slate-900 truncate" title="{{ $u->name }}">{{ $u->name }}</div>
+                                                <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200/80">💼 Sponsor</span>
+                                                    <span class="text-[10px] font-mono text-slate-400">{{ $u->subsidiary->code ?? 'GS' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    @foreach($selOwners as $u)
+                                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200/90 hover:border-emerald-300 shadow-2xs transition-all">
+                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white font-black text-[10.5px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-xs font-bold text-slate-900 truncate" title="{{ $u->name }}">{{ $u->name }}</div>
+                                                <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200/80">👑 Owner</span>
+                                                    <span class="text-[10px] font-mono text-slate-400">{{ $u->subsidiary->code ?? 'GS' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    @foreach($selCommittee as $u)
+                                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200/90 hover:border-violet-300 shadow-2xs transition-all">
+                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white font-black text-[10.5px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-xs font-bold text-slate-900 truncate" title="{{ $u->name }}">{{ $u->name }}</div>
+                                                <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-violet-50 text-violet-800 border border-violet-200/80">🏛️ Committee</span>
+                                                    <span class="text-[10px] font-mono text-slate-400">{{ $u->subsidiary->code ?? 'GS' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                            @if($isPm)
-                                <span class="text-[9px] font-black bg-[#c3122e] text-white px-1.5 py-0.5 rounded shadow-2xs flex-shrink-0">Leader</span>
-                            @elseif($isOpt)
-                                <span class="text-[9px] font-black bg-rose-50 text-[#c3122e] border border-rose-200 px-1.5 py-0.5 rounded flex-shrink-0">Optimize</span>
-                            @endif
-                        </label>
-                    @empty
-                        <div class="col-span-2 py-8 text-center text-xs font-bold text-slate-400">
-                            No team members found matching "{{ $participantSearch }}".
+                        @endif
+
+                        {{-- 3. Core Project Team Members --}}
+                        @if($selMembers->count() > 0)
+                            <div class="space-y-2">
+                                <span class="text-[10.5px] font-black text-slate-500 uppercase tracking-wider block">Core Project Team ({{ $selMembers->count() }})</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                    @foreach($selMembers as $u)
+                                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-slate-200/90 hover:border-blue-300 shadow-2xs transition-all">
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-[10.5px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                    {{ strtoupper(substr($u->name, 0, 1)) }}
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-xs font-bold text-slate-900 truncate" title="{{ $u->name }}">{{ $u->name }}</div>
+                                                    <div class="text-[10px] text-slate-400 font-mono truncate mt-0.5">{{ $u->subsidiary->code ?? 'GS' }} · {{ $u->email }}</div>
+                                                </div>
+                                            </div>
+                                            <span class="text-[8.5px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 flex-shrink-0">Member</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @else
+                        <div class="py-6 text-center text-xs font-bold text-slate-400">
+                            No team members or leaders selected yet. Choose participants from the sections above.
                         </div>
-                    @endforelse
+                    @endif
                 </div>
             </div>
         </div>
         @endif
+
 
         {{-- ══════════════════════════════════════════════════════════════ --}}
         {{-- STEP 3 — Breakdown Method & Timeline Setup (Luxury Edition)    --}}
@@ -601,7 +1012,7 @@
 
                     <!-- Scrollable Blueprint Cards Grid (Holds 2 rows / 6 cards, smoothly scrolls for additional templates) -->
                     <div class="template-grid-scroll">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 pb-1">
                             <!-- Card 1: Blank Slate Canvas -->
                             @if(empty($templateSearch) || str_contains(strtolower('blank slate canvas custom agile empty scratch'), strtolower($templateSearch)))
                             <button
@@ -771,20 +1182,20 @@
 
                 <!-- Calculated Project Delivery Roadmap Card -->
                 @if($calculatedDeadline)
-                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/80 flex items-center justify-between gap-3 shadow-xs">
-                    <div class="flex items-center gap-3.5">
+                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div class="flex items-center gap-3.5 min-w-0">
                         <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-xs font-black text-emerald-950">Auto-Calculated Delivery Target</span>
                                 <span class="px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-600 text-white uppercase tracking-wider shadow-2xs">Template Synced</span>
                             </div>
                             <p class="text-[11px] text-emerald-700 font-medium mt-0.5">Computed by rolling sum of all template task dependencies</p>
                         </div>
                     </div>
-                    <div class="text-right flex-shrink-0">
+                    <div class="self-end sm:self-center flex-shrink-0">
                         <div class="text-xs font-black font-mono text-emerald-950 bg-white px-3.5 py-2 rounded-xl border border-emerald-200 shadow-2xs">
                             {{ \Carbon\Carbon::parse($calculatedDeadline)->format('M d, Y') }}
                         </div>

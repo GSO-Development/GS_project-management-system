@@ -247,10 +247,81 @@ class CalendarView extends Component
             }
         }
 
-        // Build Calendar Grid Weeks & Days
+        // Build List View Unique Events Collection (Sorted Chronologically)
+        $monthListEvents = [];
         $startOfMonth = $currentDate->copy()->startOfMonth();
         $endOfMonth = $currentDate->copy()->endOfMonth();
 
+        foreach ($allWbs as $item) {
+            $sDate = $item->start_date ? $item->start_date->copy() : ($item->end_date ? $item->end_date->copy() : null);
+            $eDate = $item->end_date ? $item->end_date->copy() : $sDate;
+
+            if ($sDate && $eDate) {
+                // Check if this item overlaps with the current month
+                if ($sDate->lte($endOfMonth) && $eDate->gte($startOfMonth)) {
+                    // Pick primary display date for grouping
+                    $primaryDate = ($eDate->between($startOfMonth, $endOfMonth)) ? $eDate : (($sDate->between($startOfMonth, $endOfMonth)) ? $sDate : $startOfMonth);
+                    
+                    $monthListEvents[] = [
+                        'id' => $item->id,
+                        'project_id' => $item->project_id,
+                        'project_name' => $item->project->name ?? 'Project',
+                        'project_code' => $item->project->code ?? null,
+                        'subsidiary_name' => $item->project?->subsidiary?->name ?? null,
+                        'type' => $item->is_milestone ? 'milestone' : 'task',
+                        'title' => $item->title,
+                        'code' => $item->wbs_code,
+                        'priority' => $item->priority->value ?? 'medium',
+                        'status' => $item->status->value ?? 'not_started',
+                        'status_label' => $item->status ? $item->status->label() : 'Not Started',
+                        'progress' => $item->progress ?? 0,
+                        'start_date' => $item->start_date ? $item->start_date->format('M d, Y') : null,
+                        'end_date' => $item->end_date ? $item->end_date->format('M d, Y') : null,
+                        'raw_date' => $primaryDate->format('Y-m-d'),
+                        'display_date' => $primaryDate,
+                        'assigned_user' => $item->assignedUser->name ?? 'Unassigned',
+                        'assigned_user_id' => $item->assigned_user_id,
+                        'color' => $item->is_milestone ? 'purple' : ($item->status->value === 'completed' ? 'emerald' : 'crimson'),
+                    ];
+                }
+            }
+        }
+
+        foreach ($projectsWithDeadlines as $proj) {
+            if ($proj->deadline && $proj->deadline->between($startOfMonth, $endOfMonth)) {
+                $monthListEvents[] = [
+                    'id' => $proj->id,
+                    'project_id' => $proj->id,
+                    'project_name' => $proj->name,
+                    'project_code' => $proj->code,
+                    'subsidiary_name' => $proj->subsidiary->name ?? null,
+                    'type' => 'project_deadline',
+                    'title' => 'Project Deadline: ' . $proj->name,
+                    'code' => $proj->code,
+                    'priority' => $proj->priority->value ?? 'high',
+                    'status' => $proj->status->value ?? 'in_progress',
+                    'status_label' => $proj->status ? $proj->status->label() : 'In Progress',
+                    'progress' => $proj->overall_progress ?? 0,
+                    'start_date' => $proj->start_date ? $proj->start_date->format('M d, Y') : null,
+                    'end_date' => $proj->deadline->format('M d, Y'),
+                    'raw_date' => $proj->deadline->format('Y-m-d'),
+                    'display_date' => $proj->deadline,
+                    'assigned_user' => $proj->projectManager->name ?? 'Lead PM',
+                    'color' => 'rose',
+                ];
+            }
+        }
+
+        // Sort all list events chronologically by date
+        usort($monthListEvents, fn($a, $b) => strcmp($a['raw_date'], $b['raw_date']));
+
+        // Group by Date String for visual timeline blocks
+        $groupedListEvents = [];
+        foreach ($monthListEvents as $evt) {
+            $groupedListEvents[$evt['raw_date']][] = $evt;
+        }
+
+        // Build Calendar Grid Weeks & Days
         $startOfWeekDay = $startOfMonth->dayOfWeek; // 0 for Sunday
         $daysInMonth = $currentDate->daysInMonth;
 
@@ -311,6 +382,8 @@ class CalendarView extends Component
             'weeks',
             'currentDate',
             'eventsByDate',
+            'monthListEvents',
+            'groupedListEvents',
             'subsidiaries',
             'projectsList'
         ));

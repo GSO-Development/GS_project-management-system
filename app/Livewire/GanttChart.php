@@ -28,6 +28,12 @@ class GanttChart extends Component
     public function mount(Project $project)
     {
         $this->project = $project;
+        $user = auth()->user();
+
+        // If project is not yet accepted by the Project Manager, only PMO Admin and the designated Project Manager can access it
+        if (!$project->isPmAccepted() && !$user->isPmoAdmin() && $project->project_manager_id !== $user->id) {
+            abort(403, 'This project is pending Project Manager acceptance.');
+        }
 
         // Collapse every phase row by default
         $this->collapsedIds = WbsItem::where('project_id', $project->id)
@@ -77,7 +83,7 @@ class GanttChart extends Component
     public function render()
     {
         // ── Query WBS items ─────────────────────────────────────────────────
-        $query = WbsItem::with(['assignedUser', 'children'])
+        $query = WbsItem::with(['assignedUser', 'children', 'risks'])
             ->where('project_id', $this->project->id);
 
         if ($this->search) {

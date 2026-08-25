@@ -60,7 +60,33 @@
             @if($isSubTask)
                 <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">Sub-task</span>
             @endif
+
+            @if($item->is_milestone)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
+                    🏁 Milestone
+                </span>
+            @endif
+
+            @if($item->risks && $item->risks->count() > 0)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs" title="{{ $item->risks->count() }} Associated Risk(s)">
+                    <span>⚠️</span>
+                    <span>{{ $item->risks->count() }} {{ Str::plural('Risk', $item->risks->count()) }}</span>
+                </span>
+            @endif
         </div>
+
+        {{-- Predecessor dependency pills --}}
+        @if($item->predecessors && $item->predecessors->count() > 0)
+            <div class="flex flex-wrap items-center gap-1 mt-1.5">
+                @foreach($item->predecessors as $dep)
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        After: {{ $dep->predecessor->wbs_code ?? '?' }} {{ Str::limit($dep->predecessor->title ?? 'Unknown', 22) }}
+                        <button wire:click="removeDependency({{ $dep->id }})" wire:confirm="Remove this dependency?" class="ml-0.5 text-blue-400 hover:text-rose-600 transition-colors cursor-pointer" title="Remove dependency">&times;</button>
+                    </span>
+                @endforeach
+            </div>
+        @endif
     </td>
 
     <!-- 3. START DATE -->
@@ -149,23 +175,35 @@
         @endif
     </td>
 
-    <!-- 6. ACTIONS (Sub-task, Log Update, Edit & Delete) -->
+    <!-- 6. ACTIONS (Sub-task, Edit, Log Update, Link Dep & Delete) -->
     <td class="py-4 pl-4 pr-6 text-right align-middle whitespace-nowrap">
         <div class="flex items-center justify-end gap-2">
-            @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) || $item->project->project_manager_id === auth()->id() || $item->assigned_user_id === auth()->id() || $item->project->members->contains(auth()->id()))
+            @if($item->project->userCan(auth()->user(), 'task.create_subtask') || $item->project->userCan(auth()->user(), 'task.create'))
                 <button wire:click="openAddItemModal({{ $item->id }}, 'subtask')" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold transition-all flex items-center gap-1 cursor-pointer shadow-2xs" title="Create Sub-task under this task">
                     <span>➕ Sub-task</span>
                 </button>
             @endif
 
-            <a href="{{ route('daily-updates.index', ['project' => $item->project_id, 'task' => $item->id, 'create' => 1]) }}" class="px-3 py-1.5 rounded-xl bg-[#fdf4f4] hover:bg-[#faeaea] text-[#c3122e] border border-[#faeaea] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs no-underline">
-                <span>📝 Log Update</span>
-            </a>
-
-            @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) || $item->assigned_user_id === auth()->id())
+            @if($item->project->userCan(auth()->user(), 'task.edit', $item))
                 <button wire:click="openEditItemModal({{ $item->id }})" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#fdf4f4] text-slate-700 hover:text-[#c3122e] border border-slate-200/90 text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
                     <span>✏️ Edit</span>
                 </button>
+            @endif
+
+            @if($item->project->userCan(auth()->user(), 'task.comment'))
+                <a href="{{ route('daily-updates.index', ['project' => $item->project_id, 'task' => $item->id, 'create' => 1]) }}" class="px-3 py-1.5 rounded-xl bg-[#fdf4f4] hover:bg-[#faeaea] text-[#c3122e] border border-[#faeaea] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs no-underline">
+                    <span>📝 Log Update</span>
+                </a>
+            @endif
+
+            {{-- Dependency Link Button --}}
+            @if($item->project->userCan(auth()->user(), 'task.edit', $item))
+                <button wire:click="openDepModal({{ $item->id }})" class="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-extrabold transition-all flex items-center gap-1 cursor-pointer shadow-2xs" title="Link a predecessor task">
+                    <span>🔗 Link Dep</span>
+                </button>
+            @endif
+
+            @if($item->project->userCan(auth()->user(), 'task.delete', $item))
                 <button wire:click="deleteItem({{ $item->id }})" wire:confirm="Are you sure you want to delete task '{{ addslashes($item->title) }}'?" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 border border-rose-200 text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
                     <span>🗑️ Delete</span>
                 </button>

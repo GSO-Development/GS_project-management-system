@@ -11,6 +11,11 @@ class ReportViewer extends Component
     public string $subsidiaryFilter = 'all';
     public string $statusFilter = 'all';
 
+    public function mount(): void
+    {
+        abort_if(!auth()->user()->hasProjectPermission('report.view'), 403, 'You do not have permission to view executive reports.');
+    }
+
     public function render()
     {
         $query = Project::with(['subsidiary', 'projectManager']);

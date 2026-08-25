@@ -5,10 +5,13 @@ namespace App\Livewire;
 use App\Enums\ItemType;
 use App\Enums\Priority;
 use App\Enums\WbsStatus;
+use App\Models\Comment;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\WbsDependency;
 use App\Models\WbsItem;
+use App\Notifications\TaskAssignedNotification;
+use App\Notifications\TaskCompletedNotification;
 use App\Services\DependencyValidationService;
 use App\Services\ProgressCalculationService;
 use App\Services\WbsNumberingService;
@@ -36,6 +39,8 @@ class WbsTree extends Component
     public int $progress = 0;
     public ?float $estimated_hours = null;
     public float $weight = 1.0;
+    public bool $is_milestone = false;
+    public bool $autoCascade = true;
 
     // Dependency Modal
     public bool $showDepModal = false;
@@ -56,12 +61,19 @@ class WbsTree extends Component
             'progress' => 'required|integer|min:0|max:100',
             'estimated_hours' => 'nullable|numeric|min:0',
             'weight' => 'required|numeric|min:0.1',
+            'is_milestone' => 'boolean',
         ];
     }
 
     public function mount(Project $project): void
     {
         $this->project = $project;
+        $user = auth()->user();
+
+        // If project is not yet accepted by the Project Manager, only PMO Admin and the designated Project Manager can access it
+        if (!$project->isPmAccepted() && !$user->isPmoAdmin() && $project->project_manager_id !== $user->id) {
+            abort(403, 'This project is pending Project Manager acceptance.');
+        }
         
         // Automatically transition tasks to in_progress if their start_date has arrived
         WbsItem::autoStartDueTasks($this->project->id);
@@ -97,7 +109,9 @@ class WbsTree extends Component
 
     public function openAddItemModal(?int $parentId = null, string $type = 'task')
     {
-        $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'end_date', 'progress', 'estimated_hours']);
+        abort_if(!$this->project->userCan(auth()->user(), 'task.create'), 403, 'You do not have permission to create tasks in this project.');
+
+        $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'end_date', 'progress', 'estimated_hours', 'is_milestone']);
         $this->selectedParentId = $parentId;
         $this->item_type = $type;
 
@@ -144,6 +158,8 @@ class WbsTree extends Component
     public function openEditItemModal(int $id)
     {
         $item = WbsItem::findOrFail($id);
+        abort_if(!$this->project->userCan(auth()->user(), 'task.edit', $item), 403, 'You do not have permission to edit this task.');
+
         $this->editingItemId = $item->id;
         $this->selectedParentId = $item->parent_id;
         $this->item_type = $item->item_type->value;
@@ -157,11 +173,19 @@ class WbsTree extends Component
         $this->progress = $item->progress;
         $this->estimated_hours = $item->estimated_hours;
         $this->weight = (float) $item->weight;
+        $this->is_milestone = (bool) $item->is_milestone;
         $this->showItemModal = true;
     }
 
     public function saveItem()
     {
+        if ($this->editingItemId) {
+            $item = WbsItem::findOrFail($this->editingItemId);
+            abort_if(!$this->project->userCan(auth()->user(), 'task.edit', $item), 403, 'Unauthorized to edit this task.');
+        } else {
+            abort_if(!$this->project->userCan(auth()->user(), 'task.create'), 403, 'Unauthorized to create tasks in this project.');
+        }
+
         $this->validate();
 
         if ($this->selectedParentId) {
@@ -171,13 +195,16 @@ class WbsTree extends Component
             }
         }
 
+        $canAssign = $this->project->userCan(auth()->user(), 'task.assign');
+        $assigneeId = $canAssign ? ($this->assigned_user_id ?: null) : ($this->editingItemId ? WbsItem::find($this->editingItemId)?->assigned_user_id : null);
+
         $data = [
             'project_id' => $this->project->id,
             'parent_id' => $this->selectedParentId,
             'item_type' => $this->item_type,
             'title' => $this->title,
             'description' => $this->description,
-            'assigned_user_id' => $this->assigned_user_id,
+            'assigned_user_id' => $assigneeId,
             'start_date' => $this->start_date ?: null,
             'end_date' => $this->end_date ?: null,
             'status' => $this->status,
@@ -185,7 +212,7 @@ class WbsTree extends Component
             'progress' => $this->progress,
             'estimated_hours' => $this->estimated_hours,
             'weight' => $this->weight,
-            'is_milestone' => $this->item_type === 'milestone',
+            'is_milestone' => $this->is_milestone || $this->item_type === 'milestone',
         ];
 
         // Auto-set status to in_progress if start_date has arrived and status is not_started
@@ -193,21 +220,78 @@ class WbsTree extends Component
             $data['status'] = 'in_progress';
         }
 
+        $shiftedTasks = [];
+
         if ($this->editingItemId) {
             $item = WbsItem::findOrFail($this->editingItemId);
+            $previousAssigneeId = $item->assigned_user_id;
+
+            $oldEndDate = $item->end_date ? $item->end_date->copy() : null;
+            $newEndDate = !empty($data['end_date']) ? \Carbon\Carbon::parse($data['end_date']) : null;
+            $daysDelta = ($oldEndDate && $newEndDate) ? (int) $oldEndDate->diffInDays($newEndDate, false) : 0;
+
             $item->update($data);
+
+            // Auto-cascade schedule adjustments to dependent tasks if deadline was extended
+            if ($this->autoCascade && $daysDelta > 0) {
+                $cascadeService = app(\App\Services\ScheduleCascadeService::class);
+                $shiftedTasks = $cascadeService->cascadeFromTask($item, $daysDelta);
+            }
+
+            // Notify if newly assigned or assignee changed
+            if (!empty($item->assigned_user_id) && $item->assigned_user_id !== $previousAssigneeId && $item->assigned_user_id !== auth()->id()) {
+                try {
+                    $assignee = User::find($item->assigned_user_id);
+                    if ($assignee) {
+                        $assignee->notify(new TaskAssignedNotification(
+                            taskTitle: $item->title,
+                            projectName: $this->project->name,
+                            assignedByName: auth()->user()->name,
+                            dueDate: $item->end_date ? \Carbon\Carbon::parse($item->end_date)->format('M d, Y') : null,
+                            url: route('my-tasks.index')
+                        ));
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('TaskAssignedNotification error: ' . $e->getMessage());
+                }
+            }
         } else {
             $lastSort = WbsItem::where('project_id', $this->project->id)->where('parent_id', $this->selectedParentId)->max('sort_order') ?? 0;
             $data['sort_order'] = $lastSort + 1;
             $data['created_by'] = auth()->id();
             $item = WbsItem::create($data);
+
+            // Notify assignee upon new task creation
+            if (!empty($item->assigned_user_id) && $item->assigned_user_id !== auth()->id()) {
+                try {
+                    $assignee = User::find($item->assigned_user_id);
+                    if ($assignee) {
+                        $assignee->notify(new TaskAssignedNotification(
+                            taskTitle: $item->title,
+                            projectName: $this->project->name,
+                            assignedByName: auth()->user()->name,
+                            dueDate: $item->end_date ? \Carbon\Carbon::parse($item->end_date)->format('M d, Y') : null,
+                            url: route('my-tasks.index')
+                        ));
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('TaskAssignedNotification error: ' . $e->getMessage());
+                }
+            }
         }
 
         (new WbsNumberingService())->recalculateProjectWbsCodes($this->project->id);
         (new ProgressCalculationService())->updateItemProgress($item);
 
         $this->showItemModal = false;
-        $this->dispatch('toast', message: 'WBS item saved successfully!', type: 'success');
+        
+        if (!empty($shiftedTasks)) {
+            $count = count($shiftedTasks);
+            $this->dispatch('toast', message: "✓ Task updated! {$count} dependent " . \Illuminate\Support\Str::plural('task', $count) . " automatically shifted forward.", type: 'success');
+        } else {
+            $this->dispatch('toast', message: 'WBS item saved successfully!', type: 'success');
+        }
+        
         $this->dispatch('wbsUpdated');
     }
 
@@ -216,8 +300,8 @@ class WbsTree extends Component
         $item = WbsItem::findOrFail($itemId);
 
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $item->assigned_user_id !== $user->id) {
-            $this->dispatch('toast', message: 'You are only permitted to update status on your assigned tasks.', type: 'error');
+        if (!$this->project->userCan($user, 'task.change_status', $item)) {
+            $this->dispatch('toast', message: 'You are not authorized to update this task status.', type: 'error');
             return;
         }
 
@@ -227,6 +311,21 @@ class WbsTree extends Component
         $item->status = $statusEnum;
         if ($status === 'completed') {
             $item->progress = 100;
+
+            // Notify PM on completion
+            try {
+                $pm = $this->project->projectManager;
+                if ($pm && $pm->id !== $user->id) {
+                    $pm->notify(new TaskCompletedNotification(
+                        taskTitle: $item->title,
+                        projectName: $this->project->name,
+                        completedByName: $user->name,
+                        url: route('projects.show', $this->project->id)
+                    ));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('TaskCompletedNotification error: ' . $e->getMessage());
+            }
         } elseif ($status === 'in_progress' && $item->progress == 0) {
             $item->progress = 10;
         } elseif ($status === 'not_started') {
@@ -245,14 +344,29 @@ class WbsTree extends Component
         $item = WbsItem::findOrFail($itemId);
 
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'project_manager']) && $item->assigned_user_id !== $user->id) {
-            $this->dispatch('toast', message: 'You are only permitted to update progress on your assigned tasks.', type: 'error');
+        if (!$this->project->userCan($user, 'task.update_progress', $item)) {
+            $this->dispatch('toast', message: 'You are not authorized to update progress on this task.', type: 'error');
             return;
         }
 
         $item->progress = max(0, min(100, $newProgress));
         if ($newProgress === 100) {
             $item->status = WbsStatus::COMPLETED;
+
+            // Notify PM on completion
+            try {
+                $pm = $this->project->projectManager;
+                if ($pm && $pm->id !== $user->id) {
+                    $pm->notify(new TaskCompletedNotification(
+                        taskTitle: $item->title,
+                        projectName: $this->project->name,
+                        completedByName: $user->name,
+                        url: route('projects.show', $this->project->id)
+                    ));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('TaskCompletedNotification error: ' . $e->getMessage());
+            }
         } elseif ($newProgress > 0 && $item->status->value === 'not_started') {
             $item->status = WbsStatus::IN_PROGRESS;
         }
@@ -268,6 +382,12 @@ class WbsTree extends Component
     {
         $item = WbsItem::find($id);
         if (!$item) return;
+
+        $user = auth()->user();
+        if (!$this->project->userCan($user, 'task.delete', $item)) {
+            $this->dispatch('toast', message: 'You do not have permission to delete this task.', type: 'error');
+            return;
+        }
 
         $this->deleteItemRecursive($item);
 
@@ -334,19 +454,16 @@ class WbsTree extends Component
         // Automatically transition tasks whose start_date has arrived to in_progress
         WbsItem::autoStartDueTasks($this->project->id);
 
-        $isSuperAdminOrPM = $user->hasRole('super_admin') 
-            || $user->email === 'admin@nexuspm.local' 
-            || $user->id === 1
-            || $this->project->project_manager_id === $user->id;
+        $canViewAllTasks = $this->project->userCan($user, 'task.view_all');
 
-        $query = WbsItem::with(['children', 'assignedUser', 'predecessors.predecessor'])
+        $query = WbsItem::with(['children', 'assignedUser', 'predecessors.predecessor', 'risks'])
             ->where('project_id', $this->project->id);
 
-        if (!$isSuperAdminOrPM) {
-            // Collaborators / Team Members: ONLY show tasks assigned directly to them!
-            $query->where('assigned_user_id', $user->id);
-        } else {
+        if ($canViewAllTasks) {
             $query->whereNull('parent_id');
+        } else {
+            // Collaborators / Team Members with only task.view_assigned: ONLY show tasks assigned directly to them!
+            $query->where('assigned_user_id', $user->id);
         }
 
         $wbsItems = $query->orderBy('sort_order')->get();

@@ -22,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::useTailwind();
+
         // Register Microsoft Azure Socialite Provider
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('azure', AzureProvider::class);

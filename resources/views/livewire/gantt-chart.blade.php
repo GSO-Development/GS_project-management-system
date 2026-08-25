@@ -3,7 +3,7 @@
     showTooltip(el, data) {
         this.tooltip.data = data;
         const rect = el.getBoundingClientRect();
-        const tw = 296, th = 175;
+        const tw = 310, th = 220;
         const gap = 10;
         let x = rect.left + 290;
         let y = rect.top + (rect.height / 2) - (th / 2);
@@ -20,48 +20,61 @@
     <!-- ===== GANTT HERO CARD CONTAINER ===== -->
     <div class="card p-0 overflow-hidden shadow-xs border border-slate-200/90 bg-white rounded-2xl mb-6">
         <!-- Top Toolbar & Legend -->
-        <div class="p-4 sm:px-5 bg-gradient-to-r from-slate-50/70 via-white to-slate-50/70 border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <!-- Left: Timeline Title & Legend Pills -->
-            <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+        <div class="p-3 sm:px-5 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80 border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <!-- Left: Timeline Title + Date Navigator (< Today >) + Legend -->
+            <div class="flex items-center gap-3 sm:gap-3.5 flex-wrap">
                 <div class="flex items-center gap-2">
-                    <span class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
-                        <span class="text-[#c3122e]">📊</span> Project Timeline
+                    <span class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <span>Project Timeline</span>
                     </span>
                 </div>
-                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50/90 text-[#c3122e] border border-rose-200/90 flex items-center gap-1.5 shadow-2xs">
+
+                <!-- Sleek Date Navigation Pill Cluster (< Today >) -->
+                <div class="inline-flex items-center rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden p-0.5">
+                    <button wire:click="goToPrevious" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Previous Range">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button wire:click="goToToday" class="px-3 py-1 text-slate-800 hover:text-[#c3122e] hover:bg-rose-50/80 rounded-lg text-xs font-black transition-all cursor-pointer" title="Go to Today">
+                        Today
+                    </button>
+                    <button wire:click="goToNext" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Next Range">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <!-- Legend Pills (Including Risk Indicator) -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-rose-50/80 text-[#c3122e] border border-rose-200/80 flex items-center gap-1.5 shadow-2xs">
                         <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span> In Progress
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50/80 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5 shadow-2xs">
+                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-emerald-50/80 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5 shadow-2xs">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50/80 text-amber-700 border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
+                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-50/80 text-amber-700 border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
                         <span class="w-2 h-2 rounded-full bg-amber-500"></span> Planned
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50/80 text-[#c3122e] border border-rose-200/80 flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-2 h-2 bg-[#c3122e] rotate-45"></span> Milestone
+                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-rose-50/80 text-[#c3122e] border border-rose-200/80 flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-1.5 h-1.5 bg-[#c3122e] rotate-45"></span> Milestone
+                    </span>
+                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                        <span>⚠️</span> Has Risk
                     </span>
                 </div>
             </div>
 
-            <!-- Right: Search & View Controls -->
-            <div class="flex flex-wrap items-center gap-2.5">
-                <div class="relative w-44 sm:w-56">
+            <!-- Right: Search Input + Timeframe Switcher (Day/Week/Month) -->
+            <div class="flex items-center gap-2.5 flex-wrap justify-between sm:justify-end">
+                <div class="relative w-40 sm:w-48">
                     <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search tasks..."
                            class="w-full text-xs font-medium rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 outline-none bg-white shadow-2xs transition-all">
                     <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
 
-                <div class="inline-flex p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 gap-1 shadow-2xs">
+                <div class="inline-flex p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 gap-0.5 shadow-2xs">
                     <button wire:click="setTimeframe('day')"   class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'day'   ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Day</button>
                     <button wire:click="setTimeframe('week')"  class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'week'  ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Week</button>
                     <button wire:click="setTimeframe('month')" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'month' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Month</button>
-                </div>
-
-                <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-                    <button wire:click="goToPrevious" class="px-2.5 py-1.5 text-slate-600 hover:bg-slate-50 border-r border-slate-200 text-xs font-bold cursor-pointer transition-colors" title="Previous Range">‹</button>
-                    <button wire:click="goToNext" class="px-2.5 py-1.5 text-slate-600 hover:bg-slate-50 border-r border-slate-200 text-xs font-bold cursor-pointer transition-colors" title="Next Range">›</button>
-                    <button wire:click="goToToday" class="px-3 py-1.5 text-slate-700 hover:bg-slate-50 text-xs font-extrabold cursor-pointer transition-colors" title="Go to Today">Today</button>
                 </div>
             </div>
         </div>
@@ -161,20 +174,32 @@
                                 default => ['bg' => 'linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #38bdf8 100%)', 'border' => '#818cf8', 'shadow' => 'rgba(79, 70, 229, 0.35)'],
                             };
 
+                            /* ── Risks count and highest severity score ── */
+                            $risksCount = $item->risks ? $item->risks->count() : 0;
+                            $highestRiskScore = $risksCount > 0 ? (int) $item->risks->max('risk_score') : 0;
+
                             /* ── tooltip data ── */
                             $typeLabel    = $item->is_milestone ? 'Milestone' : ucfirst($item->item_type->value);
                             $assigneeName = $item->assignedUser ? $item->assignedUser->name : 'Unassigned';
                             $assigneeInit = $item->assignedUser ? strtoupper(substr($item->assignedUser->name, 0, 1)) : '?';
                             $tooltipData  = json_encode([
-                                'wbs'      => $item->wbs_code,
-                                'title'    => $item->title,
-                                'type'     => $typeLabel,
-                                'assignee' => $assigneeName,
-                                'initial'  => $assigneeInit,
-                                'start'    => $item->start_date ? $item->start_date->format('M d, Y') : '—',
-                                'end'      => $item->end_date   ? $item->end_date->format('M d, Y')   : '—',
-                                'progress' => $item->progress,
-                                'status'   => $item->status->label(),
+                                'wbs'           => $item->wbs_code,
+                                'title'         => $item->title,
+                                'type'          => $typeLabel,
+                                'assignee'      => $assigneeName,
+                                'initial'       => $assigneeInit,
+                                'start'         => $item->start_date ? $item->start_date->format('M d, Y') : '—',
+                                'end'           => $item->end_date   ? $item->end_date->format('M d, Y')   : '—',
+                                'progress'      => $item->progress,
+                                'status'        => $item->status->label(),
+                                'has_risk'      => $risksCount > 0,
+                                'risks_count'   => $risksCount,
+                                'highest_score' => $highestRiskScore,
+                                'risks_list'    => $risksCount > 0 ? $item->risks->map(fn($r) => [
+                                    'title' => $r->title,
+                                    'score' => $r->risk_score,
+                                    'severity' => $r->risk_score >= 6 ? 'High' : ($r->risk_score >= 3 ? 'Medium' : 'Low')
+                                ])->values()->toArray() : [],
                             ], JSON_HEX_APOS | JSON_HEX_QUOT);
                         @endphp
 
@@ -209,6 +234,15 @@
                                     <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-black text-slate-900 text-xs' : 'font-semibold' }}">
                                         {{ $item->title }}
                                     </span>
+
+                                    {{-- ⚠️ RISK INDICATOR ICON ON TASK ROW --}}
+                                    @if($risksCount > 0)
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-black {{ $highestRiskScore >= 6 ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-amber-100 text-amber-800 border border-amber-300' }} shadow-2xs flex-shrink-0"
+                                              title="{{ $risksCount }} Active Risk(s) Associated with this Task">
+                                            <span>⚠️</span>
+                                            <span class="font-mono">{{ $risksCount }}</span>
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
 
@@ -227,38 +261,61 @@
                                     <!-- Milestone 3D Diamond -->
                                     <div class="absolute top-1/2 -translate-y-1/2 flex items-center gap-2 z-20"
                                          style="left:{{ $barLeft }}px;">
-                                        <div class="w-5 h-5 bg-gradient-to-br from-[#c3122e] via-rose-600 to-amber-500 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-rose-200"></div>
-                                        <span class="text-[11px] font-black text-[#c3122e] whitespace-nowrap bg-white/95 px-2.5 py-0.5 rounded-lg shadow-sm border border-rose-200">
-                                            ◆ {{ $item->title }}
+                                         <div class="relative">
+                                            <div class="w-5 h-5 bg-gradient-to-br from-[#c3122e] via-rose-600 to-amber-500 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-rose-200"></div>
+                                            @if($risksCount > 0)
+                                                <span class="absolute -top-2 -right-2 text-[10px] bg-amber-400 text-slate-950 rounded-full w-4 h-4 flex items-center justify-center font-black ring-1 ring-white shadow-xs">⚠️</span>
+                                            @endif
+                                         </div>
+                                        <span class="text-[11px] font-black text-[#c3122e] whitespace-nowrap bg-white/95 px-2.5 py-0.5 rounded-lg shadow-sm border border-rose-200 flex items-center gap-1.5">
+                                            <span>◆ {{ $item->title }}</span>
+                                            @if($risksCount > 0)
+                                                <span class="text-amber-700 font-extrabold text-[10px] bg-amber-100 px-1 py-0.2 rounded border border-amber-200">⚠️ {{ $risksCount }} Risk</span>
+                                            @endif
                                         </span>
                                     </div>
 
                                 @elseif($item->item_type->value === 'phase')
                                     <!-- Phase bar: 100% Vibrant Solid Gradient Pill with Glossy Highlight -->
-                                    <div class="absolute h-7 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-110 transition-all cursor-pointer shadow-md"
+                                    <div class="absolute h-7 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-110 transition-all cursor-pointer shadow-md {{ $risksCount > 0 ? 'ring-2 ring-amber-400' : '' }}"
                                          style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $pStyle['bg'] }}; border:1px solid {{ $pStyle['border'] }}; box-shadow: 0 4px 14px {{ $pStyle['shadow'] }};">
                                         <!-- Top gloss highlight -->
                                         <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 rounded-t-full pointer-events-none"></div>
                                         @if($item->progress > 0)
                                             <div class="h-full bg-black/20 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
                                         @endif
-                                        <span class="absolute inset-0 flex items-center px-3.5 text-[11px] font-black text-white truncate drop-shadow-sm tracking-wide">
-                                            📁 {{ $item->title }} ({{ $item->progress }}%)
+                                        <span class="absolute inset-0 flex items-center justify-between px-3.5 text-[11px] font-black text-white truncate drop-shadow-sm tracking-wide">
+                                            <span class="truncate">📁 {{ $item->title }} ({{ $item->progress }}%)</span>
+                                            @if($risksCount > 0)
+                                                <span class="flex-shrink-0 ml-1.5 px-1.5 py-0.2 rounded bg-amber-400/90 text-slate-900 text-[9px] font-black shadow-xs flex items-center gap-0.5">
+                                                    <span>⚠️</span>
+                                                    <span>{{ $risksCount }}</span>
+                                                </span>
+                                            @endif
                                         </span>
                                     </div>
 
                                 @else
                                     <!-- Task / Subtask bar: 100% Vibrant Solid Gradient Pill -->
-                                    <div class="absolute h-6 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-105 transition-all cursor-pointer shadow-sm"
+                                    <div class="absolute h-6 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-105 transition-all cursor-pointer shadow-sm {{ $risksCount > 0 ? 'ring-2 ring-amber-400 ring-offset-1' : '' }}"
                                          style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $taskStyle['bg'] }}; border:1px solid {{ $taskStyle['border'] }}; box-shadow: 0 2px 10px {{ $taskStyle['shadow'] }};">
                                         <!-- Top gloss -->
                                         <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 rounded-t-full pointer-events-none"></div>
                                         @if($item->progress > 0)
                                             <div class="h-full bg-black/20 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
                                         @endif
-                                        <span class="absolute inset-0 flex items-center px-3 text-[10px] font-black truncate text-white drop-shadow-xs">
-                                            @if($item->status->value === 'completed') ✓ {{ $item->title }} (100%)
-                                            @else {{ $item->title }} ({{ $item->progress }}%)
+                                        <span class="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black truncate text-white drop-shadow-xs">
+                                            <span class="truncate">
+                                                @if($item->status->value === 'completed') ✓ {{ $item->title }} (100%)
+                                                @else {{ $item->title }} ({{ $item->progress }}%)
+                                                @endif
+                                            </span>
+                                            {{-- ⚠️ Risk Badge on Bar --}}
+                                            @if($risksCount > 0)
+                                                <span class="flex-shrink-0 ml-1.5 px-1 py-0.2 rounded bg-amber-400 text-slate-950 text-[9px] font-black shadow-xs flex items-center gap-0.5" title="{{ $risksCount }} Associated Risk(s)">
+                                                    <span>⚠️</span>
+                                                    <span class="font-mono">{{ $risksCount }}</span>
+                                                </span>
                                             @endif
                                         </span>
                                     </div>
@@ -275,11 +332,11 @@
         </div>
     </div>
 
-    <!-- ===== FLOATING TOOLTIP (white, brand-coloured) ===== -->
+    <!-- ===== FLOATING TOOLTIP (white, brand-coloured with Risk Section) ===== -->
     <div
         x-show="tooltip.visible && tooltip.data"
         x-cloak
-        :style="`position:fixed; left:${tooltip.x}px; top:${tooltip.y}px; z-index:9999; pointer-events:none; width:288px;`"
+        :style="`position:fixed; left:${tooltip.x}px; top:${tooltip.y}px; z-index:9999; pointer-events:none; width:300px;`"
         x-transition:enter="transition ease-out duration-120"
         x-transition:enter-start="opacity-0 translate-y-1"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -355,6 +412,28 @@
                             <span class="text-[10px] font-mono font-bold text-slate-700 leading-none" x-text="tooltip.data.end"></span>
                         </div>
                     </div>
+
+                    <!-- Associated Risks Box in Tooltip -->
+                    <template x-if="tooltip.data.has_risk">
+                        <div class="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-950">
+                            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-amber-800 mb-1.5">
+                                <span class="flex items-center gap-1">
+                                    <span>⚠️</span>
+                                    <span>Associated Risks</span>
+                                </span>
+                                <span class="px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-mono text-[9px] font-black" x-text="tooltip.data.risks_count + ' ' + (tooltip.data.risks_count > 1 ? 'Risks' : 'Risk')"></span>
+                            </div>
+                            <div class="space-y-1 max-h-24 overflow-y-auto">
+                                <template x-for="r in tooltip.data.risks_list" :key="r.title">
+                                    <div class="flex items-center justify-between text-[10px] font-semibold bg-white/90 p-1.5 rounded-lg border border-amber-100">
+                                        <span class="truncate max-w-[170px] text-slate-800" x-text="r.title"></span>
+                                        <span class="text-[8px] font-black px-1.5 py-0.2 rounded" :class="r.score >= 6 ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'" x-text="r.severity"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
                 </div>
             </div>
         </template>

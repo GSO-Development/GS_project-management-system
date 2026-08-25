@@ -135,13 +135,25 @@ class User extends Authenticatable
     {
         return $this->hasRole('super_admin') 
             || $this->email === 'admin@nexuspm.local' 
-            || $this->email === 'superadmin@georgesteuart.com' 
-            || $this->id === 1;
+            || $this->email === 'superadmin@georgesteuart.com';
+    }
+
+    public function isPmoAdmin(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasRole('pmo_admin');
+    }
+
+    /**
+     * Strictly PMO Admins and Super Admins are authorized to initiate new projects.
+     */
+    public function canCreateProject(): bool
+    {
+        return $this->isPmoAdmin();
     }
 
     public function getRoleNameAttribute(): string
     {
-        if ($this->isSuperAdmin()) {
+        if ($this->isSuperAdmin() || $this->hasRole('pmo_admin')) {
             return 'PMO Admin';
         }
         return 'User';
@@ -152,7 +164,45 @@ class User extends Authenticatable
      */
     public function isProjectLeader(): bool
     {
-        return $this->leadProjects()->exists();
+        return $this->leadProjects()->exists() 
+            || $this->projects()->wherePivot('role', 'lead')->exists();
+    }
+
+    /**
+     * Get the user's role in a specific project.
+     * Returns: 'lead', 'sponsor', 'owner', 'steering_committee', 'member', or null.
+     */
+    public function getRoleInProject(Project|int $project): ?string
+    {
+        $prj = $project instanceof Project ? $project : Project::find($project);
+        return $prj ? $prj->getUserRole($this) : null;
+    }
+
+    /**
+     * Check if this user can manage a specific project (PMO Admin or Governance role).
+     */
+    public function canManageProject(Project|int $project): bool
+    {
+        $prj = $project instanceof Project ? $project : Project::find($project);
+        return $prj ? $prj->canUserManage($this) : false;
+    }
+
+    /**
+     * Check if this user can view a specific project.
+     */
+    public function canViewProject(Project|int $project): bool
+    {
+        $prj = $project instanceof Project ? $project : Project::find($project);
+        return $prj ? $prj->canUserView($this) : false;
+    }
+
+    /**
+     * Check if this user has a specific granular project permission.
+     */
+    public function hasProjectPermission(string $permission, Project|int|null $project = null, ?WbsItem $task = null): bool
+    {
+        return \App\Services\RbacService::checkPermission($this, $permission, $project, $task);
     }
 }
+
 

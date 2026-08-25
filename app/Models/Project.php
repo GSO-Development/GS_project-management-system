@@ -121,6 +121,19 @@ class Project extends Model
             $admin->notify(new \App\Notifications\ProjectLeaderDecisionNotification($this, $user, 'accepted'));
         }
 
+        // Notify all team members (sponsors, owners, committee, members) that project is now active & accepted
+        try {
+            $members = $this->members()->where('users.id', '!=', $user->id)->get();
+            foreach ($members as $member) {
+                $role = $member->pivot->role ?? 'member';
+                $member->notify(new \App\Notifications\ProjectAssignmentNotification($this, $role));
+                \Illuminate\Support\Facades\Mail::to($member->email)
+                    ->send(new \App\Mail\ProjectAssignedMail($this, $member, $role));
+            }
+        } catch (\Throwable $e) {
+            \Log::error('ProjectAssignmentNotification upon PM acceptance failed: ' . $e->getMessage());
+        }
+
         return true;
     }
 
@@ -256,4 +269,84 @@ class Project extends Model
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
+
+    /**
+     * Get the specific role of a user in this project.
+     * Returns: 'lead', 'sponsor', 'owner', 'steering_committee', 'member', or null.
+     */
+    public function getUserRole(User|int|null $user): ?string
+    {
+        if (!$user) return null;
+        $userId = $user instanceof User ? $user->id : (int) $user;
+
+        if ($this->project_manager_id === $userId) {
+            return 'lead';
+        }
+
+        $member = $this->members()->where('users.id', $userId)->first();
+        return $member?->pivot?->role;
+    }
+
+    /**
+     * Check if a user is part of the project leadership or governance panel
+     * (Project Leader/PM, Project Sponsor, Project Owner, or Steering Committee).
+     */
+    public function isGovernanceMember(User|int|null $user): bool
+    {
+        if (!$user) return false;
+        $role = $this->getUserRole($user);
+        return in_array($role, ['lead', 'sponsor', 'owner', 'steering_committee']);
+    }
+
+    /**
+     * Check if a user has management permissions on this project
+     * (PMO Admins, Super Admins, or any project governance member: Lead, Sponsor, Owner, Steering Committee).
+     */
+    public function canUserManage(User|int|null $user): bool
+    {
+        if (!$user) return false;
+        $u = $user instanceof User ? $user : User::find($user);
+        if (!$u) return false;
+
+        if ($u->isSuperAdmin() || $u->hasRole('pmo_admin')) {
+            return true;
+        }
+
+        return $this->isGovernanceMember($u);
+    }
+
+    /**
+     * Check if a user has permission to view this project's details.
+     */
+    public function canUserView(User|int|null $user): bool
+    {
+        if (!$user) return false;
+        $u = $user instanceof User ? $user : User::find($user);
+        if (!$u) return false;
+
+        if ($u->isSuperAdmin() || $u->hasRole('pmo_admin')) {
+            return true;
+        }
+
+        if ($this->project_manager_id === $u->id) {
+            return true;
+        }
+
+        if ($this->members()->where('users.id', $u->id)->exists()) {
+            return true;
+        }
+
+        return $this->wbsItems()->where('assigned_user_id', $u->id)->exists();
+    }
+
+    /**
+     * Check if a user has a specific granular project permission on this project.
+     */
+    public function userCan(User|int|null $user, string $permission, ?WbsItem $task = null): bool
+    {
+        if (!$user) return false;
+        $u = $user instanceof User ? $user : User::find($user);
+        return $u ? $u->hasProjectPermission($permission, $this, $task) : false;
+    }
 }
+

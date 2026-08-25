@@ -50,6 +50,11 @@ class ProjectStatusUpdate extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable')->latest();
