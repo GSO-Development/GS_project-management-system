@@ -100,6 +100,19 @@ class NotificationManager extends Component
         }
     }
 
+    /**
+     * Mark notification as read AND redirect to the action URL.
+     * This avoids wire:click blocking the anchor's natural href navigation.
+     */
+    public function markAsReadAndRedirect(string $id, string $url): mixed
+    {
+        $notification = auth()->user()->notifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+        return redirect()->to($url);
+    }
+
     public function markAsUnread(string $id): void
     {
         $notification = auth()->user()->notifications()->where('id', $id)->first();

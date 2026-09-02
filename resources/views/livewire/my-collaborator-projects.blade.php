@@ -53,13 +53,13 @@
     <!-- ═══════════════════════════════════════════════════════════════
          2. SLEEK EXECUTIVE KPI COCKPIT (4 INTERACTIVE METRIC TILES)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         @php
             $collabTiles = [
                 [
                     'label' => 'Total Collaborations',
                     'count' => $totalCollabCount,
-                    'icon' => '<svg class="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
+                    'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
                     'iconBg' => 'bg-slate-100 text-slate-700',
                     'border' => 'hover:border-slate-400',
                     'active' => $statusFilter === 'all',
@@ -68,7 +68,7 @@
                 [
                     'label' => 'Active Delivery',
                     'count' => $activeCollabCount,
-                    'icon' => '<svg class="w-5 h-5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+                    'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
                     'iconBg' => 'bg-rose-50 text-[#c3122e]',
                     'border' => 'hover:border-rose-400',
                     'active' => $statusFilter === 'in_progress',
@@ -77,7 +77,7 @@
                 [
                     'label' => 'Overdue Attention',
                     'count' => $overdueCollabCount,
-                    'icon' => '<svg class="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+                    'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
                     'iconBg' => 'bg-rose-50 text-rose-600',
                     'border' => 'hover:border-rose-400',
                     'active' => false,
@@ -86,7 +86,7 @@
                 [
                     'label' => 'Delivered / Completed',
                     'count' => $completedCollabCount,
-                    'icon' => '<svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                    'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
                     'iconBg' => 'bg-emerald-50 text-emerald-600',
                     'border' => 'hover:border-emerald-400',
                     'active' => $statusFilter === 'completed',
@@ -99,18 +99,18 @@
             <button 
                 type="button" 
                 @if($tile['action']) wire:click="{!! $tile['action'] !!}" @endif
-                class="group text-left bg-white border border-slate-200/90 rounded-2xl p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-[#c3122e] border-[#c3122e] bg-[#fdf4f4]/40 shadow-xs' : 'shadow-2xs ' . $tile['border'] }}"
+                class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-[#c3122e] border-[#c3122e] bg-[#fdf4f4]/40 shadow-xs' : 'shadow-2xs ' . $tile['border'] }}"
             >
-                <div class="flex items-center justify-between gap-2 mb-2.5">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">{{ $tile['label'] }}</span>
-                    <div class="w-8 h-8 rounded-xl {{ $tile['iconBg'] }} flex items-center justify-center flex-shrink-0 shadow-2xs">
+                <div class="flex items-center justify-between gap-1 mb-1 sm:mb-2.5">
+                    <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">{{ $tile['label'] }}</span>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl {{ $tile['iconBg'] }} flex items-center justify-center flex-shrink-0 shadow-2xs">
                         {!! $tile['icon'] !!}
                     </div>
                 </div>
-                <div class="flex items-baseline justify-between gap-2">
-                    <span class="text-2xl font-black {{ $tile['label'] === 'Overdue Attention' && $tile['count'] > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight font-mono leading-none">{{ $tile['count'] }}</span>
+                <div class="flex items-baseline justify-between gap-1 sm:gap-2">
+                    <span class="text-lg sm:text-2xl font-black {{ $tile['label'] === 'Overdue Attention' && $tile['count'] > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight font-mono leading-none">{{ $tile['count'] }}</span>
                     @if($tile['count'] > 0 && $tile['label'] === 'Overdue Attention')
-                        <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">Action Req</span>
+                        <span class="text-[8px] sm:text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">Action</span>
                     @endif
                 </div>
             </button>

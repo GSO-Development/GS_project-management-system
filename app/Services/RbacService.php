@@ -113,6 +113,8 @@ class RbacService
                 'task.comment' => 'Add Comment',
                 'task.upload_attachment' => 'Upload Attachment',
                 'task.complete' => 'Complete Task',
+                'schedule.view_impact' => 'View Schedule Impact Preview',
+                'schedule.apply_cascade' => 'Apply Cascade Rescheduling',
             ],
         ],
         'team' => [

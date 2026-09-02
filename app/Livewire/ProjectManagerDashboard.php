@@ -347,76 +347,91 @@ class ProjectManagerDashboard extends Component
             ->get();
         $collaboratingProjectsCount = $collaboratingProjects->count();
 
-        // Total unique projects user is involved in
-        $totalInvolvedProjectsCount = Project::where(function($q) use ($user) {
+        // Total unique projects user is involved in (as Lead PM, Member, Governance, or Task Assignee)
+        $involvedProjectIds = Project::where(function($q) use ($user) {
             $q->where('project_manager_id', $user->id)
               ->orWhere(function($sub) use ($user) {
                   $sub->where('pm_accepted', true)
                       ->whereHas('members', fn($m) => $m->where('users.id', $user->id));
-              });
-        })->count();
+              })
+              ->orWhereHas('wbsItems', fn($w) => $w->where('assigned_user_id', $user->id));
+        })->pluck('id')->toArray();
 
+        $totalInvolvedProjectsCount = count($involvedProjectIds);
         $assignedProjectIds = $assignedProjects->pluck('id')->toArray();
-        $activeProjectsCount = Project::where(function($q) use ($user) {
-                $q->where('project_manager_id', $user->id)
-                  ->orWhere(function($sub) use ($user) {
-                      $sub->where('pm_accepted', true)
-                          ->whereHas('members', fn($m) => $m->where('users.id', $user->id));
-                  });
-            })
+
+        $activeProjectsCount = Project::whereIn('id', $involvedProjectIds)
             ->where('status', 'in_progress')
             ->count();
 
         // Automatically transition tasks to in_progress if start_date has arrived
         WbsItem::autoStartDueTasks();
 
-        // Tasks due today in assigned projects
-        $tasksDueToday = WbsItem::whereIn('project_id', $assignedProjectIds)
+        // Tasks due today in involved projects
+        $tasksDueToday = WbsItem::whereIn('project_id', $involvedProjectIds)
             ->whereDate('end_date', now()->toDateString())
             ->get();
 
         // Overdue tasks
-        $overdueTasksCount = WbsItem::whereIn('project_id', $assignedProjectIds)
+        $overdueTasksCount = WbsItem::whereIn('project_id', $involvedProjectIds)
             ->whereDate('end_date', '<', now()->toDateString())
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->count();
 
         // Pending WBS Approvals
         $pendingApprovals = ApprovalRequest::with(['project', 'requester'])
-            ->whereIn('project_id', $assignedProjectIds)
+            ->whereIn('project_id', $involvedProjectIds)
             ->where('status', 'pending')
             ->get();
 
         $allApprovals = ApprovalRequest::with(['project', 'requester', 'approver'])
-            ->whereIn('project_id', $assignedProjectIds)
+            ->whereIn('project_id', $involvedProjectIds)
             ->latest()
             ->get();
 
-        // Project risks
-        $openRisks = ProjectRisk::with(['project', 'owner'])
-            ->whereIn('project_id', $assignedProjectIds)
-            ->where('status', 'open')
-            ->get();
-
-        $allRisks = ProjectRisk::with(['project', 'owner'])
-            ->whereIn('project_id', $assignedProjectIds)
+        // Project risks across all user's involved projects & owned risks
+        $openRisks = ProjectRisk::with(['project', 'owner', 'wbsItem'])
+            ->where(function($q) use ($user, $involvedProjectIds) {
+                $q->whereIn('project_id', $involvedProjectIds)
+                  ->orWhere('owner_id', $user->id)
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id));
+            })
+            ->whereIn('status', ['open', 'monitoring', 'identified'])
             ->latest()
             ->get();
 
-        // Current blockers
+        $allRisks = ProjectRisk::with(['project', 'owner', 'wbsItem'])
+            ->where(function($q) use ($user, $involvedProjectIds) {
+                $q->whereIn('project_id', $involvedProjectIds)
+                  ->orWhere('owner_id', $user->id)
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id));
+            })
+            ->latest()
+            ->get();
+
+        // Current blockers across all user's involved projects & reported blockers
         $currentBlockers = TaskBlocker::with(['wbsItem.project', 'reporter'])
-            ->whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $assignedProjectIds))
+            ->where(function($q) use ($user, $involvedProjectIds) {
+                $q->whereHas('wbsItem', fn($w) => $w->whereIn('project_id', $involvedProjectIds))
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id))
+                  ->orWhere('reported_by', $user->id);
+            })
             ->where('status', 'open')
+            ->latest()
             ->get();
 
         $allBlockers = TaskBlocker::with(['wbsItem.project', 'reporter'])
-            ->whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $assignedProjectIds))
+            ->where(function($q) use ($user, $involvedProjectIds) {
+                $q->whereHas('wbsItem', fn($w) => $w->whereIn('project_id', $involvedProjectIds))
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id))
+                  ->orWhere('reported_by', $user->id);
+            })
             ->latest()
             ->get();
 
         // Team member & PM delayed task issues
         $teamTaskIssues = WbsItem::with(['project', 'assignedUser', 'delayReporter'])
-            ->whereIn('project_id', $assignedProjectIds)
+            ->whereIn('project_id', $involvedProjectIds)
             ->whereNotNull('delay_reason')
             ->latest('delay_reason_at')
             ->get();

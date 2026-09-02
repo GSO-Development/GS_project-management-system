@@ -53,27 +53,27 @@
     {{-- ══════════════════════════════════════════════════════════
          2. KPI TILES
          ══════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         @php
             $metricTiles = [
-                ['label' => 'Total Projects', 'count' => $totalCount, 'icon' => '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', 'iconBg' => 'bg-slate-100 text-slate-700', 'border' => 'hover:border-slate-400', 'active' => $statusFilter === 'all', 'action' => '$set("statusFilter", "all")'],
-                ['label' => 'Active In Progress', 'count' => $activeCount, 'icon' => '<svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', 'iconBg' => 'bg-blue-50 text-blue-600', 'border' => 'hover:border-blue-400', 'active' => $statusFilter === 'in_progress', 'action' => '$set("statusFilter", "in_progress")'],
-                ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => false, 'action' => ''],
-                ['label' => 'Completed', 'count' => $completedCount, 'icon' => '<svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', 'iconBg' => 'bg-emerald-50 text-emerald-600', 'border' => 'hover:border-emerald-400', 'active' => $statusFilter === 'completed', 'action' => '$set("statusFilter", "completed")'],
+                ['label' => 'Total Projects', 'count' => $totalCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', 'iconBg' => 'bg-slate-100 text-slate-700', 'border' => 'hover:border-slate-400', 'active' => $statusFilter === 'all', 'action' => '$set("statusFilter", "all")'],
+                ['label' => 'In Progress', 'count' => $activeCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', 'iconBg' => 'bg-blue-50 text-blue-600', 'border' => 'hover:border-blue-400', 'active' => $statusFilter === 'in_progress', 'action' => '$set("statusFilter", "in_progress")'],
+                ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => false, 'action' => ''],
+                ['label' => 'Completed', 'count' => $completedCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', 'iconBg' => 'bg-emerald-50 text-emerald-600', 'border' => 'hover:border-emerald-400', 'active' => $statusFilter === 'completed', 'action' => '$set("statusFilter", "completed")'],
             ];
         @endphp
         @foreach($metricTiles as $tile)
             <button type="button" @if($tile['action']) wire:click="{{ $tile['action'] }}" @endif
-                class="group text-left bg-white border border-slate-200/90 rounded-2xl p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-[#c3122e] border-[#c3122e] bg-rose-50/30 shadow-sm' : 'shadow-xs ' . $tile['border'] }}"
+                class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-[#c3122e] border-[#c3122e] bg-rose-50/30 shadow-sm' : 'shadow-xs ' . $tile['border'] }}"
             >
-                <div class="flex items-center justify-between gap-2 mb-2.5">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">{{ $tile['label'] }}</span>
-                    <div class="w-8 h-8 rounded-xl {{ $tile['iconBg'] }} flex items-center justify-center flex-shrink-0 shadow-xs">{!! $tile['icon'] !!}</div>
+                <div class="flex items-center justify-between gap-1 mb-1 sm:mb-2.5">
+                    <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">{{ $tile['label'] }}</span>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl {{ $tile['iconBg'] }} flex items-center justify-center flex-shrink-0 shadow-xs">{!! $tile['icon'] !!}</div>
                 </div>
-                <div class="flex items-baseline justify-between gap-2">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $tile['count'] }}</span>
+                <div class="flex items-baseline justify-between gap-1 sm:gap-2">
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $tile['count'] }}</span>
                     @if($tile['count'] > 0 && $tile['label'] === 'Overdue Attention')
-                        <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">Action Req</span>
+                        <span class="text-[8px] sm:text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">Action</span>
                     @endif
                 </div>
             </button>

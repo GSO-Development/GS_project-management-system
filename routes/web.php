@@ -78,6 +78,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Super Admin / PMO Admin Only Governance Routes
     Route::middleware(['role:super_admin'])->group(function () {
+        // PMO Project Monitoring & Tracking Command Center
+        Route::get('/project-monitor', \App\Livewire\ProjectMonitor::class)->name('project-monitor.index');
+
         // Templates (PMO Admin Only)
         Route::get('/templates', \App\Livewire\ManageTemplates::class)->name('templates.index');
         Route::get('/templates/{template}/manage', \App\Livewire\TemplateGanttBuilder::class)->name('templates.manage');

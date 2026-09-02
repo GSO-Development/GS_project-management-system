@@ -22,6 +22,16 @@ class SuperAdminDashboard extends Component
     // Active Dashboard Tab ('overview', 'approvals', 'risks')
     public string $dashboardTab = 'overview';
 
+    // Timeline Scale for Gantt Preview ('today', 'week', 'month')
+    public string $timelineScale = 'month';
+
+    public function setTimelineScale(string $scale): void
+    {
+        if (in_array($scale, ['today', 'week', 'month'])) {
+            $this->timelineScale = $scale;
+        }
+    }
+
     // Live Project Tracker Interactive Controls
     public string $trackerSearch = '';
     public string $trackerSubsidiaryFilter = 'all';
@@ -290,7 +300,8 @@ class SuperAdminDashboard extends Component
     public function render()
     {
         $totalProjects = Project::count();
-        $activeProjects = Project::where('status', 'in_progress')->count();
+        $activeProjects = Project::whereNotIn('status', ['completed', 'cancelled', 'draft'])->count();
+        $inProgressProjects = Project::where('status', 'in_progress')->count();
         $completedProjects = Project::where('status', 'completed')->count();
         $overdueProjects = Project::where('deadline', '<', now())
             ->whereNotIn('status', ['completed', 'cancelled'])
@@ -314,6 +325,9 @@ class SuperAdminDashboard extends Component
             ->where('end_date', '<=', now()->today()->addDays(7))
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->count();
+        
+        $onHoldTasksCount = WbsItem::whereIn('status', ['blocked', 'on_hold'])->count();
+        $notStartedTasksCount = WbsItem::whereIn('status', ['not_started', 'draft', 'pending'])->count();
         
         // Overall progress / budget utilization rate
         $avgProgress = Project::whereNotIn('status', ['cancelled'])->avg('overall_progress');
@@ -355,7 +369,7 @@ class SuperAdminDashboard extends Component
         $statusChartData = [
             'not_started' => $notStartedProjects,
             'planning' => $planningProjects,
-            'in_progress' => $activeProjects,
+            'in_progress' => $inProgressProjects,
             'on_hold' => $onHoldProjects,
             'completed' => $completedProjects,
         ];
@@ -371,7 +385,11 @@ class SuperAdminDashboard extends Component
             ->get();
 
         // 5 Key Overview Projects for Middle-Right Box
-        $overviewProjects = Project::with('subsidiary')
+        $overviewProjects = Project::with(['subsidiary', 'projectManager'])
+            ->withCount([
+                'wbsItems as total_tasks_count',
+                'wbsItems as completed_tasks_count' => fn($q) => $q->where('status', 'completed'),
+            ])
             ->whereNotIn('status', ['cancelled'])
             ->orderByRaw("CASE 
                 WHEN status = 'in_progress' THEN 1 
@@ -388,7 +406,9 @@ class SuperAdminDashboard extends Component
             'projects',
             'projects as in_progress_count' => fn($q) => $q->where('status', 'in_progress'),
             'projects as completed_count' => fn($q) => $q->where('status', 'completed'),
+            'projects as planning_count' => fn($q) => $q->where('status', 'planning'),
         ])
+        ->with(['projects' => fn($q) => $q->select('id', 'subsidiary_id', 'overall_progress', 'status')])
         ->orderByDesc('projects_count')
         ->take(5)
         ->get();
@@ -536,6 +556,7 @@ class SuperAdminDashboard extends Component
             'reassignProject',
             'totalProjects',
             'activeProjects',
+            'inProgressProjects',
             'completedProjects',
             'overdueProjects',
             'onHoldProjects',
@@ -574,6 +595,8 @@ class SuperAdminDashboard extends Component
             'allUsersList',
             'allSubsidiaries',
             'inProgressTasksCount',
+            'onHoldTasksCount',
+            'notStartedTasksCount',
             'upcomingDeadlinesCount',
             'overviewProjects',
             'upcomingTasks',

@@ -14,86 +14,185 @@
         this.tooltip.y = y;
         this.tooltip.visible = true;
     },
-    hideTooltip() { this.tooltip.visible = false; }
-}">
+    hideTooltip() { this.tooltip.visible = false; },
+    scrollToMarker(type) {
+        const container = this.$refs.timelineScrollContainer;
+        if (!container) return;
+        if (type === 'today' && {{ !is_null($todayPx) ? 'true' : 'false' }}) {
+            container.scrollTo({ left: Math.max(0, {{ 280 + ($todayPx ?? 0) }} - 400), behavior: 'smooth' });
+        } else if (type === 'deadline' && {{ !is_null($deadlinePx) ? 'true' : 'false' }}) {
+            container.scrollTo({ left: Math.max(0, {{ 280 + ($deadlinePx ?? 0) }} - 400), behavior: 'smooth' });
+        }
+    },
+    scrollTimeline(dir) {
+        const container = this.$refs.timelineScrollContainer;
+        if (!container) return;
+        const offset = dir === 'left' ? -350 : 350;
+        container.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+}"
+x-on:scroll-to-marker.window="scrollToMarker($event.detail.marker)"
+x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
+
+    <style>
+        .gantt-scroll::-webkit-scrollbar {
+            height: 7px;
+        }
+        .gantt-scroll::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 9999px;
+        }
+        .gantt-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .gantt-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
 
     <!-- ===== GANTT HERO CARD CONTAINER ===== -->
     <div class="card p-0 overflow-hidden shadow-xs border border-slate-200/90 bg-white rounded-2xl mb-6">
-        <!-- Top Toolbar & Legend -->
-        <div class="p-3 sm:px-5 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80 border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <!-- Left: Timeline Title + Date Navigator (< Today >) + Legend -->
-            <div class="flex items-center gap-3 sm:gap-3.5 flex-wrap">
+        
+        <!-- ── Modern Executive Toolbar (2 Clean Rows) ── -->
+        <!-- Row 1: Primary Controls & Navigation -->
+        <div class="px-4 py-3 sm:px-5 bg-white border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            
+            <!-- Left: Title, Code, Roadmap Range & Date Navigator -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Title & Code -->
                 <div class="flex items-center gap-2">
-                    <span class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        <span>Project Timeline</span>
+                    <span class="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-2xs" style="background: #c3122e;">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-900 tracking-tight">WBS Gantt Schedule</span>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            {{ $project->code }}
+                        </span>
+                    </div>
                 </div>
 
-                <!-- Sleek Date Navigation Pill Cluster (< Today >) -->
-                <div class="inline-flex items-center rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden p-0.5">
-                    <button wire:click="goToPrevious" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Previous Range">
+                <!-- Date Navigator (< Today / Deadline >) -->
+                <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden p-0.5">
+                    <button wire:click="goToPrevious" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Left">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     </button>
-                    <button wire:click="goToToday" class="px-3 py-1 text-slate-800 hover:text-[#c3122e] hover:bg-rose-50/80 rounded-lg text-xs font-black transition-all cursor-pointer" title="Go to Today">
-                        Today
-                    </button>
-                    <button wire:click="goToNext" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Next Range">
+                    @if(!is_null($todayPx))
+                        <button wire:click="goToToday" class="px-2.5 py-1 text-slate-700 hover:text-[#c3122e] hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5" title="Jump to Today">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                            <span>Today</span>
+                        </button>
+                    @endif
+                    @if(!is_null($deadlinePx))
+                        <button wire:click="goToDeadline" class="px-2.5 py-1 text-slate-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-l border-slate-100" title="Jump to Project Deadline">
+                            <span>🎯</span>
+                            <span>Deadline</span>
+                        </button>
+                    @endif
+                    <button wire:click="goToNext" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Right">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
 
-                <!-- Legend Pills (Including Risk Indicator) -->
-                <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-rose-50/80 text-[#c3122e] border border-rose-200/80 flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span> In Progress
+                <!-- Project Roadmap Bounds Capsule -->
+                <div class="hidden xl:inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+                    <span class="text-slate-500 font-medium">Start: <strong class="text-slate-800 font-semibold">{{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}</strong></span>
+                    <span class="text-slate-300">➔</span>
+                    <span class="text-slate-700 font-medium flex items-center gap-1">
+                        <span>🎯</span>
+                        <span>Deadline: <strong class="text-slate-900 font-semibold">{{ $project->deadline ? $project->deadline->format('M d, Y') : '—' }}</strong></span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-emerald-50/80 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed
-                    </span>
-                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-50/80 text-amber-700 border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Planned
-                    </span>
-                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-rose-50/80 text-[#c3122e] border border-rose-200/80 flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-1.5 h-1.5 bg-[#c3122e] rotate-45"></span> Milestone
-                    </span>
-                    <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 shadow-2xs">
-                        <span>⚠️</span> Has Risk
-                    </span>
+                    @if(!is_null($daysToDeadline))
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono {{ $daysToDeadline >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-rose-50 text-[#c3122e] border border-rose-200/60' }}">
+                            {{ $daysToDeadline >= 0 ? $daysToDeadline . 'd left' : abs($daysToDeadline) . 'd overdue' }}
+                        </span>
+                    @endif
                 </div>
             </div>
 
-            <!-- Right: Search Input + Timeframe Switcher (Day/Week/Month) -->
-            <div class="flex items-center gap-2.5 flex-wrap justify-between sm:justify-end">
-                <div class="relative w-40 sm:w-48">
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search tasks..."
-                           class="w-full text-xs font-medium rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/20 outline-none bg-white shadow-2xs transition-all">
-                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <!-- Right: Search Input + Timeframe Switcher (Day / Week / Month) -->
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+                <!-- Timeframe Tabs: Day vs Week vs Month -->
+                <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 shadow-2xs gap-0.5">
+                    <button wire:click="setTimeframe('day')" 
+                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {{ $timeframe === 'day' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            title="Daily Detailed Schedule">
+                        <span>☀️</span>
+                        <span>Day</span>
+                    </button>
+                    <button wire:click="setTimeframe('week')" 
+                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {{ $timeframe === 'week' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            title="Weekly Deliverables">
+                        <span>📅</span>
+                        <span>Week</span>
+                    </button>
+                    <button wire:click="setTimeframe('month')" 
+                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {{ $timeframe === 'month' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            title="Monthly Executive Overview">
+                        <span>🗓️</span>
+                        <span>Month</span>
+                    </button>
                 </div>
 
-                <div class="inline-flex p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 gap-0.5 shadow-2xs">
-                    <button wire:click="setTimeframe('day')"   class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'day'   ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Day</button>
-                    <button wire:click="setTimeframe('week')"  class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'week'  ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Week</button>
-                    <button wire:click="setTimeframe('month')" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer {{ $timeframe === 'month' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">Month</button>
+                <!-- Search Input -->
+                <div class="relative w-40 sm:w-48">
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search WBS..."
+                           class="w-full text-xs font-medium rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 focus:border-slate-400 focus:ring-1 focus:ring-slate-200 outline-none bg-white shadow-2xs transition-all placeholder:text-slate-400">
+                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto scrollbar-thin">
+        <!-- Row 2: Secondary Bar (Tree Expand/Collapse + Legend + Deliverables count) -->
+        <div class="px-5 py-2.5 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between gap-4 text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none">
+            <!-- Left: Tree Expand/Collapse + Divider + Legend -->
+            <div class="flex items-center gap-3.5 flex-shrink-0">
+                <div class="inline-flex items-center gap-1.5">
+                    <button wire:click="expandAll" class="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
+                        Expand All
+                    </button>
+                    <span class="text-slate-300">•</span>
+                    <button wire:click="collapseAll" class="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
+                        Collapse All
+                    </button>
+                </div>
+
+                <div class="h-3.5 w-px bg-slate-200"></div>
+
+                <!-- Clean Legend Dots -->
+                <div class="flex items-center gap-3.5 text-[11px] font-semibold text-slate-600">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#c3122e]"></span> In Progress</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Planned</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-500 rotate-45"></span> Milestone</span>
+                    <span class="flex items-center gap-1 text-amber-700 font-bold"><span>⚠️</span> Has Risk</span>
+                </div>
+            </div>
+
+            <!-- Right: Deliverables Count -->
+            <div class="flex items-center gap-2 flex-shrink-0 text-slate-400 font-medium text-[11px]">
+                <span>Showing <strong class="text-slate-700 font-bold">{{ $wbsItems->count() }}</strong> of <strong class="text-slate-700 font-bold">{{ $allRawItems->count() }}</strong> deliverables</span>
+            </div>
+        </div>
+
+        <!-- ── Scrollable Gantt Canvas Area ── -->
+        <div class="overflow-x-auto gantt-scroll pt-5 pb-2" x-ref="timelineScrollContainer">
             {{-- Outer wrapper is exactly: 280px title col + totalCanvasPx --}}
-            <div style="min-width: {{ 280 + $totalCanvasPx }}px;" class="flex flex-col">
+            <div style="min-width: {{ 280 + $totalCanvasPx }}px;" class="flex flex-col relative">
 
                 <!-- 1. MULTI-TIER HEADER -->
-                <div class="bg-slate-50 border-b border-slate-200 flex flex-col flex-shrink-0">
+                <div class="bg-slate-50/90 border-b border-slate-200 flex flex-col flex-shrink-0 sticky top-0 z-20 shadow-2xs">
 
-                    <!-- Top: Month headers -->
+                    <!-- Top: Month / Year headers -->
                     <div class="flex items-stretch border-b border-slate-200/80 text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                        <div class="flex-shrink-0 border-r border-slate-200 bg-slate-100/90 text-slate-700 flex items-center px-3.5 py-2.5" style="width:280px;">
-                            WORK BREAKDOWN
+                        <div class="flex-shrink-0 border-r border-slate-200 bg-slate-100/70 text-slate-700 flex items-center justify-between px-4 py-2" style="width:280px;">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Work Breakdown</span>
+                            <span class="text-[9px] font-mono font-bold text-slate-400">HIERARCHY</span>
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($monthHeaders as $mHead)
-                                <div class="text-center border-r border-slate-200 font-black text-slate-700 bg-slate-100/60 py-2.5 px-1 truncate"
+                                <div class="text-center border-r border-slate-200 font-bold text-slate-700 bg-slate-50/70 py-2 px-1 truncate tracking-wide text-xs"
                                      style="width:{{ $mHead['pxWidth'] }}px; flex-shrink:0;">
                                     {{ $mHead['label'] }}
                                 </div>
@@ -101,17 +200,17 @@
                         </div>
                     </div>
 
-                    <!-- Bottom: Sub-column (day/week/month) headers -->
-                    <div class="flex items-stretch text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                        <div class="border-r border-slate-200 flex items-center px-3.5 py-2 bg-slate-50" style="width:280px; flex-shrink:0;">
-                            Phase &amp; Task Name
+                    <!-- Bottom: Sub-column (Day / Week / Month) headers -->
+                    <div class="flex items-stretch text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                        <div class="border-r border-slate-200 flex items-center px-4 py-1.5 bg-slate-50/50 text-[11px] font-semibold text-slate-500" style="width:280px; flex-shrink:0;">
+                            Phase &amp; Deliverable Title
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($columns as $col)
                                 <div class="text-center border-r border-slate-200 py-1.5 px-1 flex-shrink-0
-                                        {{ ($col['isToday'] ?? false) || ($col['isCurrent'] ?? false) ? 'bg-[#fdf4f4] text-[#c3122e] font-black' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/60' : '') }}"
+                                        {{ ($col['isToday'] ?? false) ? 'bg-rose-50 text-[#c3122e] font-bold border-rose-200' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/40' : '') }}"
                                      style="width:{{ $col['px'] }}px;">
-                                    <div class="text-[11px] leading-none font-bold">{{ $col['label'] }}</div>
+                                    <div class="text-[11px] leading-none font-bold {{ ($col['isToday'] ?? false) ? 'text-[#c3122e]' : 'text-slate-700' }}">{{ $col['label'] }}</div>
                                     <div class="text-[9px] font-mono text-slate-400 mt-0.5">{{ $col['sublabel'] }}</div>
                                 </div>
                             @endforeach
@@ -120,24 +219,35 @@
                 </div>
 
                 <!-- 2. GANTT ROWS & TIMELINE CANVAS -->
-                <div class="relative divide-y divide-slate-100/80">
+                <div class="relative divide-y divide-slate-100/80 bg-white">
 
-                    <!-- Continuous Single Full-Height Today Laser Line across all rows -->
+                    <!-- Today Line -->
                     @if(!is_null($todayPx))
-                        <div class="absolute top-0 bottom-0 z-30 pointer-events-none" style="left:{{ 280 + $todayPx }}px; width:2px; background:linear-gradient(to bottom, #c3122e, #f43f5e);">
-                            <div class="w-3 h-3 rounded-full -translate-x-[5px] -mt-1 shadow-md border-2 border-white" style="background:#c3122e;"></div>
+                        <div class="absolute top-0 bottom-0 z-30 pointer-events-none" style="left:{{ 280 + $todayPx }}px; width:1.5px; background:#c3122e;">
+                            <!-- Top Capsule Flag -->
+                            <div class="absolute top-0 -translate-x-1/2 -mt-5 z-40 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#c3122e] text-white shadow-xs flex items-center gap-1 pointer-events-auto">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                <span>Today • {{ now()->format('M d') }}</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Target Project Deadline Marker Line -->
+                    @if(!is_null($deadlinePx))
+                        <div class="absolute top-0 bottom-0 z-30 pointer-events-none" style="left:{{ 280 + $deadlinePx }}px; width:1.5px; border-left:1.5px dashed #f59e0b;">
+                            <!-- Top Banner Tag -->
+                            <div class="absolute top-0 -translate-x-1/2 -mt-5 z-40 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs flex items-center gap-1 pointer-events-auto">
+                                <span>🎯</span>
+                                <span>Deadline • {{ $project->deadline ? $project->deadline->format('M d') : '' }}</span>
+                            </div>
                         </div>
                     @endif
 
                     @forelse($wbsItems as $index => $item)
                         @php
                             /* ── resolve dates ── */
-                            $itemStart = $item->start_date
-                                ? $item->start_date->copy()
-                                : ($project->start_date ? $project->start_date->copy() : $timelineStart->copy());
-                            $itemEnd = $item->end_date
-                                ? $item->end_date->copy()
-                                : $itemStart->copy()->addDays(5);
+                            $itemStart = $item->start_date ? $item->start_date->copy()->startOfDay() : $timelineStart->copy();
+                            $itemEnd   = $item->end_date   ? $item->end_date->copy()->endOfDay()     : $itemStart->copy()->addDays(4);
 
                             /* ── pixel positions using shared dayToPx map ── */
                             $startDayOff = max(0, (int) $timelineStart->diffInDays($itemStart, false));
@@ -148,7 +258,7 @@
 
                             $barLeft  = round($dayToPx[$startDayOff], 2);
                             $barRight = round($dayToPx[$endDayOff],   2);
-                            $barWidth = max(24, $barRight - $barLeft);   // min 24px
+                            $barWidth = max(8, $barRight - $barLeft);
 
                             /* ── indent level ── */
                             $levelIndent = match($item->item_type->value) {
@@ -158,44 +268,54 @@
                                 default        => 0,
                             };
 
-                            /* ── 100% Reliable Inline CSS Gradient Themes for Phases & Items ── */
+                            /* ── Check if item exceeds project deadline ── */
+                            $exceedsDeadline = $project->deadline && $item->end_date && $item->end_date->gt($project->deadline);
+
+                            /* ── Modern Sleek Phase & Task Styling ── */
                             $phaseStyles = [
-                                ['bg' => 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #6366f1 100%)', 'border' => '#60a5fa', 'shadow' => 'rgba(59, 130, 246, 0.4)'],
-                                ['bg' => 'linear-gradient(135deg, #9f1239 0%, #c3122e 50%, #f43f5e 100%)', 'border' => '#fb7185', 'shadow' => 'rgba(195, 18, 46, 0.4)'],
-                                ['bg' => 'linear-gradient(135deg, #065f46 0%, #0d9488 50%, #06b6d4 100%)', 'border' => '#2dd4bf', 'shadow' => 'rgba(13, 148, 136, 0.4)'],
-                                ['bg' => 'linear-gradient(135deg, #b45309 0%, #ea580c 50%, #f97316 100%)', 'border' => '#fb923c', 'shadow' => 'rgba(234, 88, 12, 0.4)'],
-                                ['bg' => 'linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #d946ef 100%)', 'border' => '#c084fc', 'shadow' => 'rgba(124, 58, 237, 0.4)'],
+                                ['bg' => 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', 'border' => '#1d4ed8'],
+                                ['bg' => 'linear-gradient(135deg, #c3122e 0%, #e11d48 100%)', 'border' => '#9f1239'],
+                                ['bg' => 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', 'border' => '#0f766e'],
+                                ['bg' => 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)', 'border' => '#b45309'],
+                                ['bg' => 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)', 'border' => '#6d28d9'],
                             ];
                             $pStyle = $phaseStyles[$index % count($phaseStyles)];
 
                             $taskStyle = match($item->status->value) {
-                                'completed' => ['bg' => 'linear-gradient(135deg, #047857 0%, #10b981 100%)', 'border' => '#34d399', 'shadow' => 'rgba(16, 185, 129, 0.35)'],
-                                'in_progress' => ['bg' => 'linear-gradient(135deg, #c3122e 0%, #fb7185 100%)', 'border' => '#fda4af', 'shadow' => 'rgba(195, 18, 46, 0.35)'],
-                                default => ['bg' => 'linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #38bdf8 100%)', 'border' => '#818cf8', 'shadow' => 'rgba(79, 70, 229, 0.35)'],
+                                'completed' => ['bg' => '#059669', 'border' => '#047857'],
+                                'in_progress' => ['bg' => '#c3122e', 'border' => '#9f1239'],
+                                default => ['bg' => '#4f46e5', 'border' => '#4338ca'],
                             };
+
+                            /* ── Detect hour/time-slot items ── */
+                            $isHourSlot = ($item->parent_id !== null)
+                                       && (!empty($item->start_time) || (bool) preg_match('/\d{1,2}:\d{2}\s*(?:AM|PM)/i', $item->title))
+                                       && $item->item_type->value !== 'phase'
+                                       && $item->item_type->value !== 'work_package';
 
                             /* ── Risks count and highest severity score ── */
                             $risksCount = $item->risks ? $item->risks->count() : 0;
                             $highestRiskScore = $risksCount > 0 ? (int) $item->risks->max('risk_score') : 0;
 
-                            /* ── tooltip data ── */
+                            /* ── Tooltip Data ── */
                             $typeLabel    = $item->is_milestone ? 'Milestone' : ucfirst($item->item_type->value);
                             $assigneeName = $item->assignedUser ? $item->assignedUser->name : 'Unassigned';
                             $assigneeInit = $item->assignedUser ? strtoupper(substr($item->assignedUser->name, 0, 1)) : '?';
                             $tooltipData  = json_encode([
-                                'wbs'           => $item->wbs_code,
-                                'title'         => $item->title,
-                                'type'          => $typeLabel,
-                                'assignee'      => $assigneeName,
-                                'initial'       => $assigneeInit,
-                                'start'         => $item->start_date ? $item->start_date->format('M d, Y') : '—',
-                                'end'           => $item->end_date   ? $item->end_date->format('M d, Y')   : '—',
-                                'progress'      => $item->progress,
-                                'status'        => $item->status->label(),
-                                'has_risk'      => $risksCount > 0,
-                                'risks_count'   => $risksCount,
-                                'highest_score' => $highestRiskScore,
-                                'risks_list'    => $risksCount > 0 ? $item->risks->map(fn($r) => [
+                                'wbs'               => $item->wbs_code,
+                                'title'             => $item->title,
+                                'type'              => $typeLabel,
+                                'assignee'          => $assigneeName,
+                                'initial'           => $assigneeInit,
+                                'start'             => $item->start_date ? $item->start_date->format('M d, Y') : '—',
+                                'end'               => $item->end_date   ? $item->end_date->format('M d, Y')   : '—',
+                                'progress'          => $item->progress,
+                                'status'            => $item->status->label(),
+                                'exceeds_deadline'  => $exceedsDeadline,
+                                'has_risk'          => $risksCount > 0,
+                                'risks_count'       => $risksCount,
+                                'highest_score'     => $highestRiskScore,
+                                'risks_list'        => $risksCount > 0 ? $item->risks->map(fn($r) => [
                                     'title' => $r->title,
                                     'score' => $r->risk_score,
                                     'severity' => $r->risk_score >= 6 ? 'High' : ($r->risk_score >= 3 ? 'Medium' : 'Low')
@@ -203,7 +323,7 @@
                             ], JSON_HEX_APOS | JSON_HEX_QUOT);
                         @endphp
 
-                        <div class="flex items-center hover:bg-slate-50/90 transition-colors py-2.5 text-xs cursor-default">
+                        <div class="flex items-center transition-colors py-2 text-xs cursor-default hover:bg-slate-50/80">
 
                             <!-- Left: WBS Title Column (fixed 280px) -->
                             <div class="border-r border-slate-100 flex-shrink-0 flex items-center overflow-hidden px-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
@@ -225,15 +345,27 @@
                                         <span class="w-3.5 flex-shrink-0 inline-block text-slate-300 text-center font-bold">›</span>
                                     @endif
 
-                                    @if($item->item_type->value === 'phase')
+                                    @if($isHourSlot)
+                                        <span class="flex-shrink-0 opacity-80">
+                                            <svg class="w-3.5 h-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </span>
+                                    @elseif($item->item_type->value === 'phase')
                                         <span class="text-amber-500 text-sm flex-shrink-0">📁</span>
                                     @endif
 
-                                    <span class="font-mono text-[11px] font-black text-[#c3122e] flex-shrink-0">{{ $item->wbs_code }}</span>
+                                    <span class="font-mono text-[11px] font-black flex-shrink-0 {{ $isHourSlot ? 'text-violet-600' : 'text-[#c3122e]' }}">{{ $item->wbs_code }}</span>
 
-                                    <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-black text-slate-900 text-xs' : 'font-semibold' }}">
-                                        {{ $item->title }}
-                                    </span>
+                                    @if($isHourSlot)
+                                        <span class="truncate text-slate-900 font-bold text-xs" title="{{ $item->title }}">
+                                            {{ $item->title }}
+                                        </span>
+                                    @else
+                                        <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-black text-slate-900 text-xs' : 'font-semibold' }}">
+                                            {{ $item->title }}
+                                        </span>
+                                    @endif
 
                                     {{-- ⚠️ RISK INDICATOR ICON ON TASK ROW --}}
                                     @if($risksCount > 0)
@@ -241,6 +373,13 @@
                                               title="{{ $risksCount }} Active Risk(s) Associated with this Task">
                                             <span>⚠️</span>
                                             <span class="font-mono">{{ $risksCount }}</span>
+                                        </span>
+                                    @endif
+
+                                    {{-- Exceeds Deadline Badge --}}
+                                    @if($exceedsDeadline)
+                                        <span class="px-1 py-0.2 rounded text-[9px] font-black bg-rose-100 text-[#c3122e] border border-rose-300 flex-shrink-0" title="This deliverable exceeds the project deadline">
+                                            Late
                                         </span>
                                     @endif
                                 </div>
@@ -252,7 +391,7 @@
                                 <!-- Grid column lines (subtle background) -->
                                 @php $lineLeft = 0; @endphp
                                 @foreach($columns as $col)
-                                    <div class="absolute top-0 bottom-0 border-r border-slate-100/60 {{ ($col['isWeekend'] ?? false) ? 'bg-slate-50/50' : '' }}"
+                                    <div class="absolute top-0 bottom-0 border-r border-slate-100/70 {{ ($col['isWeekend'] ?? false) ? 'bg-slate-50/60' : '' }}"
                                          style="left:{{ $lineLeft }}px; width:{{ $col['px'] }}px;"></div>
                                     @php $lineLeft += $col['px']; @endphp
                                 @endforeach
@@ -260,7 +399,9 @@
                                 @if($item->is_milestone)
                                     <!-- Milestone 3D Diamond -->
                                     <div class="absolute top-1/2 -translate-y-1/2 flex items-center gap-2 z-20"
-                                         style="left:{{ $barLeft }}px;">
+                                         style="left:{{ $barLeft }}px;"
+                                         @mouseenter="showTooltip($el, {{ $tooltipData }})"
+                                         @mouseleave="hideTooltip()">
                                          <div class="relative">
                                             <div class="w-5 h-5 bg-gradient-to-br from-[#c3122e] via-rose-600 to-amber-500 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-rose-200"></div>
                                             @if($risksCount > 0)
@@ -275,48 +416,101 @@
                                         </span>
                                     </div>
 
-                                @elseif($item->item_type->value === 'phase')
-                                    <!-- Phase bar: 100% Vibrant Solid Gradient Pill with Glossy Highlight -->
-                                    <div class="absolute h-7 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-110 transition-all cursor-pointer shadow-md {{ $risksCount > 0 ? 'ring-2 ring-amber-400' : '' }}"
-                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $pStyle['bg'] }}; border:1px solid {{ $pStyle['border'] }}; box-shadow: 0 4px 14px {{ $pStyle['shadow'] }};">
-                                        <!-- Top gloss highlight -->
-                                        <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 rounded-t-full pointer-events-none"></div>
-                                        @if($item->progress > 0)
-                                            <div class="h-full bg-black/20 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
-                                        @endif
-                                        <span class="absolute inset-0 flex items-center justify-between px-3.5 text-[11px] font-black text-white truncate drop-shadow-sm tracking-wide">
-                                            <span class="truncate">📁 {{ $item->title }} ({{ $item->progress }}%)</span>
-                                            @if($risksCount > 0)
-                                                <span class="flex-shrink-0 ml-1.5 px-1.5 py-0.2 rounded bg-amber-400/90 text-slate-900 text-[9px] font-black shadow-xs flex items-center gap-0.5">
-                                                    <span>⚠️</span>
-                                                    <span>{{ $risksCount }}</span>
-                                                </span>
+                                @elseif($isHourSlot)
+                                    <!-- ── HOUR TIME-SLOT BAR ───────────────────────────────── -->
+                                    @php
+                                        $hasPattern = preg_match('/(\d{1,2}:\d{2}\s*(?:AM|PM))\s*[-–—\s]+\s*(\d{1,2}:\d{2}\s*(?:AM|PM))/iu', $item->title, $tParts);
+                                        $tStart = $hasPattern ? $tParts[1] : ($item->start_time_formatted ?? $item->start_time);
+                                        $tEnd   = $hasPattern ? $tParts[2] : ($item->end_time_formatted ?? $item->end_time);
+
+                                        $hourBg = match($item->status->value) {
+                                            'completed'   => 'linear-gradient(135deg, #047857 0%, #10b981 60%, #34d399 100%)',
+                                            'in_progress' => 'linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 70%, #fbbf24 100%)',
+                                            default       => 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 40%, #a78bfa 100%)',
+                                        };
+                                        $slotWidth = max(24, $barWidth - 2);
+                                    @endphp
+
+                                    <div class="absolute top-1/2 -translate-y-1/2 z-20"
+                                         style="left:{{ $barLeft + 1 }}px; width:{{ $slotWidth }}px;"
+                                         @mouseenter="showTooltip($el, {{ $tooltipData }})"
+                                         @mouseleave="hideTooltip()">
+                                        <div class="relative h-6 rounded-md overflow-hidden flex items-center cursor-pointer hover:scale-[1.02] hover:brightness-110 transition-all shadow-xs border border-white/40"
+                                             style="background:{{ $hourBg }};">
+                                            @if($item->progress > 0)
+                                                <div class="absolute inset-y-0 left-0 rounded-l-md bg-black/20"
+                                                     style="width:{{ $item->progress }}%;"></div>
                                             @endif
+                                            <span class="absolute inset-0 flex items-center px-1.5 gap-1 overflow-hidden justify-center sm:justify-start">
+                                                <svg class="w-2.5 h-2.5 text-white flex-shrink-0 opacity-90 hidden sm:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                @php
+                                                    $compactStart = $tStart ? trim(preg_replace('/\s*(AM|PM)/i', '', $tStart)) : null;
+                                                    $compactEnd   = $tEnd   ? trim(preg_replace('/\s*(AM|PM)/i', '', $tEnd))   : null;
+                                                @endphp
+                                                @if($slotWidth >= 110 && $compactStart && $compactEnd)
+                                                    <span class="text-[9px] font-black text-white truncate drop-shadow-sm font-mono">{{ $compactStart }}–{{ $compactEnd }}</span>
+                                                @elseif($slotWidth >= 32 && $compactStart)
+                                                    <span class="text-[9px] font-black text-white truncate drop-shadow-sm font-mono tracking-tight">{{ $compactStart }}</span>
+                                                @else
+                                                    <span class="text-[8px] font-bold text-white/90">1h</span>
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                @elseif($item->item_type->value === 'phase')
+                                    <!-- ── PHASE BAR ── -->
+                                    <div class="absolute h-7 rounded-lg flex items-center overflow-hidden z-20 hover:brightness-105 transition-all cursor-pointer shadow-xs {{ $exceedsDeadline ? 'ring-2 ring-rose-500' : '' }}"
+                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $pStyle['bg'] }}; border:1px solid {{ $pStyle['border'] }};"
+                                         @mouseenter="showTooltip($el, {{ $tooltipData }})"
+                                         @mouseleave="hideTooltip()">
+                                        @if($item->progress > 0)
+                                            <div class="h-full bg-black/15 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
+                                        @endif
+                                        <span class="absolute inset-0 flex items-center justify-between px-3 text-xs font-bold text-white truncate tracking-wide">
+                                            <span class="truncate">📁 {{ $item->title }} ({{ $item->progress }}%)</span>
+                                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                                @if($exceedsDeadline)
+                                                    <span class="px-1.5 py-0.5 rounded bg-rose-700 text-white text-[9px] font-bold shadow-xs">Late</span>
+                                                @endif
+                                                @if($risksCount > 0)
+                                                    <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-900 text-[9px] font-bold shadow-xs flex items-center gap-0.5">
+                                                        <span>⚠️</span>
+                                                        <span>{{ $risksCount }}</span>
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </span>
                                     </div>
 
                                 @else
-                                    <!-- Task / Subtask bar: 100% Vibrant Solid Gradient Pill -->
-                                    <div class="absolute h-6 rounded-full flex items-center overflow-hidden z-20 hover:scale-[1.01] hover:brightness-105 transition-all cursor-pointer shadow-sm {{ $risksCount > 0 ? 'ring-2 ring-amber-400 ring-offset-1' : '' }}"
-                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $taskStyle['bg'] }}; border:1px solid {{ $taskStyle['border'] }}; box-shadow: 0 2px 10px {{ $taskStyle['shadow'] }};">
-                                        <!-- Top gloss -->
-                                        <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 rounded-t-full pointer-events-none"></div>
+                                    <!-- ── TASK / SUBTASK BAR ── -->
+                                    <div class="absolute h-6 rounded-md flex items-center overflow-hidden z-20 hover:brightness-105 transition-all cursor-pointer shadow-2xs {{ $exceedsDeadline ? 'ring-2 ring-rose-500' : '' }}"
+                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $taskStyle['bg'] }}; border:1px solid {{ $taskStyle['border'] }};"
+                                         @mouseenter="showTooltip($el, {{ $tooltipData }})"
+                                         @mouseleave="hideTooltip()">
                                         @if($item->progress > 0)
-                                            <div class="h-full bg-black/20 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
+                                            <div class="h-full bg-black/15 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
                                         @endif
-                                        <span class="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black truncate text-white drop-shadow-xs">
+                                        <span class="absolute inset-0 flex items-center justify-between px-2.5 text-[11px] font-semibold truncate text-white">
                                             <span class="truncate">
                                                 @if($item->status->value === 'completed') ✓ {{ $item->title }} (100%)
                                                 @else {{ $item->title }} ({{ $item->progress }}%)
                                                 @endif
                                             </span>
-                                            {{-- ⚠️ Risk Badge on Bar --}}
-                                            @if($risksCount > 0)
-                                                <span class="flex-shrink-0 ml-1.5 px-1 py-0.2 rounded bg-amber-400 text-slate-950 text-[9px] font-black shadow-xs flex items-center gap-0.5" title="{{ $risksCount }} Associated Risk(s)">
-                                                    <span>⚠️</span>
-                                                    <span class="font-mono">{{ $risksCount }}</span>
-                                                </span>
-                                            @endif
+                                            <div class="flex items-center gap-1 flex-shrink-0">
+                                                @if($exceedsDeadline)
+                                                    <span class="px-1 py-0.5 rounded bg-rose-700 text-white text-[8px] font-bold">Late</span>
+                                                @endif
+                                                @if($risksCount > 0)
+                                                    <span class="px-1 py-0.5 rounded bg-amber-400 text-slate-900 text-[9px] font-bold shadow-xs flex items-center gap-0.5" title="{{ $risksCount }} Associated Risk(s)">
+                                                        <span>⚠️</span>
+                                                        <span class="font-mono">{{ $risksCount }}</span>
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </span>
                                     </div>
                                 @endif
@@ -332,11 +526,11 @@
         </div>
     </div>
 
-    <!-- ===== FLOATING TOOLTIP (white, brand-coloured with Risk Section) ===== -->
+    <!-- ===== FLOATING TOOLTIP (Brand-Coloured with Deadline Warning & Risk Section) ===== -->
     <div
         x-show="tooltip.visible && tooltip.data"
         x-cloak
-        :style="`position:fixed; left:${tooltip.x}px; top:${tooltip.y}px; z-index:9999; pointer-events:none; width:300px;`"
+        :style="`position:fixed; left:${tooltip.x}px; top:${tooltip.y}px; z-index:9999; pointer-events:none; width:310px;`"
         x-transition:enter="transition ease-out duration-120"
         x-transition:enter-start="opacity-0 translate-y-1"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -345,21 +539,22 @@
         x-transition:leave-end="opacity-0"
     >
         <template x-if="tooltip.data">
-            <div class="bg-white rounded-r-2xl rounded-l-md shadow-2xl border-y border-r border-slate-200/90 border-l-4 border-l-[#c3122e] overflow-hidden ring-1 ring-black/5">
+            <div class="bg-white rounded-r-2xl rounded-l-md shadow-2xl border-y border-r border-slate-200 border-l-4 border-l-[#c3122e] overflow-hidden ring-1 ring-black/5">
 
                 <!-- Header -->
-                <div class="px-4 pt-3.5 pb-2.5 bg-gradient-to-r from-[#fdf4f4]/50 to-white border-b border-[#faeaea]">
-                    <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-[#c3122e]" x-text="'WBS ' + tooltip.data.wbs"></span>
-                        <span class="w-1 h-1 rounded-full bg-slate-300 inline-block"></span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border"
-                              :class="{
-                                  'bg-slate-50 text-slate-650 border-slate-200': tooltip.data.type === 'Phase',
-                                  'bg-[#fdf4f4] text-[#c3122e] border-[#f5c2c9]': tooltip.data.type === 'Task' || tooltip.data.type === 'Subtask',
-                                  'bg-amber-50 text-amber-800 border-amber-200': tooltip.data.type === 'Milestone',
-                                  'bg-slate-50 text-slate-650 border-slate-200': !['Phase','Task','Subtask','Milestone'].includes(tooltip.data.type)
-                              }"
-                              x-text="tooltip.data.type"></span>
+                <div class="px-4 pt-3.5 pb-2.5 bg-gradient-to-r from-[#fdf4f4]/60 to-white border-b border-[#faeaea]">
+                    <div class="flex items-center justify-between gap-1.5 mb-1">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-[#c3122e]" x-text="'WBS ' + tooltip.data.wbs"></span>
+                            <span class="w-1 h-1 rounded-full bg-slate-300 inline-block"></span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border bg-[#fdf4f4] text-[#c3122e] border-[#f5c2c9]"
+                                  x-text="tooltip.data.type"></span>
+                        </div>
+                        <template x-if="tooltip.data.exceeds_deadline">
+                            <span class="px-1.5 py-0.5 rounded text-[8.5px] font-black bg-rose-100 text-[#c3122e] border border-rose-300">
+                                ⚠️ Exceeds Deadline
+                            </span>
+                        </template>
                     </div>
                     <div class="font-extrabold text-slate-800 text-[13px] leading-snug" x-text="tooltip.data.title"></div>
                 </div>

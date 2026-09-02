@@ -104,12 +104,21 @@
             {{-- Projects Navigation --}}
 
             @if($isSuperAdmin)
+            {{-- PMO Admin: Project Monitor & Governance Direct Link --}}
+            <a href="{{ route('project-monitor.index') }}" class="{{ $navItem(request()->routeIs('project-monitor.*')) }} justify-between" style="{{ $navStyle(request()->routeIs('project-monitor.*')) }}" @if(!request()->routeIs('project-monitor.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
+                <div class="flex items-center gap-3 min-w-0">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span x-show="!sidebarCollapsed" class="truncate font-black">Project Monitor</span>
+                </div>
+                <span x-show="!sidebarCollapsed" class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-200">PMO</span>
+            </a>
+
             {{-- PMO Admin: Manage All Projects + Templates dropdown --}}
             <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
                 <button @click="open = !open" type="button" class="{{ $navItem(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full justify-between" style="{{ $navStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}" @if(!(request()->routeIs('projects.*') || request()->routeIs('templates.*'))) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
                     <div class="flex items-center gap-3">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                        <span x-show="!sidebarCollapsed" class="truncate">Projects</span>
+                        <span x-show="!sidebarCollapsed" class="truncate">Projects Directory</span>
                     </div>
                     <svg x-show="!sidebarCollapsed" :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -146,11 +155,13 @@
             </a>
             @endif
 
-            <!-- My Tasks -->
+            <!-- My Tasks (Hidden for PMO Admin) -->
+            @if(!($user && $user->isPmoAdmin()))
             <a href="{{ route('my-tasks.index') }}" class="{{ $navItem(request()->routeIs('my-tasks.*')) }}" style="{{ $navStyle(request()->routeIs('my-tasks.*')) }}" @if(!request()->routeIs('my-tasks.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 <span x-show="!sidebarCollapsed" class="truncate">My Tasks</span>
             </a>
+            @endif
 
             <!-- Daily Updates -->
             <a href="{{ route('daily-updates.index') }}" class="{{ $navItem(request()->routeIs('daily-updates.*')) }}" style="{{ $navStyle(request()->routeIs('daily-updates.*')) }}" @if(!request()->routeIs('daily-updates.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif>
@@ -368,9 +379,21 @@
                         class="p-2 rounded-xl text-slate-600 hover:text-[#c3122e] hover:bg-rose-50 transition-colors"
                         title="Search"
                     >
-                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </button>
-                    <div x-show="mobileSearchOpen" @click.away="mobileSearchOpen = false" class="fixed inset-x-3 top-16 mt-2 z-50 bg-white rounded-2xl shadow-2xl p-2 border border-slate-200">
+                    <!-- Mobile Search Modal Overlay -->
+                    <div 
+                        x-show="mobileSearchOpen" 
+                        @click.away="mobileSearchOpen = false" 
+                        x-transition:enter="transition duration-150 ease-out"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="fixed inset-x-3 top-16 mt-2 z-50 bg-white rounded-2xl shadow-2xl p-2 border border-slate-200 max-w-lg mx-auto"
+                    >
+                        <div class="flex items-center justify-between pb-2 px-2 border-b border-slate-100 mb-2">
+                            <span class="text-xs font-bold text-slate-800">Search GS NexusPM</span>
+                            <button @click="mobileSearchOpen = false" class="text-slate-400 hover:text-slate-700 text-xs font-bold p-1">✕</button>
+                        </div>
                         @livewire('global-search')
                     </div>
                 </div>
@@ -380,7 +403,7 @@
                     <button 
                         @click="quickActionOpen = !quickActionOpen" 
                         type="button" 
-                        class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-[#c3122e] to-[#a00e24] hover:from-[#a00e24] hover:to-[#800a1d] shadow-sm shadow-rose-900/20 hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-[#c3122e] to-[#a00e24] hover:from-[#a00e24] hover:to-[#800a1d] shadow-sm shadow-rose-900/20 hover:shadow-md transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer active:scale-95"
                         title="Quick Actions (1-Click Shortcuts)"
                     >
                         <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -417,10 +440,12 @@
                             <span>Post Daily Status</span>
                         </a>
 
+                        @if(!($user && $user->isPmoAdmin()))
                         <a href="{{ route('my-tasks.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
                             <span class="w-6 h-6 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-xs">✅</span>
                             <span>My Tasks Workspace</span>
                         </a>
+                        @endif
 
                         <a href="{{ route('approvals.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
                             <span class="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-xs">🛡️</span>
@@ -434,15 +459,6 @@
                     </div>
                 </div>
 
-                <!-- Mobile Search Button -->
-                <div x-data="{ mobileSearchOpen: false }" class="sm:hidden relative">
-                    <button @click="mobileSearchOpen = !mobileSearchOpen" class="p-2 rounded-xl text-slate-600 hover:text-[#c3122e] hover:bg-rose-50 transition-all" title="Search">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </button>
-                    <div x-show="mobileSearchOpen" @click.away="mobileSearchOpen = false" class="absolute right-0 top-full mt-2 w-72 sm:w-80 z-50 shadow-2xl">
-                        @livewire('global-search')
-                    </div>
-                </div>
                 <!-- Notifications Bell -->
                 <div class="relative">
                     <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-xl transition-colors block" style="color: #706565;" onmouseover="this.style.background='#f9e8eb'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" title="Notifications">
@@ -510,9 +526,9 @@
         </div>
     </main>
 
-    <!-- Toast Container — bottom-right, above everything -->
+    <!-- Toast Container — top-right, ultra-high z-index above all modals/drawers -->
     <div id="toast-container"
-         style="position:fixed; bottom:24px; right:24px; z-index:99999; display:flex; flex-direction:column; gap:10px; align-items:flex-end; pointer-events:none;">
+         style="position:fixed; top:24px; right:24px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);">
     </div>
 
     <!-- Confirm Modal -->
@@ -538,6 +554,247 @@
     @livewireScripts
 
     <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // UNIVERSAL GS NEXUSPM TOAST NOTIFICATION ENGINE (Single Active Toast Mode)
+    // ═══════════════════════════════════════════════════════════════════════════
+    let lastToastMsg = '';
+    let lastToastTime = 0;
+
+    window.showToast = function (message, type = 'success', duration = 4000) {
+        if (!message) return;
+
+        // Clean string from potential JSON stringification
+        if (typeof message === 'object') {
+            message = message.message || message.text || message.title || JSON.stringify(message);
+        }
+
+        const now = Date.now();
+        // Prevent duplicate toast if same message received within 1.5 seconds
+        if (lastToastMsg === message && (now - lastToastTime) < 1500) {
+            return;
+        }
+        lastToastMsg = message;
+        lastToastTime = now;
+
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = 'position:fixed; top:24px; right:24px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);';
+            document.body.appendChild(container);
+        }
+
+        // Remove any existing toasts so only 1 message displays at a time
+        const existingToasts = container.querySelectorAll('[data-toast]');
+        existingToasts.forEach(t => {
+            t.style.transform = 'translateX(120%)';
+            t.style.opacity = '0';
+            setTimeout(() => t.remove(), 250);
+        });
+
+        const config = {
+            success: {
+                bar: '#10b981',
+                bg: '#ffffff',
+                border: '#d1fae5',
+                icon: '<svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+                iconBg: '#ecfdf5',
+                iconColor: '#059669',
+                title: 'Success',
+                titleColor: '#065f46'
+            },
+            error: {
+                bar: '#ef4444',
+                bg: '#ffffff',
+                border: '#fee2e2',
+                icon: '<svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+                iconBg: '#fef2f2',
+                iconColor: '#dc2626',
+                title: 'Error',
+                titleColor: '#991b1b'
+            },
+            warning: {
+                bar: '#f59e0b',
+                bg: '#ffffff',
+                border: '#fef3c7',
+                icon: '<svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
+                iconBg: '#fffbeb',
+                iconColor: '#d97706',
+                title: 'Warning',
+                titleColor: '#92400e'
+            },
+            info: {
+                bar: '#3b82f6',
+                bg: '#ffffff',
+                border: '#dbeafe',
+                icon: '<svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>',
+                iconBg: '#eff6ff',
+                iconColor: '#2563eb',
+                title: 'Information',
+                titleColor: '#1e40af'
+            }
+        };
+
+        const c = config[type] || config.info;
+
+        const toast = document.createElement('div');
+        toast.setAttribute('data-toast', '');
+        toast.style.cssText = `
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            background: ${c.bg};
+            border: 1.5px solid ${c.border};
+            border-radius: 16px;
+            box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.15), 0 8px 15px -3px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            min-width: 280px;
+            max-width: 100%;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            cursor: default;
+            pointer-events: all;
+            box-sizing: border-box;
+        `;
+
+        // Left accent bar
+        const bar = document.createElement('div');
+        bar.style.cssText = `position: absolute; left: 0; top: 0; bottom: 0; width: 4.5px; background: ${c.bar}; border-radius: 16px 0 0 16px;`;
+
+        // Icon badge
+        const iconWrap = document.createElement('div');
+        iconWrap.style.cssText = `
+            width: 32px; height: 32px;
+            border-radius: 10px;
+            background: ${c.iconBg};
+            color: ${c.iconColor};
+            border: 1px solid ${c.border};
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        `;
+        iconWrap.innerHTML = c.icon;
+
+        // Content
+        const contentWrap = document.createElement('div');
+        contentWrap.style.cssText = 'flex: 1; min-width: 0; padding-right: 4px;';
+        
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = `font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: ${c.titleColor}; margin-bottom: 2px;`;
+        titleEl.textContent = c.title;
+
+        const textEl = document.createElement('p');
+        textEl.style.cssText = 'font-size: 12.5px; font-weight: 700; color: #0f172a; line-height: 1.4; margin: 0; word-break: break-word; font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;';
+        textEl.textContent = message;
+
+        contentWrap.appendChild(titleEl);
+        contentWrap.appendChild(textEl);
+
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.style.cssText = 'flex-shrink: 0; width: 22px; height: 22px; border: none; background: #f1f5f9; border-radius: 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-top: 1px; transition: all 0.15s;';
+        closeBtn.innerHTML = '✕';
+        closeBtn.onmouseover = () => { closeBtn.style.background = '#e2e8f0'; closeBtn.style.color = '#0f172a'; };
+        closeBtn.onmouseout = () => { closeBtn.style.background = '#f1f5f9'; closeBtn.style.color = '#64748b'; };
+
+        // Progress bar
+        const progress = document.createElement('div');
+        progress.style.cssText = `position: absolute; bottom: 0; left: 0; height: 3px; width: 100%; background: ${c.bar}; opacity: 0.4; border-radius: 0 0 16px 16px; transform-origin: left; transition: transform ${duration}ms linear;`;
+
+        toast.appendChild(bar);
+        toast.appendChild(iconWrap);
+        toast.appendChild(contentWrap);
+        toast.appendChild(closeBtn);
+        toast.appendChild(progress);
+
+        container.appendChild(toast);
+
+        const removeToast = () => {
+            toast.style.transform = 'translateX(120%)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 350);
+        };
+
+        closeBtn.addEventListener('click', removeToast);
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+                setTimeout(() => { progress.style.transform = 'scaleX(0)'; }, 40);
+            });
+        });
+
+        let timer = setTimeout(removeToast, duration);
+        toast.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            progress.style.transitionDuration = '0ms';
+        });
+        toast.addEventListener('mouseleave', () => {
+            timer = setTimeout(removeToast, 1800);
+        });
+
+        return toast;
+    };
+
+    window.toast = window.showToast;
+
+    // Single unified event listener (avoids 4x duplication)
+    function handleToastEvent(payload) {
+        if (!payload) return;
+
+        if (typeof payload === 'string') {
+            window.showToast(payload, 'success');
+            return;
+        }
+
+        if (Array.isArray(payload)) {
+            const first = payload[0];
+            if (typeof first === 'string') {
+                window.showToast(first, payload[1] || 'success');
+            } else if (first && typeof first === 'object') {
+                window.showToast(first.message || first.text || first.title || JSON.stringify(first), first.type || first.level || 'success');
+            }
+            return;
+        }
+
+        if (typeof payload === 'object') {
+            const msg = payload.message || payload.text || payload.title || payload.msg;
+            const type = payload.type || payload.level || 'success';
+            if (msg) {
+                window.showToast(msg, type);
+            }
+        }
+    }
+
+    // Bind once globally
+    if (!window.__gsToastBound) {
+        window.__gsToastBound = true;
+        window.addEventListener('toast', (e) => handleToastEvent(e.detail));
+        window.addEventListener('notify', (e) => handleToastEvent(e.detail));
+    }
+
+    // 3. Flash session messages on load
+    @if(session('success'))
+        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('success')), 'success'));
+    @endif
+    @if(session('error'))
+        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('error')), 'error'));
+    @endif
+    @if(session('warning'))
+        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('warning')), 'warning'));
+    @endif
+    @if(session('info'))
+        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('info')), 'info'));
+    @endif
+    @if(session('status'))
+        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('status')), 'info'));
+    @endif
+
     function appLayout() {
         return {
             sidebarCollapsed: localStorage.getItem('gsnexuspm_sidebar_collapsed') === 'true',

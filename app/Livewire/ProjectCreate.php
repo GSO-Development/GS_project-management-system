@@ -532,6 +532,9 @@ class ProjectCreate extends Component
 
         $this->scheduleAndCreateTasks($project, $tasksByParent, 'root', $projectStartDate, null);
 
+        // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
+        \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
+
         // Recalculate WBS numbering and progress
         (new \App\Services\WbsNumberingService())->recalculateProjectWbsCodes($project->id);
         (new \App\Services\ProgressCalculationService())->updateProjectOverallProgress($project->id);
@@ -566,6 +569,7 @@ class ProjectCreate extends Component
                 'status'       => \App\Enums\WbsStatus::NOT_STARTED,
                 'priority'     => \App\Enums\Priority::MEDIUM,
                 'progress'     => 0,
+                'sort_order'   => (int) ($task->order_index ?? 0),
                 'is_milestone' => false,
                 'created_by'   => auth()->id(),
             ]);

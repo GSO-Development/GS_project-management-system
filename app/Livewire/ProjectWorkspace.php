@@ -262,7 +262,7 @@ class ProjectWorkspace extends Component
     public function openEditProjectModal()
     {
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'project.edit')) {
+        if (!$this->project->userCan($user, 'project.edit') && !$this->project->userCan($user, 'project_details.edit') && !$user->isSuperAdmin() && !$user->isPmoAdmin()) {
             $this->dispatch('toast', message: 'You do not have permission to edit project details.', type: 'error');
             return;
         }
@@ -599,8 +599,8 @@ class ProjectWorkspace extends Component
     public function updateProjectStatus(string $newStatus)
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id && !$this->project->members->contains($user->id)) {
-            $this->dispatch('toast', message: 'You must be assigned to this project to update status.', type: 'error');
+        if (!$this->project->userCan($user, 'project.edit') && !$this->project->userCan($user, 'project_details.edit') && !$user->isSuperAdmin() && !$user->isPmoAdmin()) {
+            $this->dispatch('toast', message: 'You do not have permission to edit project details.', type: 'error');
             return;
         }
 
@@ -618,8 +618,8 @@ class ProjectWorkspace extends Component
     public function updateProjectHealth(string $newHealth)
     {
         $user = auth()->user();
-        if (!$user->hasRole('super_admin') && $this->project->project_manager_id !== $user->id && !$this->project->members->contains($user->id)) {
-            $this->dispatch('toast', message: 'You must be assigned to this project to update health.', type: 'error');
+        if (!$this->project->userCan($user, 'project.edit') && !$this->project->userCan($user, 'project_details.edit') && !$user->isSuperAdmin() && !$user->isPmoAdmin()) {
+            $this->dispatch('toast', message: 'You do not have permission to edit project details.', type: 'error');
             return;
         }
 
@@ -1037,5 +1037,20 @@ class ProjectWorkspace extends Component
         $allPms = \App\Models\User::where('is_active', true)->orderBy('name')->get();
 
         return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'allSubsidiaries', 'allPms'));
+    }
+
+    public function toggleCollapse(int $id)
+    {
+        $this->dispatch('toggle-collapse', id: $id);
+    }
+
+    public function expandAll()
+    {
+        $this->dispatch('expand-all');
+    }
+
+    public function collapseAll()
+    {
+        $this->dispatch('collapse-all');
     }
 }

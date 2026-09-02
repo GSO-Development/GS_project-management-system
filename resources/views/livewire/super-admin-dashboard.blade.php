@@ -1,8 +1,8 @@
-<div wire:poll.30s class="space-y-6">
+<div wire:poll.30s class="space-y-5 pb-12 text-slate-800" style="font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;">
 
-    {{-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER (Luxury Skyline Panorama)
-         ═══════════════════════════════════════════════════════════════ --}}
+    {{-- ═══════════════════════════════════════════════════════════
+         TOP BANNER (Sunset Skyline Panorama)
+         ═══════════════════════════════════════════════════════════ --}}
     <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-7 lg:p-8 text-white" style="background: #2b040a;">
         <!-- Full Banner Background Image (Sunset Skyline Panorama) -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
@@ -81,398 +81,832 @@
                 </a>
             </div>
         </div>
+
+        {{-- Sub-Header Status Line inside Hero --}}
+        <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[11px] text-white/70">
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span><strong class="text-white">{{ $healthSummary['on_track']['count'] }}</strong> On Track</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span><strong class="text-white">{{ $healthSummary['at_risk']['count'] }}</strong> At Risk</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                    <span><strong class="text-white">{{ $healthSummary['delayed']['count'] }}</strong> Delayed</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span><strong class="text-white">{{ $healthSummary['not_started']['count'] }}</strong> Staged</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-white/60 text-[11px]">
+                <span>Subsidiaries: <strong class="text-white font-mono">{{ $totalSubsidiaries }}</strong></span>
+                <span>&bull;</span>
+                <span>Total Deliverables: <strong class="text-white font-mono">{{ $totalTasksCount }}</strong></span>
+                <span>&bull;</span>
+                <span>Stakeholders: <strong class="text-white font-mono">{{ $totalUsers }}</strong></span>
+            </div>
+        </div>
     </div>
 
 
-    {{-- ═══════════════════════════════════════════════════════════════
-         2. COMPACT & BALANCED KPI METRICS ROW
-         ═══════════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <!-- 1. Total Projects -->
-        <a href="{{ route('projects.index') }}" class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between group no-underline">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Projects</span>
-                <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    {{-- ═══════════════════════════════════════════════════════════
+         ROW 1: 5 TOP KPI CARDS (Real-Time Metrics)
+         ═══════════════════════════════════════════════════════════ --}}
+    <div class="w-full" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem;">
+
+        {{-- 1. Total Projects --}}
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
+            <div class="flex items-start justify-between">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #fef2f2; color: #c3122e; border: 1px solid #fee2e2;">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
                 </div>
             </div>
-            <div class="flex items-baseline justify-between gap-1">
-                <span class="text-2xl font-black text-slate-900 font-mono leading-none">{{ $totalProjects }}</span>
-                <span class="text-[10px] font-semibold text-slate-400">{{ $totalSubsidiaries }} Subs</span>
+            <div class="mt-3">
+                <span class="text-[11px] font-semibold text-slate-500 block">Total Projects</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $totalProjects }}</div>
+                <div class="text-[10.5px] text-slate-400 mt-1 truncate">Across {{ $totalSubsidiaries }} Subsidiaries</div>
             </div>
-            <div class="mt-2 text-[10px] font-bold text-slate-400 truncate">Total volume</div>
-        </a>
-
-        <!-- 2. Active Projects -->
-        <a href="{{ route('projects.index') }}" class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:border-rose-300 hover:shadow-xs transition-all flex flex-col justify-between group no-underline">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Active</span>
-                <div class="w-7 h-7 rounded-lg bg-rose-50 text-[#c3122e] flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between gap-1">
-                <span class="text-2xl font-black text-[#c3122e] font-mono leading-none">{{ $activeProjects }}</span>
-                <span class="text-[9.5px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 flex-shrink-0">↑ Live</span>
-            </div>
-            <div class="mt-2 text-[10px] font-bold text-slate-400 truncate">In execution</div>
-        </a>
-
-        <!-- 3. Completed Tasks -->
-        <a href="{{ route('projects.index') }}" class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all flex flex-col justify-between no-underline">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Completed</span>
-                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between gap-1">
-                <span class="text-2xl font-black text-emerald-700 font-mono leading-none">{{ $completedTasksCount }}</span>
-                <span class="text-[10px] font-bold text-emerald-700">
-                    {{ $totalTasksCount > 0 ? (int)round(($completedTasksCount / $totalTasksCount) * 100) : 0 }}%
-                </span>
-            </div>
-            <div class="mt-2 text-[10px] font-bold text-emerald-600 truncate">Tasks delivered</div>
-        </a>
-
-        <!-- 4. In Progress Tasks -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:border-amber-300 hover:shadow-xs transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">In Progress</span>
-                <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between gap-1">
-                <span class="text-2xl font-black text-amber-700 font-mono leading-none">{{ $inProgressTasksCount }}</span>
-                <span class="text-[10px] font-bold text-amber-600">WIP</span>
-            </div>
-            <div class="mt-2 text-[10px] font-bold text-slate-400 truncate">Current sprint</div>
-        </div>
-
-        <!-- 5. Overdue Tasks -->
-        <div class="bg-white border rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between {{ $overdueTasksCount > 0 ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200/90' }}">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Overdue</span>
-                <div class="w-7 h-7 rounded-lg {{ $overdueTasksCount > 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between gap-1">
-                <span class="text-2xl font-black {{ $overdueTasksCount > 0 ? 'text-rose-600' : 'text-slate-900' }} font-mono leading-none">{{ $overdueTasksCount }}</span>
-                @if($overdueTasksCount > 0)
-                    <span class="text-[9px] font-black text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">Action</span>
-                @else
-                    <span class="text-[9px] font-bold text-emerald-600">On time</span>
-                @endif
-            </div>
-            <div class="mt-2 text-[10px] font-bold {{ $overdueTasksCount > 0 ? 'text-rose-600' : 'text-slate-400' }} truncate">
-                {{ $overdueTasksCount > 0 ? 'Needs attention' : 'No delay items' }}
-            </div>
-        </div>
-
-        <!-- 6. Pending Approvals -->
-        <a href="{{ route('approvals.index') }}" class="bg-white border rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between no-underline {{ $pendingApprovals > 0 ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200/90' }}">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Approvals</span>
-                <div class="w-7 h-7 rounded-lg {{ $pendingApprovals > 0 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between gap-1">
-                <span class="text-2xl font-black {{ $pendingApprovals > 0 ? 'text-amber-700' : 'text-slate-900' }} font-mono leading-none">{{ $pendingApprovals }}</span>
-                <span class="text-[9.5px] font-bold {{ $pendingApprovals > 0 ? 'text-amber-700' : 'text-slate-400' }}">Review</span>
-            </div>
-            <div class="mt-2 text-[10px] font-bold {{ $pendingApprovals > 0 ? 'text-amber-600' : 'text-slate-400' }} truncate">
-                {{ $pendingApprovals > 0 ? 'Action required' : 'All approved' }}
-            </div>
-        </a>
-    </div>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════
-         3. MIDDLE SECTION: ACTIVE PROJECTS & SUBSIDIARY PORTFOLIOS
-         ═══════════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        <!-- 3A. ACTIVE PROJECTS (Takes 2 Columns) -->
-        <div class="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                                Strategic Projects Portfolio
-                            </h3>
-                            <p class="text-[11px] text-slate-400 font-medium">Core enterprise initiatives currently in execution</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('projects.index') }}" class="text-xs font-bold text-[#c3122e] hover:underline flex items-center gap-1">
-                        <span>View All Projects</span>
-                        <span>&rarr;</span>
-                    </a>
-                </div>
-
-                <div class="space-y-3">
-                    @forelse($overviewProjects as $proj)
-                        @php
-                            $statusMeta = [
-                                'in_progress' => ['badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'label' => 'In Execution'],
-                                'planning'    => ['badge' => 'bg-blue-50 text-blue-700 border-blue-200', 'label' => 'Planning'],
-                                'on_hold'     => ['badge' => 'bg-amber-50 text-amber-700 border-amber-200', 'label' => 'On Hold'],
-                                'completed'   => ['badge' => 'bg-slate-100 text-slate-600 border-slate-200', 'label' => 'Completed'],
-                            ];
-                            $sc = $statusMeta[$proj->status->value ?? 'in_progress'] ?? $statusMeta['in_progress'];
-                            $prog = (int)($proj->overall_progress ?? 0);
-                        @endphp
-                        <a href="{{ route('projects.show', $proj->id) }}" class="block p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:border-slate-200 hover:shadow-2xs transition-all group no-underline">
-                            <div class="flex items-center justify-between gap-3 mb-2 flex-wrap sm:flex-nowrap">
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#c3122e] transition-colors" title="{{ $proj->name }}">
-                                            {{ $proj->name }}
-                                        </h4>
-                                        <span class="text-[9.5px] font-black px-2 py-0.5 rounded-md border {{ $sc['badge'] }} flex-shrink-0">
-                                            {{ $sc['label'] }}
-                                        </span>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                                        {{ $proj->subsidiary->name ?? 'George Steuart Group' }}
-                                        @if($proj->projectManager)
-                                            &bull; Lead: <span class="text-slate-600 font-semibold">{{ $proj->projectManager->name }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2 text-right flex-shrink-0">
-                                    <span class="text-xs font-black text-slate-800 font-mono">{{ $prog }}%</span>
-                                </div>
-                            </div>
-                            <div class="h-2 bg-slate-200/80 rounded-full overflow-hidden">
-                                <div style="width: {{ $prog }}%" class="h-full bg-gradient-to-r from-[#c3122e] to-rose-400 rounded-full transition-all duration-500"></div>
-                            </div>
-                        </a>
-                    @empty
-                        <div class="py-12 text-center text-xs text-slate-400">No active projects found in the portfolio.</div>
-                    @endforelse
-                </div>
-            </div>
-
-            <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-medium">{{ $totalProjects }} projects registered in database</span>
-                <a href="{{ route('projects.create') }}" class="font-bold text-[#c3122e] hover:underline flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Create New Project</span>
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <a href="{{ route('projects.index') }}" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
+                    <span>View all projects</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
                 </a>
             </div>
         </div>
 
-        <!-- 3B. SUBSIDIARY PORTFOLIOS (Takes 1 Column) -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                                Subsidiaries
-                            </h3>
-                            <p class="text-[11px] text-slate-400 font-medium">Business unit distribution</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('subsidiaries.index') }}" class="text-xs font-bold text-blue-600 hover:underline">All &rarr;</a>
-                </div>
-
-                <div class="space-y-3">
-                    @forelse($topSubsidiaries as $sub)
-                        @php
-                            $pTotal = max(1, $sub->projects_count);
-                            $compPct = (int)round(($sub->completed_count / $pTotal) * 100);
-                            $inProgPct = (int)round(($sub->in_progress_count / $pTotal) * 100);
-                        @endphp
-                        <div class="p-3 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-slate-200 transition-all">
-                            <div class="flex items-center justify-between gap-2 mb-1.5">
-                                <span class="text-xs font-bold text-slate-800 truncate" title="{{ $sub->name }}">{{ $sub->name }}</span>
-                                <span class="text-[10px] font-black text-slate-500 font-mono flex-shrink-0">{{ $sub->projects_count }} proj</span>
-                            </div>
-                            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden flex mb-2">
-                                @if($compPct > 0)<div style="width:{{ $compPct }}%" class="bg-emerald-500 rounded-full"></div>@endif
-                                @if($inProgPct > 0)<div style="width:{{ $inProgPct }}%" class="bg-amber-400"></div>@endif
-                            </div>
-                            <div class="flex items-center gap-1.5 text-[9.5px] font-bold">
-                                <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">{{ $sub->completed_count }} done</span>
-                                @if($sub->in_progress_count > 0)
-                                    <span class="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">{{ $sub->in_progress_count }} active</span>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        <div class="py-10 text-center text-xs text-slate-400">No subsidiaries recorded yet.</div>
-                    @endforelse
+        {{-- 2. On Track --}}
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
+            <div class="flex items-start justify-between">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7;">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
+            <div class="mt-3">
+                <span class="text-[11px] font-semibold text-slate-500 block">On Track</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $healthSummary['on_track']['count'] }}</div>
+                <div class="text-[10.5px] text-slate-400 mt-1">{{ $healthSummary['on_track']['pct'] }}% of total</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <a href="{{ route('projects.index') }}" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
+                    <span>View details</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                </a>
+            </div>
+        </div>
 
-            <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-medium">{{ $totalSubsidiaries }} active units</span>
-                <a href="{{ route('subsidiaries.index') }}" class="font-bold text-[#c3122e] hover:underline">Manage subsidiaries &rarr;</a>
+        {{-- 3. At Risk --}}
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
+            <div class="flex items-start justify-between">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #fffbeb; color: #d97706; border: 1px solid #fef3c7;">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-[11px] font-semibold text-slate-500 block">At Risk</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $healthSummary['at_risk']['count'] }}</div>
+                <div class="text-[10.5px] text-slate-400 mt-1">{{ $healthSummary['at_risk']['pct'] }}% of total</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
+                    <span>View details</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- 4. Delayed --}}
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
+            <div class="flex items-start justify-between">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2;">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-[11px] font-semibold text-slate-500 block">Delayed</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $healthSummary['delayed']['count'] }}</div>
+                <div class="text-[10.5px] text-slate-400 mt-1">{{ $healthSummary['delayed']['pct'] }}% of total</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
+                    <span>View details</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- 5. Open Blockers --}}
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
+            <div class="flex items-start justify-between">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #faf5ff; color: #9333ea; border: 1px solid #f3e8ff;">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="text-[11px] font-semibold text-slate-500 block">Open Blockers</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $activeBlockersCount }}</div>
+                <div class="text-[10.5px] text-slate-400 mt-1">Require attention</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <button wire:click="setDashboardTab('risks')" type="button" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group cursor-pointer">
+                    <span>View blockers</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                </button>
             </div>
         </div>
 
     </div>
 
 
-    {{-- ═══════════════════════════════════════════════════════════════
-         4. BOTTOM ROW: DEADLINES + RECENT ACTIVITY + GOVERNANCE HUB
-         ═══════════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    {{-- ═══════════════════════════════════════════════════════════
+         ROW 2: 3 CARDS (Portfolio Health + Gantt Preview + Tasks Summary)
+         ═══════════════════════════════════════════════════════════ --}}
+    <div class="w-full" style="display: grid; grid-template-columns: 27% calc(46% - 2rem) 27%; gap: 1rem;">
 
-        <!-- 4A. UPCOMING DEADLINES -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Upcoming Deadlines</h3>
-                            <p class="text-[10.5px] text-slate-400 font-medium">Next key milestones</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('calendar.index') }}" class="text-xs font-bold text-violet-600 hover:underline">Calendar &rarr;</a>
-                </div>
-
-                <div class="space-y-2.5">
-                    @forelse($upcomingTasks as $task)
-                        @php
-                            $dl = $task->end_date ? (int)now()->today()->diffInDays($task->end_date, false) : 0;
-                            $isOvr = $dl < 0; $isTdy = $dl === 0;
-                        @endphp
-                        <a href="{{ route('projects.show', $task->project_id) }}" class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all group no-underline">
-                            <div class="text-center w-11 flex-shrink-0 px-1 py-1 rounded-lg border {{ $isOvr ? 'bg-rose-50 border-rose-200 text-rose-700' : ($isTdy ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-slate-100 border-slate-200 text-slate-600') }}">
-                                <span class="text-[8px] font-black uppercase block leading-none">{{ $task->end_date ? $task->end_date->format('M') : 'N/A' }}</span>
-                                <span class="text-xs font-black font-mono block mt-0.5">{{ $task->end_date ? $task->end_date->format('d') : '--' }}</span>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-slate-900 truncate group-hover:text-[#c3122e] transition-colors">{{ $task->title }}</p>
-                                <span class="text-[10px] text-slate-400 truncate block">{{ $task->project->name ?? 'Project' }}</span>
-                            </div>
-                            <span class="text-[10px] font-bold flex-shrink-0 {{ $isOvr ? 'text-rose-600' : ($isTdy ? 'text-amber-700' : 'text-slate-500') }}">
-                                {{ $isOvr ? 'Overdue' : ($isTdy ? 'Today' : "In {$dl}d") }}
-                            </span>
-                        </a>
-                    @empty
-                        <div class="py-10 text-center text-xs text-slate-400">No upcoming task deadlines found.</div>
-                    @endforelse
+        {{-- 1. Portfolio Health Donut Chart (27%) --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Portfolio Health</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help" title="Overall health distribution">ⓘ</span>
                 </div>
             </div>
 
-            <div class="pt-3.5 mt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-medium">Tracked by WBS schedule</span>
-                <a href="{{ route('calendar.index') }}" class="font-bold text-violet-600 hover:underline">Full Calendar &rarr;</a>
+            @php
+                $c = 238.76; // Circumference for r=38
+                $tot = max(1, $totalProjects);
+                $pOnTrack = ($healthSummary['on_track']['count'] / $tot) * $c;
+                $pAtRisk  = ($healthSummary['at_risk']['count'] / $tot) * $c;
+                $pDelayed = ($healthSummary['delayed']['count'] / $tot) * $c;
+                $pStaged  = ($healthSummary['not_started']['count'] / $tot) * $c;
+
+                $offOnTrack = 0;
+                $offAtRisk  = -$pOnTrack;
+                $offDelayed = -($pOnTrack + $pAtRisk);
+                $offStaged  = -($pOnTrack + $pAtRisk + $pDelayed);
+            @endphp
+
+            <div class="my-4 flex items-center justify-between gap-3">
+                {{-- Donut SVG --}}
+                <div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                    <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
+                        <circle cx="48" cy="48" r="38" stroke="#f1f5f9" stroke-width="12" fill="transparent" />
+                        @if($pOnTrack > 0)
+                            <circle cx="48" cy="48" r="38" stroke="#10b981" stroke-width="12" fill="transparent"
+                                    stroke-dasharray="{{ $pOnTrack }} {{ $c }}" stroke-dashoffset="{{ $offOnTrack }}"/>
+                        @endif
+                        @if($pAtRisk > 0)
+                            <circle cx="48" cy="48" r="38" stroke="#f59e0b" stroke-width="12" fill="transparent"
+                                    stroke-dasharray="{{ $pAtRisk }} {{ $c }}" stroke-dashoffset="{{ $offAtRisk }}"/>
+                        @endif
+                        @if($pDelayed > 0)
+                            <circle cx="48" cy="48" r="38" stroke="#ef4444" stroke-width="12" fill="transparent"
+                                    stroke-dasharray="{{ $pDelayed }} {{ $c }}" stroke-dashoffset="{{ $offDelayed }}"/>
+                        @endif
+                        @if($pStaged > 0)
+                            <circle cx="48" cy="48" r="38" stroke="#94a3b8" stroke-width="12" fill="transparent"
+                                    stroke-dasharray="{{ $pStaged }} {{ $c }}" stroke-dashoffset="{{ $offStaged }}"/>
+                        @endif
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
+                        <span class="text-xl font-black font-mono text-slate-900 leading-none">{{ $totalProjects }}</span>
+                        <span class="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider">Projects</span>
+                    </div>
+                </div>
+
+                {{-- Legend --}}
+                <div class="space-y-1.5 text-xs flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span class="text-slate-600 font-medium text-[11px] truncate">On Track</span>
+                        </div>
+                        <span class="font-mono font-bold text-slate-900 text-[11px] shrink-0">{{ $healthSummary['on_track']['count'] }} ({{ $healthSummary['on_track']['pct'] }}%)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+                            <span class="text-slate-600 font-medium text-[11px] truncate">At Risk</span>
+                        </div>
+                        <span class="font-mono font-bold text-slate-900 text-[11px] shrink-0">{{ $healthSummary['at_risk']['count'] }} ({{ $healthSummary['at_risk']['pct'] }}%)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                            <span class="text-slate-600 font-medium text-[11px] truncate">Delayed</span>
+                        </div>
+                        <span class="font-mono font-bold text-slate-900 text-[11px] shrink-0">{{ $healthSummary['delayed']['count'] }} ({{ $healthSummary['delayed']['pct'] }}%)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                            <span class="text-slate-600 font-medium text-[11px] truncate">Not Started</span>
+                        </div>
+                        <span class="font-mono font-bold text-slate-900 text-[11px] shrink-0">{{ $healthSummary['not_started']['count'] }} ({{ $healthSummary['not_started']['pct'] }}%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2.5 border-t border-slate-100 text-center">
+                <a href="{{ route('reports.index') }}" class="text-xs font-bold text-slate-700 hover:text-[#c3122e] flex items-center justify-center gap-1 group no-underline">
+                    <span>View full report</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                </a>
             </div>
         </div>
 
-        <!-- 4B. RECENT ACTIVITY LOGS -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Recent Activity</h3>
-                            <p class="text-[10.5px] text-slate-400 font-medium">Audit logs &amp; updates</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('audit-logs.index') }}" class="text-xs font-bold text-emerald-600 hover:underline">All &rarr;</a>
+
+        {{-- 2. Project Timeline (Gantt Preview) (46%) --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Project Timeline (Gantt Preview)</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help">ⓘ</span>
                 </div>
 
-                <div class="space-y-3">
-                    @forelse($recentActivityLogs as $act)
-                        @php
-                            $aTitle = match($act->action) {
-                                'created_project'          => 'Created new project',
-                                'updated_project'          => 'Updated project',
-                                'created_wbs_item'         => 'Added new task',
-                                'updated_wbs_item'         => 'Updated task status',
-                                'created_status_update'    => 'Posted daily update',
-                                'created_risk'             => 'Raised a risk',
-                                'updated_role_permissions' => 'Updated permissions',
-                                default                    => ucwords(str_replace('_', ' ', $act->action))
-                            };
-                            $who = $act->user_id === auth()->id() ? 'You' : ($act->user->name ?? 'System');
-                            $init = strtoupper(substr($who, 0, 1));
-                        @endphp
-                        <div class="flex items-start gap-3">
-                            <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-black flex-shrink-0 border border-emerald-200 shadow-2xs">
-                                {{ $init }}
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-slate-800 leading-snug">
-                                    <span class="text-emerald-700 font-extrabold">{{ $who }}</span> &bull; {{ $aTitle }}
-                                </p>
-                                <span class="text-[10px] text-slate-400">{{ $act->created_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="py-10 text-center text-xs text-slate-400">No recent activity found.</div>
-                    @endforelse
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center text-xs font-semibold gap-3">
+                        <button wire:click="setTimelineScale('today')" type="button" class="transition-all cursor-pointer {{ $timelineScale === 'today' ? 'text-[#c3122e] font-bold border-b-2 border-[#c3122e] pb-0.5' : 'text-slate-500 hover:text-slate-900' }}">
+                            Today
+                        </button>
+                        <button wire:click="setTimelineScale('week')" type="button" class="transition-all cursor-pointer {{ $timelineScale === 'week' ? 'text-[#c3122e] font-bold border-b-2 border-[#c3122e] pb-0.5' : 'text-slate-500 hover:text-slate-900' }}">
+                            Week
+                        </button>
+                        <button wire:click="setTimelineScale('month')" type="button" class="transition-all cursor-pointer {{ $timelineScale === 'month' ? 'text-[#c3122e] font-bold border-b-2 border-[#c3122e] pb-0.5' : 'text-slate-500 hover:text-slate-900' }}">
+                            Month
+                        </button>
+                    </div>
+                    <span class="text-slate-200">|</span>
+                    <a href="{{ route('project-monitor.index') }}?viewMode=gantt" class="text-xs font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
+                        <span>View Full Gantt</span>
+                        <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                    </a>
                 </div>
             </div>
 
-            <div class="pt-3.5 mt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-medium">Real-time system events</span>
-                <a href="{{ route('audit-logs.index') }}" class="font-bold text-emerald-600 hover:underline">Full audit log &rarr;</a>
-            </div>
-        </div>
-
-        <!-- 4C. GOVERNANCE & QUICK SHORTCUTS -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Administration Hub</h3>
-                            <p class="text-[10.5px] text-slate-400 font-medium">Quick management tools</p>
+            {{-- Timeline Header & Grid --}}
+            <div class="my-3">
+                @if($timelineScale === 'today')
+                    {{-- Today Hours Header --}}
+                    <div style="display: flex; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem; font-size: 10px; font-weight: bold; color: #94a3b8;">
+                        <div style="width: 32%; text-transform: uppercase; letter-spacing: 0.05em;">Project / Phase</div>
+                        <div style="width: 68%; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center;">
+                            <div>09:00 AM</div>
+                            <div style="color: #c3122e; font-weight: 700;">
+                                <span>12:00 PM</span>
+                                <span style="display: block; font-size: 8px; font-weight: normal; color: #f43f5e;">Now</span>
+                            </div>
+                            <div>03:00 PM</div>
+                            <div>06:00 PM</div>
                         </div>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-2">
+                    {{-- Today Project Timeline Rows --}}
+                    <div style="position: relative; display: flex; flex-direction: column; gap: 0.75rem; min-height: 100px;">
+                        <div style="position: absolute; top: 0; bottom: 0; left: calc(32% + 25%); width: 1px; border-right: 1px dashed #f87171; z-index: 10; pointer-events: none;"></div>
+
+                        @forelse($overviewProjects as $idx => $proj)
+                            @php
+                                $pHealth = $proj->health ?? 'on_track';
+                                $barBg = match($pHealth) {
+                                    'delayed' => '#c3122e',
+                                    'at_risk' => '#f59e0b',
+                                    default => '#10b981',
+                                };
+                                $leftOffset = $idx == 0 ? 5 : 20;
+                                $barWidth = $idx == 0 ? 80 : 65;
+                            @endphp
+                            <div style="display: flex; align-items: center; font-size: 12px;">
+                                <div style="width: 32%; padding-right: 0.5rem; min-width: 0;">
+                                    <a href="{{ route('projects.show', $proj->id) }}" class="font-bold text-slate-900 hover:text-[#c3122e] truncate block text-[11px] no-underline">
+                                        {{ $proj->name }}
+                                    </a>
+                                    <span class="text-[9.5px] text-slate-400 block truncate">{{ $proj->subsidiary->name ?? 'George Steuart' }}</span>
+                                </div>
+                                <div style="width: 68%; height: 1.5rem; position: relative; display: flex; align-items: center;">
+                                    <div style="width: 100%; height: 1.25rem; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; left: {{ $leftOffset }}%; width: {{ $barWidth }}%; top: 2px; bottom: 2px; background: {{ $barBg }}; color: #ffffff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap; padding: 0 4px;">
+                                            {{ now()->format('M d') }} Active Execution
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-xs text-slate-400">No active projects found in timeline.</div>
+                        @endforelse
+                    </div>
+
+                @elseif($timelineScale === 'week')
+                    {{-- Week Days Header --}}
                     @php
-                        $adminShortcuts = [
-                            ['label' => 'Users',        'route' => route('users.index'),             'color' => 'bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-                            ['label' => 'Approvals',    'route' => route('approvals.index'),         'color' => 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100',    'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                            ['label' => 'Risks & Issues','route' => route('risks.index'),             'color' => 'bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100',        'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
-                            ['label' => 'Roles & Perms','route' => route('roles-permissions.index'), 'color' => 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100', 'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'],
-                            ['label' => 'Reports',      'route' => route('reports.index'),           'color' => 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100', 'icon' => 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
-                            ['label' => 'Settings',     'route' => route('settings.index'),          'color' => 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200',  'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'],
-                        ];
+                        $startOfWeek = now()->startOfWeek();
                     @endphp
-                    @foreach($adminShortcuts as $sc)
-                        <a href="{{ $sc['route'] }}" class="flex items-center gap-2 p-2.5 rounded-xl border transition-all no-underline {{ $sc['color'] }}">
-                            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sc['icon'] }}"/></svg>
-                            <span class="text-xs font-bold truncate">{{ $sc['label'] }}</span>
-                        </a>
-                    @endforeach
+                    <div style="display: flex; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem; font-size: 10px; font-weight: bold; color: #94a3b8;">
+                        <div style="width: 32%; text-transform: uppercase; letter-spacing: 0.05em;">Project / Phase</div>
+                        <div style="width: 68%; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center;">
+                            <div>{{ $startOfWeek->format('D, M d') }}</div>
+                            <div style="color: #c3122e; font-weight: 700;">
+                                <span>{{ $startOfWeek->copy()->addDays(2)->format('D, M d') }}</span>
+                                <span style="display: block; font-size: 8px; font-weight: normal; color: #f43f5e;">Today</span>
+                            </div>
+                            <div>{{ $startOfWeek->copy()->addDays(4)->format('D, M d') }}</div>
+                            <div>{{ $startOfWeek->copy()->addDays(6)->format('D, M d') }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Week Project Timeline Rows --}}
+                    <div style="position: relative; display: flex; flex-direction: column; gap: 0.75rem; min-height: 100px;">
+                        <div style="position: absolute; top: 0; bottom: 0; left: calc(32% + 25%); width: 1px; border-right: 1px dashed #f87171; z-index: 10; pointer-events: none;"></div>
+
+                        @forelse($overviewProjects as $idx => $proj)
+                            @php
+                                $pHealth = $proj->health ?? 'on_track';
+                                $barBg = match($pHealth) {
+                                    'delayed' => '#c3122e',
+                                    'at_risk' => '#f59e0b',
+                                    default => '#10b981',
+                                };
+                                $leftOffset = $idx == 0 ? 10 : 25;
+                                $barWidth = $idx == 0 ? 75 : 60;
+                            @endphp
+                            <div style="display: flex; align-items: center; font-size: 12px;">
+                                <div style="width: 32%; padding-right: 0.5rem; min-width: 0;">
+                                    <a href="{{ route('projects.show', $proj->id) }}" class="font-bold text-slate-900 hover:text-[#c3122e] truncate block text-[11px] no-underline">
+                                        {{ $proj->name }}
+                                    </a>
+                                    <span class="text-[9.5px] text-slate-400 block truncate">{{ $proj->subsidiary->name ?? 'George Steuart' }}</span>
+                                </div>
+                                <div style="width: 68%; height: 1.5rem; position: relative; display: flex; align-items: center;">
+                                    <div style="width: 100%; height: 1.25rem; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; left: {{ $leftOffset }}%; width: {{ $barWidth }}%; top: 2px; bottom: 2px; background: {{ $barBg }}; color: #ffffff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap; padding: 0 4px;">
+                                            Sprint Deliverables (W{{ now()->weekOfYear }})
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-xs text-slate-400">No active projects found in timeline.</div>
+                        @endforelse
+                    </div>
+
+                @else
+                    {{-- Default: Month View Header --}}
+                    <div style="display: flex; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem; font-size: 10px; font-weight: bold; color: #94a3b8;">
+                        <div style="width: 32%; text-transform: uppercase; letter-spacing: 0.05em;">Project / Phase</div>
+                        <div style="width: 68%; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center;">
+                            <div style="color: #c3122e; font-weight: 700;">
+                                <span>{{ now()->format('M Y') }}</span>
+                                <span style="display: block; font-size: 8px; font-weight: normal; color: #f43f5e;">Today</span>
+                            </div>
+                            <div>{{ now()->addMonth(1)->format('M Y') }}</div>
+                            <div>{{ now()->addMonth(2)->format('M Y') }}</div>
+                            <div>{{ now()->addMonth(3)->format('M Y') }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Month Project Timeline Rows --}}
+                    <div style="position: relative; display: flex; flex-direction: column; gap: 0.75rem; min-height: 100px;">
+                        <div style="position: absolute; top: 0; bottom: 0; left: calc(32% + 8.5%); width: 1px; border-right: 1px dashed #f87171; z-index: 10; pointer-events: none;"></div>
+
+                        @forelse($overviewProjects as $idx => $proj)
+                            @php
+                                $pHealth = $proj->health ?? 'on_track';
+                                $barBg = match($pHealth) {
+                                    'delayed' => '#c3122e',
+                                    'at_risk' => '#f59e0b',
+                                    'completed' => '#10b981',
+                                    default => '#10b981',
+                                };
+                                $barText = match($pHealth) {
+                                    'at_risk' => '#78350f',
+                                    default => '#ffffff',
+                                };
+                                $dStart = $proj->start_date ? $proj->start_date->format('M d') : ($proj->created_at ? $proj->created_at->format('M d') : 'Sep 01');
+                                $dEnd = $proj->deadline ? $proj->deadline->format('M d') : 'Nov 30';
+
+                                $leftOffset = $idx == 0 ? 5 : 12;
+                                $barWidth = $idx == 0 ? 70 : 50;
+                            @endphp
+                            <div style="display: flex; align-items: center; font-size: 12px;">
+                                <div style="width: 32%; padding-right: 0.5rem; min-width: 0;">
+                                    <a href="{{ route('projects.show', $proj->id) }}" class="font-bold text-slate-900 hover:text-[#c3122e] truncate block text-[11px] no-underline">
+                                        {{ $proj->name }}
+                                    </a>
+                                    <span class="text-[9.5px] text-slate-400 block truncate">{{ $proj->subsidiary->name ?? 'George Steuart' }}</span>
+                                </div>
+                                <div style="width: 68%; height: 1.5rem; position: relative; display: flex; align-items: center;">
+                                    <div style="width: 100%; height: 1.25rem; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; left: {{ $leftOffset }}%; width: {{ $barWidth }}%; top: 2px; bottom: 2px; background: {{ $barBg }}; color: {{ $barText }}; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap; padding: 0 4px;">
+                                            {{ $dStart }} - {{ $dEnd }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-xs text-slate-400">No active projects found in timeline.</div>
+                        @endforelse
+                    </div>
+                @endif
+            </div>
+
+            {{-- Bottom Legend --}}
+            <div class="pt-2.5 border-t border-slate-100 flex items-center gap-4 text-[10.5px] text-slate-500 font-medium">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>On Track</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>At Risk</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                    <span>Delayed</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                    <span>Not Started</span>
+                </div>
+            </div>
+        </div>
+
+
+        {{-- 3. Tasks Summary (27%) --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Tasks Summary</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help">ⓘ</span>
+                </div>
+                <a href="{{ route('project-monitor.index') }}?viewMode=table" class="text-xs font-bold text-[#c3122e] hover:underline no-underline">View all tasks →</a>
+            </div>
+
+            <div class="divide-y divide-slate-100 my-1 text-xs">
+                {{-- Total Tasks --}}
+                <div class="py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-700 font-medium">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Total Tasks</span>
+                    </div>
+                    <span class="font-mono font-black text-slate-900">{{ $totalTasksCount }}</span>
+                </div>
+
+                {{-- Completed --}}
+                <div class="py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-700 font-medium">
+                        <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Completed</span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-900">
+                        {{ $completedTasksCount }} <span class="text-slate-400 font-normal">({{ $totalTasksCount > 0 ? (int)round(($completedTasksCount / $totalTasksCount) * 100) : 0 }}%)</span>
+                    </span>
+                </div>
+
+                {{-- In Progress --}}
+                <div class="py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-700 font-medium">
+                        <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>In Progress</span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-900">
+                        {{ $inProgressTasksCount }} <span class="text-slate-400 font-normal">({{ $totalTasksCount > 0 ? (int)round(($inProgressTasksCount / $totalTasksCount) * 100) : 0 }}%)</span>
+                    </span>
+                </div>
+
+                {{-- On Hold --}}
+                <div class="py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-700 font-medium">
+                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>On Hold</span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-900">
+                        {{ $onHoldTasksCount }} <span class="text-slate-400 font-normal">({{ $totalTasksCount > 0 ? (int)round(($onHoldTasksCount / $totalTasksCount) * 100) : 0 }}%)</span>
+                    </span>
+                </div>
+
+                {{-- Not Started --}}
+                <div class="py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-700 font-medium">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                        <span>Not Started</span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-900">
+                        {{ $notStartedTasksCount }} <span class="text-slate-400 font-normal">({{ $totalTasksCount > 0 ? (int)round(($notStartedTasksCount / $totalTasksCount) * 100) : 0 }}%)</span>
+                    </span>
                 </div>
             </div>
 
-            <div class="pt-3.5 mt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-medium">Enterprise Suite Controls</span>
-                <a href="{{ route('settings.index') }}" class="font-bold text-slate-700 hover:underline">All Settings &rarr;</a>
+            <div class="pt-2 text-[10.5px] text-slate-400 text-center font-medium">
+                Live delivery breakdown across active projects
             </div>
         </div>
 
     </div>
+
+
+    {{-- ═══════════════════════════════════════════════════════════
+         ROW 3: 4 BOTTOM CARDS (Top Risks, Pending Approvals, Milestones, Recent Activity)
+         ═══════════════════════════════════════════════════════════ --}}
+    <div class="w-full" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;">
+
+        {{-- 1. Top Risks --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Top Risks</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help">ⓘ</span>
+                </div>
+                <button wire:click="setDashboardTab('risks')" type="button" class="text-xs font-bold text-[#c3122e] hover:underline cursor-pointer">View all risks →</button>
+            </div>
+
+            <div class="my-2 divide-y divide-slate-100 text-xs flex-1">
+                @forelse($allRisks->take(4) as $rsk)
+                    @php
+                        $score = (int)($rsk->risk_score ?? 1);
+                        $sev = $score >= 6 ? 'High' : ($score >= 4 ? 'Medium' : 'Low');
+                        $sevPill = match($sev) {
+                            'High' => 'bg-rose-50 text-rose-700 border-rose-100',
+                            'Medium' => 'bg-amber-50 text-amber-800 border-amber-100',
+                            default => 'bg-slate-50 text-slate-600 border-slate-100',
+                        };
+                    @endphp
+                    <div class="py-2 flex items-center justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-bold text-slate-900 truncate text-[11px]" title="{{ $rsk->title }}">{{ $rsk->title }}</h4>
+                            <span class="text-[10px] text-slate-400 block truncate">{{ $rsk->project->name ?? 'Project' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="px-2 py-0.2 rounded-full text-[9px] font-bold border {{ $sevPill }}">{{ $sev }}</span>
+                            <span class="text-[10px] font-medium text-slate-400 capitalize">{{ $rsk->status ?? 'Open' }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-6 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-1">
+                        <svg class="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="font-medium text-slate-600">No active risks logged</span>
+                        <span class="text-[10px]">All projects operating normally</span>
+                    </div>
+                @endforelse
+            </div>
+            
+            <div class="pt-2 text-[10.5px] text-slate-400 border-t border-slate-100">
+                Enterprise Risk Register Active
+            </div>
+        </div>
+
+
+        {{-- 2. Pending Approvals --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Pending Approvals</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help">ⓘ</span>
+                </div>
+                <button wire:click="setDashboardTab('approvals')" type="button" class="text-xs font-bold text-[#c3122e] hover:underline cursor-pointer">View all approvals →</button>
+            </div>
+
+            <div class="divide-y divide-slate-100 my-1 text-xs flex-1">
+                @php
+                    $displayApprovals = $pendingApprovalList->isNotEmpty() ? $pendingApprovalList : $allApprovals->take(4);
+                @endphp
+
+                @forelse($displayApprovals as $idx => $req)
+                    @php
+                        $icons = [
+                            0 => ['bg' => 'bg-amber-50 text-amber-600', 'badge' => 'text-rose-600 bg-rose-50'],
+                            1 => ['bg' => 'bg-blue-50 text-blue-600', 'badge' => 'text-amber-700 bg-amber-50'],
+                            2 => ['bg' => 'bg-orange-50 text-orange-600', 'badge' => 'text-rose-600 bg-rose-50'],
+                            3 => ['bg' => 'bg-sky-50 text-sky-600', 'badge' => 'text-slate-600 bg-slate-100'],
+                        ];
+                        $st = $icons[$idx % 4];
+                        $rawReqType = $req->request_type instanceof \BackedEnum ? $req->request_type->value : (string)($req->request_type ?? '');
+                        $reqTitle = match($rawReqType) {
+                            'deadline_extension' => 'Deadline Extension',
+                            'budget_variation' => 'Budget Variation',
+                            'scope_change' => 'Scope Change',
+                            'new_project_plan' => 'Project Plan Sign-off',
+                            'member_addition' => 'Resource Addition',
+                            default => ucwords(str_replace('_', ' ', $rawReqType ?: 'Approval Request'))
+                        };
+                        $isPending = ($req->status instanceof \BackedEnum ? $req->status->value : (string)$req->status) === 'pending';
+                    @endphp
+                    <div class="py-2 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-7 h-7 rounded-lg {{ $st['bg'] }} flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-900 truncate text-[11px]">{{ $reqTitle }}</h4>
+                                <span class="text-[10px] text-slate-400 block truncate">{{ $req->project->name ?? 'Enterprise Project' }}</span>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full font-mono text-[10px] font-black {{ $isPending ? 'text-rose-600 bg-rose-50' : 'text-emerald-700 bg-emerald-50' }}">
+                            {{ $isPending ? 'Pending' : 'Done' }}
+                        </span>
+                    </div>
+                @empty
+                    <div class="py-6 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-1">
+                        <svg class="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span class="font-medium text-slate-600">All approvals clear</span>
+                        <span class="text-[10px]">No pending requests</span>
+                    </div>
+                @endforelse
+            </div>
+
+            <div class="pt-2 text-[10.5px] text-slate-400 border-t border-slate-100">
+                Governance Workflow Active
+            </div>
+        </div>
+
+
+        {{-- 3. Upcoming Milestones --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Upcoming Milestones</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help">ⓘ</span>
+                </div>
+                <a href="{{ route('calendar.index') }}" class="text-xs font-bold text-[#c3122e] hover:underline no-underline">View calendar →</a>
+            </div>
+
+            <div class="divide-y divide-slate-100 my-1 text-xs flex-1">
+                @forelse($upcomingTasks->take(4) as $task)
+                    @php
+                        $dl = $task->end_date ? (int)now()->today()->diffInDays($task->end_date, false) : 0;
+                        $isOvr = $dl < 0;
+                        $labelDays = $isOvr ? abs($dl).'d overdue' : ($dl === 0 ? 'Today' : "{$dl} days left");
+                        $dayColor = $isOvr ? 'text-rose-600 font-bold' : ($dl <= 7 ? 'text-rose-600 font-semibold' : 'text-slate-500 font-medium');
+                    @endphp
+                    <div class="py-2 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-8 text-center flex-shrink-0">
+                                <span class="text-[8.5px] font-black uppercase text-[#c3122e] block leading-none font-mono">
+                                    {{ $task->end_date ? $task->end_date->format('M') : 'SEP' }}
+                                </span>
+                                <span class="text-xs font-black font-mono text-slate-900 block leading-tight">
+                                    {{ $task->end_date ? $task->end_date->format('d') : '02' }}
+                                </span>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-900 truncate text-[11px]" title="{{ $task->title }}">{{ $task->title }}</h4>
+                                <span class="text-[10px] text-slate-400 block truncate">{{ $task->project->name ?? 'System Integration' }}</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] {{ $dayColor }} font-mono whitespace-nowrap">
+                            {{ $labelDays }}
+                        </span>
+                    </div>
+                @empty
+                    <div class="py-6 text-center text-xs text-slate-400">No upcoming milestone deadlines.</div>
+                @endforelse
+            </div>
+
+            <div class="pt-2 text-[10.5px] text-slate-400 border-t border-slate-100">
+                WBS Delivery Schedule Synced
+            </div>
+        </div>
+
+
+        {{-- 4. Recent Activity --}}
+        <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <h2 class="text-sm font-bold text-slate-900">Recent Activity</h2>
+                    <span class="text-slate-300 text-xs font-serif italic cursor-help">ⓘ</span>
+                </div>
+                <a href="{{ route('audit-logs.index') }}" class="text-xs font-bold text-[#c3122e] hover:underline no-underline">View all activity →</a>
+            </div>
+
+            <div class="divide-y divide-slate-100 my-1 text-xs flex-1">
+                @forelse($recentActivityLogs->take(4) as $idx => $act)
+                    @php
+                        $icons = [
+                            0 => ['color' => 'text-emerald-500', 'bg' => 'bg-emerald-50'],
+                            1 => ['color' => 'text-rose-500', 'bg' => 'bg-rose-50'],
+                            2 => ['color' => 'text-amber-500', 'bg' => 'bg-amber-50'],
+                            3 => ['color' => 'text-blue-500', 'bg' => 'bg-blue-50'],
+                        ];
+                        $st = $icons[$idx % 4];
+                        $aTitle = match($act->action) {
+                            'created_project'          => 'created project',
+                            'updated_project'          => 'updated project details',
+                            'created_wbs_item'         => 'added task deliverable',
+                            'updated_wbs_item'         => 'updated task progress',
+                            'created_status_update'    => 'submitted daily update',
+                            'created_risk'             => 'reported a risk item',
+                            default                    => str_replace('_', ' ', $act->action)
+                        };
+                        $who = $act->user_id === auth()->id() ? 'You' : ($act->user->name ?? 'System');
+                    @endphp
+                    <div class="py-2 flex items-start gap-2.5">
+                        <div class="w-5 h-5 rounded-full {{ $st['bg'] }} {{ $st['color'] }} flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-slate-800 leading-snug line-clamp-2 text-[11px]">
+                                <strong class="text-slate-900 font-semibold">{{ $who }}</strong> {{ $aTitle }}
+                            </p>
+                            <span class="text-[9.5px] text-slate-400 mt-0.5 block">{{ $act->created_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-6 text-center text-xs text-slate-400">No recent activity recorded.</div>
+                @endforelse
+            </div>
+
+            <div class="pt-2 text-[10.5px] text-slate-400 border-t border-slate-100">
+                Live Audit Logs Active
+            </div>
+        </div>
+
+    </div>
+
+
+    {{-- ═══════════════════════════════════════════════════════════
+         MODALS FOR ACTIONS (Approvals, Risks, Blockers)
+         ═══════════════════════════════════════════════════════════ --}}
+    @if($showReviewModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                        <h3 class="text-base font-black text-slate-900 tracking-tight">Executive Approval Sign-Off</h3>
+                    </div>
+                    <button wire:click="$set('showReviewModal', false)" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">&times;</button>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Executive Notes / Sign-off Comments</label>
+                        <textarea wire:model="reviewComment" rows="3"
+                                  class="w-full rounded-xl border border-slate-200 p-3 text-xs focus:ring-2 focus:ring-[#c3122e] focus:border-transparent outline-hidden"
+                                  placeholder="Specify any conditions, governance notes, or reasons for decision..."></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2.5 pt-2">
+                        <button wire:click="$set('showReviewModal', false)" type="button"
+                                class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button wire:click="submitReview(false)" type="button"
+                                class="px-4 py-2 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer">
+                            Reject Request
+                        </button>
+                        <button wire:click="submitReview(true)" type="button"
+                                class="px-5 py-2 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all cursor-pointer">
+                            ✓ Approve Sign-Off
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($showResolveBlockerModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <h3 class="text-base font-black text-slate-900 tracking-tight">Resolve Work Blocker</h3>
+                    <button wire:click="$set('showResolveBlockerModal', false)" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">&times;</button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Resolution Summary</label>
+                        <textarea wire:model="blockerResolutionInput" rows="3"
+                                  class="w-full rounded-xl border border-slate-200 p-3 text-xs focus:ring-2 focus:ring-[#c3122e] focus:border-transparent outline-hidden"
+                                  placeholder="Describe how the obstacle was cleared or resource provided..."></textarea>
+                        @error('blockerResolutionInput') <span class="text-rose-600 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-2">
+                        <button wire:click="$set('showResolveBlockerModal', false)" type="button"
+                                class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button wire:click="resolveBlocker" type="button"
+                                class="px-5 py-2 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all cursor-pointer">
+                            Clear &amp; Mark Resolved
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
 </div>

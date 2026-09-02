@@ -326,7 +326,7 @@
                 {{-- User Header --}}
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px;">
                     <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: #1c1917; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(0,0,0,0.12);">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #c3122e 0%, #800a1c 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(195,18,46,0.25); border: 2px solid rgba(255,255,255,0.8);">
                             {{ strtoupper(substr($u->name, 0, 2)) }}
                         </div>
                         <div style="min-width: 0;">

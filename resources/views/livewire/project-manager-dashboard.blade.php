@@ -177,85 +177,85 @@
             }
         }
     </style>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-3 pm-kpi-grid">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 pm-kpi-grid">
         <!-- 1. My Projects -->
-        <div class="bg-white border border-slate-200/80 rounded-xl p-3 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between">
-            <div class="flex items-center gap-2.5 mb-1">
-                <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <div class="bg-white border border-slate-200/80 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div class="flex items-center gap-2 sm:gap-2.5 mb-1">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-base sm:text-lg font-black text-slate-900 leading-none block font-sans">{{ $myProjectsCount }}</span>
-                    <span class="text-[10px] font-bold text-slate-500 block mt-0.5 truncate">My Projects</span>
+                    <span class="text-sm sm:text-lg font-black text-slate-900 leading-none block font-mono">{{ $myProjectsCount }}</span>
+                    <span class="text-[9.5px] sm:text-[10px] font-bold text-slate-500 block mt-0.5 truncate">My Projects</span>
                 </div>
             </div>
-            <div class="text-[9.5px] font-bold text-blue-600 truncate flex items-center gap-1">
+            <div class="text-[8.5px] sm:text-[9.5px] font-bold text-blue-600 truncate flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                 <span>{{ $inProgressProjectsCount }} in progress</span>
             </div>
         </div>
 
         <!-- 2. My Tasks -->
-        <div class="bg-white border border-slate-200/80 rounded-xl p-3 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all flex flex-col justify-between">
-            <div class="flex items-center gap-2.5 mb-1">
-                <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="bg-white border border-slate-200/80 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div class="flex items-center gap-2 sm:gap-2.5 mb-1">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-base sm:text-lg font-black text-slate-900 leading-none block font-sans">{{ $myTasksCount }}</span>
-                    <span class="text-[10px] font-bold text-slate-500 block mt-0.5 truncate">My Tasks</span>
+                    <span class="text-sm sm:text-lg font-black text-slate-900 leading-none block font-mono">{{ $myTasksCount }}</span>
+                    <span class="text-[9.5px] sm:text-[10px] font-bold text-slate-500 block mt-0.5 truncate">My Tasks</span>
                 </div>
             </div>
-            <div class="text-[9.5px] font-bold text-emerald-600 truncate flex items-center gap-1">
+            <div class="text-[8.5px] sm:text-[9.5px] font-bold text-emerald-600 truncate flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>{{ $completedTasksCount }} completed</span>
+                <span>{{ $completedTasksCount }} done</span>
             </div>
         </div>
 
         <!-- 3. Due in 7 Days -->
-        <div class="bg-white border border-slate-200/80 rounded-xl p-3 shadow-2xs hover:border-purple-300 hover:shadow-xs transition-all flex flex-col justify-between">
-            <div class="flex items-center gap-2.5 mb-1">
-                <div class="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <div class="bg-white border border-slate-200/80 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:border-purple-300 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div class="flex items-center gap-2 sm:gap-2.5 mb-1">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-base sm:text-lg font-black text-slate-900 leading-none block font-sans">{{ $tasksDueSoonCount }}</span>
-                    <span class="text-[10px] font-bold text-slate-500 block mt-0.5 truncate">Due in 7 Days</span>
+                    <span class="text-sm sm:text-lg font-black text-slate-900 leading-none block font-mono">{{ $tasksDueSoonCount }}</span>
+                    <span class="text-[9.5px] sm:text-[10px] font-bold text-slate-500 block mt-0.5 truncate">Due 7 Days</span>
                 </div>
             </div>
-            <div class="text-[9.5px] font-bold text-purple-600 truncate flex items-center gap-1">
-                <span>📅 Deadlines upcoming</span>
+            <div class="text-[8.5px] sm:text-[9.5px] font-bold text-purple-600 truncate flex items-center gap-1">
+                <span>📅 Deadlines</span>
             </div>
         </div>
 
         <!-- 4. Pending Approvals -->
-        <div class="bg-white border border-slate-200/80 rounded-xl p-3 shadow-2xs hover:border-amber-300 hover:shadow-xs transition-all flex flex-col justify-between">
-            <div class="flex items-center gap-2.5 mb-1">
-                <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div class="bg-white border border-slate-200/80 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:border-amber-300 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div class="flex items-center gap-2 sm:gap-2.5 mb-1">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-base sm:text-lg font-black text-slate-900 leading-none block font-sans">{{ $pendingApprovalsCount }}</span>
-                    <span class="text-[10px] font-bold text-slate-500 block mt-0.5 truncate">Approvals</span>
+                    <span class="text-sm sm:text-lg font-black text-slate-900 leading-none block font-mono">{{ $pendingApprovalsCount }}</span>
+                    <span class="text-[9.5px] sm:text-[10px] font-bold text-slate-500 block mt-0.5 truncate">Approvals</span>
                 </div>
             </div>
-            <div class="text-[9.5px] font-bold text-amber-600 truncate flex items-center gap-1">
-                <span>⚡ Action needed</span>
+            <div class="text-[8.5px] sm:text-[9.5px] font-bold text-amber-600 truncate flex items-center gap-1">
+                <span>⚡ Action</span>
             </div>
         </div>
 
         <!-- 5. Logged Hours -->
-        <div class="bg-white border border-slate-200/80 rounded-xl p-3 shadow-2xs hover:border-rose-300 hover:shadow-xs transition-all flex flex-col justify-between">
-            <div class="flex items-center gap-2.5 mb-1">
-                <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="bg-white border border-slate-200/80 rounded-xl p-2.5 sm:p-3 shadow-2xs hover:border-rose-300 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div class="flex items-center gap-2 sm:gap-2.5 mb-1">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-base sm:text-lg font-black text-slate-900 leading-none block font-sans">{{ $hoursThisWeekFormatted }}</span>
-                    <span class="text-[10px] font-bold text-slate-500 block mt-0.5 truncate">Logged Hours</span>
+                    <span class="text-sm sm:text-lg font-black text-slate-900 leading-none block font-mono">{{ $hoursThisWeekFormatted }}</span>
+                    <span class="text-[9.5px] sm:text-[10px] font-bold text-slate-500 block mt-0.5 truncate">Hours</span>
                 </div>
             </div>
-            <div class="text-[9.5px] font-bold text-rose-600 truncate flex items-center gap-1">
+            <div class="text-[8.5px] sm:text-[9.5px] font-bold text-rose-600 truncate flex items-center gap-1">
                 <span>⏱️ This week</span>
             </div>
         </div>
@@ -578,16 +578,16 @@
                     $totalImpediments = $currentBlockers->count() + $openRisks->count();
                 @endphp
 
-                <div class="space-y-2.5">
+                <div class="space-y-2.5 max-h-[280px] overflow-y-auto pr-0.5">
                     @if($totalImpediments > 0)
                         {{-- 1. Show Active Blockers First --}}
-                        @foreach($currentBlockers->take(2) as $blocker)
+                        @foreach($currentBlockers->take(3) as $blocker)
                             <div class="p-3 rounded-2xl bg-rose-50/60 border border-rose-200/80 hover:bg-rose-50 transition-all space-y-1.5">
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="min-w-0 flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping flex-shrink-0"></span>
-                                        <span class="text-xs font-black text-slate-900 truncate block" title="{{ $blocker->reason }}">
-                                            {{ $blocker->reason }}
+                                        <span class="text-xs font-black text-slate-900 truncate block" title="{{ $blocker->description ?? $blocker->reason ?? 'Task Blocker' }}">
+                                            {{ $blocker->description ?? $blocker->reason ?? 'Task Blocker' }}
                                         </span>
                                     </div>
                                     <span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300/80 uppercase tracking-wider flex-shrink-0 font-mono">
@@ -606,7 +606,7 @@
                         @endforeach
 
                         {{-- 2. Show Open Project Risks --}}
-                        @foreach($openRisks->take(2) as $risk)
+                        @foreach($openRisks->take(4) as $risk)
                             @php
                                 $probColor = match(strtolower($risk->probability ?? 'medium')) {
                                     'high' => 'bg-rose-50 text-rose-700 border-rose-200',

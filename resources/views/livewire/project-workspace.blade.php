@@ -2294,6 +2294,11 @@
             <!-- 2. Scrollable Body Content -->
             <div style="padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; flex: 1; background: #f8fafc;">
                 
+                @php
+                    $canEditProject = $project->userCan(auth()->user(), 'project.edit') || $project->userCan(auth()->user(), 'project_details.edit') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
+                    $canManageTeam = $project->userCan(auth()->user(), 'team.add') || $project->userCan(auth()->user(), 'team.assign_role') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
+                @endphp
+
                 <!-- Section 1: Executive KPI & Control Bar (4 Streamlined Cards) -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     
@@ -2302,7 +2307,7 @@
                         <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
                             Execution Status
                         </span>
-                        @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) || $project->members->contains(auth()->id()))
+                        @if($canEditProject)
                             <select
                                 wire:change="updateProjectStatus($event.target.value)"
                                 style="width: 100%; height: 34px; padding: 0 8px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; outline: none; cursor: pointer;"
@@ -2326,7 +2331,7 @@
                         <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
                             Delivery Health
                         </span>
-                        @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) || $project->members->contains(auth()->id()))
+                        @if($canEditProject)
                             <select
                                 wire:change="updateProjectHealth($event.target.value)"
                                 style="width: 100%; height: 34px; padding: 0 8px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; outline: none; cursor: pointer;"
@@ -2503,7 +2508,7 @@
                                 <p style="margin: 2px 0 0 0; font-size: 10.5px; color: #64748b;">Designated Lead PM and Active Collaborators</p>
                             </div>
                         </div>
-                        @if($project->canUserManage(auth()->user()))
+                        @if($canManageTeam)
                             <button 
                                 wire:click="openCollaboratorsModal" 
                                 type="button" 
@@ -2604,7 +2609,7 @@
                     <span>GS NexusPM &bull; Executive Briefing</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    @if($project->canUserManage(auth()->user()))
+                    @if($canEditProject)
                         <button 
                             wire:click="openEditProjectModal" 
                             type="button" 

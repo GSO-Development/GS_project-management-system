@@ -25,7 +25,9 @@ class WbsItem extends Model
         'description',
         'assigned_user_id',
         'start_date',
+        'start_time',
         'end_date',
+        'end_time',
         'duration',
         'status',
         'priority',
@@ -38,6 +40,10 @@ class WbsItem extends Model
         'delay_reason',
         'delay_reason_by',
         'delay_reason_at',
+        'rescheduled_shift_days',
+        'rescheduled_at',
+        'rescheduled_reason',
+        'overdue_notified_at',
         'created_by',
         'updated_by',
     ];
@@ -50,12 +56,15 @@ class WbsItem extends Model
             'priority' => Priority::class,
             'start_date' => 'date',
             'end_date' => 'date',
+            'overdue_notified_at' => 'datetime',
             'is_milestone' => 'boolean',
             'weight' => 'decimal:4',
             'estimated_hours' => 'decimal:2',
             'actual_hours' => 'decimal:2',
             'progress' => 'integer',
             'delay_reason_at' => 'datetime',
+            'rescheduled_at' => 'datetime',
+            'rescheduled_shift_days' => 'integer',
         ];
     }
 
@@ -125,6 +134,44 @@ class WbsItem extends Model
     }
 
     /**
+     * Get RAG Traffic Light health data
+     */
+    public function getTrafficLightAttribute(): array
+    {
+        return \App\Services\TaskHealthCalculationService::calculate($this);
+    }
+
+    public function getTrafficLightStatusAttribute(): string
+    {
+        return $this->traffic_light['status'];
+    }
+
+    public function getTrafficLightReasonAttribute(): string
+    {
+        return $this->traffic_light['reason'];
+    }
+
+    public function getStartTimeFormattedAttribute(): ?string
+    {
+        if (!$this->start_time) return null;
+        try {
+            return \Carbon\Carbon::parse($this->start_time)->format('h:i A');
+        } catch (\Throwable $e) {
+            return (string) $this->start_time;
+        }
+    }
+
+    public function getEndTimeFormattedAttribute(): ?string
+    {
+        if (!$this->end_time) return null;
+        try {
+            return \Carbon\Carbon::parse($this->end_time)->format('h:i A');
+        } catch (\Throwable $e) {
+            return (string) $this->end_time;
+        }
+    }
+
+    /**
      * Automatically transition tasks whose start_date has arrived to in_progress
      */
     public static function autoStartDueTasks(?int $projectId = null): int
@@ -148,3 +195,4 @@ class WbsItem extends Model
         return $query->update(['status' => WbsStatus::IN_PROGRESS->value]);
     }
 }
+

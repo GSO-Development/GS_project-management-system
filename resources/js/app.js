@@ -230,15 +230,5 @@ window.showToast = function (message, type = 'success', duration = 4500) {
     return toast;
 };
 
-// ════════════════════════════════════════════════════════
-//  Livewire Event Bridge
-// ════════════════════════════════════════════════════════
-document.addEventListener('livewire:init', () => {
-    Livewire.on('toast', (data) => {
-        if (Array.isArray(data)) {
-            data.forEach(item => showToast(item.message, item.type));
-        } else {
-            showToast(data.message, data.type);
-        }
-    });
-});
+window.toast = window.showToast;
+

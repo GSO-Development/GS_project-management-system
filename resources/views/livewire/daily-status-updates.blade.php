@@ -102,83 +102,83 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         2. KPI METRICS SUMMARY (CLEAN EXECUTIVE CARDS)
+         2. KPI METRICS SUMMARY (CLEAN EXECUTIVE CARDS - 2X2 ON MOBILE)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <!-- 1. Logged Today -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-100/80">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <div class="space-y-1 flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-500">Logged Today</p>
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $updatedTodayCount }}</span>
-                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 4px;">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-center justify-between gap-2 sm:gap-3.5">
+            <div class="space-y-0.5 sm:space-y-1 min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Logged Today</p>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 font-mono tracking-tight">{{ $updatedTodayCount }}</span>
+                    <span style="font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 9999px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 3px;">
+                        <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
                         Active
                     </span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium truncate">Day-by-day progress stream</p>
+                <p class="hidden sm:block text-[11px] text-slate-400 font-medium truncate">Day-by-day progress stream</p>
+            </div>
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-100/80">
+                <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
             </div>
         </div>
 
         <!-- 2. Participant Task Logs -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-50 text-[#c3122e] border border-rose-100/80">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
-            </div>
-            <div class="space-y-1 flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-500">Task Logs</p>
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $taskUpdatesCount }}</span>
-                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; display: inline-block;">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-center justify-between gap-2 sm:gap-3.5">
+            <div class="space-y-0.5 sm:space-y-1 min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Task Logs</p>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 font-mono tracking-tight">{{ $taskUpdatesCount }}</span>
+                    <span style="font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 9999px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; display: inline-block;">
                         Tasks
                     </span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium truncate">Participant task execution logs</p>
+                <p class="hidden sm:block text-[11px] text-slate-400 font-medium truncate">Participant task execution logs</p>
+            </div>
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-50 text-[#c3122e] border border-rose-100/80">
+                <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
             </div>
         </div>
 
         <!-- 3. PM Overall Reports -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50 text-amber-600 border border-amber-100/80">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 00-2-2M5 11V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                </svg>
-            </div>
-            <div class="space-y-1 flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-500">Overall Reports</p>
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $projectUpdatesCount }}</span>
-                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; display: inline-block;">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-center justify-between gap-2 sm:gap-3.5">
+            <div class="space-y-0.5 sm:space-y-1 min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Overall Reports</p>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 font-mono tracking-tight">{{ $projectUpdatesCount }}</span>
+                    <span style="font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 9999px; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; display: inline-block;">
                         Overall
                     </span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium truncate">Project manager summaries</p>
+                <p class="hidden sm:block text-[11px] text-slate-400 font-medium truncate">Project manager summaries</p>
+            </div>
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50 text-amber-600 border border-amber-100/80">
+                <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 00-2-2M5 11V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
             </div>
         </div>
 
         <!-- 4. Pending Feedback -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 text-indigo-600 border border-indigo-100/80">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                </svg>
-            </div>
-            <div class="space-y-1 flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-500">Pending Feedback</p>
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $uncommentedUpdatesCount }}</span>
-                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; display: inline-block;">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 flex items-center justify-between gap-2 sm:gap-3.5">
+            <div class="space-y-0.5 sm:space-y-1 min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold text-slate-500 truncate">Feedback</p>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 font-mono tracking-tight">{{ $uncommentedUpdatesCount }}</span>
+                    <span style="font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 9999px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; display: inline-block;">
                         Review
                     </span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium truncate">Unanswered status logs</p>
+                <p class="hidden sm:block text-[11px] text-slate-400 font-medium truncate">Unanswered status logs</p>
+            </div>
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 text-indigo-600 border border-indigo-100/80">
+                <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                </svg>
             </div>
         </div>
     </div>

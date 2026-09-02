@@ -149,7 +149,7 @@
                                 <td class="w-8"><input type="checkbox" class="rounded border-slate-300"></td>
                                 <td>
                                     <div class="flex items-center gap-3">
-                                        <div class="avatar-sm w-9 h-9 font-bold text-xs text-white" style="background: linear-gradient(135deg, rgb(79 70 229), rgb(124 58 237));">
+                                        <div class="avatar-sm w-9 h-9 font-bold text-xs text-white rounded-full flex items-center justify-center shadow-xs ring-2 ring-rose-200/50" style="background: linear-gradient(135deg, #c3122e 0%, #800a1c 100%);">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                         <div class="min-w-0">

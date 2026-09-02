@@ -33,14 +33,26 @@ class WbsTree extends Component
     public ?string $description = null;
     public ?int $assigned_user_id = null;
     public ?string $start_date = null;
+    public ?string $start_time = null;
     public ?string $end_date = null;
+    public ?string $end_time = null;
     public string $status = 'not_started';
     public string $priority = 'medium';
     public int $progress = 0;
     public ?float $estimated_hours = null;
     public float $weight = 1.0;
     public bool $is_milestone = false;
-    public bool $autoCascade = true;
+
+    // Traffic Light Diagnostic Filter ('all', 'red', 'amber', 'green')
+    public string $healthFilter = 'all';
+
+    // Cascade Impact Preview Modal
+    public bool $showCascadeModal = false;
+    public array $cascadePreview = [];
+    public int $cascadeDaysDelta = 0;
+    public ?int $cascadeSourceTaskId = null;       // task already saved — used to revert on Cancel
+    public ?string $cascadeRevertEndDate = null;   // old end_date for revert
+    public ?string $cascadeRevertStartDate = null; // old start_date for revert (not changed but kept for safety)
 
     // Dependency Modal
     public bool $showDepModal = false;
@@ -55,7 +67,9 @@ class WbsTree extends Component
             'description' => 'nullable|string',
             'assigned_user_id' => 'nullable|exists:users,id',
             'start_date' => 'nullable|date',
+            'start_time' => 'nullable|string',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'end_time' => 'nullable|string',
             'status' => 'required|string',
             'priority' => 'required|string',
             'progress' => 'required|integer|min:0|max:100',
@@ -77,6 +91,12 @@ class WbsTree extends Component
         
         // Automatically transition tasks to in_progress if their start_date has arrived
         WbsItem::autoStartDueTasks($this->project->id);
+
+        // Auto-cascade schedule dates if all tasks are in default template date state
+        \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($this->project->id);
+
+        // Check for newly overdue tasks and send automated email + database alert to PMO Admins & PM
+        \App\Services\TaskOverdueNotificationService::checkAndNotifyOverdueTasks($this->project->id);
 
         // Default: collapse all items that have children so initially only main phases/tasks are visible
         $this->collapsedIds = WbsItem::where('project_id', $project->id)
@@ -111,7 +131,7 @@ class WbsTree extends Component
     {
         abort_if(!$this->project->userCan(auth()->user(), 'task.create'), 403, 'You do not have permission to create tasks in this project.');
 
-        $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'end_date', 'progress', 'estimated_hours', 'is_milestone']);
+        $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'start_time', 'end_date', 'end_time', 'progress', 'estimated_hours', 'is_milestone']);
         $this->selectedParentId = $parentId;
         $this->item_type = $type;
 
@@ -119,10 +139,15 @@ class WbsTree extends Component
             $parentTask = WbsItem::find($parentId);
             $this->assigned_user_id = $parentTask->assigned_user_id ?? auth()->id();
             $this->start_date = $parentTask->start_date ? $parentTask->start_date->toDateString() : ($this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString());
+            $this->start_time = $parentTask->start_time ? \Carbon\Carbon::parse($parentTask->start_time)->format('H:i') : '09:00';
             $this->end_date = $parentTask->end_date ? $parentTask->end_date->toDateString() : null;
+            $this->end_time = $parentTask->end_time ? \Carbon\Carbon::parse($parentTask->end_time)->format('H:i') : '17:00';
         } else {
             $this->assigned_user_id = auth()->id();
             $this->start_date = $this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString();
+            $this->start_time = '09:00';
+            $this->end_date = null;
+            $this->end_time = '17:00';
         }
 
         $this->updateDefaultTitle();
@@ -167,7 +192,9 @@ class WbsTree extends Component
         $this->description = $item->description;
         $this->assigned_user_id = $item->assigned_user_id;
         $this->start_date = $item->start_date?->toDateString();
+        $this->start_time = $item->start_time ? \Carbon\Carbon::parse($item->start_time)->format('H:i') : null;
         $this->end_date = $item->end_date?->toDateString();
+        $this->end_time = $item->end_time ? \Carbon\Carbon::parse($item->end_time)->format('H:i') : null;
         $this->status = $item->status->value;
         $this->priority = $item->priority->value;
         $this->progress = $item->progress;
@@ -198,6 +225,15 @@ class WbsTree extends Component
         $canAssign = $this->project->userCan(auth()->user(), 'task.assign');
         $assigneeId = $canAssign ? ($this->assigned_user_id ?: null) : ($this->editingItemId ? WbsItem::find($this->editingItemId)?->assigned_user_id : null);
 
+        // Auto-sync progress & status
+        $status = $this->status;
+        $progress = (int) $this->progress;
+        if ($progress >= 100 && $status !== 'completed') {
+            $status = 'completed';
+        } elseif ($status === 'completed' && $progress < 100) {
+            $progress = 100;
+        }
+
         $data = [
             'project_id' => $this->project->id,
             'parent_id' => $this->selectedParentId,
@@ -206,10 +242,12 @@ class WbsTree extends Component
             'description' => $this->description,
             'assigned_user_id' => $assigneeId,
             'start_date' => $this->start_date ?: null,
+            'start_time' => $this->start_time ?: null,
             'end_date' => $this->end_date ?: null,
-            'status' => $this->status,
+            'end_time' => $this->end_time ?: null,
+            'status' => $status,
             'priority' => $this->priority,
-            'progress' => $this->progress,
+            'progress' => $progress,
             'estimated_hours' => $this->estimated_hours,
             'weight' => $this->weight,
             'is_milestone' => $this->is_milestone || $this->item_type === 'milestone',
@@ -220,23 +258,29 @@ class WbsTree extends Component
             $data['status'] = 'in_progress';
         }
 
-        $shiftedTasks = [];
-
         if ($this->editingItemId) {
             $item = WbsItem::findOrFail($this->editingItemId);
             $previousAssigneeId = $item->assigned_user_id;
 
-            $oldEndDate = $item->end_date ? $item->end_date->copy() : null;
-            $newEndDate = !empty($data['end_date']) ? \Carbon\Carbon::parse($data['end_date']) : null;
-            $daysDelta = ($oldEndDate && $newEndDate) ? (int) $oldEndDate->diffInDays($newEndDate, false) : 0;
+            $oldEndDate   = $item->end_date   ? $item->end_date->copy()   : null;
+            $oldStartDate = $item->start_date ? $item->start_date->copy() : null;
+            $newEndDate   = !empty($data['end_date']) ? \Carbon\Carbon::parse($data['end_date']) : null;
+            $daysDelta    = ($oldEndDate && $newEndDate) ? (int) $oldEndDate->diffInDays($newEndDate, false) : 0;
+
+            // Clear any previous reschedule indicator when user manually edits this task
+            $data['rescheduled_shift_days'] = null;
+            $data['rescheduled_at']         = null;
+            $data['rescheduled_reason']     = null;
+
+            // If deadline changed or task marked complete, reset overdue notification flag
+            if ($oldEndDate != $newEndDate || $status === 'completed' || $progress >= 100) {
+                $data['overdue_notified_at'] = null;
+            }
 
             $item->update($data);
 
-            // Auto-cascade schedule adjustments to dependent tasks if deadline was extended
-            if ($this->autoCascade && $daysDelta > 0) {
-                $cascadeService = app(\App\Services\ScheduleCascadeService::class);
-                $shiftedTasks = $cascadeService->cascadeFromTask($item, $daysDelta);
-            }
+            // Automatically cascade and shift subsequent sibling task times if this task has times
+            \App\Services\WbsScheduleCascadeService::cascadeTimeSlotsForSiblings($item);
 
             // Notify if newly assigned or assignee changed
             if (!empty($item->assigned_user_id) && $item->assigned_user_id !== $previousAssigneeId && $item->assigned_user_id !== auth()->id()) {
@@ -255,11 +299,39 @@ class WbsTree extends Component
                     \Illuminate\Support\Facades\Log::warning('TaskAssignedNotification error: ' . $e->getMessage());
                 }
             }
+
+            (new WbsNumberingService())->recalculateProjectWbsCodes($this->project->id);
+            (new ProgressCalculationService())->updateItemProgress($item);
+            $this->showItemModal = false;
+
+            // --- Show Cascade Impact Modal if deadline was extended and user has permission ---
+            if ($daysDelta > 0 && $this->project->userCan(auth()->user(), 'schedule.view_impact')) {
+                $cascadeService = app(\App\Services\ScheduleCascadeService::class);
+                $preview = $cascadeService->calculateImpact($item, $daysDelta);
+
+                if (!empty($preview['affectedTasks'])) {
+                    $this->cascadePreview        = $preview;
+                    $this->cascadeDaysDelta      = $daysDelta;
+                    $this->cascadeSourceTaskId   = $item->id;
+                    $this->cascadeRevertEndDate  = $oldEndDate ? $oldEndDate->toDateString() : null;
+                    $this->cascadeRevertStartDate = $oldStartDate ? $oldStartDate->toDateString() : null;
+                    $this->showCascadeModal      = true;
+                    // Don't dispatch wbsUpdated yet — wait for user choice
+                    return;
+                }
+            }
+
+            $this->dispatch('toast', message: 'Task updated successfully!', type: 'success');
+            $this->dispatch('wbsUpdated');
+
         } else {
             $lastSort = WbsItem::where('project_id', $this->project->id)->where('parent_id', $this->selectedParentId)->max('sort_order') ?? 0;
             $data['sort_order'] = $lastSort + 1;
             $data['created_by'] = auth()->id();
             $item = WbsItem::create($data);
+
+            // Automatically cascade and shift subsequent sibling task times if this task has times
+            \App\Services\WbsScheduleCascadeService::cascadeTimeSlotsForSiblings($item);
 
             // Notify assignee upon new task creation
             if (!empty($item->assigned_user_id) && $item->assigned_user_id !== auth()->id()) {
@@ -278,22 +350,98 @@ class WbsTree extends Component
                     \Illuminate\Support\Facades\Log::warning('TaskAssignedNotification error: ' . $e->getMessage());
                 }
             }
+
+            (new WbsNumberingService())->recalculateProjectWbsCodes($this->project->id);
+            (new ProgressCalculationService())->updateItemProgress($item);
+            $this->showItemModal = false;
+            $this->dispatch('toast', message: 'Task created successfully!', type: 'success');
+            $this->dispatch('wbsUpdated');
+        }
+    }
+
+    // =========================================================================
+    // Cascade Impact Modal Actions
+    // =========================================================================
+
+    /**
+     * User chose "Update Following Tasks" — apply the cascade reschedule.
+     */
+    public function confirmCascadeOnly(): void
+    {
+        if (!$this->cascadeSourceTaskId || $this->cascadeDaysDelta <= 0) {
+            $this->closeCascadeModal();
+            return;
         }
 
-        (new WbsNumberingService())->recalculateProjectWbsCodes($this->project->id);
-        (new ProgressCalculationService())->updateItemProgress($item);
+        abort_if(
+            !$this->project->userCan(auth()->user(), 'schedule.apply_cascade'),
+            403,
+            'You do not have permission to apply cascade rescheduling.'
+        );
 
-        $this->showItemModal = false;
-        
-        if (!empty($shiftedTasks)) {
-            $count = count($shiftedTasks);
-            $this->dispatch('toast', message: "✓ Task updated! {$count} dependent " . \Illuminate\Support\Str::plural('task', $count) . " automatically shifted forward.", type: 'success');
-        } else {
-            $this->dispatch('toast', message: 'WBS item saved successfully!', type: 'success');
+        $item = WbsItem::find($this->cascadeSourceTaskId);
+        if (!$item) {
+            $this->closeCascadeModal();
+            return;
         }
-        
+
+        $cascadeService = app(\App\Services\ScheduleCascadeService::class);
+        $shiftedTasks   = $cascadeService->applyReschedule($item, $this->cascadeDaysDelta);
+
+        $this->closeCascadeModal();
+
+        $count = count($shiftedTasks);
+        $this->dispatch('toast',
+            message: "✓ Task updated! {$count} following " . \Illuminate\Support\Str::plural('task', $count) . " automatically rescheduled (+{$this->cascadeDaysDelta}d).",
+            type: 'success'
+        );
         $this->dispatch('wbsUpdated');
     }
+
+    /**
+     * User chose "Update This Task Only" — keep task's new deadline but do NOT cascade.
+     * Show a warning that schedule may now be inconsistent.
+     */
+    public function confirmThisTaskOnly(): void
+    {
+        $this->closeCascadeModal();
+        $this->dispatch('toast',
+            message: '⚠️ Task deadline updated. Following tasks were NOT rescheduled — the project schedule may now have gaps or overlaps.',
+            type: 'warning'
+        );
+        $this->dispatch('wbsUpdated');
+    }
+
+    /**
+     * User chose "Cancel" — revert the task's own date change.
+     */
+    public function cancelCascade(): void
+    {
+        if ($this->cascadeSourceTaskId) {
+            $item = WbsItem::find($this->cascadeSourceTaskId);
+            if ($item) {
+                $item->update([
+                    'end_date'   => $this->cascadeRevertEndDate,
+                    'start_date' => $this->cascadeRevertStartDate,
+                ]);
+            }
+        }
+        $this->closeCascadeModal();
+        $this->dispatch('toast', message: 'Task date change cancelled. No changes were made.', type: 'info');
+        $this->dispatch('wbsUpdated');
+    }
+
+    private function closeCascadeModal(): void
+    {
+        $this->showCascadeModal      = false;
+        $this->cascadePreview        = [];
+        $this->cascadeDaysDelta      = 0;
+        $this->cascadeSourceTaskId   = null;
+        $this->cascadeRevertEndDate  = null;
+        $this->cascadeRevertStartDate = null;
+    }
+
+    // =========================================================================
 
     public function updateItemStatus(int $itemId, string $status)
     {
@@ -328,6 +476,8 @@ class WbsTree extends Component
             }
         } elseif ($status === 'in_progress' && $item->progress == 0) {
             $item->progress = 10;
+        } elseif ($status === 'under_review' && $item->progress < 80) {
+            $item->progress = 90;
         } elseif ($status === 'not_started') {
             $item->progress = 0;
         }
@@ -447,16 +597,18 @@ class WbsTree extends Component
         }
     }
 
+    public function setHealthFilter(string $filter)
+    {
+        $this->healthFilter = in_array($filter, ['all', 'red', 'amber', 'green', 'gray']) ? $filter : 'all';
+    }
+
     public function render()
     {
         $user = auth()->user();
 
-        // Automatically transition tasks whose start_date has arrived to in_progress
-        WbsItem::autoStartDueTasks($this->project->id);
-
         $canViewAllTasks = $this->project->userCan($user, 'task.view_all');
 
-        $query = WbsItem::with(['children', 'assignedUser', 'predecessors.predecessor', 'risks'])
+        $query = WbsItem::with(['children.children', 'children.assignedUser', 'children.risks', 'assignedUser', 'predecessors.predecessor', 'risks'])
             ->where('project_id', $this->project->id);
 
         if ($canViewAllTasks) {
@@ -466,11 +618,42 @@ class WbsTree extends Component
             $query->where('assigned_user_id', $user->id);
         }
 
-        $wbsItems = $query->orderBy('sort_order')->get();
+        $allProjectItems = WbsItem::with(['risks', 'children'])->where('project_id', $this->project->id)->get();
+        
+        // Calculate Traffic Light RAG statistics across all items in the project
+        $healthStats = [
+            'total' => $allProjectItems->count(),
+            'red'   => 0,
+            'amber' => 0,
+            'green' => 0,
+            'gray'  => 0,
+        ];
+
+        foreach ($allProjectItems as $item) {
+            $status = $item->traffic_light_status;
+            if (isset($healthStats[$status])) {
+                $healthStats[$status]++;
+            }
+        }
+
+        $wbsItems = $query->orderBy('sort_order')->orderBy('id')->get();
+
+        // Filter items if user selected a specific health filter
+        if ($this->healthFilter !== 'all') {
+            $wbsItems = $wbsItems->filter(function ($item) {
+                if ($item->traffic_light_status === $this->healthFilter) {
+                    return true;
+                }
+                // Also show parent if any of its children match the selected health filter
+                return $item->children->contains(function ($child) {
+                    return $child->traffic_light_status === $this->healthFilter;
+                });
+            });
+        }
 
         $projectMembers = $this->project->members;
-        $allWbsItems = WbsItem::where('project_id', $this->project->id)->get();
+        $allWbsItems = $allProjectItems;
 
-        return view('livewire.wbs-tree', compact('wbsItems', 'projectMembers', 'allWbsItems'));
+        return view('livewire.wbs-tree', compact('wbsItems', 'projectMembers', 'allWbsItems', 'healthStats'));
     }
 }

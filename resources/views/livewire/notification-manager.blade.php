@@ -239,25 +239,29 @@
          3. FLOATING BATCH ACTIONS BAR
          ═══════════════════════════════════════════════════════════════ --}}
     @if(count($selectedIds) > 0)
-        <div class="sticky top-4 z-40 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 px-5 shadow-2xl border border-slate-700/80 flex items-center justify-between gap-4">
+        <div class="sticky top-4 z-40 rounded-2xl p-3 px-5 shadow-xl flex items-center justify-between gap-4 flex-wrap"
+             style="background: #ffffff; border: 1.5px solid #cbd5e1; box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.05);">
             <div class="flex items-center gap-3">
-                <span class="w-7 h-7 rounded-full bg-[#c3122e] text-white text-xs font-black flex items-center justify-center shadow-md">
+                <span class="w-7 h-7 rounded-full text-white text-xs font-black flex items-center justify-center shadow-md flex-shrink-0"
+                      style="background: #c3122e;">
                     {{ count($selectedIds) }}
                 </span>
-                <span class="text-xs font-black tracking-wide">
+                <span class="text-xs font-black tracking-wide" style="color: #0f172a;">
                     notification{{ count($selectedIds) > 1 ? 's' : '' }} selected
                 </span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
                 <button wire:click="batchMarkRead"
-                    class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-xs font-bold text-emerald-300 border border-emerald-500/30 transition-all flex items-center gap-1.5 cursor-pointer">
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-102"
+                    style="background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0;">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
                     Mark Read
                 </button>
                 <button wire:click="batchMarkUnread"
-                    class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-xs font-bold text-amber-300 border border-amber-500/25 transition-all flex items-center gap-1.5 cursor-pointer">
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-102"
+                    style="background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a;">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
@@ -265,14 +269,16 @@
                 </button>
                 <button wire:click="batchDelete"
                     wire:confirm="Delete {{ count($selectedIds) }} selected notifications?"
-                    class="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-xs font-bold text-rose-300 border border-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer">
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-102"
+                    style="background: #fff1f2; color: #be123c; border: 1.5px solid #fecdd3;">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
                     Delete
                 </button>
                 <button wire:click="clearSelection"
-                    class="ml-2 text-xs font-semibold text-slate-400 hover:text-white cursor-pointer">
+                    class="ml-2 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer hover:bg-slate-100"
+                    style="color: #64748b; background: #f1f5f9; border: 1px solid #e2e8f0;">
                     Cancel
                 </button>
             </div>
@@ -295,6 +301,23 @@
                     $role     = $n->data['role'] ?? null;
                     $projectId = $n->data['project_id'] ?? null;
                     $cat      = $n->data['category'] ?? null;
+
+                    // Build a smart fallback URL when none is stored
+                    if (!$url) {
+                        if ($projectId) {
+                            $url = route('projects.show', $projectId);
+                        } elseif ($cat === 'approvals') {
+                            $url = route('approvals.index');
+                        } elseif ($cat === 'blocker' || $cat === 'task_delay') {
+                            $url = route('risks.index');
+                        } elseif ($cat === 'task_completed' || $cat === 'task_assigned') {
+                            $url = route('my-tasks.index');
+                        } elseif ($cat === 'updates') {
+                            $url = route('daily-updates.index');
+                        } else {
+                            $url = route('notifications.index');
+                        }
+                    }
                     $actionType = $n->data['action'] ?? null;
                     $lowerMsg = strtolower($msg . ' ' . ($title ?? ''));
 
@@ -355,13 +378,16 @@
                 @endphp
 
                 {{-- Notification Row --}}
-                <div class="p-4 sm:p-5 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-4
-                    {{ $isSelected ? 'bg-rose-50/40' : ($isUnread ? 'bg-[#fffbfc] border-l-[3px] border-l-[#c3122e]' : 'bg-white hover:bg-slate-50/80') }}">
+                <div class="transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-0
+                    {{ $isSelected ? 'bg-rose-50/40' : ($isUnread ? 'bg-[#fffbfc] border-l-[3px] border-l-[#c3122e]' : 'bg-white') }}
+                    group hover:bg-slate-50/90 cursor-pointer"
+                    wire:click="markAsReadAndRedirect('{{ $n->id }}', '{{ addslashes($url) }}')"
+                >
 
-                    <div class="flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1">
+                    <div class="flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1 p-4 sm:p-5">
 
-                        {{-- Checkbox --}}
-                        <div class="pt-1.5 flex-shrink-0">
+                        {{-- Checkbox — stop click propagation so checking doesn't navigate --}}
+                        <div class="pt-1.5 flex-shrink-0" wire:click.stop>
                             <input type="checkbox"
                                 value="{{ $n->id }}"
                                 wire:model.live="selectedIds"
@@ -370,7 +396,7 @@
                         </div>
 
                         {{-- Category Icon --}}
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-black/5 relative overflow-hidden"
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-black/5 relative overflow-hidden transition-transform group-hover:scale-105"
                              style="{{ $iconBg }}">
                             {{-- Gloss sheen --}}
                             <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
@@ -430,8 +456,9 @@
                         </div>
                     </div>
 
-                    {{-- Right Action Buttons --}}
-                    <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                    {{-- Right Action Buttons — wire:click.stop prevents bubbling to row click --}}
+                    <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0 pr-4 sm:pr-5 pb-4 sm:pb-0"
+                         wire:click.stop>
 
                         {{-- Accept Leadership --}}
                         @if($isProjectLeaderAssignment && $isUnread)
@@ -445,16 +472,16 @@
                                 Accept Leadership &rarr;
                             </button>
 
-                        {{-- View Details --}}
-                        @elseif($url)
-                            <a href="{{ $url }}"
-                                wire:click="markAsRead('{{ $n->id }}')"
-                                class="px-3 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#faeaea] border border-[#faeaea] transition-all flex items-center gap-1 cursor-pointer no-underline shadow-xs">
+                        {{-- View Details button --}}
+                        @else
+                            <button wire:click="markAsReadAndRedirect('{{ $n->id }}', '{{ addslashes($url) }}')"
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#faeaea] border border-[#faeaea] transition-all flex items-center gap-1 cursor-pointer shadow-xs">
                                 View Details
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                 </svg>
-                            </a>
+                            </button>
                         @endif
 
                         {{-- Mark Read / Unread --}}
@@ -481,6 +508,7 @@
                     </div>
 
                 </div>
+
             @empty
                 {{-- Empty State --}}
                 <div class="py-16 text-center px-4">

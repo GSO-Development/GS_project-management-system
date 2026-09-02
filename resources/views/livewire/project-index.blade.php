@@ -96,23 +96,23 @@
     <!-- ═══════════════════════════════════════════════════════════════
          2. INTERACTIVE 4-METRIC PORTFOLIO COCKPIT (CLEAN & SLEEK)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         <!-- Metric 1: Total Projects -->
         <button 
             type="button" 
             wire:click="$set('statusFilter', 'all')"
-            class="text-left bg-white border rounded-2xl p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $statusFilter === 'all' ? 'border-[#c3122e] ring-2 ring-[#c3122e]/15 shadow-xs' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
+            class="text-left bg-white border rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $statusFilter === 'all' ? 'border-[#c3122e] ring-2 ring-[#c3122e]/15 shadow-xs' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
         >
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-11 h-11 rounded-2xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-2xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $totalCount }}</span>
-                    <span class="text-xs font-bold text-slate-600 block mt-1.5">Total Projects</span>
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $totalCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-600 block mt-1 truncate">Total Projects</span>
                 </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200/70 flex-shrink-0">
+            <span class="hidden sm:inline-block px-2.5 py-1 rounded-full text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200/70 flex-shrink-0">
                 Portfolio
             </span>
         </button>
@@ -121,18 +121,18 @@
         <button 
             type="button" 
             wire:click="$set('statusFilter', 'in_progress')"
-            class="text-left bg-white border rounded-2xl p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $statusFilter === 'in_progress' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
+            class="text-left bg-white border rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $statusFilter === 'in_progress' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
         >
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $activeCount }}</span>
-                    <span class="text-xs font-bold text-slate-600 block mt-1.5">In Progress</span>
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $activeCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-600 block mt-1 truncate">In Progress</span>
                 </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200/70 flex-shrink-0">
+            <span class="hidden sm:inline-block px-2.5 py-1 rounded-full text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200/70 flex-shrink-0">
                 Execution
             </span>
         </button>
@@ -141,18 +141,18 @@
         <button 
             type="button" 
             wire:click="$set('statusFilter', 'completed')"
-            class="text-left bg-white border rounded-2xl p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $statusFilter === 'completed' ? 'border-emerald-500 ring-2 ring-emerald-500/15 shadow-xs' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
+            class="text-left bg-white border rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $statusFilter === 'completed' ? 'border-emerald-500 ring-2 ring-emerald-500/15 shadow-xs' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
         >
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $completedCount }}</span>
-                    <span class="text-xs font-bold text-slate-600 block mt-1.5">Delivered</span>
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $completedCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-600 block mt-1 truncate">Delivered</span>
                 </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/70 flex-shrink-0">
+            <span class="hidden sm:inline-block px-2.5 py-1 rounded-full text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/70 flex-shrink-0">
                 Delivered
             </span>
         </button>
@@ -161,15 +161,15 @@
         <button 
             type="button" 
             wire:click="$set('statusFilter', 'all')"
-            class="text-left bg-white border rounded-2xl p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $overdueCount > 0 ? 'border-rose-300 shadow-2xs hover:border-rose-400' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
+            class="text-left bg-white border rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer group flex items-center justify-between {{ $overdueCount > 0 ? 'border-rose-300 shadow-2xs hover:border-rose-400' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }}"
         >
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-11 h-11 rounded-2xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-2xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <span class="text-2xl font-black {{ $overdueCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} leading-none block font-mono tracking-tight">{{ $overdueCount }}</span>
-                    <span class="text-xs font-bold text-slate-600 block mt-1.5">Overdue Tasks</span>
+                    <span class="text-lg sm:text-2xl font-black {{ $overdueCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} leading-none block font-mono tracking-tight">{{ $overdueCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-600 block mt-1 truncate">Overdue Tasks</span>
                 </div>
             </div>
             @if($overdueCount > 0)

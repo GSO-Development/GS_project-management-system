@@ -63,64 +63,64 @@
     </div>
 
     <!-- 2. KPI SUMMARY METRICS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
         <!-- Total Risks Card -->
-        <div class="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Identified Project Risks</p>
-                <div class="flex items-baseline gap-2 mt-1.5">
-                    <span class="text-2xl font-black text-slate-900">{{ $totalRisksCount }}</span>
-                    <span class="text-xs text-slate-500 font-medium">({{ $openRisksCount }} Active)</span>
+        <div class="p-3 sm:p-5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
+            <div class="min-w-0">
+                <p class="text-[9.5px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Project Risks</p>
+                <div class="flex items-baseline gap-1 sm:gap-2 mt-0.5 sm:mt-1.5">
+                    <span class="text-lg sm:text-2xl font-black text-slate-900 font-mono">{{ $totalRisksCount }}</span>
+                    <span class="text-[10px] sm:text-xs text-slate-500 font-medium">({{ $openRisksCount }} Active)</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1">Across {{ $projects->count() }} accessible projects</p>
+                <p class="hidden sm:block text-[10px] text-slate-400 mt-1">Across {{ $projects->count() }} projects</p>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
         </div>
 
         <!-- High Threat Risks Card -->
-        <div class="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Critical & High Threats</p>
-                <div class="flex items-baseline gap-2 mt-1.5">
-                    <span class="text-2xl font-black text-rose-600">{{ $criticalHighRiskCount }}</span>
-                    <span class="text-xs font-bold text-rose-500">Immediate Focus</span>
+        <div class="p-3 sm:p-5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
+            <div class="min-w-0">
+                <p class="text-[9.5px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">High Threats</p>
+                <div class="flex items-baseline gap-1 sm:gap-2 mt-0.5 sm:mt-1.5">
+                    <span class="text-lg sm:text-2xl font-black text-rose-600 font-mono">{{ $criticalHighRiskCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-rose-500">Focus</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1">Impact score &ge; 6 / 12</p>
+                <p class="hidden sm:block text-[10px] text-slate-400 mt-1">Impact score &ge; 6 / 12</p>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
         </div>
 
         <!-- Active Task Blockers Card -->
-        <div class="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Task Blockers</p>
-                <div class="flex items-baseline gap-2 mt-1.5">
-                    <span class="text-2xl font-black {{ $openBlockersCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }}">{{ $openBlockersCount }}</span>
-                    <span class="text-xs font-extrabold text-amber-600">Pending Resolution</span>
+        <div class="p-3 sm:p-5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
+            <div class="min-w-0">
+                <p class="text-[9.5px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Task Blockers</p>
+                <div class="flex items-baseline gap-1 sm:gap-2 mt-0.5 sm:mt-1.5">
+                    <span class="text-lg sm:text-2xl font-black {{ $openBlockersCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} font-mono">{{ $openBlockersCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-extrabold text-amber-600">Pending</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1">Execution impediments</p>
+                <p class="hidden sm:block text-[10px] text-slate-400 mt-1">Execution impediments</p>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-[#c3122e] flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-red-50 border border-red-200 text-[#c3122e] flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
             </div>
         </div>
 
         <!-- Resolved Blockers Rate Card -->
-        <div class="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Resolved Blockers</p>
-                <div class="flex items-baseline gap-2 mt-1.5">
-                    <span class="text-2xl font-black text-emerald-600">{{ $resolvedBlockersCount }}</span>
-                    <span class="text-xs font-bold text-emerald-600">Cleared</span>
+        <div class="p-3 sm:p-5 bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
+            <div class="min-w-0">
+                <p class="text-[9.5px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Resolved</p>
+                <div class="flex items-baseline gap-1 sm:gap-2 mt-0.5 sm:mt-1.5">
+                    <span class="text-lg sm:text-2xl font-black text-emerald-600 font-mono">{{ $resolvedBlockersCount }}</span>
+                    <span class="text-[10px] sm:text-xs font-bold text-emerald-600">Cleared</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1">Task execution unblocked</p>
+                <p class="hidden sm:block text-[10px] text-slate-400 mt-1">Task execution unblocked</p>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
     </div>

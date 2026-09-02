@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\ProjectTemplate;
 use App\Models\TemplateTask;
@@ -15,14 +16,20 @@ class TemplateGanttBuilder extends Component
     public $setupUnit = 'days';
     public $divideByWeeks = false;
     public $divideByDays = false;
+    public bool $divideByHours = false;
     public $showSetupModal = false;
     public $isConfigured = false;
-    
+
+    // Level 4 working time config
+    public string $workStartTime = '08:30';
+    public string $workEndTime   = '17:30';
+    public array  $workDays      = ['mon','tue','wed','thu','fri'];
+
     // Edit state
     public $editingTaskId = null;
     public $editingName = '';
     public $editingNewDuration = '';
-    
+
     // Top Header Total Days Edit state
     public $unassignedDays = 0;
     public $isEditingTotalDays = false;
@@ -35,12 +42,26 @@ class TemplateGanttBuilder extends Component
         }
 
         $this->template = $template;
-        
+
+        // Restore working-time config from template
+        $this->divideByHours = (bool) $template->divide_by_hours;
+        if ($template->work_start_time) {
+            $this->workStartTime = substr($template->work_start_time, 0, 5);
+        }
+        if ($template->work_end_time) {
+            $this->workEndTime = substr($template->work_end_time, 0, 5);
+        }
+        if ($template->work_days) {
+            $this->workDays = $template->work_days;
+        }
+
         $existingTasks = $this->template->tasks()->orderBy('order_index')->get();
         if ($existingTasks->count() > 0) {
             $this->isConfigured = true;
-            $this->setupUnit = $existingTasks->first()->unit;
-            
+            // Determine setup unit from first non-hour task
+            $firstNonHour = $existingTasks->firstWhere('unit', '!=', 'hours');
+            $this->setupUnit = $firstNonHour ? $firstNonHour->unit : 'days';
+
             $levelMap = [];
             foreach ($existingTasks as $task) {
                 $level = 1;
@@ -48,15 +69,15 @@ class TemplateGanttBuilder extends Component
                     $level = $levelMap[$task->parent_id] + 1;
                 }
                 $levelMap[$task->id] = $level;
-                
+
                 $this->tasks[] = [
-                    'id' => (string) $task->id,
-                    'parent_id' => $task->parent_id ? (string) $task->parent_id : null,
-                    'name' => $task->name,
-                    'duration' => $task->duration,
-                    'unit' => $task->unit,
+                    'id'         => (string) $task->id,
+                    'parent_id'  => $task->parent_id ? (string) $task->parent_id : null,
+                    'name'       => $task->name,
+                    'duration'   => $task->duration,
+                    'unit'       => $task->unit,
                     'is_deleted' => false,
-                    'level' => $level,
+                    'level'      => $level,
                     'is_expanded' => (bool) $task->is_expanded,
                 ];
             }
@@ -75,60 +96,81 @@ class TemplateGanttBuilder extends Component
     public function generateTasks()
     {
         $this->checkSuperAdmin();
-        $this->validate([
+
+        $rules = [
             'setupDuration' => 'required|integer|min:1|max:1000',
-            'setupUnit' => 'required|in:days,weeks,months',
-        ]);
+            'setupUnit'     => 'required|in:days,weeks,months',
+        ];
 
+        if ($this->divideByHours) {
+            $rules['workStartTime'] = 'required';
+            $rules['workEndTime']   = 'required';
 
-        $this->tasks = [];
-        $totalDays = (int) $this->setupDuration;
-        
+            // Validate end > start
+            $start = Carbon::createFromFormat('H:i', $this->workStartTime);
+            $end   = Carbon::createFromFormat('H:i', $this->workEndTime);
+            if ($end->lessThanOrEqualTo($start)) {
+                $this->addError('workEndTime', 'End Time must be after Start Time.');
+                return;
+            }
+        }
+
+        $this->validate($rules);
+
+        $this->tasks    = [];
+        $totalDays      = (int) $this->setupDuration;
+
         $this->generateHierarchicalTasks($totalDays);
 
-        $this->isConfigured = true;
-        $this->showSetupModal = false;
+        $this->isConfigured    = true;
+        $this->showSetupModal  = false;
     }
 
     private function generateHierarchicalTasks($totalDays)
     {
-        $mainIndex = 1;
+        $mainIndex     = 1;
         $remainingDays = $totalDays;
-        
+
         if ($this->setupUnit === 'days') {
             while ($remainingDays > 0) {
-                $mainId = 'temp_' . Str::random(8);
+                $mainId       = 'temp_' . Str::random(8);
                 $this->tasks[] = [
-                    'id' => $mainId,
-                    'parent_id' => null,
-                    'name' => 'Day ' . $mainIndex,
-                    'duration' => 1,
-                    'unit' => 'days',
+                    'id'         => $mainId,
+                    'parent_id'  => null,
+                    'name'       => 'Day ' . $mainIndex,
+                    'duration'   => 1,
+                    'unit'       => 'days',
                     'is_deleted' => false,
-                    'level' => 1,
-                    'is_expanded' => false
+                    'level'      => 1,
+                    'is_expanded' => $this->divideByHours,
                 ];
+                if ($this->divideByHours) {
+                    $this->generateHourSlots($mainId, 2);
+                }
                 $remainingDays--;
                 $mainIndex++;
             }
         } elseif ($this->setupUnit === 'weeks') {
             $chunkSize = 7;
             while ($remainingDays > 0) {
-                $duration = min($remainingDays, $chunkSize);
-                $mainId = 'temp_' . Str::random(8);
+                $duration      = min($remainingDays, $chunkSize);
+                $mainId        = 'temp_' . Str::random(8);
                 $this->tasks[] = [
-                    'id' => $mainId,
-                    'parent_id' => null,
-                    'name' => 'Week ' . $mainIndex,
-                    'duration' => $duration,
-                    'unit' => 'days',
+                    'id'         => $mainId,
+                    'parent_id'  => null,
+                    'name'       => 'Week ' . $mainIndex,
+                    'duration'   => $duration,
+                    'unit'       => 'days',
                     'is_deleted' => false,
-                    'level' => 1,
-                    'is_expanded' => false
+                    'level'      => 1,
+                    'is_expanded' => $this->divideByDays || $this->divideByHours,
                 ];
 
                 if ($this->divideByDays) {
                     $this->generateDaySubtasks($mainId, 'Week ' . $mainIndex, $duration, 2);
+                } elseif ($this->divideByHours) {
+                    // Hours directly under week (no day level)
+                    $this->generateHourSlots($mainId, 2);
                 }
 
                 $remainingDays -= $duration;
@@ -137,38 +179,40 @@ class TemplateGanttBuilder extends Component
         } elseif ($this->setupUnit === 'months') {
             $chunkSize = 30;
             while ($remainingDays > 0) {
-                $duration = min($remainingDays, $chunkSize);
-                $mainId = 'temp_' . Str::random(8);
+                $duration      = min($remainingDays, $chunkSize);
+                $mainId        = 'temp_' . Str::random(8);
                 $this->tasks[] = [
-                    'id' => $mainId,
-                    'parent_id' => null,
-                    'name' => 'Month ' . $mainIndex,
-                    'duration' => $duration,
-                    'unit' => 'days',
+                    'id'         => $mainId,
+                    'parent_id'  => null,
+                    'name'       => 'Month ' . $mainIndex,
+                    'duration'   => $duration,
+                    'unit'       => 'days',
                     'is_deleted' => false,
-                    'level' => 1,
-                    'is_expanded' => false
+                    'level'      => 1,
+                    'is_expanded' => $this->divideByWeeks || $this->divideByDays || $this->divideByHours,
                 ];
 
                 if ($this->divideByWeeks) {
                     $subWeekRemaining = $duration;
-                    $weekIndex = 1;
+                    $weekIndex        = 1;
                     while ($subWeekRemaining > 0) {
-                        $weekDuration = min($subWeekRemaining, 7);
-                        $subId = 'temp_' . Str::random(8);
+                        $weekDuration  = min($subWeekRemaining, 7);
+                        $subId         = 'temp_' . Str::random(8);
                         $this->tasks[] = [
-                            'id' => $subId,
-                            'parent_id' => $mainId,
-                            'name' => 'Month ' . $mainIndex . ' - Week ' . $weekIndex,
-                            'duration' => $weekDuration,
-                            'unit' => 'days',
+                            'id'         => $subId,
+                            'parent_id'  => $mainId,
+                            'name'       => 'Month ' . $mainIndex . ' - Week ' . $weekIndex,
+                            'duration'   => $weekDuration,
+                            'unit'       => 'days',
                             'is_deleted' => false,
-                            'level' => 2,
-                            'is_expanded' => false
+                            'level'      => 2,
+                            'is_expanded' => $this->divideByDays || $this->divideByHours,
                         ];
 
                         if ($this->divideByDays) {
                             $this->generateDaySubtasks($subId, 'M' . $mainIndex . 'W' . $weekIndex, $weekDuration, 3);
+                        } elseif ($this->divideByHours) {
+                            $this->generateHourSlots($subId, 3);
                         }
 
                         $subWeekRemaining -= $weekDuration;
@@ -176,6 +220,8 @@ class TemplateGanttBuilder extends Component
                     }
                 } elseif ($this->divideByDays) {
                     $this->generateDaySubtasks($mainId, 'Month ' . $mainIndex, $duration, 2);
+                } elseif ($this->divideByHours) {
+                    $this->generateHourSlots($mainId, 2);
                 }
 
                 $remainingDays -= $duration;
@@ -184,19 +230,65 @@ class TemplateGanttBuilder extends Component
         }
     }
 
+    /**
+     * Generate Level 4 hour-slot child tasks.
+     * Slots are 1-hour blocks from workStartTime to workEndTime.
+     */
+    private function generateHourSlots(string $parentId, int $level): void
+    {
+        try {
+            $start = Carbon::createFromFormat('H:i', $this->workStartTime);
+            $end   = Carbon::createFromFormat('H:i', $this->workEndTime);
+        } catch (\Throwable) {
+            return;
+        }
+
+        if ($end->lessThanOrEqualTo($start)) {
+            return;
+        }
+
+        $cursor = $start->copy();
+        while ($cursor->lessThan($end)) {
+            $slotEnd = $cursor->copy()->addHour();
+            if ($slotEnd->greaterThan($end)) {
+                $slotEnd = $end->copy();
+            }
+
+            $label = $cursor->format('h:i A') . ' – ' . $slotEnd->format('h:i A');
+
+            $this->tasks[] = [
+                'id'          => 'temp_' . Str::random(8),
+                'parent_id'   => $parentId,
+                'name'        => $label,
+                'duration'    => 1,
+                'unit'        => 'hours',
+                'is_deleted'  => false,
+                'level'       => $level,
+                'is_expanded' => false,
+            ];
+
+            $cursor->addHour();
+            if ($cursor->greaterThanOrEqualTo($end)) break;
+        }
+    }
+
     private function generateDaySubtasks($parentId, $prefix, $days, $level)
     {
         for ($i = 1; $i <= $days; $i++) {
+            $dayId         = 'temp_' . Str::random(8);
             $this->tasks[] = [
-                'id' => 'temp_' . Str::random(8),
-                'parent_id' => $parentId,
-                'name' => $prefix . '.' . $i . '.0 Day ' . $i,
-                'duration' => 1,
-                'unit' => 'days',
+                'id'         => $dayId,
+                'parent_id'  => $parentId,
+                'name'       => $prefix . '.' . $i . '.0 Day ' . $i,
+                'duration'   => 1,
+                'unit'       => 'days',
                 'is_deleted' => false,
-                'level' => $level,
-                'is_expanded' => false
+                'level'      => $level,
+                'is_expanded' => $this->divideByHours,
             ];
+            if ($this->divideByHours) {
+                $this->generateHourSlots($dayId, $level + 1);
+            }
         }
     }
 
@@ -472,15 +564,24 @@ class TemplateGanttBuilder extends Component
     public function saveGantt()
     {
         $this->checkSuperAdmin();
+
+        // Persist working-time configuration to the template
+        $this->template->update([
+            'work_start_time' => $this->divideByHours ? $this->workStartTime . ':00' : null,
+            'work_end_time'   => $this->divideByHours ? $this->workEndTime . ':00'   : null,
+            'work_days'       => $this->divideByHours ? $this->workDays : null,
+            'divide_by_hours' => $this->divideByHours,
+        ]);
+
         // Delete all existing tasks in DB for this template and recreate
         $this->template->tasks()->delete();
 
         $order = 1;
         $idMap = [];
-        
+
         foreach ($this->tasks as $task) {
             if ($task['is_deleted'] || $task['duration'] <= 0) {
-                continue; 
+                continue;
             }
 
             $parentId = null;
@@ -490,17 +591,17 @@ class TemplateGanttBuilder extends Component
 
             $newTask = TemplateTask::create([
                 'project_template_id' => $this->template->id,
-                'parent_id' => $parentId,
-                'name' => $task['name'],
-                'duration' => $task['duration'],
-                'unit' => $task['unit'],
-                'order_index' => $order++,
-                'is_expanded' => $task['is_expanded'] ?? false,
+                'parent_id'           => $parentId,
+                'name'                => $task['name'],
+                'duration'            => $task['duration'],
+                'unit'                => $task['unit'],
+                'order_index'         => $order++,
+                'is_expanded'         => $task['is_expanded'] ?? false,
             ]);
-            
+
             $idMap[$task['id']] = $newTask->id;
         }
-        
+
         session()->flash('message', 'Gantt chart saved successfully!');
         return redirect()->route('templates.index');
     }
