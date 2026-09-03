@@ -624,22 +624,9 @@
                 </table>
             </div>
 
-            <!-- Clean Modern Footer (Matching Reference) -->
-            <div class="px-5 py-4 bg-white border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 font-medium">
-                <div>
-                    Showing 1 to {{ $paginatedProjects->count() }} of {{ $paginatedProjects->total() }} projects
-                </div>
-                <div class="flex items-center gap-1">
-                    <button type="button" class="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 disabled:opacity-40" disabled>
-                        ‹
-                    </button>
-                    <span class="w-7 h-7 rounded-lg border border-blue-500 bg-white text-blue-600 font-bold flex items-center justify-center text-xs">
-                        1
-                    </span>
-                    <button type="button" class="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 disabled:opacity-40" disabled>
-                        ›
-                    </button>
-                </div>
+            <!-- Pagination Footer -->
+            <div class="px-5 py-3.5 bg-white border-t border-slate-100">
+                {{ $paginatedProjects->links() }}
             </div>
         </div>
 
@@ -1265,8 +1252,8 @@
         </div>
     @endif
 
-    <!-- Pagination Strip -->
-    @if($viewMode !== 'gantt' && $paginatedProjects->hasPages())
+    <!-- Pagination Strip (Matrix View Only) -->
+    @if($viewMode === 'matrix' && $paginatedProjects->hasPages())
         <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
             {{ $paginatedProjects->links() }}
         </div>

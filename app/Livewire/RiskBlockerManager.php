@@ -39,9 +39,16 @@ class RiskBlockerManager extends Component
     public string $riskDescription = '';
 
     // Blocker Modal State
+    public bool $showAddBlockerModal = false;
     public bool $showResolveBlockerModal = false;
     public ?int $selectedBlockerId = null;
     public string $blockerResolutionInput = '';
+
+    // Blocker Form Fields
+    public ?int $blockerProjectId = null;
+    public ?int $blockerWbsItemId = null;
+    public string $blockerDescription = '';
+    public string $blockerSeverity = 'medium';
 
     protected $queryString = [
         'selectedProjectId' => ['except' => null, 'as' => 'project'],
@@ -55,7 +62,7 @@ class RiskBlockerManager extends Component
         if (\App\Models\Project::where('project_manager_id', $user->id)->exists() && !$user->hasRole('super_admin')) {
             $firstProject = Project::where('project_manager_id', $user->id)->first();
             if ($firstProject && !$this->selectedProjectId) {
-                // Default to all or user's first project if preferred
+                // Default to all or user's first project
             }
         }
     }
@@ -84,6 +91,11 @@ class RiskBlockerManager extends Component
             $this->riskProjectId = $projectId;
         } elseif ($this->selectedProjectId) {
             $this->riskProjectId = $this->selectedProjectId;
+        } else {
+            $firstProj = Project::whereHas('subsidiary')->orWhereNotNull('id')->first();
+            if ($firstProj) {
+                $this->riskProjectId = $firstProj->id;
+            }
         }
         $this->riskOwnerId = auth()->id();
         $this->showAddRiskModal = true;
@@ -123,7 +135,7 @@ class RiskBlockerManager extends Component
         ]);
 
         $project = Project::findOrFail($this->riskProjectId);
-        abort_if(!$project->userCan(auth()->user(), 'risk.create'), 403, 'You do not have permission to create risks for this project.');
+        abort_if(!$project->userCan(auth()->user(), 'risk.create') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to create risks for this project.');
 
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
         $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
@@ -152,7 +164,7 @@ class RiskBlockerManager extends Component
     public function openEditRiskModal(int $riskId)
     {
         $risk = ProjectRisk::findOrFail($riskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit'), 403, 'You do not have permission to edit this risk.');
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to edit this risk.');
 
         $this->editingRiskId = $risk->id;
         $this->riskProjectId = $risk->project_id;
@@ -183,7 +195,7 @@ class RiskBlockerManager extends Component
         ]);
 
         $risk = ProjectRisk::findOrFail($this->editingRiskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit'), 403, 'You do not have permission to edit this risk.');
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to edit this risk.');
 
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
         $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
@@ -211,7 +223,7 @@ class RiskBlockerManager extends Component
     public function updateRiskStatus(int $riskId, string $status)
     {
         $risk = ProjectRisk::findOrFail($riskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit'), 403, 'Unauthorized.');
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'Unauthorized.');
 
         $risk->status = $status;
         $risk->save();
@@ -221,16 +233,67 @@ class RiskBlockerManager extends Component
     public function deleteRisk(int $riskId)
     {
         $risk = ProjectRisk::findOrFail($riskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.delete'), 403, 'You do not have permission to delete this risk.');
+        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.delete') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to delete this risk.');
 
         $risk->delete();
         $this->dispatch('toast', message: 'Risk record removed.', type: 'info');
     }
 
+    // --- Blocker Management ---
+
+    public function openAddBlockerModal(?int $projectId = null)
+    {
+        $this->resetBlockerForm();
+        if ($projectId) {
+            $this->blockerProjectId = $projectId;
+        } elseif ($this->selectedProjectId) {
+            $this->blockerProjectId = $this->selectedProjectId;
+        } else {
+            $firstProj = Project::whereHas('subsidiary')->orWhereNotNull('id')->first();
+            if ($firstProj) {
+                $this->blockerProjectId = $firstProj->id;
+            }
+        }
+        $this->showAddBlockerModal = true;
+    }
+
+    public function resetBlockerForm()
+    {
+        $this->reset([
+            'blockerProjectId',
+            'blockerWbsItemId',
+            'blockerDescription',
+            'blockerSeverity',
+        ]);
+        $this->blockerSeverity = 'medium';
+    }
+
+    public function addBlocker()
+    {
+        $this->validate([
+            'blockerProjectId' => 'required|exists:projects,id',
+            'blockerWbsItemId' => 'required|exists:wbs_items,id',
+            'blockerDescription' => 'required|string|min:5',
+            'blockerSeverity' => 'required|in:low,medium,high,critical',
+        ]);
+
+        TaskBlocker::create([
+            'wbs_item_id' => $this->blockerWbsItemId,
+            'reported_by' => auth()->id(),
+            'description' => $this->blockerDescription,
+            'severity' => $this->blockerSeverity,
+            'status' => 'open',
+        ]);
+
+        $this->showAddBlockerModal = false;
+        $this->resetBlockerForm();
+        $this->dispatch('toast', message: 'Task blocker reported successfully!', type: 'success');
+    }
+
     public function openResolveBlockerModal(int $blockerId)
     {
         $blocker = TaskBlocker::findOrFail($blockerId);
-        abort_if(!$blocker->task?->project?->userCan(auth()->user(), 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+        abort_if(!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to resolve blockers.');
 
         $this->selectedBlockerId = $blockerId;
         $this->blockerResolutionInput = '';
@@ -244,7 +307,7 @@ class RiskBlockerManager extends Component
         ]);
 
         $blocker = TaskBlocker::findOrFail($this->selectedBlockerId);
-        abort_if(!$blocker->task?->project?->userCan(auth()->user(), 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+        abort_if(!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to resolve blockers.');
 
         $blocker->resolution = $this->blockerResolutionInput;
         $blocker->resolved_by = auth()->id();
@@ -256,76 +319,9 @@ class RiskBlockerManager extends Component
         $this->dispatch('toast', message: 'Task blocker resolved successfully!', type: 'success');
     }
 
-    public function seedSampleRisksAndBlockers(): void
-    {
-        $project = Project::first();
-        if (!$project) return;
-
-        $user = auth()->user();
-        $wbsItem = WbsItem::where('project_id', $project->id)->first();
-
-        // 1. Seed Risks
-        ProjectRisk::create([
-            'project_id'     => $project->id,
-            'wbs_item_id'    => $wbsItem?->id,
-            'title'          => 'Third-Party API Integration Rate Limiting',
-            'category'       => 'Technical',
-            'probability'    => 'high',
-            'impact'         => 'critical',
-            'risk_owner_id'  => $user->id,
-            'description'    => 'External vendor API rate limits could disrupt real-time synchronization during peak hours.',
-            'mitigation'     => 'Implement Redis caching layer and exponential backoff retry mechanism.',
-            'contingency'    => 'Fall back to asynchronous batch syncing every 15 minutes.',
-            'status'         => 'open',
-        ]);
-
-        ProjectRisk::create([
-            'project_id'     => $project->id,
-            'wbs_item_id'    => $wbsItem?->id,
-            'title'          => 'Legacy Database Migration Schema Incompatibility',
-            'category'       => 'Technical',
-            'probability'    => 'medium',
-            'impact'         => 'high',
-            'risk_owner_id'  => $user->id,
-            'description'    => 'Data types in legacy database do not strictly align with new relational constraints.',
-            'mitigation'     => 'Run dry-run migration scripts on staging database with automated validation.',
-            'contingency'    => 'Use custom data transformation mappers during ETL pipeline.',
-            'status'         => 'monitoring',
-        ]);
-
-        ProjectRisk::create([
-            'project_id'     => $project->id,
-            'wbs_item_id'    => $wbsItem?->id,
-            'title'          => 'Key Technical Personnel Resource Constraints',
-            'category'       => 'Resource',
-            'probability'    => 'medium',
-            'impact'         => 'medium',
-            'risk_owner_id'  => $user->id,
-            'description'    => 'Overlapping project timelines may cause bottleneck for Senior Backend Lead.',
-            'mitigation'     => 'Re-assign non-critical sub-tasks to intermediate developers.',
-            'contingency'    => 'Contract external consultant for 2-week sprint boost.',
-            'status'         => 'open',
-        ]);
-
-        // 2. Seed Blocker
-        if ($wbsItem) {
-            TaskBlocker::create([
-                'wbs_item_id' => $wbsItem->id,
-                'reported_by' => $user->id,
-                'description' => 'Awaiting SSL Certificate & Domain Access Delegation from Infrastructure Team.',
-                'severity'    => 'high',
-                'status'      => 'open',
-            ]);
-        }
-    }
-
     public function render()
     {
         $user = auth()->user();
-
-        if (ProjectRisk::count() === 0) {
-            $this->seedSampleRisksAndBlockers();
-        }
 
         // Projects list for dropdown filter
         $projectsQuery = Project::query();
@@ -341,9 +337,10 @@ class RiskBlockerManager extends Component
         $projects = $projectsQuery->orderBy('name')->get();
         $allowedProjectIds = $projects->pluck('id')->toArray();
 
-        // Base Query for Risks
+        // Base Query for Risks (Active projects only)
         $risksQuery = ProjectRisk::with(['project', 'wbsItem', 'owner'])
-            ->whereIn('project_id', $allowedProjectIds);
+            ->whereIn('project_id', $allowedProjectIds)
+            ->whereHas('project');
 
         if ($this->selectedProjectId) {
             $risksQuery->where('project_id', $this->selectedProjectId);
@@ -373,9 +370,9 @@ class RiskBlockerManager extends Component
 
         $risks = (clone $risksQuery)->latest()->get();
 
-        // Base Query for Blockers
+        // Base Query for Blockers (Active projects only)
         $blockersQuery = TaskBlocker::with(['wbsItem.project', 'reporter', 'resolver'])
-            ->whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds));
+            ->whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds)->whereHas('project'));
 
         if ($this->selectedProjectId) {
             $blockersQuery->whereHas('wbsItem', fn($q) => $q->where('project_id', $this->selectedProjectId));
@@ -404,18 +401,27 @@ class RiskBlockerManager extends Component
             })->values();
         }
 
+        // Available WBS Items for Add Blocker Modal dropdown
+        $modalBlockerWbsItems = collect();
+        if ($this->blockerProjectId) {
+            $modalBlockerWbsItems = WbsItem::where('project_id', $this->blockerProjectId)->get()->sort(function ($a, $b) {
+                return strnatcmp($a->wbs_code, $b->wbs_code);
+            })->values();
+        }
+
         // Available users for Risk Owner selection
         $users = User::orderBy('name')->get();
 
-        // KPI Counts
+        // KPI Counts (Scanned only from active accessible projects)
         $allProjectRisks = ProjectRisk::whereIn('project_id', $allowedProjectIds)
+            ->whereHas('project')
             ->when($this->selectedProjectId, fn($q) => $q->where('project_id', $this->selectedProjectId))
             ->get();
         $totalRisksCount = $allProjectRisks->count();
         $openRisksCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->count();
         $criticalHighRiskCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->whereIn('impact', ['high', 'critical'])->count();
 
-        $allProjectBlockers = TaskBlocker::whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds))
+        $allProjectBlockers = TaskBlocker::whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds)->whereHas('project'))
             ->when($this->selectedProjectId, fn($q) => $q->whereHas('wbsItem', fn($w) => $w->where('project_id', $this->selectedProjectId)))
             ->get();
         $openBlockersCount = $allProjectBlockers->where('status', '!=', 'resolved')->count();
@@ -426,6 +432,7 @@ class RiskBlockerManager extends Component
             'risks',
             'blockers',
             'modalWbsItems',
+            'modalBlockerWbsItems',
             'users',
             'totalRisksCount',
             'openRisksCount',

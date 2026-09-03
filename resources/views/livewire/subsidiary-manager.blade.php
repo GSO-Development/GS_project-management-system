@@ -287,21 +287,17 @@
         </div>
 
         <!-- Footer Pagination -->
-        <div class="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <div>
-                Showing <span class="font-bold text-slate-800">{{ $subsidiaries->firstItem() ?? 0 }}</span> to <span class="font-bold text-slate-800">{{ $subsidiaries->lastItem() ?? 0 }}</span> of <span class="font-bold text-slate-800">{{ $subsidiaries->total() }}</span> results
+        <div class="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex-1">
+                {{ $subsidiaries->links() }}
             </div>
 
-            <div class="flex items-center gap-4">
-                {{ $subsidiaries->links() }}
-
-                <div class="flex items-center gap-2">
-                    <select wire:model.live="perPage" class="form-select text-xs py-1 px-2">
-                        <option value="5">5 per page</option>
-                        <option value="10">10 per page</option>
-                        <option value="20">20 per page</option>
-                    </select>
-                </div>
+            <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">
+                    <option value="5">5 per page</option>
+                    <option value="10">10 per page</option>
+                    <option value="20">20 per page</option>
+                </select>
             </div>
         </div>
     </div>

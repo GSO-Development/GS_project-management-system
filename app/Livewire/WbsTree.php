@@ -17,10 +17,14 @@ use App\Services\ProgressCalculationService;
 use App\Services\WbsNumberingService;
 use InvalidArgumentException;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class WbsTree extends Component
 {
+    use WithPagination;
+
     public Project $project;
+    public int $perPage = 10;
     public array $collapsedIds = [];
 
     // Add/Edit Modal
@@ -139,24 +143,62 @@ class WbsTree extends Component
             $parentTask = WbsItem::find($parentId);
             $this->assigned_user_id = $parentTask->assigned_user_id ?? auth()->id();
             $this->start_date = $parentTask->start_date ? $parentTask->start_date->toDateString() : ($this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString());
-            $this->start_time = $parentTask->start_time ? \Carbon\Carbon::parse($parentTask->start_time)->format('H:i') : '09:00';
-            $this->end_date = $parentTask->end_date ? $parentTask->end_date->toDateString() : null;
-            $this->end_time = $parentTask->end_time ? \Carbon\Carbon::parse($parentTask->end_time)->format('H:i') : '17:00';
+            $this->end_date = $parentTask->end_date ? $parentTask->end_date->toDateString() : $this->start_date;
+
+            // Intelligent hour slots for day subtasks (Default 2 slots: 08:30-12:30 and 12:30-17:30)
+            $existingChildren = WbsItem::where('project_id', $this->project->id)->where('parent_id', $parentId)->orderBy('start_time')->get();
+            if ($existingChildren->count() === 0) {
+                $this->start_time = '08:30';
+                $this->end_time   = '12:30';
+                $this->title      = '08:30 AM – 12:30 PM';
+            } elseif ($existingChildren->count() === 1) {
+                $this->start_time = '12:30';
+                $this->end_time   = '17:30';
+                $this->title      = '12:30 PM – 05:30 PM';
+            } else {
+                $lastEndTime = $existingChildren->last()->end_time ? \Carbon\Carbon::parse($existingChildren->last()->end_time)->format('H:i') : '17:30';
+                $this->start_time = $lastEndTime;
+                $this->end_time   = \Carbon\Carbon::parse($lastEndTime)->addHours(2)->format('H:i');
+                $pCode = $parentTask ? $parentTask->wbs_code : '1';
+                $nextNum = $existingChildren->count() + 1;
+                $this->title      = "Sub-task {$pCode}.{$nextNum}";
+            }
+            $this->item_type = 'subtask';
         } else {
             $this->assigned_user_id = auth()->id();
             $this->start_date = $this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString();
-            $this->start_time = '09:00';
+            $this->start_time = '08:30';
             $this->end_date = null;
-            $this->end_time = '17:00';
+            $this->end_time = '17:30';
+            $this->updateDefaultTitle();
         }
-
-        $this->updateDefaultTitle();
 
         $this->status = 'not_started';
         $this->priority = 'medium';
         $this->progress = 0;
         $this->weight = 1.0;
         $this->showItemModal = true;
+    }
+
+    public function setTimePreset(string $preset): void
+    {
+        if ($preset === 'morning') {
+            $this->start_time = '08:30';
+            $this->end_time   = '12:30';
+        } elseif ($preset === 'afternoon') {
+            $this->start_time = '12:30';
+            $this->end_time   = '17:30';
+        } elseif ($preset === 'fullday') {
+            $this->start_time = '08:30';
+            $this->end_time   = '17:30';
+        }
+
+        // If title matches a time range pattern or is default, update title to match preset
+        if (empty($this->title) || preg_match('/^\d{1,2}:\d{2}\s*(?:AM|PM)\s*[-–—\s]+\s*\d{1,2}:\d{2}\s*(?:AM|PM)$/iu', trim($this->title)) || str_starts_with($this->title, 'Sub-task')) {
+            $sFmt = \Carbon\Carbon::parse($this->start_time)->format('h:i A');
+            $eFmt = \Carbon\Carbon::parse($this->end_time)->format('h:i A');
+            $this->title = "{$sFmt} – {$eFmt}";
+        }
     }
 
     public function updatedSelectedParentId()
@@ -252,6 +294,15 @@ class WbsTree extends Component
             'weight' => $this->weight,
             'is_milestone' => $this->is_milestone || $this->item_type === 'milestone',
         ];
+
+        // Auto-sync title if it was formatted as a time range
+        if (preg_match('/^\d{1,2}:\d{2}\s*(?:AM|PM)\s*[-–—\s]+\s*\d{1,2}:\d{2}\s*(?:AM|PM)$/iu', trim($this->title)) && !empty($this->start_time) && !empty($this->end_time)) {
+            try {
+                $sFmt = \Carbon\Carbon::parse($this->start_time)->format('h:i A');
+                $eFmt = \Carbon\Carbon::parse($this->end_time)->format('h:i A');
+                $data['title'] = "{$sFmt} – {$eFmt}";
+            } catch (\Throwable $e) {}
+        }
 
         // Auto-set status to in_progress if start_date has arrived and status is not_started
         if (!empty($data['start_date']) && $data['start_date'] <= now()->today()->toDateString() && $data['status'] === 'not_started') {
@@ -600,6 +651,12 @@ class WbsTree extends Component
     public function setHealthFilter(string $filter)
     {
         $this->healthFilter = in_array($filter, ['all', 'red', 'amber', 'green', 'gray']) ? $filter : 'all';
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
     }
 
     public function render()
@@ -651,9 +708,24 @@ class WbsTree extends Component
             });
         }
 
+        // Paginate top-level WBS items
+        $currentPage = $this->getPage();
+        $paginatedWbsItems = new \Illuminate\Pagination\LengthAwarePaginator(
+            $wbsItems->forPage($currentPage, $this->perPage)->values(),
+            $wbsItems->count(),
+            $this->perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
         $projectMembers = $this->project->members;
         $allWbsItems = $allProjectItems;
 
-        return view('livewire.wbs-tree', compact('wbsItems', 'projectMembers', 'allWbsItems', 'healthStats'));
+        return view('livewire.wbs-tree', [
+            'wbsItems' => $paginatedWbsItems,
+            'projectMembers' => $projectMembers,
+            'allWbsItems' => $allWbsItems,
+            'healthStats' => $healthStats,
+        ]);
     }
 }

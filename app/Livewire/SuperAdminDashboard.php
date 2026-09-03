@@ -25,6 +25,8 @@ class SuperAdminDashboard extends Component
     // Timeline Scale for Gantt Preview ('today', 'week', 'month')
     public string $timelineScale = 'month';
 
+
+
     public function setTimelineScale(string $scale): void
     {
         if (in_array($scale, ['today', 'week', 'month'])) {
@@ -143,7 +145,7 @@ class SuperAdminDashboard extends Component
 
     public function approveRequest(int $requestId, ?string $comment = null): void
     {
-        if (!auth()->user()->hasRole('super_admin')) {
+        if (!auth()->user()->isPmoAdmin()) {
             $this->dispatch('toast', message: 'Unauthorized.', type: 'error');
             return;
         }
@@ -157,7 +159,7 @@ class SuperAdminDashboard extends Component
 
     public function rejectRequest(int $requestId, ?string $comment = null): void
     {
-        if (!auth()->user()->hasRole('super_admin')) {
+        if (!auth()->user()->isPmoAdmin()) {
             $this->dispatch('toast', message: 'Unauthorized.', type: 'error');
             return;
         }

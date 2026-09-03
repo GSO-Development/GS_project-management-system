@@ -369,11 +369,10 @@
             </table>
         </div>
 
-        @if($requests->hasPages())
-            <div class="p-4 border-t border-slate-100">
-                {{ $requests->links() }}
-            </div>
-        @endif
+        <!-- Table Pagination Footer -->
+        <div class="px-6 py-4 bg-white border-t border-slate-100">
+            {{ $requests->links() }}
+        </div>
     </div>
 
     {{-- ══════════════════════════════════════════════════════

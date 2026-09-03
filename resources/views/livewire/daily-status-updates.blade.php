@@ -410,6 +410,11 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Table Pagination Footer -->
+            <div class="px-6 py-4 bg-white border-t border-slate-100">
+                {{ $groupedProjectUpdates->links() }}
+            </div>
         </div>
     @else
         <!-- ═══════════════════════════════════════════════════════════════
@@ -551,6 +556,11 @@
                     <p class="text-slate-400 font-medium text-xs">There are no updates matching your current filter.</p>
                 </div>
             @endforelse
+
+            <!-- Feed Pagination Footer -->
+            <div class="pt-2">
+                {{ $statusUpdates->links() }}
+            </div>
         </div>
     @endif
 
@@ -559,7 +569,7 @@
          ═══════════════════════════════════════════════════════════════ -->
     @if($showHistoryModal && $historyProjectId)
         @php
-            $historyGroup = collect($groupedProjectUpdates)->firstWhere(fn($g) => $g['project']->id === $historyProjectId);
+            $historyGroup = collect($allGroupedProjectUpdates ?? $groupedProjectUpdates)->firstWhere(fn($g) => $g['project']->id === $historyProjectId);
         @endphp
 
         @if($historyGroup)

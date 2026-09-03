@@ -10,15 +10,24 @@ use App\Models\WbsItem;
 use App\Notifications\DailyUpdateNotification;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class DailyStatusUpdates extends Component
 {
+    use WithPagination;
+
     // Filter State
     public ?int $selectedProjectId = null;
     public string $selectedScope = 'all'; // 'all', 'task', 'project'
     public string $dateFilter = 'all'; // 'all', 'today', 'this_week'
     public string $searchQuery = '';
     public string $viewMode = 'table'; // 'table' or 'feed'
+    public int $perPage = 10;
+
+    public function updatedSearchQuery(): void { $this->resetPage(); }
+    public function updatedSelectedProjectId(): void { $this->resetPage(); }
+    public function updatedSelectedScope(): void { $this->resetPage(); }
+    public function updatedDateFilter(): void { $this->resetPage(); }
 
     public function setViewMode(string $mode): void
     {
@@ -433,17 +442,36 @@ class DailyStatusUpdates extends Component
         // Pending feedback updates (no comments yet)
         $uncommentedUpdatesCount = $statusUpdates->filter(fn($u) => $u->comments->count() === 0)->count();
 
-        return view('livewire.daily-status-updates', compact(
-            'statusUpdates',
-            'groupedProjectUpdates',
-            'accessibleProjects',
-            'modalWbsItems',
-            'totalUpdatesCount',
-            'taskUpdatesCount',
-            'projectUpdatesCount',
-            'updatedTodayCount',
-            'myUpdatesCount',
-            'uncommentedUpdatesCount'
-        ))->layout('layouts.app', ['title' => 'Daily Status Updates']);
+        // Paginate collections
+        $currentPage = $this->getPage();
+        $paginatedGroupedUpdates = new \Illuminate\Pagination\LengthAwarePaginator(
+            $groupedProjectUpdates->forPage($currentPage, $this->perPage)->values(),
+            $groupedProjectUpdates->count(),
+            $this->perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        $paginatedStatusUpdates = new \Illuminate\Pagination\LengthAwarePaginator(
+            $statusUpdates->forPage($currentPage, $this->perPage)->values(),
+            $statusUpdates->count(),
+            $this->perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view('livewire.daily-status-updates', [
+            'statusUpdates' => $paginatedStatusUpdates,
+            'groupedProjectUpdates' => $paginatedGroupedUpdates,
+            'allGroupedProjectUpdates' => $groupedProjectUpdates,
+            'accessibleProjects' => $accessibleProjects,
+            'modalWbsItems' => $modalWbsItems,
+            'totalUpdatesCount' => $totalUpdatesCount,
+            'taskUpdatesCount' => $taskUpdatesCount,
+            'projectUpdatesCount' => $projectUpdatesCount,
+            'updatedTodayCount' => $updatedTodayCount,
+            'myUpdatesCount' => $myUpdatesCount,
+            'uncommentedUpdatesCount' => $uncommentedUpdatesCount,
+        ])->layout('layouts.app', ['title' => 'Daily Status Updates']);
     }
 }

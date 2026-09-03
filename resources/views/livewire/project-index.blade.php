@@ -487,11 +487,11 @@
                                         @endif
 
                                         @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->email === 'admin@nexuspm.local' || auth()->user()?->id === 1)
-                                            <button wire:click="edit({{ $project->id }})" class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200 cursor-pointer" title="Edit Project">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            <button wire:click="edit({{ $project->id }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition-all cursor-pointer shadow-2xs" title="Edit Project Settings">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             </button>
-                                            <button wire:click="deleteProject({{ $project->id }})" wire:confirm="Are you sure you want to delete '{{ $project->name }}'?" class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 cursor-pointer" title="Delete Project">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <button wire:click="confirmDeleteProject({{ $project->id }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 transition-all duration-200 cursor-pointer shadow-2xs hover:shadow" title="Delete Project">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
                                         @endif
                                     </div>
@@ -503,21 +503,17 @@
             </div>
 
             <!-- Footer Pagination -->
-            <div class="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
-                <div>
-                    Showing <span class="font-bold text-slate-900">{{ $projects->firstItem() ?? 0 }}</span> to <span class="font-bold text-slate-900">{{ $projects->lastItem() ?? 0 }}</span> of <span class="font-bold text-slate-900">{{ $projects->total() }}</span> projects
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <span>Per page:</span>
-                        <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-slate-200 bg-slate-50">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                        </select>
-                    </div>
+            <div class="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex-1">
                     {{ $projects->links() }}
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium flex-shrink-0 self-end sm:self-center">
+                    <span>Per page:</span>
+                    <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
                 </div>
             </div>
         @else
@@ -836,5 +832,49 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    <!-- Executive Delete Project Confirmation Modal -->
+    @if($showDeleteModal)
+    <div style="position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); box-sizing: border-box;">
+        <div style="position: relative; width: 100%; max-width: 480px; background: #ffffff; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.4); border: 1px solid #e2e8f0; overflow: hidden; animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            
+            <!-- Modal Header / Icon -->
+            <div style="padding: 22px 24px 16px 24px; display: flex; align-items: flex-start; gap: 14px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.15);">
+                    🗑️
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+                        Delete Project?
+                    </h3>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500; line-height: 1.4;">
+                        Are you sure you want to delete <strong style="color: #0f172a;">{{ $projectToDeleteName }}</strong> (<code style="font-size: 11px; color: #c3122e; background: #fff1f2; padding: 1px 5px; border-radius: 4px; font-weight: 700;">{{ $projectToDeleteCode }}</code>)?
+                    </p>
+                </div>
+                <button type="button" wire:click="cancelDelete" style="width: 28px; height: 28px; border-radius: 7px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Warning Notice Card -->
+            <div style="margin: 0 24px 16px 24px; padding: 12px 14px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; display: flex; align-items: flex-start; gap: 10px;">
+                <span style="font-size: 15px; flex-shrink: 0;">⚠️</span>
+                <p style="margin: 0; font-size: 11.5px; color: #92400e; font-weight: 600; line-height: 1.45;">
+                    This will move the project and its associated WBS schedule, deliverables, and tasks to the trash repository.
+                </p>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div style="padding: 14px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                <button type="button" wire:click="cancelDelete" style="padding: 8px 16px; border-radius: 9px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                    Cancel
+                </button>
+                <button type="button" wire:click="executeDeleteProject" style="padding: 8px 20px; border-radius: 9px; border: none; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35); transition: all 0.15s; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1.0'">
+                    <span>Delete Project</span>
+                </button>
+            </div>
+        </div>
+    </div>
     @endif
 </div>

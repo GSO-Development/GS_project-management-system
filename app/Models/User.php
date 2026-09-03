@@ -160,6 +160,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine if this user is a manually created local system user.
+     */
+    public function isSystemCreated(): bool
+    {
+        return empty($this->azure_id);
+    }
+
+    /**
+     * Determine if this user is provisioned via Microsoft Azure AD SSO.
+     */
+    public function isAzureUser(): bool
+    {
+        return !empty($this->azure_id);
+    }
+
+    /**
      * Whether this user is a project leader in at least one project.
      */
     public function isProjectLeader(): bool

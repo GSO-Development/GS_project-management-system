@@ -15,6 +15,10 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
+        if ($request->user()->isAzureUser()) {
+            return back()->withErrors(['current_password' => 'Password changes are disabled for Microsoft Azure SSO accounts.'], 'updatePassword');
+        }
+
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],

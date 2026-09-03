@@ -232,7 +232,9 @@ class TemplateGanttBuilder extends Component
 
     /**
      * Generate Level 4 hour-slot child tasks.
-     * Slots are 1-hour blocks from workStartTime to workEndTime.
+    /**
+     * Generate Level 4 hour-slot child tasks.
+     * Default to 2 task slots: 08:30 AM – 12:30 PM (Morning) and 12:30 PM – 05:30 PM (Afternoon).
      */
     private function generateHourSlots(string $parentId, int $level): void
     {
@@ -240,35 +242,47 @@ class TemplateGanttBuilder extends Component
             $start = Carbon::createFromFormat('H:i', $this->workStartTime);
             $end   = Carbon::createFromFormat('H:i', $this->workEndTime);
         } catch (\Throwable) {
-            return;
+            $start = Carbon::createFromFormat('H:i', '08:30');
+            $end   = Carbon::createFromFormat('H:i', '17:30');
         }
 
         if ($end->lessThanOrEqualTo($start)) {
             return;
         }
 
-        $cursor = $start->copy();
-        while ($cursor->lessThan($end)) {
-            $slotEnd = $cursor->copy()->addHour();
-            if ($slotEnd->greaterThan($end)) {
-                $slotEnd = $end->copy();
-            }
+        // Mid-day boundary at 12:30
+        $mid = Carbon::createFromFormat('H:i', '12:30');
+        if ($mid->lessThanOrEqualTo($start) || $mid->greaterThanOrEqualTo($end)) {
+            $totalMins = $start->diffInMinutes($end);
+            $mid = $start->copy()->addMinutes((int)($totalMins / 2));
+        }
 
-            $label = $cursor->format('h:i A') . ' – ' . $slotEnd->format('h:i A');
+        $slots = [
+            [
+                'start'    => $start,
+                'end'      => $mid,
+                'duration' => max(1, round($start->diffInMinutes($mid) / 60)),
+            ],
+            [
+                'start'    => $mid,
+                'end'      => $end,
+                'duration' => max(1, round($mid->diffInMinutes($end) / 60)),
+            ],
+        ];
+
+        foreach ($slots as $slot) {
+            $label = $slot['start']->format('h:i A') . ' – ' . $slot['end']->format('h:i A');
 
             $this->tasks[] = [
                 'id'          => 'temp_' . Str::random(8),
                 'parent_id'   => $parentId,
                 'name'        => $label,
-                'duration'    => 1,
+                'duration'    => $slot['duration'],
                 'unit'        => 'hours',
                 'is_deleted'  => false,
                 'level'       => $level,
                 'is_expanded' => false,
             ];
-
-            $cursor->addHour();
-            if ($cursor->greaterThanOrEqualTo($end)) break;
         }
     }
 

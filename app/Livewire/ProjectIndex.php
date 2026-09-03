@@ -28,6 +28,12 @@ class ProjectIndex extends Component
     public bool $showModal = false;
     public ?int $editingId = null;
 
+    // Delete Confirmation Modal properties
+    public bool $showDeleteModal = false;
+    public ?int $projectToDeleteId = null;
+    public ?string $projectToDeleteName = null;
+    public ?string $projectToDeleteCode = null;
+
     // Slide-Over Quick Preview Drawer properties
     public bool $showQuickDrawer = false;
     public ?int $drawerProjectId = null;
@@ -209,18 +215,47 @@ class ProjectIndex extends Component
         $this->dispatch('toast', message: 'Project ' . ($this->editingId ? 'updated' : 'created') . ' successfully!', type: 'success');
     }
 
-    public function deleteProject(int $id)
+    public function confirmDeleteProject(int $id): void
+    {
+        $project = Project::findOrFail($id);
+        $this->projectToDeleteId = $project->id;
+        $this->projectToDeleteName = $project->name;
+        $this->projectToDeleteCode = $project->code;
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->showDeleteModal = false;
+        $this->projectToDeleteId = null;
+        $this->projectToDeleteName = null;
+        $this->projectToDeleteCode = null;
+    }
+
+    public function executeDeleteProject(): void
     {
         $user = auth()->user();
         if (!$user || (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1)) {
             $this->dispatch('toast', message: 'Unauthorized. Only PMO Admin can delete projects.', type: 'error');
+            $this->cancelDelete();
             return;
         }
 
-        $project = Project::findOrFail($id);
-        $project->delete();
+        if ($this->projectToDeleteId) {
+            $project = Project::find($this->projectToDeleteId);
+            if ($project) {
+                $pName = $project->name;
+                $project->delete();
+                $this->dispatch('toast', message: "Project '{$pName}' moved to trash successfully.", type: 'info');
+            }
+        }
 
-        $this->dispatch('toast', message: 'Project moved to trash successfully.', type: 'info');
+        $this->cancelDelete();
+    }
+
+    public function deleteProject(int $id)
+    {
+        $this->confirmDeleteProject($id);
     }
 
     public function openQuickDrawer(int $id): void

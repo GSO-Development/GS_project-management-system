@@ -16,29 +16,24 @@ class RbacService
     protected static array $rolePermissionsCache = [];
 
     /**
-     * Map of standard project role codes to human-readable names and icons.
+     * Standard built-in role definitions with metadata.
      */
     public const ROLES = [
-        'sponsor' => [
-            'name' => 'Project Sponsor',
-            'code' => 'sponsor',
-            'icon' => '💼',
-            'badge' => 'bg-amber-50 text-amber-800 border-amber-200',
-            'description' => 'Executive sponsor with oversight, budget governance, and final sign-off authority.',
+        'super_admin' => [
+            'name' => 'Super Administrator',
+            'code' => 'super_admin',
+            'icon' => '🛡️',
+            'badge' => 'bg-red-50 text-red-800 border-red-200 font-black',
+            'description' => 'Unrestricted global system administration, enterprise security, and audit governance.',
+            'is_system' => true,
         ],
-        'owner' => [
-            'name' => 'Project Owner',
-            'code' => 'owner',
-            'icon' => '👑',
-            'badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-            'description' => 'Business owner responsible for project outcomes, scope verification, and milestone sign-offs.',
-        ],
-        'steering_committee' => [
-            'name' => 'Steering Committee',
-            'code' => 'steering_committee',
+        'pmo_admin' => [
+            'name' => 'PMO Administrator',
+            'code' => 'pmo_admin',
             'icon' => '🏛️',
-            'badge' => 'bg-violet-50 text-violet-800 border-violet-200',
-            'description' => 'Governance board member reviewing strategic alignment, risks, and high-level milestones.',
+            'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200 font-extrabold',
+            'description' => 'Enterprise PMO authority overseeing subsidiary portfolios, workflows, and cross-project governance.',
+            'is_system' => true,
         ],
         'lead' => [
             'name' => 'Project Manager',
@@ -46,6 +41,31 @@ class RbacService
             'icon' => '⭐',
             'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200',
             'description' => 'Operational leader managing day-to-day WBS scheduling, task execution, and team assignments.',
+            'is_system' => true,
+        ],
+        'sponsor' => [
+            'name' => 'Project Sponsor',
+            'code' => 'sponsor',
+            'icon' => '💼',
+            'badge' => 'bg-amber-50 text-amber-800 border-amber-200',
+            'description' => 'Executive sponsor with oversight, budget governance, and final sign-off authority.',
+            'is_system' => true,
+        ],
+        'owner' => [
+            'name' => 'Project Owner',
+            'code' => 'owner',
+            'icon' => '👑',
+            'badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+            'description' => 'Business owner responsible for project outcomes, scope verification, and milestone sign-offs.',
+            'is_system' => true,
+        ],
+        'steering_committee' => [
+            'name' => 'Steering Committee',
+            'code' => 'steering_committee',
+            'icon' => '🏛️',
+            'badge' => 'bg-violet-50 text-violet-800 border-violet-200',
+            'description' => 'Governance board member reviewing strategic alignment, risks, and high-level milestones.',
+            'is_system' => true,
         ],
         'member' => [
             'name' => 'Core Project Team',
@@ -53,11 +73,68 @@ class RbacService
             'icon' => '🤝',
             'badge' => 'bg-blue-50 text-blue-700 border-blue-200',
             'description' => 'Active team collaborator executing assigned WBS deliverables and providing status updates.',
+            'is_system' => true,
+        ],
+        'collaborator' => [
+            'name' => 'Collaborator / Specialist',
+            'code' => 'collaborator',
+            'icon' => '⚡',
+            'badge' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
+            'description' => 'Specialist contributor assisting on specific deliverables and technical tasks.',
+            'is_system' => true,
         ],
     ];
 
     /**
-     * Module definitions with all 73 granular permission codes.
+     * Dynamically get all roles from DB merged with standard metadata.
+     */
+    public static function getAllRoles(): array
+    {
+        $dbRoles = Role::all();
+        $roles = [];
+
+        foreach ($dbRoles as $role) {
+            $code = $role->name;
+            // Normalize aliases
+            if ($code === 'project_manager' && !isset(self::ROLES['project_manager'])) {
+                continue; // mapped under lead
+            }
+            if ($code === 'team_member' && !isset(self::ROLES['team_member'])) {
+                continue; // mapped under member
+            }
+
+            if (isset(self::ROLES[$code])) {
+                $roles[$code] = self::ROLES[$code];
+                $roles[$code]['id'] = $role->id;
+                $roles[$code]['users_count'] = $role->users()->count();
+            } else {
+                $roles[$code] = [
+                    'id' => $role->id,
+                    'name' => ucwords(str_replace(['_', '-'], ' ', $code)),
+                    'code' => $code,
+                    'icon' => '🏷️',
+                    'badge' => 'bg-slate-100 text-slate-800 border-slate-200',
+                    'description' => 'Custom user-defined governance role in GS NexusPM.',
+                    'is_system' => false,
+                    'users_count' => $role->users()->count(),
+                ];
+            }
+        }
+
+        // Ensure all built-in roles appear even if not yet in DB table
+        foreach (self::ROLES as $code => $def) {
+            if (!isset($roles[$code])) {
+                $roles[$code] = $def;
+                $roles[$code]['id'] = null;
+                $roles[$code]['users_count'] = 0;
+            }
+        }
+
+        return $roles;
+    }
+
+    /**
+     * Module definitions with granular permission codes.
      */
     public const MODULES = [
         'project' => [
@@ -201,6 +278,42 @@ class RbacService
     ];
 
     /**
+     * Dynamically discover all permissions from DB and map into modules.
+     */
+    public static function getAllModules(): array
+    {
+        $modules = self::MODULES;
+        $dbPermissions = Permission::all();
+
+        // Check if there are any DB permissions not listed in standard modules
+        $knownCodes = [];
+        foreach ($modules as $m) {
+            $knownCodes = array_merge($knownCodes, array_keys($m['permissions']));
+        }
+
+        foreach ($dbPermissions as $perm) {
+            if (!in_array($perm->name, $knownCodes)) {
+                $prefix = explode('.', $perm->name)[0] ?? 'custom';
+                if (isset($modules[$prefix])) {
+                    $modules[$prefix]['permissions'][$perm->name] = ucwords(str_replace(['_', '.'], ' ', $perm->name));
+                } else {
+                    if (!isset($modules['custom'])) {
+                        $modules['custom'] = [
+                            'key' => 'custom',
+                            'name' => 'Custom & Additional Rights',
+                            'icon' => '🔐',
+                            'permissions' => [],
+                        ];
+                    }
+                    $modules['custom']['permissions'][$perm->name] = ucwords(str_replace(['_', '.'], ' ', $perm->name));
+                }
+            }
+        }
+
+        return $modules;
+    }
+
+    /**
      * Check if a user has a specific permission in a project context.
      */
     public static function checkPermission(?User $user, string $permission, Project|int|null $project = null, ?WbsItem $task = null): bool
@@ -210,7 +323,7 @@ class RbacService
         }
 
         // PMO Admin / Super Admin always has 100% full system access
-        if ($user->isSuperAdmin() || $user->isPmoAdmin()) {
+        if ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1) {
             return true;
         }
 
@@ -243,7 +356,6 @@ class RbacService
                 if (in_array('task.edit', $rolePermissions)) {
                     return true;
                 }
-                // If user has edit_assigned and is assigned to this task
                 if (in_array('task.edit_assigned', $rolePermissions) && $task && $task->assigned_user_id === $user->id) {
                     return true;
                 }
@@ -264,7 +376,7 @@ class RbacService
             return in_array($permission, $rolePermissions);
         }
 
-        // 2. Global / Unscoped Check (checks all projects the user is involved with or system roles)
+        // 2. Global / Unscoped Check
         foreach ($user->projects as $prj) {
             $roleCode = $prj->pivot->role ?? 'member';
             if (in_array($permission, self::getPermissionsForRole($roleCode))) {
@@ -290,7 +402,6 @@ class RbacService
 
         $role = Role::where('name', $roleCode)->first();
         if (!$role) {
-            // Check aliases
             $alias = match($roleCode) {
                 'lead' => 'project_manager',
                 'member' => 'team_member',
@@ -322,15 +433,15 @@ class RbacService
 
     /**
      * Compute matrix module status for a role.
-     * Returns: ['status' => 'Full Access'|'View Only'|'Assigned Only'|'Custom'|'No Access', 'badgeClass' => '...']
      */
     public static function computeModuleSummary(string $roleCode, string $moduleKey): array
     {
         $rolePermissions = self::getPermissionsForRole($roleCode);
-        $moduleDef = self::MODULES[$moduleKey] ?? null;
+        $allModules = self::getAllModules();
+        $moduleDef = $allModules[$moduleKey] ?? (self::MODULES[$moduleKey] ?? null);
 
         if (!$moduleDef) {
-            return ['label' => 'No Access', 'badgeClass' => 'bg-slate-100 text-slate-500 border-slate-200'];
+            return ['label' => 'No Access', 'badgeClass' => 'bg-slate-100 text-slate-500 border-slate-200', 'count' => 0, 'total' => 0];
         }
 
         $modulePermKeys = array_keys($moduleDef['permissions']);
@@ -356,7 +467,6 @@ class RbacService
             ];
         }
 
-        // Check if only view permissions are granted
         $isOnlyView = true;
         foreach ($grantedPerms as $p) {
             if (!str_contains($p, 'view') && !str_contains($p, 'report')) {
@@ -374,7 +484,6 @@ class RbacService
             ];
         }
 
-        // Check if assigned-only permissions
         if ($moduleKey === 'task' && in_array('task.view_assigned', $grantedPerms) && !in_array('task.view_all', $grantedPerms) && !in_array('task.create', $grantedPerms)) {
             return [
                 'label' => 'Assigned Only',

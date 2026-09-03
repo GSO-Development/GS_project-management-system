@@ -11,7 +11,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isSuperAdmin()) {
+        if ($user->isPmoAdmin()) {
             return view('dashboard.super-admin');
         }
 

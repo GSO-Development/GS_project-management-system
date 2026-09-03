@@ -43,6 +43,13 @@ class ProjectMonitor extends Component
     public string $stuckPriorityFilter = 'all';
     public int $stuckMinDays = 0;
 
+    public function updating($name): void
+    {
+        if (in_array($name, ['search', 'quickSegment', 'subsidiaryFilter', 'healthFilter', 'statusFilter', 'pmFilter', 'deadlineFilter', 'priorityFilter', 'sortBy'])) {
+            $this->resetPage();
+        }
+    }
+
     public function resetStuckFilters(): void
     {
         $this->search = '';

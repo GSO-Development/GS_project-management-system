@@ -669,21 +669,27 @@
             @php
                 $canManageTeam = $project->userCan(auth()->user(), 'team.add');
                 $otherMembers  = $project->members->reject(fn($m) => $m->id === $project->project_manager_id);
+                $pmUser        = $project->projectManager;
             @endphp
-            <div class="space-y-6" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            <div class="space-y-5" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 
-                <!-- Main Team Container Card -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+                <!-- Main Clean Container Card -->
+                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
                     
-                    <!-- Card Top Header -->
-                    <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <!-- 1. Clean Top Header & Action -->
+                    <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
                         <div class="flex items-center gap-3.5">
-                            <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#c3122e] to-[#8b0d1f] text-white flex items-center justify-center shadow-md shadow-rose-600/20 border border-white/20">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-base font-black text-slate-900 tracking-tight">Team Roster</h3>
-                                <p class="text-xs text-slate-400 font-medium">{{ $project->members->count() }} active member{{ $project->members->count() !== 1 ? 's' : '' }} assigned to this project</p>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-base font-black text-slate-900 tracking-tight">Project Team Roster</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-[10.5px] font-black bg-rose-50 text-[#c3122e] border border-rose-200">
+                                        {{ $project->members->count() }} Active Member{{ $project->members->count() !== 1 ? 's' : '' }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-400 font-medium mt-0.5">Assigned cross-functional delivery team and governance authorities</p>
                             </div>
                         </div>
 
@@ -691,118 +697,166 @@
                             <button 
                                 wire:click="openCollaboratorsModal" 
                                 type="button"
-                                class="px-4 py-2 rounded-xl text-xs font-black text-[#c3122e] bg-rose-50 hover:bg-rose-100 border border-rose-200 cursor-pointer flex items-center justify-center gap-2 transition-all shadow-xs"
+                                class="px-4.5 py-2.5 rounded-xl text-xs font-black text-white shadow-sm hover:shadow-md hover:scale-102 transition-all cursor-pointer flex items-center justify-center gap-2"
+                                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
                             >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Add Collaborator</span>
                             </button>
                         @endif
                     </div>
 
                     <div class="p-6 space-y-5">
-                        
-                        <!-- 🌟 User's Active Project Role Callout Card 🌟 -->
-                        <div class="p-4 rounded-2xl border border-slate-700/80 shadow-md text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                             style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
-                                    {{ $myRoleIcon }}
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="text-[10.5px] font-black text-amber-300 uppercase tracking-wider">Your Project Role:</span>
-                                        <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-black uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                                            {{ $myRoleLabel }}
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-slate-300 font-medium mt-1 leading-relaxed">{{ $myRoleDesc }}</p>
-                                </div>
-                            </div>
-                            <span class="text-[11px] font-mono font-bold text-slate-300 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 self-start sm:self-center flex-shrink-0">
-                                Logged in as {{ $currentUser->name }}
-                            </span>
-                        </div>
+                        <!-- 3. Primary Project Lead Card -->
+                        <div class="space-y-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 block px-1">Project Leadership</span>
+                            
+                            @php
+                                $pmTasksCount = $pmUser ? \App\Models\WbsItem::where('project_id', $project->id)->where('assigned_user_id', $pmUser->id)->count() : 0;
+                            @endphp
 
-                        <!-- Project Lead Highlight Hero Card -->
-                        <div class="p-4 rounded-2xl bg-gradient-to-r from-rose-50/60 via-slate-50/50 to-white border {{ $isPm ? 'border-rose-400 ring-2 ring-rose-500/20' : 'border-rose-200/80' }} flex items-center justify-between gap-4 shadow-2xs">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#c3122e] to-[#8b0d1f] text-white font-black text-base flex items-center justify-center flex-shrink-0 shadow-md shadow-rose-600/20 border border-white/20">
-                                    {{ strtoupper(substr($project->projectManager->name ?? 'P', 0, 1)) }}
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-2.5 flex-wrap">
-                                        <span class="text-sm font-black text-slate-900">{{ $project->projectManager->name ?? 'Unassigned' }}</span>
-                                        <span class="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-[#c3122e] text-white shadow-2xs">
-                                            LEAD PM
-                                        </span>
-                                        @if($isPm)
-                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-300">
-                                                ★ You
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <span class="text-xs text-slate-400 font-medium block truncate mt-0.5">{{ $project->projectManager->email ?? 'No email' }}</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold text-[#c3122e] bg-white px-3 py-1 rounded-xl border border-rose-200 font-mono flex-shrink-0 shadow-2xs">
-                                {{ $project->projectManager->subsidiary->code ?? 'GS' }} Corp
-                            </span>
-                        </div>
-
-                        <!-- Collaborator Members List Cards -->
-                        <div class="space-y-3 pt-2">
-                            @forelse($otherMembers as $member)
-                                @php
-                                    $isMe = ($member->id === $currentUser->id);
-                                    $role = $member->pivot->role ?? 'member';
-                                    $roleLabel = match($role) { 'sponsor'=>'Sponsor','owner'=>'Owner','steering_committee'=>'Committee','lead'=>'PM',default=>'Member' };
-                                    $roleBadgeClass = match($role) {
-                                        'sponsor' => 'bg-amber-50 text-amber-800 border-amber-200',
-                                        'owner' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                        'steering_committee' => 'bg-purple-50 text-purple-800 border-purple-200',
-                                        'lead' => 'bg-rose-50 text-rose-800 border-rose-200',
-                                        default => 'bg-blue-50 text-blue-800 border-blue-200'
-                                    };
-                                @endphp
-                                <div class="p-3.5 rounded-2xl {{ $isMe ? 'bg-rose-50/50 border-rose-300 ring-2 ring-rose-500/20' : 'bg-slate-50 border-slate-200/80' }} hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all flex items-center justify-between gap-3">
-                                    <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-9 h-9 rounded-xl {{ $isMe ? 'bg-[#c3122e] text-white' : 'bg-slate-200 text-slate-700' }} font-black text-xs flex items-center justify-center flex-shrink-0 border border-white shadow-2xs">
-                                            {{ strtoupper(substr($member->name, 0, 1)) }}
+                            <div class="p-5 rounded-2xl border-2 border-rose-200/90 bg-gradient-to-r from-rose-50/70 via-slate-50/40 to-white shadow-2xs hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#c3122e] to-[#7a0a1a] text-white font-black text-lg flex items-center justify-center shadow-md shadow-rose-600/25 border-2 border-white">
+                                            {{ strtoupper(substr($pmUser->name ?? 'P', 0, 1)) }}
                                         </div>
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-xs font-black text-slate-900 truncate block">{{ $member->name }}</span>
-                                                @if($isMe)
-                                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-300">
-                                                        You
-                                                    </span>
+                                    </div>
+
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h4 class="text-base font-black text-slate-900 leading-tight">{{ $pmUser->name ?? 'Unassigned' }}</h4>
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#c3122e] text-white shadow-2xs">
+                                                LEAD PM
+                                            </span>
+                                            @if($isPm)
+                                                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-300">
+                                                    ★ You
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <a href="mailto:{{ $pmUser->email ?? '' }}" class="text-xs text-slate-500 hover:text-[#c3122e] hover:underline font-medium block truncate mt-0.5">
+                                            {{ $pmUser->email ?? 'No email' }}
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3 flex-shrink-0 self-start sm:self-center">
+                                    @if($pmTasksCount > 0)
+                                        <span class="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                            📋 {{ $pmTasksCount }} Task{{ $pmTasksCount !== 1 ? 's' : '' }}
+                                        </span>
+                                    @endif
+
+                                    <span class="text-xs font-bold text-[#c3122e] bg-white px-3.5 py-1.5 rounded-xl border border-rose-200 font-mono shadow-2xs">
+                                        {{ $pmUser->subsidiary->code ?? ($project->subsidiary->code ?? 'GS') }} Corp
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Collaborators Squad Section -->
+                        <div class="space-y-3 pt-2">
+                            <div class="flex items-center justify-between px-1">
+                                <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Team Collaborators</span>
+                                <span class="text-[11px] font-semibold text-slate-400">{{ $otherMembers->count() }} Assigned</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                                @forelse($otherMembers as $member)
+                                    @php
+                                        $isMe = ($member->id === $currentUser->id);
+                                        $role = $member->pivot->role ?? 'member';
+                                        $roleLabel = match($role) {
+                                            'sponsor' => 'Sponsor',
+                                            'owner' => 'Business Owner',
+                                            'steering_committee' => 'Committee',
+                                            'lead' => 'Team Lead',
+                                            default => 'Team Member'
+                                        };
+                                        $roleBadgeClass = match($role) {
+                                            'sponsor' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                            'owner' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                                            'steering_committee' => 'bg-purple-50 text-purple-800 border-purple-200',
+                                            'lead' => 'bg-rose-50 text-[#c3122e] border-rose-200 font-bold',
+                                            default => 'bg-blue-50 text-blue-800 border-blue-200'
+                                        };
+                                        $memberTasksCount = \App\Models\WbsItem::where('project_id', $project->id)->where('assigned_user_id', $member->id)->count();
+                                    @endphp
+
+                                    <div class="rounded-2xl border {{ $isMe ? 'border-rose-300 bg-rose-50/30 ring-2 ring-rose-500/15' : 'border-slate-200/90 bg-white' }} p-4 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between space-y-3">
+                                        <!-- Top Row: Role + Remove Action -->
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold border {{ $roleBadgeClass }}">
+                                                {{ $roleLabel }}
+                                            </span>
+
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-[9.5px] font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                                                    {{ $member->subsidiary->code ?? 'GS' }}
+                                                </span>
+
+                                                @if($canManageTeam)
+                                                    <button 
+                                                        wire:click="removeCollaborator({{ $member->id }})" 
+                                                        wire:confirm="Remove {{ $member->name }} from this project team?"
+                                                        class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" 
+                                                        title="Remove member"
+                                                    >
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                    </button>
                                                 @endif
                                             </div>
-                                            <span class="text-[11px] text-slate-400 font-medium truncate block">{{ $member->email }}</span>
+                                        </div>
+
+                                        <!-- Center: Avatar + Info -->
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-10 h-10 rounded-xl {{ $isMe ? 'bg-[#c3122e] text-white' : 'bg-slate-800 text-white' }} font-black text-xs flex items-center justify-center flex-shrink-0 border border-white shadow-2xs">
+                                                {{ strtoupper(substr($member->name, 0, 1)) }}
+                                            </div>
+
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <h5 class="text-xs font-black text-slate-900 truncate leading-tight">{{ $member->name }}</h5>
+                                                    @if($isMe)
+                                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-200">
+                                                            You
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <a href="mailto:{{ $member->email }}" class="text-[11px] text-slate-400 hover:text-[#c3122e] hover:underline font-medium truncate block mt-0.5">
+                                                    {{ $member->email }}
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Bottom: Task stats -->
+                                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10.5px] text-slate-500 font-medium">
+                                            <span>Task Scope</span>
+                                            <span class="font-bold text-slate-800 font-mono">{{ $memberTasksCount }} Assigned</span>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 flex-shrink-0">
-                                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border {{ $roleBadgeClass }}">
-                                            {{ $roleLabel }}
-                                        </span>
-                                        @if($canManageTeam)
-                                            <button 
-                                                wire:click="removeCollaborator({{ $member->id }})" 
-                                                wire:confirm="Remove {{ $member->name }} from this project?"
-                                                class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" 
-                                                title="Remove member"
-                                            >
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                            </button>
-                                        @endif
+                                @empty
+                                    <div class="col-span-full text-center py-8 rounded-2xl bg-slate-50/80 border border-dashed border-slate-300 space-y-2">
+                                        <p class="text-xs font-bold text-slate-600">No additional team members attached</p>
+                                        <p class="text-[11px] text-slate-400">Click "+ Add Collaborator" above to assign members to this project squad.</p>
                                     </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-8 rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-2">
-                                    <p class="text-xs font-bold text-slate-600">No additional team members attached</p>
-                                    <p class="text-[11px] text-slate-400">Click "Add Collaborator" above to assign members to this project.</p>
-                                </div>
-                            @endforelse
+                                @endforelse
+
+                                <!-- Add Collaborator Dashed Quick Card -->
+                                @if($canManageTeam && $otherMembers->isNotEmpty())
+                                    <button
+                                        wire:click="openCollaboratorsModal"
+                                        type="button"
+                                        class="rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#c3122e] hover:bg-rose-50/40 p-4 transition-all flex flex-col items-center justify-center text-center space-y-1.5 cursor-pointer group min-h-[120px]"
+                                    >
+                                        <div class="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#c3122e] text-slate-500 group-hover:text-white flex items-center justify-center transition-all shadow-2xs">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-700 group-hover:text-[#c3122e] transition-colors">Add Collaborator</span>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
 
                     </div>

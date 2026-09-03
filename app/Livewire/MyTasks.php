@@ -107,6 +107,7 @@ class MyTasks extends Component
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedDueDateFilter() { $this->resetPage(); }
     public function updatedGroupBy() { $this->resetPage(); }
+    public function updatedPerPage() { $this->resetPage(); }
 
     public function clearFilters(): void
     {
