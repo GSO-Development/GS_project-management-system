@@ -2,116 +2,109 @@
     <!-- 🌟 UNIFIED EXECUTIVE TASKS CONTAINER (Clean, Modern, All-in-One Card) -->
     <div class="w-full bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden">
         
-        <!-- Top Toolbar Header -->
-        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white">
+        <!-- ── UNIFIED SIMPLE EXECUTIVE TOOLBAR ── -->
+        <div class="px-4 sm:px-6 py-3 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white">
             
-            <!-- Left: Icon + Title + Total Count Badge + Subtitle -->
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs" style="background: #fef2f2; color: #c3122e; border: 1px solid #fee2e2;">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- Left: Icon + Title + Total Count Badge -->
+            <div class="flex items-center gap-2.5 shrink-0">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs" style="background: #fef2f2; color: #c3122e; border: 1px solid #fee2e2;">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
                 </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap">
-                        <h3 class="font-black text-slate-900 text-base sm:text-lg tracking-tight">Project Tasks Execution List</h3>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                            {{ $healthStats['total'] }} Deliverables
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-400 font-medium mt-0.5 truncate">
-                        Sequential deliverables schedule, progress milestones, and RAG health diagnostics
-                    </p>
-                </div>
+                <h3 class="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight whitespace-nowrap">Project Tasks</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80 shadow-2xs">
+                    {{ $healthStats['total'] }}
+                </span>
             </div>
 
-            <!-- Right Controls: 2-Tier Balanced Controls -->
-            <div class="flex flex-col items-start lg:items-end gap-2.5 flex-shrink-0">
+            <!-- Right Controls: Status Filters + Expand/Collapse + Add Task -->
+            <div class="flex items-center gap-2 flex-wrap shrink-0">
                 
-                <!-- Row 1: Status Filter Pills -->
-                <div class="inline-flex p-1 bg-slate-50 rounded-xl border border-slate-200/80 gap-1 text-xs overflow-x-auto">
-                    <!-- All Tasks -->
+                <!-- Status Filter Pills -->
+                <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-0.5 text-xs shadow-inner">
+                    <!-- All -->
                     <button 
                         wire:click="setHealthFilter('all')" 
                         type="button" 
-                        class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap {{ $healthFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs font-extrabold ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-900' }}"
+                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap {{ $healthFilter === 'all' ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80 font-black' : 'text-slate-500 hover:text-slate-900' }}"
                     >
-                        <span>All Tasks</span>
-                        <span class="font-mono text-[11px] text-slate-400 ml-1">({{ $healthStats['total'] }})</span>
+                        <span>All</span>
+                        <span class="font-mono text-[10.5px] opacity-70 ml-0.5">({{ $healthStats['total'] }})</span>
                     </button>
 
                     <!-- Delayed -->
                     <button 
                         wire:click="setHealthFilter('red')" 
                         type="button" 
-                        class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'red' ? 'bg-rose-50 text-rose-700 font-extrabold ring-1 ring-rose-200 shadow-2xs' : 'text-slate-500 hover:text-rose-700' }}"
-                        title="Delayed deliverables"
+                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'red' ? 'bg-white text-rose-700 shadow-xs border border-rose-200 font-black' : 'text-slate-500 hover:text-rose-700' }}"
+                        title="Delayed Deliverables"
                     >
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                         <span>Delayed</span>
-                        <span class="font-mono text-[11px] text-rose-600">({{ $healthStats['red'] }})</span>
+                        <span class="font-mono text-[10.5px] font-bold text-rose-600">({{ $healthStats['red'] }})</span>
                     </button>
 
                     <!-- At Risk -->
                     <button 
                         wire:click="setHealthFilter('amber')" 
                         type="button" 
-                        class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'amber' ? 'bg-amber-50 text-amber-800 font-extrabold ring-1 ring-amber-200 shadow-2xs' : 'text-slate-500 hover:text-amber-800' }}"
-                        title="At risk deliverables"
+                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'amber' ? 'bg-white text-amber-800 shadow-xs border border-amber-200 font-black' : 'text-slate-500 hover:text-amber-800' }}"
+                        title="At Risk Deliverables"
                     >
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                         <span>At Risk</span>
-                        <span class="font-mono text-[11px] text-amber-700">({{ $healthStats['amber'] }})</span>
+                        <span class="font-mono text-[10.5px] font-bold text-amber-700">({{ $healthStats['amber'] }})</span>
                     </button>
 
                     <!-- On Track -->
                     <button 
                         wire:click="setHealthFilter('green')" 
                         type="button" 
-                        class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'green' ? 'bg-emerald-50 text-emerald-800 font-extrabold ring-1 ring-emerald-200 shadow-2xs' : 'text-slate-500 hover:text-emerald-800' }}"
-                        title="On track deliverables"
+                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'green' ? 'bg-white text-emerald-800 shadow-xs border border-emerald-200 font-black' : 'text-slate-500 hover:text-emerald-800' }}"
+                        title="On Track Deliverables"
                     >
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         <span>On Track</span>
-                        <span class="font-mono text-[11px] text-emerald-700">({{ $healthStats['green'] }})</span>
+                        <span class="font-mono text-[10.5px] font-bold text-emerald-700">({{ $healthStats['green'] }})</span>
                     </button>
                 </div>
 
-                <!-- Row 2: Action Controls (Expand/Collapse + Add Task) -->
-                <div class="flex items-center gap-2">
-                    <!-- Expand / Collapse Controls -->
-                    <div class="inline-flex p-1 bg-slate-50 rounded-xl border border-slate-200/80 gap-1 text-xs">
-                        <button 
-                            wire:click="expandAll" 
-                            type="button" 
-                            class="px-2.5 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
-                            title="Expand all phases and subtasks"
-                        >
-                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                            <span>Expand All</span>
-                        </button>
-                        <button 
-                            wire:click="collapseAll" 
-                            type="button" 
-                            class="px-2.5 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
-                            title="Collapse to main phases only"
-                        >
-                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                            <span>Collapse All</span>
-                        </button>
-                    </div>
+                <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
 
-                    @if($project->userCan(auth()->user(), 'task.create'))
-                        <button 
-                            wire:click="openAddItemModal(null, 'task')" 
-                            class="px-4 py-1.5 rounded-xl text-xs font-black text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 hover:brightness-110 shrink-0"
-                            style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid #fee2e2; box-shadow: 0 4px 12px rgba(195,18,46,0.25);"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                            <span>Add Task</span>
-                        </button>
-                    @endif
+                <!-- Expand / Collapse -->
+                <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-0.5 text-xs shadow-inner">
+                    <button 
+                        wire:click="expandAll" 
+                        type="button" 
+                        class="px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
+                        title="Expand all"
+                    >
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="hidden lg:inline">Expand</span>
+                    </button>
+                    <button 
+                        wire:click="collapseAll" 
+                        type="button" 
+                        class="px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
+                        title="Collapse"
+                    >
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        <span class="hidden lg:inline">Collapse</span>
+                    </button>
                 </div>
+
+                @if($project->userCan(auth()->user(), 'task.create'))
+                    <button 
+                        wire:click="openAddItemModal(null, 'task')" 
+                        type="button"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 hover:brightness-110 shrink-0"
+                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 8px rgba(195,18,46,0.3);"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        <span>Add Task</span>
+                    </button>
+                @endif
             </div>
         </div>
 

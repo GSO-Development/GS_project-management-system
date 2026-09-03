@@ -677,26 +677,8 @@
                         </div>
                     </div>
 
-                    <!-- Right Controls: Expand & Timeframe Segmented Control -->
+                    <!-- Right Controls: Timeframe Segmented Control -->
                     <div class="flex flex-wrap items-center gap-2.5">
-                        @php
-                            $allGanttIds = collect($ganttTimeline['projects'])->pluck('project.id')->toArray();
-                            $allExpanded = count($expandedGanttProjectIds) >= count($allGanttIds) && count($allGanttIds) > 0;
-                        @endphp
-                        @if($allExpanded)
-                            <button wire:click="collapseAllGanttProjects" type="button" 
-                                    class="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                                <span>Collapse WBS</span>
-                            </button>
-                        @else
-                            <button wire:click="expandAllGanttProjects(@js($allGanttIds))" type="button" 
-                                    class="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                <span>Expand WBS</span>
-                            </button>
-                        @endif
-
                         <!-- Horizon switcher -->
                         <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/90 text-xs font-bold">
                             <button wire:click="setGanttTimeframe('3m')" 
@@ -857,19 +839,25 @@
                                     <!-- LEFT COLUMN: Project Info (440px, flex aligned, sticky left) -->
                                     <div class="w-[440px] min-w-[440px] flex-shrink-0 px-4 py-2 h-[58px] border-r border-slate-200 bg-white group-hover:bg-slate-50 sticky left-0 z-20 transition-colors flex flex-col justify-center gap-1">
                                         
-                                        <!-- Row 1: Expand Chevron + Code Badge + Project Name -->
+                                        <!-- Row 1: Redirect Button + Code Badge + Project Name (Direct link to WBS tasks) -->
                                         <div class="flex items-center gap-2 min-w-0">
-                                            <button wire:click="toggleGanttProjectExpand({{ $proj->id }})" type="button"
-                                                    class="w-5 h-5 rounded-md bg-slate-100 hover:bg-rose-50 hover:text-[#c3122e] text-slate-500 flex items-center justify-center text-xs font-bold transition-all flex-shrink-0 cursor-pointer"
-                                                    title="{{ $gp['is_expanded'] ? 'Collapse Deliverables' : 'Expand Deliverables' }}">
-                                                <svg class="w-3.5 h-3.5 transform transition-transform duration-200 {{ $gp['is_expanded'] ? 'rotate-90 text-[#c3122e]' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                            </button>
+                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                               class="w-5 h-5 rounded-md bg-slate-100 hover:bg-[#c3122e] hover:text-white text-slate-500 flex items-center justify-center text-xs font-bold transition-all flex-shrink-0 cursor-pointer no-underline group/arrow shadow-2xs"
+                                               title="Open {{ $proj->name }} WBS Tasks">
+                                                <svg class="w-3.5 h-3.5 group-hover/arrow:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                            </a>
 
-                                            <span class="px-2 py-0.5 rounded-md font-mono font-bold text-[9.5px] bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
+                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
+                                               class="px-2 py-0.5 rounded-md font-mono font-bold text-[9.5px] bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] border border-slate-200 shrink-0 transition-colors no-underline"
+                                               title="Open {{ $proj->name }} WBS Tasks">
                                                 {{ $proj->code }}
-                                            </span>
+                                            </a>
 
-                                            <a href="{{ route('projects.show', $proj->id) }}" class="font-bold text-xs text-slate-900 hover:text-[#c3122e] truncate transition-colors" title="{{ $proj->name }}">
+                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
+                                               class="font-bold text-xs text-slate-900 hover:text-[#c3122e] truncate transition-colors no-underline flex-1" 
+                                               title="Open {{ $proj->name }} WBS Tasks">
                                                 {{ $proj->name }}
                                             </a>
                                         </div>
@@ -916,11 +904,11 @@
                                             </div>
                                         @endif
 
-                                        <!-- GANTT DURATION BAR (Sleek Modern Capsule) -->
-                                        <div class="absolute h-7 rounded-full shadow-xs transition-all flex items-center overflow-hidden cursor-pointer group/bar z-10 border bg-gradient-to-r text-white {{ $barBgColor }} hover:brightness-105 hover:shadow-md"
-                                             style="left: {{ $gp['left_pct'] }}%; width: {{ $barWidthPct }}%;"
-                                             wire:click="openWbsDrawer({{ $proj->id }})"
-                                             title="{{ $proj->name }} • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
+                                        <!-- GANTT DURATION BAR (Sleek Modern Capsule - Click to open WBS Tasks) -->
+                                        <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                           class="absolute h-7 rounded-full shadow-xs transition-all flex items-center overflow-hidden cursor-pointer group/bar z-10 border bg-gradient-to-r text-white no-underline {{ $barBgColor }} hover:brightness-105 hover:shadow-md"
+                                           style="left: {{ $gp['left_pct'] }}%; width: {{ $barWidthPct }}%;"
+                                           title="{{ $proj->name }} • Open WBS Tasks • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
                                             
                                             <!-- Progress Stripe Inner Fill -->
                                             <div class="h-full bg-black/20 transition-all duration-500 rounded-l-full"
@@ -937,7 +925,7 @@
                                                     {{ $gp['progress'] }}%
                                                 </div>
                                             @endif
-                                        </div>
+                                        </a>
 
                                         <!-- Floating Date Label Outside (if narrow) -->
                                         @if(!$isWide)
@@ -958,80 +946,7 @@
                                     </div>
                                 </div>
 
-                                <!-- CHILD WBS ITEMS ROWS (IF EXPANDED - 38px height) -->
-                                @if($gp['is_expanded'])
-                                    <div class="bg-slate-50/50 divide-y divide-slate-100">
-                                        @forelse($gp['wbs_tasks'] as $wbs)
-                                            @php
-                                                $tItem = $wbs['item'];
-                                                $rawTStatus = $tItem->status ?? 'not_started';
-                                                $tStatus = is_object($rawTStatus) ? ($rawTStatus->value ?? 'not_started') : (string)$rawTStatus;
-                                                
-                                                $tColor = match($tStatus) {
-                                                    'completed'   => 'bg-emerald-500 border-emerald-600 text-white',
-                                                    'in_progress' => 'bg-blue-600 border-blue-700 text-white',
-                                                    'blocked'     => 'bg-[#c3122e] border-rose-700 text-white',
-                                                    default       => 'bg-slate-400 border-slate-500 text-white',
-                                                };
-                                                $wbsWidthPct = max(2.5, $wbs['width_pct']);
-                                            @endphp
-                                            <div class="flex items-center min-h-[38px] h-[38px] hover:bg-slate-100/60 transition-all text-xs relative">
-                                                <!-- Subtask Left Info (440px, flex sticky left) -->
-                                                <div class="w-[440px] min-w-[440px] flex-shrink-0 flex items-center justify-between px-4 h-[38px] border-r border-slate-200 bg-slate-50/90 sticky left-0 z-20">
-                                                    
-                                                    <!-- Subtask Title with Indentation -->
-                                                    <div class="pl-6 flex items-center gap-2 min-w-0 pr-2">
-                                                        <span class="font-mono text-[9.5px] text-slate-400 font-bold shrink-0">#{{ $tItem->wbs_code ?? $tItem->id }}</span>
-                                                        <span class="font-medium text-slate-700 text-[11px] truncate max-w-[230px]" title="{{ $tItem->title }}">
-                                                            {{ $tItem->title }}
-                                                        </span>
-                                                    </div>
 
-                                                    <!-- Subtask Assignee & Progress -->
-                                                    <div class="flex items-center gap-2 shrink-0">
-                                                        @if($tItem->assignedUser)
-                                                            <span class="w-4.5 h-4.5 rounded-full bg-gradient-to-br from-[#c3122e] to-[#800a1c] text-white font-bold text-[8px] flex items-center justify-center shrink-0 shadow-2xs ring-1 ring-rose-200" title="{{ $tItem->assignedUser->name }}">
-                                                                {{ strtoupper(substr($tItem->assignedUser->name, 0, 1)) }}
-                                                            </span>
-                                                        @endif
-                                                        <span class="font-mono text-[10px] font-bold text-slate-600">
-                                                            {{ $tItem->progress }}%
-                                                        </span>
-                                                        <span class="w-1.5 h-1.5 rounded-full {{ str_starts_with($tColor, 'bg-emerald') ? 'bg-emerald-500' : (str_starts_with($tColor, 'bg-blue') ? 'bg-blue-600' : (str_starts_with($tColor, 'bg-[#c3122e]') ? 'bg-[#c3122e]' : 'bg-slate-400')) }}"></span>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Subtask Timeline Bar -->
-                                                <div class="flex-1 min-w-[1000px] relative h-[38px] flex items-center px-2">
-                                                    <!-- Month Column Vertical Grid Lines -->
-                                                    <div class="absolute inset-0 flex pointer-events-none">
-                                                        @foreach($ganttTimeline['months'] as $m)
-                                                            <div class="border-r border-slate-100 h-full {{ $m['is_current'] ? 'bg-rose-50/10' : '' }}" style="width: {{ $m['width_pct'] }}%;"></div>
-                                                        @endforeach
-                                                    </div>
-
-                                                    <!-- Vertical Red TODAY Line -->
-                                                    @if($ganttTimeline['today_visible'])
-                                                        <div class="absolute top-0 bottom-0 pointer-events-none z-10 flex flex-col items-center" 
-                                                             style="left: {{ $ganttTimeline['today_pct'] }}%;">
-                                                            <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-90"></div>
-                                                        </div>
-                                                    @endif
-
-                                                    <div class="absolute h-4 rounded-full {{ $tColor }} shadow-2xs flex items-center px-1.5 text-[8.5px] font-mono font-bold whitespace-nowrap overflow-hidden transition-all z-10 border"
-                                                         style="left: {{ $wbs['left_pct'] }}%; width: {{ $wbsWidthPct }}%;"
-                                                         title="{{ $tItem->title }} • {{ $wbs['start_date']->format('M d') }} - {{ $wbs['end_date']->format('M d') }} • {{ $tItem->progress }}% Complete">
-                                                        <span class="truncate">{{ $tItem->progress }}%</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <div class="py-2.5 pl-12 text-xs text-slate-400 italic">
-                                                No deliverables recorded yet for this project.
-                                            </div>
-                                        @endforelse
-                                    </div>
-                                @endif
 
                             @empty
                                 <div class="py-16 text-center text-slate-400 font-medium">

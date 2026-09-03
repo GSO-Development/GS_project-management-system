@@ -25,6 +25,8 @@ class ProjectWorkspace extends Component
     public Project $project;
     public string $activeTab = 'wbs';
 
+
+
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
@@ -559,6 +561,13 @@ class ProjectWorkspace extends Component
     public function mount(Project $project)
     {
         $this->project = $project;
+        if (request()->has('tab')) {
+            $validTabs = ['wbs', 'kanban', 'team', 'updates', 'risks', 'approvals'];
+            $requestedTab = (string) request()->query('tab', 'wbs');
+            if (in_array($requestedTab, $validTabs)) {
+                $this->activeTab = $requestedTab;
+            }
+        }
         $this->project->load(['members', 'subsidiary', 'projectManager']);
         $user = auth()->user();
 

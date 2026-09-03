@@ -1,4 +1,4 @@
-<div wire:poll.30s class="space-y-5 pb-12 text-slate-800" style="font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;">
+<div wire:poll.30s class="space-y-4 sm:space-y-5 pb-12 text-slate-800" style="font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;">
 
     {{-- ═══════════════════════════════════════════════════════════
          TOP BANNER (Sunset Skyline Panorama)
@@ -115,119 +115,115 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════
-         ROW 1: 5 TOP KPI CARDS (Real-Time Metrics)
+         ROW 1: 5 COMPACT KPI METRIC STRIP CARDS
          ═══════════════════════════════════════════════════════════ --}}
-    <div class="w-full" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem;">
+    <style>
+        .kpi-strip { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.6rem; }
+        @media (min-width: 640px)  { .kpi-strip { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+        @media (min-width: 900px)  { .kpi-strip { grid-template-columns: repeat(5, minmax(0,1fr)); gap: 0.6rem; } }
+        .kpi-card { background:#fff; border-radius:10px; padding: 8px 12px; display:flex; align-items:center; gap:10px; transition: box-shadow .15s; border: 1px solid #e2e8f0; }
+        .kpi-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+        .kpi-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .kpi-icon svg { width:14px; height:14px; }
+        .kpi-num { font-size:18px; font-weight:900; font-family:ui-monospace,monospace; color:#0f172a; line-height:1; }
+        .kpi-pct { font-size:9.5px; font-weight:700; }
+        .kpi-label { font-size:10.5px; font-weight:600; color:#64748b; margin-top:1px; }
+    </style>
+    <div class="kpi-strip w-full">
 
         {{-- 1. Total Projects --}}
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
-            <div class="flex items-start justify-between">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #fef2f2; color: #c3122e; border: 1px solid #fee2e2;">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <a href="{{ route('projects.index') }}" class="no-underline">
+            <div class="kpi-card" style="border-left: 3px solid #c3122e;">
+                <div class="kpi-icon" style="background:#fef2f2; color:#c3122e;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                     </svg>
                 </div>
+                <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:baseline; gap:5px; flex-wrap:wrap;">
+                        <span class="kpi-num">{{ $totalProjects }}</span>
+                        <span class="kpi-pct" style="color:#94a3b8;">/ {{ $totalSubsidiaries }} subs</span>
+                    </div>
+                    <div class="kpi-label">Total Projects</div>
+                </div>
             </div>
-            <div class="mt-3">
-                <span class="text-[11px] font-semibold text-slate-500 block">Total Projects</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $totalProjects }}</div>
-                <div class="text-[10.5px] text-slate-400 mt-1 truncate">Across {{ $totalSubsidiaries }} Subsidiaries</div>
-            </div>
-            <div class="mt-3 pt-2 border-t border-slate-100">
-                <a href="{{ route('projects.index') }}" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
-                    <span>View all projects</span>
-                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
-                </a>
-            </div>
-        </div>
+        </a>
 
         {{-- 2. On Track --}}
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
-            <div class="flex items-start justify-between">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7;">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <a href="{{ route('projects.index') }}" class="no-underline">
+            <div class="kpi-card" style="border-left: 3px solid #16a34a;">
+                <div class="kpi-icon" style="background:#f0fdf4; color:#16a34a;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
+                <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:baseline; gap:5px; flex-wrap:wrap;">
+                        <span class="kpi-num">{{ $healthSummary['on_track']['count'] }}</span>
+                        <span class="kpi-pct" style="color:#16a34a;">{{ $healthSummary['on_track']['pct'] }}%</span>
+                    </div>
+                    <div class="kpi-label">On Track</div>
+                </div>
             </div>
-            <div class="mt-3">
-                <span class="text-[11px] font-semibold text-slate-500 block">On Track</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $healthSummary['on_track']['count'] }}</div>
-                <div class="text-[10.5px] text-slate-400 mt-1">{{ $healthSummary['on_track']['pct'] }}% of total</div>
-            </div>
-            <div class="mt-3 pt-2 border-t border-slate-100">
-                <a href="{{ route('projects.index') }}" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
-                    <span>View details</span>
-                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
-                </a>
-            </div>
-        </div>
+        </a>
 
         {{-- 3. At Risk --}}
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
-            <div class="flex items-start justify-between">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #fffbeb; color: #d97706; border: 1px solid #fef3c7;">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="no-underline">
+            <div class="kpi-card" style="border-left: 3px solid #d97706;">
+                <div class="kpi-icon" style="background:#fffbeb; color:#d97706;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
+                <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:baseline; gap:5px; flex-wrap:wrap;">
+                        <span class="kpi-num">{{ $healthSummary['at_risk']['count'] }}</span>
+                        <span class="kpi-pct" style="color:#d97706;">{{ $healthSummary['at_risk']['pct'] }}%</span>
+                    </div>
+                    <div class="kpi-label">At Risk</div>
+                </div>
             </div>
-            <div class="mt-3">
-                <span class="text-[11px] font-semibold text-slate-500 block">At Risk</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $healthSummary['at_risk']['count'] }}</div>
-                <div class="text-[10.5px] text-slate-400 mt-1">{{ $healthSummary['at_risk']['pct'] }}% of total</div>
-            </div>
-            <div class="mt-3 pt-2 border-t border-slate-100">
-                <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
-                    <span>View details</span>
-                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
-                </a>
-            </div>
-        </div>
+        </a>
 
         {{-- 4. Delayed --}}
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
-            <div class="flex items-start justify-between">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2;">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="no-underline">
+            <div class="kpi-card" style="border-left: 3px solid #dc2626;">
+                <div class="kpi-icon" style="background:#fef2f2; color:#dc2626;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-            </div>
-            <div class="mt-3">
-                <span class="text-[11px] font-semibold text-slate-500 block">Delayed</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $healthSummary['delayed']['count'] }}</div>
-                <div class="text-[10.5px] text-slate-400 mt-1">{{ $healthSummary['delayed']['pct'] }}% of total</div>
-            </div>
-            <div class="mt-3 pt-2 border-t border-slate-100">
-                <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group no-underline">
-                    <span>View details</span>
-                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
-                </a>
-            </div>
-        </div>
-
-        {{-- 5. Open Blockers --}}
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col justify-between hover:shadow-sm hover:border-slate-300 transition-all">
-            <div class="flex items-start justify-between">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #faf5ff; color: #9333ea; border: 1px solid #f3e8ff;">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
+                <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:baseline; gap:5px; flex-wrap:wrap;">
+                        <span class="kpi-num">{{ $healthSummary['delayed']['count'] }}</span>
+                        <span class="kpi-pct" style="color:#dc2626;">{{ $healthSummary['delayed']['pct'] }}%</span>
+                    </div>
+                    <div class="kpi-label">Delayed</div>
                 </div>
             </div>
-            <div class="mt-3">
-                <span class="text-[11px] font-semibold text-slate-500 block">Open Blockers</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight mt-0.5">{{ $activeBlockersCount }}</div>
-                <div class="text-[10.5px] text-slate-400 mt-1">Require attention</div>
+        </a>
+
+        {{-- 5. Open Blockers --}}
+        <button wire:click="setDashboardTab('risks')" type="button" style="text-align:left; width:100%; cursor:pointer; background:none; border:none; padding:0;">
+            <div class="kpi-card" style="border-left: 3px solid #9333ea; width:100%;">
+                <div class="kpi-icon" style="background:#faf5ff; color:#9333ea;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                </div>
+                <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:baseline; gap:5px; flex-wrap:wrap;">
+                        <span class="kpi-num">{{ $activeBlockersCount }}</span>
+                        @if($activeBlockersCount > 0)
+                            <span class="kpi-pct" style="color:#9333ea; animation: pulse 2s infinite;">Needs attn.</span>
+                        @else
+                            <span class="kpi-pct" style="color:#94a3b8;">All clear</span>
+                        @endif
+                    </div>
+                    <div class="kpi-label">Open Blockers</div>
+                </div>
             </div>
-            <div class="mt-3 pt-2 border-t border-slate-100">
-                <button wire:click="setDashboardTab('risks')" type="button" class="text-[11px] font-bold text-[#c3122e] hover:underline flex items-center gap-1 group cursor-pointer">
-                    <span>View blockers</span>
-                    <span class="group-hover:translate-x-0.5 transition-transform">→</span>
-                </button>
-            </div>
-        </div>
+        </button>
 
     </div>
 
@@ -235,7 +231,7 @@
     {{-- ═══════════════════════════════════════════════════════════
          ROW 2: 3 CARDS (Portfolio Health + Gantt Preview + Tasks Summary)
          ═══════════════════════════════════════════════════════════ --}}
-    <div class="w-full" style="display: grid; grid-template-columns: 27% calc(46% - 2rem) 27%; gap: 1rem;">
+    <div class="w-full grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {{-- 1. Portfolio Health Donut Chart (27%) --}}
         <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
@@ -621,7 +617,7 @@
     {{-- ═══════════════════════════════════════════════════════════
          ROW 3: 4 BOTTOM CARDS (Top Risks, Pending Approvals, Milestones, Recent Activity)
          ═══════════════════════════════════════════════════════════ --}}
-    <div class="w-full" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;">
+    <div class="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
         {{-- 1. Top Risks --}}
         <div class="min-w-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
