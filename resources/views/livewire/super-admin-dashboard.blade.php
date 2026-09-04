@@ -3,110 +3,71 @@
     {{-- ═══════════════════════════════════════════════════════════
          TOP BANNER (Sunset Skyline Panorama)
          ═══════════════════════════════════════════════════════════ --}}
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-7 lg:p-8 text-white" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Sunset Skyline Panorama) -->
+    {{-- ═══════════════════════════════════════════════════════════
+         TOP BANNER (Executive Command Center with 3D Operations Monitor)
+         ═══════════════════════════════════════════════════════════ --}}
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/30 shadow-2xl p-6 sm:p-8 lg:p-9 text-white transition-all duration-300 min-h-[220px]" style="background: radial-gradient(circle at 82% 45%, rgba(195, 18, 46, 0.42) 0%, rgba(30, 3, 8, 0.98) 52%, #0d0104 100%);">
+        <!-- Ambient Velvet Glows (No diagonal swoosh or cutoffs) -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <!-- Subtle Radial Crimson Lighting around Command Station -->
+            <div class="absolute right-0 top-0 bottom-0 w-3/5 bg-gradient-to-l from-[#c3122e]/20 via-transparent to-transparent"></div>
+            <!-- Bottom Grounding Vignette -->
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0d0104]/80 via-transparent to-transparent"></div>
+        </div>
+
+        <!-- 3D Executive Command Station Graphic (100% Unmasked & Crisp) -->
+        <div class="absolute right-0 bottom-0 top-0 w-full lg:w-[56%] flex justify-end items-end pointer-events-none select-none z-10 overflow-hidden">
             <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Executive Dashboard Banner" 
-                class="w-full h-full object-cover object-center"
+                src="{{ asset('images/pmo-executive-command.png') }}" 
+                alt="PMO Executive Command Station" 
+                class="h-full w-auto max-h-[300px] sm:max-h-[340px] lg:max-h-[370px] object-contain object-right-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)] transition-all duration-300"
             >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
         </div>
 
         <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
-            <!-- Left Side: App Icon + Title + Status -->
-            <div class="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-amber-400/40 ring-2 ring-black/60 bg-slate-950/80 p-1 flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
-                    <div class="w-full h-full rounded-xl flex items-center justify-center text-white font-black text-xl shadow-inner" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                        <svg class="w-7 h-7 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="min-w-0 space-y-1.5 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-amber-300 font-mono">
-                            🏛️ ENTERPRISE GOVERNANCE
-                        </span>
-                        <span class="text-white/30 text-xs hidden sm:inline">•</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-slate-950/80 text-amber-300 border border-amber-400/50 shadow-xs backdrop-blur-md inline-flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>Live Real-Time</span>
-                        </span>
-                    </div>
-
-                    <h1 class="text-xl sm:text-2xl lg:text-[27px] font-black text-white tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        PMO Executive Command Center
-                    </h1>
-
-                    <div class="flex items-center gap-2.5 text-xs font-semibold text-slate-200 flex-wrap pt-0.5">
-                        <span class="inline-flex items-center gap-1.5 text-amber-300 font-bold bg-slate-950/70 px-2.5 py-1 rounded-lg border border-white/15 backdrop-blur-md text-[11px] shadow-sm">
-                            <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>{{ now()->format('l, M d, Y') }}</span>
-                        </span>
-                    </div>
-                </div>
+        <!-- Left Side: Clean Executive Information Hierarchy -->
+        <div class="relative z-20 flex flex-col justify-center min-h-[190px] sm:min-h-[210px] max-w-full lg:max-w-[48%] space-y-3.5 sm:space-y-4">
+            <!-- Top Badges Row -->
+            <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-400/10 text-amber-300 border border-amber-400/30 backdrop-blur-md shadow-xs">
+                    <span>🏛️</span>
+                    <span>ENTERPRISE GOVERNANCE</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/70 text-slate-300 border border-white/10 backdrop-blur-md">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-xs shadow-emerald-400"></span>
+                    <span>LIVE REAL-TIME</span>
+                </span>
             </div>
 
-            <!-- Right Side: HUD Metrics & Action Buttons -->
-            <div class="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 flex-shrink-0 w-full lg:w-auto pt-3 lg:pt-0 border-t lg:border-t-0 border-white/10">
-                <div class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl border border-white/20 ring-1 ring-black/50 shadow-2xl backdrop-blur-2xl flex items-center gap-2.5 sm:gap-3.5 bg-slate-950/85 hover:bg-slate-950 transition-all flex-1 sm:flex-initial justify-between sm:justify-start">
-                    <div class="flex flex-col">
-                        <span class="text-[8.5px] sm:text-[9px] font-black text-amber-300 uppercase tracking-widest leading-none">ACTIVE PORTFOLIO</span>
-                        <span class="text-xs sm:text-sm font-black text-white leading-tight font-mono mt-1">
-                            <span class="text-white text-sm sm:text-base">{{ $activeProjects }}</span> <span class="text-slate-400 font-normal">/</span> <span class="text-slate-300">{{ $totalProjects }}</span>
-                            <span class="text-[10px] sm:text-[10.5px] font-bold text-slate-300 ml-0.5">Projects</span>
-                        </span>
-                    </div>
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 flex-shrink-0 shadow-inner">
-                        <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    </div>
-                </div>
+            <!-- Main Heading -->
+            <div>
+                <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-black text-white tracking-tight leading-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    PMO Executive Command Center
+                </h1>
+            </div>
 
-                <a href="{{ route('projects.create') }}" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-black text-white shadow-xl hover:brightness-110 transition-all duration-200 cursor-pointer no-underline active:scale-95 flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(251, 191, 36, 0.6); box-shadow: 0 4px 15px rgba(195,18,46,0.5);">
-                    <svg class="w-4 h-4 text-amber-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <!-- Subtitle & Date Meta Row -->
+            <div class="flex items-center gap-2.5 text-xs text-slate-300 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 text-amber-300 font-bold bg-white/5 border border-white/10 px-3 py-1 rounded-lg backdrop-blur-md text-[11px] shadow-xs">
+                    <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>{{ now()->format('l, M d, Y') }}</span>
+                </span>
+                <span class="text-white/30 text-xs hidden sm:inline">&bull;</span>
+                <span class="text-slate-300 text-xs font-semibold hidden sm:inline">George Steuart &amp; Company</span>
+            </div>
+
+            <!-- Action Button: + New Project -->
+            <div class="pt-1">
+                <a href="{{ route('projects.create') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-xl hover:brightness-110 transition-all duration-200 cursor-pointer no-underline active:scale-95 hover:scale-[1.02] flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(251, 191, 36, 0.6); box-shadow: 0 4px 18px rgba(195,18,46,0.5);">
+                    <svg class="w-4 h-4 text-amber-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
                     <span>New Project</span>
                 </a>
-            </div>
-        </div>
-
-        {{-- Sub-Header Status Line inside Hero --}}
-        <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2.5 text-[11px] text-white/70">
-            <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span><strong class="text-white">{{ $healthSummary['on_track']['count'] }}</strong> On Track</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <span><strong class="text-white">{{ $healthSummary['at_risk']['count'] }}</strong> At Risk</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-                    <span><strong class="text-white">{{ $healthSummary['delayed']['count'] }}</strong> Delayed</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                    <span><strong class="text-white">{{ $healthSummary['not_started']['count'] }}</strong> Staged</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 sm:gap-3 text-white/60 text-[10.5px] sm:text-[11px] flex-wrap">
-                <span>Subs: <strong class="text-white font-mono">{{ $totalSubsidiaries }}</strong></span>
-                <span>&bull;</span>
-                <span>Tasks: <strong class="text-white font-mono">{{ $totalTasksCount }}</strong></span>
-                <span>&bull;</span>
-                <span>Users: <strong class="text-white font-mono">{{ $totalUsers }}</strong></span>
             </div>
         </div>
     </div>
@@ -119,13 +80,13 @@
         .kpi-responsive-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.65rem;
+            gap: 0.75rem;
             width: 100%;
         }
         @media (min-width: 900px) {
             .kpi-responsive-grid {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
-                gap: 0.75rem;
+                gap: 0.85rem;
             }
             .kpi-card-last {
                 grid-column: span 1 / span 1 !important;
@@ -140,84 +101,84 @@
     <div class="kpi-responsive-grid">
 
         {{-- 1. Total Projects --}}
-        <a href="{{ route('projects.index') }}" class="group bg-white border border-slate-200/80 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex items-center justify-between no-underline">
+        <a href="{{ route('projects.index') }}" class="group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between no-underline">
             <div class="min-w-0 flex-1">
-                <span class="text-[10.5px] font-bold text-slate-500 block truncate">Total Projects</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                    <span class="text-lg sm:text-xl font-black font-mono text-slate-900 leading-none">{{ $totalProjects }}</span>
-                    <span class="text-[9.5px] font-bold text-slate-400">/ {{ $totalSubsidiaries }} subs</span>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block truncate">Total Projects</span>
+                <div class="flex items-baseline gap-1.5 mt-1">
+                    <span class="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">{{ $totalProjects }}</span>
+                    <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">/ {{ $totalSubsidiaries }} subs</span>
                 </div>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-1.5">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-2">
+                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                 </svg>
             </div>
         </a>
 
         {{-- 2. On Track --}}
-        <a href="{{ route('projects.index') }}" class="group bg-white border border-slate-200/80 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex items-center justify-between no-underline">
+        <a href="{{ route('projects.index') }}" class="group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between no-underline">
             <div class="min-w-0 flex-1">
-                <span class="text-[10.5px] font-bold text-slate-500 block truncate">On Track</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                    <span class="text-lg sm:text-xl font-black font-mono text-emerald-700 leading-none">{{ $healthSummary['on_track']['count'] }}</span>
-                    <span class="text-[9.5px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded">{{ $healthSummary['on_track']['pct'] }}%</span>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block truncate">On Track</span>
+                <div class="flex items-baseline gap-1.5 mt-1">
+                    <span class="text-xl sm:text-2xl font-black font-mono text-emerald-700 leading-none">{{ $healthSummary['on_track']['count'] }}</span>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded">{{ $healthSummary['on_track']['pct'] }}%</span>
                 </div>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-1.5">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-2">
+                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
         </a>
 
         {{-- 3. At Risk --}}
-        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="group bg-white border border-slate-200/80 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex items-center justify-between no-underline">
+        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between no-underline">
             <div class="min-w-0 flex-1">
-                <span class="text-[10.5px] font-bold text-slate-500 block truncate">At Risk</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                    <span class="text-lg sm:text-xl font-black font-mono {{ $healthSummary['at_risk']['count'] > 0 ? 'text-amber-700' : 'text-slate-900' }} leading-none">{{ $healthSummary['at_risk']['count'] }}</span>
-                    <span class="text-[9.5px] font-bold {{ $healthSummary['at_risk']['count'] > 0 ? 'text-amber-700 bg-amber-50' : 'text-slate-400' }} px-1 py-0.2 rounded">{{ $healthSummary['at_risk']['pct'] }}%</span>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block truncate">At Risk</span>
+                <div class="flex items-baseline gap-1.5 mt-1">
+                    <span class="text-xl sm:text-2xl font-black font-mono {{ $healthSummary['at_risk']['count'] > 0 ? 'text-amber-700' : 'text-slate-900' }} leading-none">{{ $healthSummary['at_risk']['count'] }}</span>
+                    <span class="text-[10px] font-bold {{ $healthSummary['at_risk']['count'] > 0 ? 'text-amber-700 bg-amber-50 border border-amber-200/60' : 'text-slate-400 bg-slate-50' }} px-1.5 py-0.5 rounded">{{ $healthSummary['at_risk']['pct'] }}%</span>
                 </div>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-1.5">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-2">
+                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
         </a>
 
         {{-- 4. Delayed --}}
-        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="group bg-white border border-slate-200/80 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex items-center justify-between no-underline">
+        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" class="group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between no-underline">
             <div class="min-w-0 flex-1">
-                <span class="text-[10.5px] font-bold text-slate-500 block truncate">Delayed</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                    <span class="text-lg sm:text-xl font-black font-mono {{ $healthSummary['delayed']['count'] > 0 ? 'text-rose-700' : 'text-slate-900' }} leading-none">{{ $healthSummary['delayed']['count'] }}</span>
-                    <span class="text-[9.5px] font-bold {{ $healthSummary['delayed']['count'] > 0 ? 'text-rose-700 bg-rose-50' : 'text-slate-400' }} px-1 py-0.2 rounded">{{ $healthSummary['delayed']['pct'] }}%</span>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block truncate">Delayed</span>
+                <div class="flex items-baseline gap-1.5 mt-1">
+                    <span class="text-xl sm:text-2xl font-black font-mono {{ $healthSummary['delayed']['count'] > 0 ? 'text-rose-700' : 'text-slate-900' }} leading-none">{{ $healthSummary['delayed']['count'] }}</span>
+                    <span class="text-[10px] font-bold {{ $healthSummary['delayed']['count'] > 0 ? 'text-rose-700 bg-rose-50 border border-rose-200/60' : 'text-slate-400 bg-slate-50' }} px-1.5 py-0.5 rounded">{{ $healthSummary['delayed']['pct'] }}%</span>
                 </div>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-1.5">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-2">
+                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
         </a>
 
-        {{-- 5. Open Blockers (Full row on mobile 2-col, 1-col on desktop) --}}
-        <button wire:click="setDashboardTab('risks')" type="button" class="kpi-card-last group bg-white border border-slate-200/80 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex items-center justify-between text-left cursor-pointer">
+        {{-- 5. Open Blockers --}}
+        <button wire:click="setDashboardTab('risks')" type="button" class="kpi-card-last group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between text-left cursor-pointer">
             <div class="min-w-0 flex-1">
-                <span class="text-[10.5px] font-bold text-slate-500 block truncate">Open Blockers</span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                    <span class="text-lg sm:text-xl font-black font-mono {{ $activeBlockersCount > 0 ? 'text-purple-700' : 'text-slate-900' }} leading-none">{{ $activeBlockersCount }}</span>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block truncate">Open Blockers</span>
+                <div class="flex items-baseline gap-1.5 mt-1">
+                    <span class="text-xl sm:text-2xl font-black font-mono {{ $activeBlockersCount > 0 ? 'text-purple-700' : 'text-slate-900' }} leading-none">{{ $activeBlockersCount }}</span>
                     @if($activeBlockersCount > 0)
-                        <span class="text-[9.5px] font-bold text-purple-700 bg-purple-50 px-1 py-0.2 rounded animate-pulse">Needs Attn</span>
+                        <span class="text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200/60 px-1.5 py-0.5 rounded animate-pulse">Needs Attn</span>
                     @else
-                        <span class="text-[9.5px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded">All Clear</span>
+                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded">All Clear</span>
                     @endif
                 </div>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-1.5">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs ml-2">
+                <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                 </svg>
             </div>
