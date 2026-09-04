@@ -168,12 +168,12 @@
             $myRoleBorder = 'border-slate-500/50';
             $myRoleText   = 'text-slate-300';
             $myRoleDot    = 'bg-slate-400';
-            $myRoleBg     = 'bg-slate-950/85';
+            $myRoleBg     = 'bg-slate-950/80';
         }
     @endphp
 
     <!-- ===== 1. TOP EXECUTIVE PROJECT BANNER (LUXURY CRIMSON & GOLD SUNSET) ===== -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl mb-6 p-4 sm:p-6 lg:p-7 text-white" style="background: #2b040a;">
+    <div class="relative overflow-hidden rounded-2xl border border-amber-500/30 shadow-md mb-4 p-4 sm:p-5 text-white" style="background: #2b040a;">
         <!-- Full Banner Background Image (User's Luxury Crimson & Gold Skyline Artwork) -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
             <img 
@@ -190,49 +190,49 @@
         </div>
 
         <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+        <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
             <!-- Left Side: App Icon + Breadcrumbs + Title + Sleek Essential Meta Pills -->
-            <div class="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div class="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
                 <!-- 3D Luxury App Icon Container -->
-                <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 00-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-white/25 ring-2 ring-rose-500/25 flex items-center justify-center p-2 sm:p-2.5" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                 </div>
 
-                <div class="min-w-0 space-y-1.5 sm:space-y-2 flex-1">
+                <div class="min-w-0 space-y-1 sm:space-y-1.5 flex-1">
                     <!-- Top Breadcrumb & Code Row -->
                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap" x-data="{ fav: false }">
-                        <a href="{{ route('projects.index') }}" class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black text-amber-300 hover:text-white transition-colors uppercase tracking-wider no-underline group">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                        <a href="{{ route('projects.index') }}" class="inline-flex items-center gap-1 text-[10px] sm:text-[10.5px] font-black text-amber-300 hover:text-white transition-colors uppercase tracking-wider no-underline group">
+                            <svg class="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                             <span>Projects</span>
                         </a>
                         <span class="text-white/30 text-xs">/</span>
-                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-semibold text-slate-200 bg-slate-950/70 border border-white/15 backdrop-blur-md shadow-xs max-w-[160px] sm:max-w-xs truncate">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-semibold text-slate-200 bg-slate-950/70 border border-white/15 backdrop-blur-md shadow-xs max-w-[160px] sm:max-w-xs truncate">
+                            <svg class="w-3 h-3 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <span class="truncate">{{ $project->subsidiary->name ?? 'George Steuart Group' }}</span>
                         </span>
-                        <span class="px-2 sm:px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black text-amber-300 bg-slate-950/80 border border-amber-400/50 shadow-xs backdrop-blur-md">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-mono font-black text-amber-300 bg-slate-950/80 border border-amber-400/50 shadow-xs backdrop-blur-md">
                             {{ $project->code }}
                         </span>
-                        <button type="button" @click="fav = !fav" class="transition-all text-sm sm:text-base cursor-pointer focus:outline-none ml-0.5 p-0.5 hover:scale-125" :class="fav ? 'text-amber-400' : 'text-white/40 hover:text-amber-300'" title="Toggle Favorite">
+                        <button type="button" @click="fav = !fav" class="transition-all text-sm cursor-pointer focus:outline-none ml-0.5 p-0.5 hover:scale-125" :class="fav ? 'text-amber-400' : 'text-white/40 hover:text-amber-300'" title="Toggle Favorite">
                             <span x-text="fav ? '★' : '☆'"></span>
                         </button>
                     </div>
 
                     <!-- Main Project Title with Executive Typography -->
-                    <h1 class="text-lg sm:text-2xl lg:text-[25px] font-extrabold text-white tracking-tight leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] break-words" style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;">
+                    <h1 class="text-base sm:text-xl lg:text-2xl font-black text-white tracking-tight leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] break-words" style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;">
                         {{ $project->name }}
                     </h1>
 
                     <!-- Sleek Meta Status Pills + HIGHLIGHTED USER ROLE -->
-                    <div class="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold text-slate-200 flex-wrap pt-0.5">
+                    <div class="flex items-center gap-1.5 text-[9.5px] sm:text-[10.5px] font-semibold text-slate-200 flex-wrap pt-0.5">
                         <!-- 🔥 USER'S PERSONAL PROJECT ROLE BADGE 🔥 -->
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black {{ $myRoleBg }} border {{ $myRoleBorder }} shadow-lg backdrop-blur-xl ring-2 ring-white/20 transition-all hover:scale-105 cursor-help" title="{{ $myRoleDesc }}">
-                            <span class="w-2 h-2 rounded-full {{ $myRoleDot }} animate-pulse"></span>
-                            <span class="text-[9.5px] uppercase font-bold text-amber-300 tracking-wider">Your Role:</span>
+                        <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black {{ $myRoleBg }} border {{ $myRoleBorder }} shadow-md backdrop-blur-xl ring-1 ring-white/20 transition-all hover:scale-105 cursor-help" title="{{ $myRoleDesc }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $myRoleDot }} animate-pulse"></span>
+                            <span class="text-[9px] uppercase font-bold text-amber-300 tracking-wider">Your Role:</span>
                             <span class="flex items-center gap-1 font-extrabold {{ $myRoleText }}">
                                 <span>{{ $myRoleIcon }}</span>
                                 <span>{{ $myRoleLabel }}</span>
@@ -240,31 +240,31 @@
                         </div>
 
                         <!-- Status Pill -->
-                        <span class="inline-flex items-center px-2.5 sm:px-3 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-slate-950/75 text-sky-300 border border-sky-400/40 shadow-xs backdrop-blur-md">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider bg-slate-950/75 text-sky-300 border border-sky-400/40 shadow-xs backdrop-blur-md">
                             {{ $project->status->label() }}
                         </span>
 
                         <!-- Health Pill -->
-                        <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-slate-950/75 text-emerald-300 border border-emerald-400/40 shadow-xs backdrop-blur-md">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider bg-slate-950/75 text-emerald-300 border border-emerald-400/40 shadow-xs backdrop-blur-md">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span>{{ $project->health->label() }}</span>
                         </span>
 
                         <!-- Project Leader Pill -->
-                        <div class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium text-slate-200 bg-slate-950/75 border border-white/20 backdrop-blur-md shadow-xs max-w-full">
-                            <div class="w-4 h-4 rounded-full bg-[#c3122e] text-white flex items-center justify-center font-black text-[8px] ring-1 ring-amber-400/60 shadow-xs flex-shrink-0">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-medium text-slate-200 bg-slate-950/75 border border-white/20 backdrop-blur-md shadow-xs max-w-full">
+                            <div class="w-3.5 h-3.5 rounded-full bg-[#c3122e] text-white flex items-center justify-center font-black text-[7.5px] ring-1 ring-amber-400/60 shadow-xs flex-shrink-0">
                                 {{ strtoupper(substr($project->projectManager->name ?? 'U', 0, 1)) }}
                             </div>
-                            <span class="truncate max-w-[130px] sm:max-w-[180px]">{{ $project->projectManager->name ?? 'Unassigned' }}</span>
+                            <span class="truncate max-w-[120px] sm:max-w-[160px]">{{ $project->projectManager->name ?? 'Unassigned' }}</span>
                         </div>
 
                         <!-- Target Deadline Pill -->
                         @if($project->deadline)
-                            <div class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium {{ $project->deadline->isPast() ? 'bg-rose-950/90 text-rose-300 border-rose-500/50' : 'bg-slate-950/75 text-slate-200 border-white/20' }} border backdrop-blur-md shadow-xs">
-                                <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-medium {{ $project->deadline->isPast() ? 'bg-rose-950/90 text-rose-300 border-rose-500/50' : 'bg-slate-950/75 text-slate-200 border-white/20' }} border backdrop-blur-md shadow-xs">
+                                <svg class="w-3 h-3 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <span>{{ $project->deadline->format('M d, Y') }}</span>
                                 @if($project->deadline->isPast())
-                                    <span class="text-[9px] font-black text-rose-300 font-mono">(Overdue)</span>
+                                    <span class="text-[8.5px] font-black text-rose-300 font-mono">(Overdue)</span>
                                 @endif
                             </div>
                         @endif
@@ -273,11 +273,11 @@
             </div>
 
             <!-- Right Side: Progress Gauge + Details Action (Clean Executive HUD) -->
-            <div class="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0 w-full lg:w-auto pt-3 lg:pt-0 border-t lg:border-t-0 border-white/10">
+            <div class="flex items-center justify-between sm:justify-end gap-2.5 flex-shrink-0 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-white/10">
                 <!-- Executive Smoked Frosted Progress Card -->
-                <div class="rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 shadow-2xl border border-white/20 ring-1 ring-black/40 bg-slate-950/80 hover:bg-slate-950/95 backdrop-blur-2xl transition-all duration-300 flex items-center justify-between sm:justify-start gap-3.5 flex-shrink-0">
-                    <div class="relative w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-10 h-10 sm:w-11 sm:h-11 transform -rotate-90" viewBox="0 0 36 36">
+                <div class="rounded-xl px-3 py-1.5 shadow-lg border border-white/20 ring-1 ring-black/40 bg-slate-950/80 hover:bg-slate-950/95 backdrop-blur-2xl transition-all duration-300 flex items-center justify-between sm:justify-start gap-2.5 flex-shrink-0">
+                    <div class="relative w-9 h-9 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-9 h-9 transform -rotate-90" viewBox="0 0 36 36">
                             <!-- Track -->
                             <path class="text-white/15" stroke-width="3" stroke="currentColor" fill="none"
                                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -291,14 +291,14 @@
                                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                         </svg>
                         <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-xs font-black text-white leading-none font-mono tracking-tight">{{ $project->overall_progress }}%</span>
+                            <span class="text-[11px] font-black text-white leading-none font-mono tracking-tight">{{ $project->overall_progress }}%</span>
                         </div>
                     </div>
                     <div>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-amber-300/90 block leading-none">PROGRESS</span>
-                        <span class="text-xs font-bold text-white leading-tight block mt-1">
-                            <span class="font-mono font-black text-sm text-white">{{ $project->wbsItems->where('status', \App\Enums\WbsStatus::COMPLETED)->count() }}</span><span class="text-slate-400 font-normal">/</span><span class="font-mono text-slate-300">{{ $project->wbsItems->count() }}</span>
-                            <span class="text-[10px] font-semibold text-slate-300 ml-0.5">Done</span>
+                        <span class="text-[8.5px] font-black uppercase tracking-widest text-amber-300/90 block leading-none">PROGRESS</span>
+                        <span class="text-[11px] font-bold text-white leading-tight block mt-0.5">
+                            <span class="font-mono font-black text-xs text-white">{{ $project->wbsItems->where('status', \App\Enums\WbsStatus::COMPLETED)->count() }}</span><span class="text-slate-400 font-normal">/</span><span class="font-mono text-slate-300">{{ $project->wbsItems->count() }}</span>
+                            <span class="text-[9.5px] font-semibold text-slate-300 ml-0.5">Done</span>
                         </span>
                     </div>
                 </div>
@@ -307,10 +307,10 @@
                 <button
                     wire:click="openProjectDetailsModal"
                     type="button"
-                    class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-950/80 hover:bg-slate-950 border border-white/20 hover:border-amber-400/50 shadow-xl backdrop-blur-2xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95 hover:scale-105"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-slate-950/80 hover:bg-slate-950 border border-white/20 hover:border-amber-400/50 shadow-lg backdrop-blur-2xl transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 hover:scale-102"
                     title="View comprehensive project details, budget, team, and delivery specs"
                 >
-                    <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
@@ -616,13 +616,13 @@
         </div>
     @else
         <!-- ===== 2. HERO GANTT SCHEDULE COMPONENT (ALWAYS DISPLAYED AT TOP) ===== -->
-        <div class="mb-6">
+        <div class="mb-4">
             <livewire:gantt-chart :project="$project" />
         </div>
 
         <!-- ===== 3. EXECUTIVE SEGMENTED TABS CONTROLS ===== -->
-        <div class="bg-white p-1.5 sm:p-2 rounded-2xl border border-slate-200/90 shadow-2xs mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 overflow-hidden">
-            <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-none p-0.5">
+        <div class="bg-white/95 backdrop-blur-xs p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs mb-3 flex items-center justify-between gap-2 overflow-hidden">
+            <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-none p-0.5 w-full">
                 @foreach([
                     'wbs'       => ['Task List', 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
                     'kanban'    => ['Kanban', 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7'],
@@ -634,15 +634,15 @@
                     <button
                         wire:click="$set('activeTab', '{{ $tabKey }}')"
                         type="button"
-                        class="flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-black transition-all duration-200 cursor-pointer flex-shrink-0 {{ $activeTab === $tabKey ? 'text-white shadow-md scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 bg-transparent' }}"
-                        @if($activeTab === $tabKey) style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);" @endif
+                        class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer flex-shrink-0 {{ $activeTab === $tabKey ? 'text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90 bg-transparent' }}"
+                        @if($activeTab === $tabKey) style="background: linear-gradient(135deg, #c3122e 0%, #9e0f26 100%);" @endif
                     >
-                        <svg class="w-4 h-4 flex-shrink-0 {{ $activeTab === $tabKey ? 'text-rose-200' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-4 h-4 flex-shrink-0 {{ $activeTab === $tabKey ? 'text-rose-100' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $tabIcon }}"/>
                         </svg>
                         <span>{{ $tabLabel }}</span>
                         @if($tabKey === 'team')
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ $activeTab === $tabKey ? 'bg-white text-[#c3122e]' : 'bg-slate-100 text-slate-700' }} shadow-2xs font-mono">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono {{ $activeTab === $tabKey ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60' }} shadow-2xs">
                                 {{ $project->members->count() }}
                             </span>
                         @endif
@@ -653,7 +653,7 @@
                                 $approvalsTabCount = $pendingProjectApprovals + ($isPendingPmAcceptance ? 1 : 0);
                             @endphp
                             @if($approvalsTabCount > 0)
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ $activeTab === $tabKey ? 'bg-white text-[#c3122e]' : 'bg-[#c3122e] text-white' }} shadow-2xs animate-pulse">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $activeTab === $tabKey ? 'bg-white text-[#c3122e]' : 'bg-[#c3122e] text-white' }} shadow-2xs animate-pulse">
                                     {{ $approvalsTabCount }}
                                 </span>
                             @endif
@@ -921,7 +921,7 @@
                             </div>
                             <p class="text-xs text-slate-600 mb-2">{{ $u->summary }}</p>
                             @if($u->work_completed)
-                                <p class="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100"><strong>âœ“ Completed:</strong> {{ $u->work_completed }}</p>
+                                <p class="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100"><strong>✓ Completed:</strong> {{ $u->work_completed }}</p>
                             @endif
                         </div>
                     @empty
@@ -969,7 +969,7 @@
                                     <button wire:click="openPreview({{ $doc->id }})" class="text-xs font-bold text-slate-900 hover:text-[#c3122e] hover:underline cursor-pointer block text-left">
                                         {{ $doc->original_name }}
                                     </button>
-                                    <p class="text-[10px] text-slate-500">Uploaded by {{ $doc->uploader->name ?? 'User' }} â€¢ {{ round($doc->file_size/1024, 1) }} KB</p>
+                                    <p class="text-[10px] text-slate-500">Uploaded by {{ $doc->uploader->name ?? 'User' }} • {{ round($doc->file_size/1024, 1) }} KB</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -1039,7 +1039,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="text-center py-8 text-slate-400 text-xs">No comments yet â€” start the discussion!</div>
+                    <div class="text-center py-8 text-slate-400 text-xs">No comments yet — start the discussion!</div>
                 @endforelse
             </div>
         </div>
@@ -1090,12 +1090,14 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea] flex items-center gap-1.5">
                                         <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span>ðŸ“ Component: {{ $b->wbsItem->title ?? 'General Scope' }} (Code: {{ $b->wbsItem->wbs_code ?? '-' }})</span>
+                                        <span>📍 Component: {{ $b->wbsItem->title ?? 'General Scope' }} (Code: {{ $b->wbsItem->wbs_code ?? '-' }})</span>
                                     </span>
 
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-extrabold border {{ $sevColors[$b->severity] ?? 'bg-slate-100 text-slate-700' }}">
                                         {{ $b->severity }} Severity
-                        <div class="flex items-center gap-2">
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2">
                                     @if($b->status === 'resolved')
                                         <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                                             ✓ Resolved

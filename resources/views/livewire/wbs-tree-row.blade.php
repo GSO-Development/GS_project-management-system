@@ -7,21 +7,6 @@
 
     $wbsCode = (string)($item->wbs_code ?: '1');
 
-    if (ctype_digit($wbsCode)) {
-        $num = (int)$wbsCode;
-        $ordinal = match($num % 10) {
-            1 => $num . ($num % 100 == 11 ? 'th' : 'st'),
-            2 => $num . ($num % 100 == 12 ? 'th' : 'nd'),
-            3 => $num . ($num % 100 == 13 ? 'th' : 'rd'),
-            default => $num . 'th',
-        };
-        $taskOrdinalLabel = $ordinal . ' Task';
-    } else {
-        $taskOrdinalLabel = $wbsCode;
-    }
-@endphp
-
-@php
     $health = $item->traffic_light;
     $progressVal = (int) ($item->progress ?? 0);
     $progressBarColor = match($health['status']) {
@@ -39,255 +24,282 @@
         default => 'bg-[#2563eb]',
     };
 
-    $priorityEnum = $item->priority ? $item->priority->value : 'medium';
     $currentStatus = $item->status ? $item->status->value : 'not_started';
     $isOverdue = $health['is_overdue'] ?? false;
 
-    // Subtask count for subtitle (Only for parent tasks that actually have subtasks)
+    // Subtask count for subtitle
     $subtasksTotal = $item->children ? $item->children->count() : 0;
     $subtasksDone = $item->children ? $item->children->where('status', \App\Enums\WbsStatus::COMPLETED)->count() : 0;
-    $progressSubtitle = $subtasksTotal > 0 ? "({$subtasksDone}/{$subtasksTotal} Subtasks)" : null;
 
-    $hasTime = !empty($item->start_time) || !empty($item->end_time) || (bool) preg_match('/\d{1,2}:\d{2}\s*(?:AM|PM)/i', $item->title);
-    $isTimeSlot = $hasTime
-        && $item->item_type->value !== 'phase'
-        && $item->item_type->value !== 'work_package';
-    $isPhase = ($item->item_type->value === 'phase') || (!$item->parent_id && !$isTimeSlot);
+    // Level-specific theme styling
+    $levelConfig = match($level) {
+        1 => [
+            'iconBg' => 'bg-amber-50 text-amber-600 border border-amber-200/90',
+            'badge'  => 'bg-amber-50 text-amber-800 border-amber-200/90',
+            'dot'    => 'bg-amber-500',
+            'title'  => 'font-bold text-slate-900 text-[11px] tracking-tight',
+            'rowBg'  => 'bg-slate-50/70 hover:bg-slate-100/70 border-b border-slate-200/80',
+        ],
+        2 => [
+            'iconBg' => 'bg-sky-50 text-sky-600 border border-sky-200/90',
+            'badge'  => 'bg-sky-50 text-sky-800 border-sky-200/90',
+            'dot'    => 'bg-sky-500',
+            'title'  => 'font-semibold text-slate-800 text-[11px] tracking-tight',
+            'rowBg'  => 'bg-white hover:bg-slate-50/70 border-b border-slate-100',
+        ],
+        3 => [
+            'iconBg' => 'bg-indigo-50 text-indigo-600 border border-indigo-200/90',
+            'badge'  => 'bg-indigo-50 text-indigo-800 border-indigo-200/90',
+            'dot'    => 'bg-indigo-500',
+            'title'  => 'font-medium text-slate-700 text-[11px]',
+            'rowBg'  => 'bg-white hover:bg-slate-50/70 border-b border-slate-100',
+        ],
+        default => [
+            'iconBg' => 'bg-emerald-50 text-emerald-600 border border-emerald-200/90',
+            'badge'  => 'bg-emerald-50 text-emerald-800 border-emerald-200/90',
+            'dot'    => 'bg-emerald-500',
+            'title'  => 'font-normal text-slate-600 text-[10.5px]',
+            'rowBg'  => 'bg-white hover:bg-slate-50/60 border-b border-slate-100',
+        ],
+    };
+
+    // Clean title from any encoding glitch
+    $cleanTitle = str_replace(['???', '??'], '–', $item->title);
 @endphp
 
-<tr class="border-b border-slate-100 hover:bg-[#fdf4f4]/30 transition-colors {{ $isSubTask ? 'bg-slate-50/40' : 'bg-white' }} {{ !$isSubTask ? ($item->wbs_code == '1' ? 'border-l-4 border-l-rose-500' : ($item->wbs_code == '2' ? 'border-l-4 border-l-purple-500' : 'border-l-4 border-l-slate-300')) : '' }}">
-    
+<tr class="transition-colors duration-150 group {{ $levelConfig['rowBg'] }}">
     <!-- 1. TASK NUMBER (#) -->
-    <td class="py-3.5 pl-6 pr-3 font-mono text-xs whitespace-nowrap align-middle">
-        @if($isSubTask)
-            <div class="flex items-center gap-1.5 text-slate-400 font-bold" style="padding-left: {{ ($level - 1) * 12 }}px">
-                <span class="text-slate-300 font-normal">↳</span>
-                <span class="font-mono text-xs {{ $isTimeSlot ? 'text-violet-600 font-black' : 'text-slate-600' }}">{{ $item->wbs_code }}</span>
-            </div>
+    <td class="py-3 pl-3 pr-1 font-mono text-center whitespace-nowrap align-middle w-12">
+        @if($level === 1)
+            <span class="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 rounded-md bg-slate-100 text-slate-700 font-mono text-[9.5px] font-bold border border-slate-200/80 shadow-2xs">
+                #{{ $wbsCode }}
+            </span>
+        @elseif($level === 2)
+            <span class="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded-md bg-slate-50 font-mono text-[9.5px] font-semibold text-slate-600 border border-slate-200/70">
+                {{ $wbsCode }}
+            </span>
         @else
-            <span class="font-black text-sm {{ $item->wbs_code == '1' ? 'text-rose-600' : ($item->wbs_code == '2' ? 'text-slate-900' : 'text-slate-900') }}">
-                {{ $item->wbs_code ?: '1' }}
+            <span class="font-mono text-[9.5px] font-medium text-slate-400">
+                {{ $wbsCode }}
             </span>
         @endif
     </td>
 
-    <!-- 2. TASK DELIVERABLE -->
-    <td class="py-3.5 px-4 align-middle min-w-[240px]" style="padding-left: {{ $isSubTask ? ($level - 1) * 16 + 16 : 16 }}px">
-        <div class="flex items-center gap-2 flex-wrap">
+    <!-- 2. TASK DELIVERABLE (Clean Modern Tree Hierarchy) -->
+    <td class="py-3 px-3 align-middle min-w-[220px]">
+        <div class="flex items-center gap-2" style="padding-left: {{ ($level - 1) * 16 }}px;">
+
+            {{-- Expand / Collapse Button or Spacer --}}
             @if($hasChildren)
                 <button 
                     wire:click="toggleCollapse({{ $item->id }})" 
                     type="button" 
-                    class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-[#c3122e] hover:text-white text-slate-700 font-black text-[10px] flex items-center justify-center transition-all cursor-pointer shadow-2xs border border-slate-200"
+                    class="w-5 h-5 rounded-md bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-500 flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0 active:scale-95"
                     title="{{ $isCollapsed ? 'Expand subtasks' : 'Collapse subtasks' }}"
                 >
-                    <svg class="w-3 h-3 transition-transform {{ $isCollapsed ? '-rotate-90' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    <svg class="w-3 h-3 transition-transform duration-200 {{ $isCollapsed ? '-rotate-90 text-slate-400' : 'text-slate-700' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
                 </button>
-            @elseif($isSubTask)
-                <span class="text-slate-300 font-bold text-xs">›</span>
-            @endif
-
-            @if($isPhase)
-                <div class="w-5 h-5 rounded-md bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            @elseif($level > 1)
+                <div class="w-5 h-5 flex items-center justify-center shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                 </div>
-                <span class="font-black text-slate-900 text-sm">
-                    {{ $item->title }}
-                </span>
-            @elseif($isTimeSlot)
-                @php
-                    $titleHasTime = (bool) preg_match('/\d{1,2}:\d{2}\s*(?:AM|PM)/i', $item->title);
-                @endphp
-                @if($titleHasTime)
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 shadow-2xs">
-                        <svg class="w-3.5 h-3.5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ $item->title }}</span>
-                    </span>
-                @else
-                    <span class="font-bold text-slate-900 text-xs">
-                        {{ $item->title }}
-                    </span>
-                    @if($item->start_time_formatted && $item->end_time_formatted)
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold text-violet-700 bg-violet-50 border border-violet-200/80 shadow-2xs">
-                            <svg class="w-3 h-3 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>{{ $item->start_time_formatted }} – {{ $item->end_time_formatted }}</span>
-                        </span>
-                    @endif
-                @endif
+            @endif
+
+            {{-- Level Icons --}}
+            @if($level === 1)
+                <div class="w-5 h-5 rounded-md {{ $levelConfig['iconBg'] }} shadow-2xs flex items-center justify-center shrink-0">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                </div>
+            @elseif($level === 2)
+                <div class="w-5 h-5 rounded-md {{ $levelConfig['iconBg'] }} shadow-2xs flex items-center justify-center shrink-0">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                </div>
+            @elseif($level === 3)
+                <div class="w-5 h-5 rounded-md {{ $levelConfig['iconBg'] }} shadow-2xs flex items-center justify-center shrink-0">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
             @else
-                <span class="font-bold text-slate-800 text-xs">
-                    {{ $item->title }}
-                </span>
+                <div class="w-5 h-5 rounded-md {{ $levelConfig['iconBg'] }} shadow-2xs flex items-center justify-center shrink-0">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
             @endif
 
+            {{-- Title --}}
+            <span class="truncate max-w-[220px] lg:max-w-[320px] {{ $levelConfig['title'] }}" title="{{ $cleanTitle }}">
+                {{ $cleanTitle }}
+            </span>
+
+            {{-- Subtasks Badge --}}
             @if($hasChildren)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                    <span>›</span>
-                    <span>{{ $item->children->count() }} Subtasks</span>
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold {{ $levelConfig['badge'] }} shrink-0 font-mono shadow-2xs">
+                    <span class="w-1 h-1 rounded-full {{ $levelConfig['dot'] }}"></span>
+                    <span>{{ $item->children->count() }}</span>
                 </span>
             @endif
 
+            {{-- Milestone Tag --}}
             @if($item->is_milestone)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
-                    <svg class="w-3 h-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
-                    <span>Milestone</span>
+                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-black bg-amber-50 text-amber-900 border border-amber-300/80 shrink-0">
+                    <span>🏁</span>
                 </span>
             @endif
 
+            {{-- Risks Tag --}}
             @if($item->risks && $item->risks->count() > 0)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs" title="{{ $item->risks->count() }} Associated Risk(s)">
-                    <svg class="w-3 h-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span>{{ $item->risks->count() }}</span>
+                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-rose-50 text-rose-800 border border-rose-300/80 shrink-0" title="{{ $item->risks->count() }} Associated Risk(s)">
+                    <span class="text-rose-600 font-bold">⚠️ {{ $item->risks->count() }}</span>
                 </span>
             @endif
-        </div>
 
-        {{-- Predecessor dependency pills --}}
-        @if($item->predecessors && $item->predecessors->count() > 0)
-            <div class="flex flex-wrap items-center gap-1 mt-1">
+            {{-- Predecessors --}}
+            @if($item->predecessors && $item->predecessors->count() > 0)
                 @foreach($item->predecessors as $dep)
-                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-md text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                        After: {{ $dep->predecessor->wbs_code ?? '?' }} {{ Str::limit($dep->predecessor->title ?? 'Unknown', 18) }}
-                        <button wire:click="removeDependency({{ $dep->id }})" wire:confirm="Remove this dependency?" class="ml-0.5 text-blue-400 hover:text-rose-600 transition-colors cursor-pointer">&times;</button>
+                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-blue-50 text-blue-800 border border-blue-200 shrink-0">
+                        #{{ $dep->predecessor->wbs_code ?? '?' }}
+                        <button wire:click="removeDependency({{ $dep->id }})" wire:confirm="Remove this dependency?" class="text-blue-400 hover:text-rose-600 cursor-pointer ml-0.5">&times;</button>
                     </span>
                 @endforeach
-            </div>
-        @endif
+            @endif
+        </div>
     </td>
 
-    <!-- 3. ASSIGNED TO -->
-    <td class="py-3.5 px-4 text-xs text-slate-700 font-semibold align-middle whitespace-nowrap min-w-[150px]">
+    <!-- 3. ASSIGNED TO (Clean Pill) -->
+    <td class="py-3 px-2.5 text-xs text-slate-700 align-middle whitespace-nowrap w-[110px]">
         @if($item->assignedUser)
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full {{ $avatarBg }} text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 shadow-2xs">
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 border border-slate-200/80 shadow-2xs max-w-[105px]" title="{{ $item->assignedUser->name }}">
+                <div class="w-4 h-4 rounded-full {{ $avatarBg }} text-white text-[8.5px] font-black flex items-center justify-center shrink-0 shadow-2xs">
                     {{ strtoupper(substr($item->assignedUser->name, 0, 1)) }}
                 </div>
-                <span class="truncate font-bold text-slate-800 text-xs max-w-[130px]">{{ $item->assignedUser->name }}</span>
+                <span class="truncate font-bold text-slate-800 text-[10.5px]">{{ $item->assignedUser->name }}</span>
             </div>
         @else
-            <span class="text-slate-400 font-normal italic text-xs">Unassigned</span>
+            <span class="text-slate-400 font-medium text-[10.5px]">Unassigned</span>
         @endif
     </td>
 
-    <!-- 4. START SCHEDULE -->
-    <td class="py-3.5 px-4 text-xs align-middle whitespace-nowrap min-w-[140px]">
+    <!-- 4. START SCHEDULE (Clear Date & Time) -->
+    <td class="py-3 px-2.5 text-xs align-middle whitespace-nowrap min-w-[120px]">
         @if($item->start_date)
-            <div class="flex flex-col gap-0.5">
-                <span class="px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 text-[11px] font-bold flex items-center gap-1.5 w-fit shadow-2xs font-mono">
-                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div class="flex flex-col leading-snug">
+                <span class="text-[11px] font-mono font-bold text-slate-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                     <span>{{ $item->start_date->format('M d, Y') }}</span>
                 </span>
                 @if($item->start_time_formatted)
-                    <span class="text-[10px] font-mono font-bold text-violet-600 pl-1 flex items-center gap-1">
-                        <svg class="w-2.5 h-2.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ $item->start_time_formatted }}</span>
-                    </span>
+                    <span class="text-[10px] font-mono font-semibold text-slate-400 pl-3">{{ $item->start_time_formatted }}</span>
                 @endif
             </div>
         @else
-            <span class="text-slate-400 font-normal italic text-xs">No start set</span>
+            <span class="text-slate-300 font-mono text-[10.5px]">--</span>
         @endif
     </td>
 
-    <!-- 5. TARGET DEADLINE -->
-    <td class="py-3.5 px-4 text-xs align-middle whitespace-nowrap min-w-[140px]">
+    <!-- 5. TARGET DEADLINE (Clear Date, Time & Overdue Tag) -->
+    <td class="py-3 px-2.5 text-xs align-middle whitespace-nowrap min-w-[120px]">
         @if($item->end_date)
-            <div class="flex flex-col gap-0.5">
-                <span class="px-2.5 py-0.5 rounded-md {{ $isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200/70' }} text-[11px] font-bold flex items-center gap-1.5 w-fit shadow-2xs font-mono">
-                    <svg class="w-3 h-3 {{ $isOverdue ? 'text-rose-600' : 'text-emerald-600' }} shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div class="flex flex-col leading-snug">
+                <span class="text-[11px] font-mono font-bold flex items-center gap-1.5 {{ $isOverdue ? 'text-rose-700' : 'text-slate-800' }}">
+                    <span class="w-1.5 h-1.5 rounded-full {{ $isOverdue ? 'bg-rose-600 animate-pulse' : 'bg-slate-400' }} shrink-0"></span>
                     <span>{{ $item->end_date->format('M d, Y') }}</span>
                 </span>
-                @if($item->end_time_formatted)
-                    <span class="text-[10px] font-mono font-bold text-violet-600 pl-1 flex items-center gap-1">
-                        <svg class="w-2.5 h-2.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ $item->end_time_formatted }}</span>
-                    </span>
+                @if($isOverdue)
+                    <span class="text-[9px] font-mono font-black text-rose-600 pl-3 uppercase tracking-wider">OVERDUE</span>
+                @elseif($item->end_time_formatted)
+                    <span class="text-[10px] font-mono font-semibold text-slate-400 pl-3">{{ $item->end_time_formatted }}</span>
                 @endif
             </div>
         @else
-            <span class="text-slate-400 font-normal italic text-xs">No deadline set</span>
+            <span class="text-slate-300 font-mono text-[10.5px]">--</span>
         @endif
     </td>
 
-    <!-- 6. TRAFFIC LIGHT (Glowing LED Circular Dot - Placed before Progress) -->
-    <td class="py-3.5 px-3 text-center align-middle whitespace-nowrap min-w-[100px]">
+    <!-- 6. TRAFFIC LIGHT / HEALTH (Refined Health Pill) -->
+    <td class="py-3 px-1.5 text-center align-middle whitespace-nowrap w-[85px]">
         <div class="inline-flex items-center justify-center cursor-help" title="{{ $health['reason'] }}">
             @if($health['status'] === 'red')
-                <span class="w-3.5 h-3.5 rounded-full bg-[#ef4444] inline-block shadow-sm ring-4 ring-rose-100 animate-pulse" title="Critical / Delayed: {{ $health['reason'] }}"></span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                    <span>Delayed</span>
+                </span>
             @elseif($health['status'] === 'amber')
-                <span class="w-3.5 h-3.5 rounded-full bg-[#f59e0b] inline-block shadow-sm ring-4 ring-amber-100" title="At Risk / Due Soon: {{ $health['reason'] }}"></span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/90 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span>At Risk</span>
+                </span>
             @elseif($health['status'] === 'green')
-                <span class="w-3.5 h-3.5 rounded-full bg-[#10b981] inline-block shadow-sm ring-4 ring-emerald-100" title="On Track: {{ $health['reason'] }}"></span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>On Track</span>
+                </span>
             @else
-                <span class="w-3.5 h-3.5 rounded-full bg-[#9ca3af] inline-block shadow-sm ring-4 ring-slate-100" title="Upcoming / Not Started: {{ $health['reason'] }}"></span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/90 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    <span>Plan</span>
+                </span>
             @endif
         </div>
     </td>
 
-    <!-- 7. PROGRESS (Horizontal Bar + Percentage + Ratio Subtitle) -->
-    <td class="py-3.5 px-4 align-middle whitespace-nowrap min-w-[150px]">
-        <div class="flex flex-col gap-0.5">
-            <div class="flex items-center gap-2.5">
-                <div class="w-20 sm:w-24 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 shadow-inner">
-                    <div 
-                        class="h-full rounded-full transition-all duration-300"
-                        style="width: {{ $progressVal }}%; {{ $progressBarColor }}"
-                    ></div>
-                </div>
-                <span class="text-xs font-black text-slate-900 font-mono w-9">{{ $progressVal }}%</span>
+    <!-- 7. PROGRESS (Refined Bar + %) -->
+    <td class="py-3 px-2 align-middle whitespace-nowrap w-[90px]">
+        <div class="flex items-center gap-2">
+            <div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/80 shrink-0">
+                <div 
+                    class="h-full rounded-full transition-all duration-300"
+                    style="width: {{ $progressVal }}%; {{ $progressBarColor }}"
+                ></div>
             </div>
-            @if($progressSubtitle)
-                <span class="text-[10px] font-mono text-slate-400 pl-1">{{ $progressSubtitle }}</span>
-            @endif
+            <span class="text-[10px] font-bold font-mono text-slate-700 w-6 text-right">{{ $progressVal }}%</span>
         </div>
     </td>
 
-    <!-- 8. STATUS (Interactive Pill Badge Dropdown) -->
-    <td class="py-3.5 px-4 align-middle whitespace-nowrap min-w-[130px]">
-        <div class="flex flex-col">
+    <!-- 8. STATUS (Modern Interactive Dropdown) -->
+    <td class="py-3 px-2 align-middle whitespace-nowrap w-[115px] min-w-[115px]">
+        <div class="relative inline-block w-full">
             <select
                 wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
-                class="text-[11px] font-bold rounded-full px-3 py-1 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c3122e]/30 transition-all shadow-2xs
+                class="text-[10px] font-bold rounded-lg pl-2.5 pr-5 py-1 border cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all shadow-2xs w-full appearance-none
                     {{ match($currentStatus) {
-                        'completed'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                        'in_progress'  => 'bg-blue-50 text-blue-700 border-blue-200',
-                        'under_review' => 'bg-purple-50 text-purple-700 border-purple-200',
-                        'blocked'      => 'bg-rose-50 text-rose-700 border-rose-200 font-extrabold',
-                        'on_hold'      => 'bg-amber-50 text-amber-800 border-amber-200',
-                        default        => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-600 border-slate-200'),
+                        'completed'    => 'bg-emerald-50 text-emerald-800 border-emerald-200/90 hover:bg-emerald-100/70',
+                        'in_progress'  => 'bg-sky-50 text-sky-800 border-sky-200/90 hover:bg-sky-100/70',
+                        'under_review' => 'bg-purple-50 text-purple-800 border-purple-200/90 hover:bg-purple-100/70',
+                        'blocked'      => 'bg-rose-50 text-rose-800 border-rose-200/90 font-extrabold hover:bg-rose-100/70',
+                        'on_hold'      => 'bg-amber-50 text-amber-900 border-amber-200/90 hover:bg-amber-100/70',
+                        default        => ($isOverdue ? 'bg-rose-50 text-rose-800 border-rose-200/90' : 'bg-slate-50 text-slate-700 border-slate-200/90 hover:bg-slate-100/70'),
                     } }}"
                 title="Update Task Status"
             >
-                <option value="not_started" @selected($currentStatus === 'not_started' || $currentStatus === 'backlog') class="bg-white text-slate-900 font-medium">
-                    ⚪ Not Started
-                </option>
-                <option value="in_progress" @selected($currentStatus === 'in_progress') class="bg-white text-slate-900 font-medium">
-                    🔄 In Progress
-                </option>
-                <option value="under_review" @selected($currentStatus === 'under_review') class="bg-white text-slate-900 font-medium">
-                    🟣 Under Review
-                </option>
-                <option value="blocked" @selected($currentStatus === 'blocked') class="bg-white text-rose-700 font-bold">
-                    🔴 Blocked
-                </option>
-                <option value="on_hold" @selected($currentStatus === 'on_hold') class="bg-white text-amber-700 font-medium">
-                    🟡 On Hold
-                </option>
-                <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">
-                    ✔ Completed
-                </option>
+                <option value="not_started" @selected($currentStatus === 'not_started' || $currentStatus === 'backlog') class="bg-white text-slate-900">Not Started</option>
+                <option value="in_progress" @selected($currentStatus === 'in_progress') class="bg-white text-slate-900">In Progress</option>
+                <option value="under_review" @selected($currentStatus === 'under_review') class="bg-white text-slate-900">Review</option>
+                <option value="blocked" @selected($currentStatus === 'blocked') class="bg-white text-rose-700 font-bold">Blocked</option>
+                <option value="on_hold" @selected($currentStatus === 'on_hold') class="bg-white text-amber-700">On Hold</option>
+                <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">Done</option>
             </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </div>
         </div>
     </td>
 
-    <!-- 10. ACTIONS (Circular Kebab Menu ⋮ Dropdown) -->
-    <td class="py-3.5 pl-4 pr-6 text-right align-middle whitespace-nowrap min-w-[70px]">
+    <!-- 9. ACTIONS (Compact Kebab ⋮ Menu) -->
+    <td class="py-3 pl-1 pr-3 text-center align-middle whitespace-nowrap w-[40px]">
         <div x-data="{ open: false }" class="relative inline-block text-left">
             <button 
                 @click="open = !open" 
                 @click.outside="open = false" 
                 type="button" 
-                class="w-7 h-7 rounded-full border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 hover:border-slate-300 flex items-center justify-center font-bold text-base transition-all cursor-pointer shadow-2xs"
+                class="w-6 h-6 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center font-bold text-xs transition-all cursor-pointer shadow-2xs mx-auto"
                 title="Task Actions"
             >
                 ⋮
@@ -303,39 +315,39 @@
                 x-transition:leave="transition ease-in duration-75" 
                 x-transition:leave-start="transform opacity-100 scale-100" 
                 x-transition:leave-end="transform opacity-0 scale-95" 
-                class="absolute right-0 mt-1.5 w-44 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 py-1.5 text-left focus:outline-none"
+                class="absolute right-0 mt-1 w-40 rounded-xl bg-white border border-slate-200 shadow-xl z-50 py-1 text-left focus:outline-none"
             >
                 @if($item->project->userCan(auth()->user(), 'task.create_subtask') || $item->project->userCan(auth()->user(), 'task.create'))
-                    <button wire:click="openAddItemModal({{ $item->id }}, 'subtask')" @click="open = false" type="button" class="w-full px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer text-left">
+                    <button wire:click="openAddItemModal({{ $item->id }}, 'subtask')" @click="open = false" type="button" class="w-full px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-left">
                         <span>➕</span>
                         <span>Add Sub-task</span>
                     </button>
                 @endif
 
                 @if($item->project->userCan(auth()->user(), 'task.edit', $item))
-                    <button wire:click="openEditItemModal({{ $item->id }})" @click="open = false" type="button" class="w-full px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer text-left">
+                    <button wire:click="openEditItemModal({{ $item->id }})" @click="open = false" type="button" class="w-full px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-left">
                         <span>✏️</span>
                         <span>Edit Task</span>
                     </button>
                 @endif
 
                 @if($item->project->userCan(auth()->user(), 'task.comment'))
-                    <a href="{{ route('daily-updates.index', ['project' => $item->project_id, 'task' => $item->id, 'create' => 1]) }}" class="w-full px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer text-left no-underline block">
+                    <a href="{{ route('daily-updates.index', ['project' => $item->project_id, 'task' => $item->id, 'create' => 1]) }}" class="w-full px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-left no-underline block">
                         <span>📝</span>
-                        <span>Log Daily Update</span>
+                        <span>Daily Update</span>
                     </a>
                 @endif
 
                 @if($item->project->userCan(auth()->user(), 'task.edit', $item))
-                    <button wire:click="openDepModal({{ $item->id }})" @click="open = false" type="button" class="w-full px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer text-left">
+                    <button wire:click="openDepModal({{ $item->id }})" @click="open = false" type="button" class="w-full px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-left">
                         <span>🔗</span>
-                        <span>Link Predecessor</span>
+                        <span>Link Dependency</span>
                     </button>
                 @endif
 
                 @if($item->project->userCan(auth()->user(), 'task.delete', $item))
-                    <div class="border-t border-slate-100 my-1"></div>
-                    <button wire:click="deleteItem({{ $item->id }})" wire:confirm="Are you sure you want to delete task '{{ addslashes($item->title) }}'?" @click="open = false" type="button" class="w-full px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors cursor-pointer text-left">
+                    <div class="border-t border-slate-100 my-0.5"></div>
+                    <button wire:click="deleteItem({{ $item->id }})" wire:confirm="Are you sure you want to delete task '{{ addslashes($item->title) }}'?" @click="open = false" type="button" class="w-full px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer text-left">
                         <span>🗑️</span>
                         <span>Delete Task</span>
                     </button>

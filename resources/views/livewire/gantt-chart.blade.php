@@ -52,127 +52,124 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
     </style>
 
     <!-- ===== GANTT HERO CARD CONTAINER ===== -->
-    <div class="card p-0 overflow-hidden shadow-xs border border-slate-200/90 bg-white rounded-2xl mb-6">
+    <div class="card p-0 overflow-hidden shadow-2xs border border-slate-200/90 bg-white rounded-2xl mb-4">
         
         <!-- ── Modern Executive Toolbar (2 Clean Rows) ── -->
         <!-- Row 1: Primary Controls & Navigation -->
-        <div class="px-4 py-3 sm:px-5 bg-white border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="px-4 py-2.5 sm:px-5 bg-white border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
             
-            <!-- Left: Title, Code, Roadmap Range & Date Navigator -->
-            <div class="flex items-center gap-3 flex-wrap">
+            <!-- Left: Icon + Title + Code + Date Navigator -->
+            <div class="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap">
                 <!-- Title & Code -->
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-2xs" style="background: #c3122e;">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-2xs" style="background: #c3122e;">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </span>
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-bold text-slate-900 tracking-tight">WBS Gantt Schedule</span>
-                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-sm font-extrabold text-slate-900 tracking-tight whitespace-nowrap">WBS Gantt Schedule</span>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
                             {{ $project->code }}
                         </span>
                     </div>
                 </div>
 
                 <!-- Date Navigator (< Today / Deadline >) -->
-                <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden p-0.5">
-                    <button wire:click="goToPrevious" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Left">
+                <div class="inline-flex items-center rounded-xl border border-slate-200/90 bg-slate-50/80 shadow-2xs p-0.5 gap-0.5">
+                    <button wire:click="goToPrevious" class="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Left">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     </button>
                     @if(!is_null($todayPx))
-                        <button wire:click="goToToday" class="px-2.5 py-1 text-slate-700 hover:text-[#c3122e] hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5" title="Jump to Today">
+                        <button wire:click="goToToday" class="px-2.5 py-1 text-slate-700 hover:text-[#c3122e] hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5" title="Jump to Today">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
                             <span>Today</span>
                         </button>
                     @endif
                     @if(!is_null($deadlinePx))
-                        <button wire:click="goToDeadline" class="px-2.5 py-1 text-slate-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-l border-slate-100" title="Jump to Project Deadline">
-                            <span>🎯</span>
+                        <button wire:click="goToDeadline" class="px-2.5 py-1 text-slate-700 hover:text-amber-800 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-l border-slate-200/60" title="Jump to Project Deadline">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             <span>Deadline</span>
                         </button>
                     @endif
-                    <button wire:click="goToNext" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Right">
+                    <button wire:click="goToNext" class="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Right">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
+            </div>
 
-                <!-- Project Roadmap Bounds Capsule -->
-                <div class="hidden xl:inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
-                    <span class="text-slate-500 font-medium">Start: <strong class="text-slate-800 font-semibold">{{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}</strong></span>
+            <!-- Right: Timeframe Switcher (Day / Week / Month) + Search Input -->
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- Timeframe Tabs: Day vs Week vs Month -->
+                <div class="inline-flex p-0.5 rounded-xl bg-slate-100/90 border border-slate-200/80 gap-0.5 text-xs">
+                    <button wire:click="setTimeframe('day')" 
+                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $timeframe === 'day' ? 'bg-gradient-to-r from-[#c3122e] to-[#9e0f26] text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            title="Daily Schedule">
+                        Day
+                    </button>
+                    <button wire:click="setTimeframe('week')" 
+                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $timeframe === 'week' ? 'bg-gradient-to-r from-[#c3122e] to-[#9e0f26] text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            title="Weekly Schedule">
+                        Week
+                    </button>
+                    <button wire:click="setTimeframe('month')" 
+                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $timeframe === 'month' ? 'bg-gradient-to-r from-[#c3122e] to-[#9e0f26] text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            title="Monthly Overview">
+                        Month
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-36 sm:w-44">
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search WBS..."
+                           class="w-full text-xs font-medium rounded-xl border border-slate-200/90 pl-7.5 pr-2.5 py-1 bg-white focus:border-slate-400 focus:ring-1 focus:ring-slate-200 outline-none placeholder:text-slate-400 shadow-2xs transition-all">
+                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Secondary Bar (Tree Controls + Roadmap Dates + Clean Legend + Deliverables Count) -->
+        <div class="px-4 sm:px-5 py-2 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between gap-4 text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none">
+            <!-- Left: Tree Expand/Collapse + Divider + Project Dates Info -->
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="inline-flex items-center gap-1.5 text-xs">
+                    <button wire:click="expandAll" class="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
+                        Expand All
+                    </button>
+                    <span class="text-slate-300">•</span>
+                    <button wire:click="collapseAll" class="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
+                        Collapse All
+                    </button>
+                </div>
+
+                <div class="h-3 w-px bg-slate-200 hidden sm:block"></div>
+
+                <!-- Project Roadmap Bounds -->
+                <div class="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span>Start: <strong class="text-slate-700 font-semibold">{{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}</strong></span>
                     <span class="text-slate-300">➔</span>
-                    <span class="text-slate-700 font-medium flex items-center gap-1">
-                        <span>🎯</span>
-                        <span>Deadline: <strong class="text-slate-900 font-semibold">{{ $project->deadline ? $project->deadline->format('M d, Y') : '—' }}</strong></span>
-                    </span>
+                    <span>Deadline: <strong class="text-slate-800 font-semibold">{{ $project->deadline ? $project->deadline->format('M d, Y') : '—' }}</strong></span>
                     @if(!is_null($daysToDeadline))
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono {{ $daysToDeadline >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-rose-50 text-[#c3122e] border border-rose-200/60' }}">
+                        <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold font-mono {{ $daysToDeadline >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-rose-50 text-[#c3122e] border border-rose-200/60' }}">
                             {{ $daysToDeadline >= 0 ? $daysToDeadline . 'd left' : abs($daysToDeadline) . 'd overdue' }}
                         </span>
                     @endif
                 </div>
             </div>
 
-            <!-- Right: Search Input + Timeframe Switcher (Day / Week / Month) -->
-            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
-                <!-- Timeframe Tabs: Day vs Week vs Month -->
-                <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 shadow-2xs gap-0.5">
-                    <button wire:click="setTimeframe('day')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {{ $timeframe === 'day' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
-                            title="Daily Detailed Schedule">
-                        <span>☀️</span>
-                        <span>Day</span>
-                    </button>
-                    <button wire:click="setTimeframe('week')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {{ $timeframe === 'week' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
-                            title="Weekly Deliverables">
-                        <span>📅</span>
-                        <span>Week</span>
-                    </button>
-                    <button wire:click="setTimeframe('month')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 {{ $timeframe === 'month' ? 'bg-[#c3122e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
-                            title="Monthly Executive Overview">
-                        <span>🗓️</span>
-                        <span>Month</span>
-                    </button>
-                </div>
-
-                <!-- Search Input -->
-                <div class="relative w-40 sm:w-48">
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search WBS..."
-                           class="w-full text-xs font-medium rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 focus:border-slate-400 focus:ring-1 focus:ring-slate-200 outline-none bg-white shadow-2xs transition-all placeholder:text-slate-400">
-                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Row 2: Secondary Bar (Tree Expand/Collapse + Legend + Deliverables count) -->
-        <div class="px-5 py-2.5 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between gap-4 text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none">
-            <!-- Left: Tree Expand/Collapse + Divider + Legend -->
-            <div class="flex items-center gap-3.5 flex-shrink-0">
-                <div class="inline-flex items-center gap-1.5">
-                    <button wire:click="expandAll" class="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
-                        Expand All
-                    </button>
-                    <span class="text-slate-300">•</span>
-                    <button wire:click="collapseAll" class="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
-                        Collapse All
-                    </button>
-                </div>
-
-                <div class="h-3.5 w-px bg-slate-200"></div>
-
-                <!-- Clean Legend Dots -->
-                <div class="flex items-center gap-3.5 text-[11px] font-semibold text-slate-600">
+            <!-- Right: Clean Legend Dots + Deliverables Count -->
+            <div class="flex items-center gap-3.5 shrink-0">
+                <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-600">
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed</span>
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#c3122e]"></span> In Progress</span>
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Planned</span>
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-500 rotate-45"></span> Milestone</span>
-                    <span class="flex items-center gap-1 text-amber-700 font-bold"><span>⚠️</span> Has Risk</span>
+                    <span class="flex items-center gap-1 text-amber-700 font-bold"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Has Risk</span>
                 </div>
-            </div>
 
-            <!-- Right: Deliverables Count -->
-            <div class="flex items-center gap-2 flex-shrink-0 text-slate-400 font-medium text-[11px]">
-                <span>Showing <strong class="text-slate-700 font-bold">{{ $wbsItems->count() }}</strong> of <strong class="text-slate-700 font-bold">{{ $allRawItems->count() }}</strong> deliverables</span>
+                <div class="h-3 w-px bg-slate-200 hidden md:block"></div>
+
+                <div class="hidden md:flex items-center gap-1 text-slate-400 font-medium text-[11px] whitespace-nowrap">
+                    <span>Showing <strong class="text-slate-700 font-bold">{{ $wbsItems->count() }}</strong> of <strong class="text-slate-700 font-bold">{{ $allRawItems->count() }}</strong> deliverables</span>
+                </div>
             </div>
         </div>
 
@@ -188,11 +185,11 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                     <div class="flex items-stretch border-b border-slate-200/80 text-[11px] font-black text-slate-700 uppercase tracking-wider">
                         <div class="flex-shrink-0 border-r border-slate-200 bg-slate-100/70 text-slate-700 flex items-center justify-between px-4 py-2" style="width:280px;">
                             <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Work Breakdown</span>
-                            <span class="text-[9px] font-mono font-bold text-slate-400">HIERARCHY</span>
+                            <span class="text-[9.5px] font-mono font-bold text-slate-400">HIERARCHY</span>
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($monthHeaders as $mHead)
-                                <div class="text-center border-r border-slate-200 font-bold text-slate-700 bg-slate-50/70 py-2 px-1 truncate tracking-wide text-xs"
+                                <div class="text-center border-r border-slate-200 font-bold text-slate-800 bg-slate-50/80 py-2 px-1 truncate tracking-wide text-xs"
                                      style="width:{{ $mHead['pxWidth'] }}px; flex-shrink:0;">
                                     {{ $mHead['label'] }}
                                 </div>
@@ -202,16 +199,16 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                     <!-- Bottom: Sub-column (Day / Week / Month) headers -->
                     <div class="flex items-stretch text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                        <div class="border-r border-slate-200 flex items-center px-4 py-1.5 bg-slate-50/50 text-[11px] font-semibold text-slate-500" style="width:280px; flex-shrink:0;">
+                        <div class="border-r border-slate-200 flex items-center px-4 py-2 bg-slate-50/50 text-[11px] font-bold text-slate-600" style="width:280px; flex-shrink:0;">
                             Phase &amp; Deliverable Title
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($columns as $col)
-                                <div class="text-center border-r border-slate-200 py-1.5 px-1 flex-shrink-0
+                                <div class="text-center border-r border-slate-200 py-1.5 px-1 flex-shrink-0 flex flex-col items-center justify-center
                                         {{ ($col['isToday'] ?? false) ? 'bg-rose-50 text-[#c3122e] font-bold border-rose-200' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/40' : '') }}"
                                      style="width:{{ $col['px'] }}px;">
-                                    <div class="text-[11px] leading-none font-bold {{ ($col['isToday'] ?? false) ? 'text-[#c3122e]' : 'text-slate-700' }}">{{ $col['label'] }}</div>
-                                    <div class="text-[9px] font-mono text-slate-400 mt-0.5">{{ $col['sublabel'] }}</div>
+                                    <div class="text-xs leading-tight font-black {{ ($col['isToday'] ?? false) ? 'text-[#c3122e]' : 'text-slate-800' }}">{{ $col['label'] }}</div>
+                                    <div class="text-[10px] font-mono font-semibold {{ ($col['isToday'] ?? false) ? 'text-rose-600' : 'text-slate-500' }} mt-0.5">{{ $col['sublabel'] }}</div>
                                 </div>
                             @endforeach
                         </div>

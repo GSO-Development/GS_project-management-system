@@ -136,71 +136,31 @@ class TaskHealthCalculationService
         }
 
         // ══════════════════════════════════════════════════════════
-        // 5. IMMINENT DEADLINE (Due within 48 hours with low progress) -> 🟡 AMBER
+        // 5. EXPLICIT RISK OR DELAY REPORTED -> 🟡 AMBER (AT RISK)
         // ══════════════════════════════════════════════════════════
-        if ($endDateTime && $now->lessThanOrEqualTo($endDateTime)) {
-            $hoursLeft = (int) $now->diffInHours($endDateTime);
-            $daysLeft = (int) $now->diffInDays($endDateTime);
+        $hasOpenRisks = $item->relationLoaded('risks') && $item->risks && $item->risks->where('status', 'open')->count() > 0;
+        $hasDelayReason = !empty($item->delay_reason);
 
-            if ($hoursLeft <= 48 && $progress < 80) {
-                if ($hoursLeft < 24) {
-                    $timeText = $hoursLeft === 0 ? "Due now" : "Due in {$hoursLeft}h";
-                } else {
-                    $timeText = "Due in {$daysLeft}d";
-                }
-
-                return [
-                    'status'         => 'amber',
-                    'active_lamp'    => 'amber',
-                    'label'          => 'At Risk (Due Soon)',
-                    'tag'            => 'DUE SOON',
-                    'time_diff_text' => $timeText,
-                    'badge_class'    => 'bg-amber-50 text-amber-900 border-amber-300 ring-1 ring-amber-400/30',
-                    'dot_class'      => 'bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.9)]',
-                    'reason'         => "Due in {$hoursLeft} hours with only {$progress}% completed",
-                    'is_overdue'     => false,
-                ];
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════
-        // 6. SCHEDULE LAG CHECK (Time elapsed > progress)
-        // ══════════════════════════════════════════════════════════
-        if ($startDateTime && $endDateTime && $startDateTime->lessThanOrEqualTo($now) && $endDateTime->greaterThanOrEqualTo($now)) {
-            $totalMins = max(1, $startDateTime->diffInMinutes($endDateTime));
-            $passedMins = $startDateTime->diffInMinutes($now);
-            $expectedProgress = min(100, (int) round(($passedMins / $totalMins) * 100));
-
-            // Lagging behind schedule by more than 30%
-            if (($expectedProgress - $progress) > 30) {
-                return [
-                    'status'         => 'amber',
-                    'active_lamp'    => 'amber',
-                    'label'          => 'Behind Schedule',
-                    'tag'            => 'BEHIND',
-                    'time_diff_text' => "Exp {$expectedProgress}%",
-                    'badge_class'    => 'bg-amber-50 text-amber-800 border-amber-200',
-                    'dot_class'      => 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)]',
-                    'reason'         => "Expected ~{$expectedProgress}% based on timeline, actual is {$progress}%",
-                    'is_overdue'     => false,
-                ];
-            }
+        if ($hasOpenRisks || $hasDelayReason) {
+            $reason = $hasDelayReason 
+                ? "Delay reported: " . $item->delay_reason 
+                : "Open risk identified on deliverable";
 
             return [
-                'status'         => 'green',
-                'active_lamp'    => 'green',
-                'label'          => 'On Track',
-                'tag'            => 'ON TRACK',
-                'time_diff_text' => "{$progress}% Done",
-                'badge_class'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                'dot_class'      => 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]',
-                'reason'         => "Executing on schedule ({$progress}% progress)",
+                'status'         => 'amber',
+                'active_lamp'    => 'amber',
+                'label'          => 'At Risk',
+                'tag'            => 'RISK ⚠️',
+                'time_diff_text' => 'At Risk',
+                'badge_class'    => 'bg-amber-50 text-amber-900 border-amber-300 ring-1 ring-amber-400/30',
+                'dot_class'      => 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.9)]',
+                'reason'         => $reason,
                 'is_overdue'     => false,
             ];
         }
 
         // ══════════════════════════════════════════════════════════
-        // 7. UPCOMING TASK (Start Time in Future) -> ⚪ GRAY
+        // 6. UPCOMING TASK (Start Time in Future or Not Started within Schedule) -> ⚪ GRAY
         // ══════════════════════════════════════════════════════════
         if ($startDateTime && $startDateTime->greaterThan($now)) {
             $daysToStart = (int) $now->diffInDays($startDateTime);
@@ -220,16 +180,32 @@ class TaskHealthCalculationService
             ];
         }
 
-        // Default On Track
+        if ($statusValue === 'not_started' || $statusValue === 'backlog') {
+            return [
+                'status'         => 'gray',
+                'active_lamp'    => 'none',
+                'label'          => 'Not Started',
+                'tag'            => 'PLANNED',
+                'time_diff_text' => 'Scheduled',
+                'badge_class'    => 'bg-slate-100 text-slate-600 border-slate-200',
+                'dot_class'      => 'bg-slate-400',
+                'reason'         => 'Task planned and scheduled',
+                'is_overdue'     => false,
+            ];
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // 7. IN PROGRESS / ON TRACK -> 🟢 GREEN
+        // ══════════════════════════════════════════════════════════
         return [
             'status'         => 'green',
             'active_lamp'    => 'green',
             'label'          => 'On Track',
             'tag'            => 'ON TRACK',
-            'time_diff_text' => 'On Schedule',
+            'time_diff_text' => $progress > 0 ? "{$progress}% Done" : 'On Schedule',
             'badge_class'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            'dot_class'      => 'bg-emerald-500',
-            'reason'         => 'Deliverable on schedule',
+            'dot_class'      => 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]',
+            'reason'         => "Executing on schedule ({$progress}% progress)",
             'is_overdue'     => false,
         ];
     }

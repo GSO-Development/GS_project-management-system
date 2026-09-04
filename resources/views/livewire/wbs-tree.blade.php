@@ -1,28 +1,28 @@
-<div class="w-full space-y-4 px-1 sm:px-2">
+<div class="w-full" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
     <!-- 🌟 UNIFIED EXECUTIVE TASKS CONTAINER (Clean, Modern, All-in-One Card) -->
     <div class="w-full bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden">
         
         <!-- ── UNIFIED SIMPLE EXECUTIVE TOOLBAR ── -->
-        <div class="px-4 sm:px-6 py-3 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white">
+        <div class="px-4 sm:px-5 py-3 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white">
             
-            <!-- Left: Icon + Title + Total Count Badge -->
-            <div class="flex items-center gap-2.5 shrink-0">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs" style="background: #fef2f2; color: #c3122e; border: 1px solid #fee2e2;">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                    </svg>
+            <!-- Left: Icon + Title + Total Count Badge + Status Filters -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-2 shrink-0">
+                    <div class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 bg-rose-50 text-[#c3122e] border border-rose-100">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-extrabold text-slate-900 text-sm tracking-tight whitespace-nowrap">Project Tasks</h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80 shadow-2xs">
+                        {{ $healthStats['total'] }}
+                    </span>
                 </div>
-                <h3 class="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight whitespace-nowrap">Project Tasks</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80 shadow-2xs">
-                    {{ $healthStats['total'] }}
-                </span>
-            </div>
 
-            <!-- Right Controls: Status Filters + Expand/Collapse + Add Task -->
-            <div class="flex items-center gap-2 flex-wrap shrink-0">
-                
+                <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
+
                 <!-- Status Filter Pills -->
-                <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-0.5 text-xs shadow-inner">
+                <div class="inline-flex p-0.5 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-0.5 text-xs">
                     <!-- All -->
                     <button 
                         wire:click="setHealthFilter('all')" 
@@ -69,28 +69,29 @@
                         <span class="font-mono text-[10.5px] font-bold text-emerald-700">({{ $healthStats['green'] }})</span>
                     </button>
                 </div>
+            </div>
 
-                <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
-
+            <!-- Right Controls: Expand/Collapse + Add Task -->
+            <div class="flex items-center gap-2 flex-wrap shrink-0">
                 <!-- Expand / Collapse -->
-                <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-0.5 text-xs shadow-inner">
+                <div class="inline-flex p-0.5 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-0.5 text-xs">
                     <button 
                         wire:click="expandAll" 
                         type="button" 
-                        class="px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
+                        class="px-2.5 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
                         title="Expand all"
                     >
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                        <span class="hidden lg:inline">Expand</span>
+                        <span class="hidden sm:inline">Expand</span>
                     </button>
                     <button 
                         wire:click="collapseAll" 
                         type="button" 
-                        class="px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
+                        class="px-2.5 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1"
                         title="Collapse"
                     >
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                        <span class="hidden lg:inline">Collapse</span>
+                        <span class="hidden sm:inline">Collapse</span>
                     </button>
                 </div>
 
@@ -98,8 +99,8 @@
                     <button 
                         wire:click="openAddItemModal(null, 'task')" 
                         type="button"
-                        class="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 hover:brightness-110 shrink-0"
-                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 8px rgba(195,18,46,0.3);"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 hover:brightness-110 shrink-0"
+                        style="background: linear-gradient(135deg, #c3122e 0%, #9e0f26 100%); border: 1px solid rgba(255,255,255,0.2);"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                         <span>Add Task</span>
@@ -109,28 +110,24 @@
         </div>
 
         <!-- Responsive Card & Table Container -->
-        <div class="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200">
-            <table class="w-full text-left border-collapse min-w-[1050px]">
-                <thead>
-                    <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-600 text-[11px] font-black uppercase tracking-wider">
-                        <th class="py-3.5 pl-6 pr-3 min-w-[50px] whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1"># <span class="text-[10px] text-slate-400 font-sans">⇅</span></span>
+        <div class="w-full overflow-x-auto">
+            <table class="w-full text-left min-w-[850px]">
+                <thead class="bg-slate-50/80 border-b border-slate-200/80 select-none">
+                    <tr class="text-slate-500 text-[10px] font-extrabold uppercase tracking-wider">
+                        <th class="py-3 pl-3 pr-1 text-center w-12 whitespace-nowrap">
+                            <span>#</span>
                         </th>
-                        <th class="py-3.5 px-4 min-w-[240px] whitespace-nowrap">TASK DELIVERABLE</th>
-                        <th class="py-3.5 px-4 min-w-[150px] whitespace-nowrap">ASSIGNED TO</th>
-                        <th class="py-3.5 px-4 min-w-[140px] whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1">START SCHEDULE <span class="text-[10px] text-slate-400 font-sans">⇅</span></span>
-                        </th>
-                        <th class="py-3.5 px-4 min-w-[140px] whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1">TARGET DEADLINE <span class="text-[10px] text-slate-400 font-sans">⇅</span></span>
-                        </th>
-                        <th class="py-3.5 px-3 text-center min-w-[100px] whitespace-nowrap">TRAFFIC LIGHT</th>
-                        <th class="py-3.5 px-4 min-w-[150px] whitespace-nowrap">PROGRESS</th>
-                        <th class="py-3.5 px-4 min-w-[130px] whitespace-nowrap">STATUS</th>
-                        <th class="py-3.5 pl-4 pr-6 text-right min-w-[70px] whitespace-nowrap">ACTIONS</th>
+                        <th class="py-3 px-3 min-w-[220px] whitespace-nowrap">TASK DELIVERABLE</th>
+                        <th class="py-3 px-2.5 w-[110px] whitespace-nowrap">ASSIGNED TO</th>
+                        <th class="py-3 px-2.5 min-w-[120px] whitespace-nowrap">START SCHEDULE</th>
+                        <th class="py-3 px-2.5 min-w-[120px] whitespace-nowrap">TARGET DEADLINE</th>
+                        <th class="py-3 px-1.5 text-center w-[85px] whitespace-nowrap">HEALTH</th>
+                        <th class="py-3 px-2 w-[90px] whitespace-nowrap">PROGRESS</th>
+                        <th class="py-3 px-2 w-[115px] min-w-[115px] whitespace-nowrap">STATUS</th>
+                        <th class="py-3 pl-1 pr-3 text-center w-[40px] whitespace-nowrap">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="bg-white">
                     @foreach($wbsItems as $task)
                         @include('livewire.wbs-tree-row', ['item' => $task, 'level' => 1, 'collapsedIds' => $collapsedIds])
                     @endforeach
@@ -143,15 +140,15 @@
         </div>
 
         <!-- Table Footer / Pagination Bar -->
-        <div class="px-6 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="px-5 py-3 bg-slate-50/60 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 font-medium">
             <div class="flex-1">
                 {{ $wbsItems->links() }}
             </div>
 
             <!-- Per-page Selector -->
-            <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium flex-shrink-0 self-end sm:self-center">
+            <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold flex-shrink-0 self-end sm:self-center">
                 <span>Per page:</span>
-                <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">
+                <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-slate-200/90 bg-white text-slate-700 shadow-2xs cursor-pointer outline-none">
                     <option value="5">5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>

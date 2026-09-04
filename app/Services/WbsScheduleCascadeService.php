@@ -105,6 +105,9 @@ class WbsScheduleCascadeService
 
         $assignHierarchyDates(0, $projectStart);
 
+        // Sync statuses based on newly cascaded dates
+        WbsItem::autoStartDueTasks($projectId);
+
         return $updatedCount;
     }
 
