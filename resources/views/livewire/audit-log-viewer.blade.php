@@ -215,6 +215,8 @@
                             $actionName = match($log->action) {
                                 'created_project'             => 'Created Project',
                                 'updated_project'             => 'Updated Project',
+                                'deleted_project'             => 'Permanently Deleted Project',
+                                'updated_project_schedule'    => 'Updated Project Schedule',
                                 'accepted_project_assignment' => 'Accepted Project Leadership',
                                 'rejected_project_assignment' => 'Declined Project Leadership',
                                 'created_wbs_item'            => 'Added WBS Task',

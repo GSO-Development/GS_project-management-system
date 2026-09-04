@@ -269,7 +269,7 @@ class NotificationManager extends Component
         // Helper to determine notification category
         $categorize = function($n) {
             $cat = $n->data['category'] ?? null;
-            if ($cat === 'updates') return 'updates';
+            if ($cat === 'updates' || $cat === 'schedule_change') return 'updates';
             if ($cat === 'approvals') return 'approvals';
             if (in_array($cat, ['task_completed', 'task_assigned', 'blocker'])) return 'task_completed';
 

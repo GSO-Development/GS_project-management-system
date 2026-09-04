@@ -631,7 +631,7 @@
         </div>
 
     <!-- ═══════════════════════════════════════════════════════════
-         VIEW 4: 📈 MASTER PORTFOLIO GANTT RADAR
+         VIEW 3: 📈 MASTER PORTFOLIO GANTT RADAR
          ═══════════════════════════════════════════════════════════ -->
     @elseif($viewMode === 'gantt')
         <div class="space-y-4">
@@ -651,8 +651,14 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h2 class="text-base font-black text-slate-900 tracking-tight">Enterprise Multi-Project Schedule Radar</h2>
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-200">
-                                    {{ $ganttTimeframe === '3m' ? '3 Months' : ($ganttTimeframe === '12m' ? '12 Months' : '6 Months') }}
+                                    {{ $ganttTimeframe === 'auto' ? 'Auto (Fit All)' : ($ganttTimeframe === '3m' ? '3 Months' : ($ganttTimeframe === '12m' ? '12 Months' : '6 Months')) }}
                                 </span>
+                                @if($ganttMonthOffset !== 0)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+                                        <span>Shifted {{ $ganttMonthOffset > 0 ? "+{$ganttMonthOffset}" : $ganttMonthOffset }} mo</span>
+                                        <button wire:click="ganttToday" class="underline hover:text-amber-950 cursor-pointer text-[9px] font-black" title="Reset to today">Reset</button>
+                                    </span>
+                                @endif
                             </div>
                             <p class="text-xs text-slate-500 mt-0.5 font-medium flex items-center gap-1.5 flex-wrap">
                                 <span>Timeline Span:</span>
@@ -664,39 +670,71 @@
                         </div>
                     </div>
 
-                    <!-- Right Controls: Timeframe Segmented Control -->
+                    <!-- Right Controls: Navigation Buttons & Timeframe Switcher -->
                     <div class="flex flex-wrap items-center gap-2.5">
-                        <!-- Horizon switcher -->
+                        <!-- Date Navigator (Prev / Today / Next) -->
+                        <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden p-0.5">
+                            <button wire:click="ganttPrev" class="px-2.5 py-1.5 flex items-center gap-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Shift 1 Month Earlier">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                <span class="hidden sm:inline">Prev</span>
+                            </button>
+                            <button wire:click="ganttToday" class="px-2.5 py-1.5 text-slate-700 hover:text-[#c3122e] hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-x border-slate-100" title="Center Timeline on Current Month">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                                <span>Today</span>
+                            </button>
+                            <button wire:click="ganttNext" class="px-2.5 py-1.5 flex items-center gap-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Shift 1 Month Later">
+                                <span class="hidden sm:inline">Next</span>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Horizon switcher (Auto / 3M / 6M / 12M) -->
                         <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/90 text-xs font-bold">
+                            <button wire:click="setGanttTimeframe('auto')" 
+                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === 'auto' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                                    title="Auto fit all projects from earliest start to latest deadline">
+                                Auto
+                            </button>
                             <button wire:click="setGanttTimeframe('3m')" 
-                                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '3m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '3m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                                 3M
                             </button>
                             <button wire:click="setGanttTimeframe('6m')" 
-                                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '6m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '6m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                                 6M
                             </button>
                             <button wire:click="setGanttTimeframe('12m')" 
-                                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '12m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '12m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                                 12M
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bottom Filter & Legend Bar -->
+                <!-- Bottom Filter, Expand/Collapse & Legend Bar -->
                 <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-                    <!-- Filters -->
-                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
+                    <!-- Expand/Collapse + Filters -->
+                    <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+                        <!-- Expand All / Collapse All Toggle -->
+                        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 shrink-0">
+                            <button wire:click="expandAllGanttProjects" class="hover:text-[#c3122e] transition-colors cursor-pointer" title="Expand deliverables for all projects">
+                                Expand All
+                            </button>
+                            <span class="text-slate-300">•</span>
+                            <button wire:click="collapseAllGanttProjects" class="hover:text-slate-900 transition-colors cursor-pointer" title="Collapse all deliverables">
+                                Collapse All
+                            </button>
+                        </div>
+
                         <!-- Search -->
-                        <div class="relative flex-1 min-w-[180px] max-w-[260px]">
+                        <div class="relative flex-1 min-w-[160px] max-w-[240px]">
                             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search scheduled projects…"
                                    class="w-full pl-8.5 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all">
                         </div>
 
                         <!-- Subsidiary Filter -->
-                        <select wire:model.live="subsidiaryFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[140px]">
+                        <select wire:model.live="subsidiaryFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[130px]">
                             <option value="all">🏢 All Subsidiaries</option>
                             @foreach($subsidiaries as $sub)
                                 <option value="{{ $sub->id }}">{{ $sub->name }}</option>
@@ -704,7 +742,7 @@
                         </select>
 
                         <!-- Health Filter -->
-                        <select wire:model.live="healthFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[125px]">
+                        <select wire:model.live="healthFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[115px]">
                             <option value="all">🚦 All Health</option>
                             <option value="delayed">🔴 Delayed</option>
                             <option value="at_risk">🟡 At Risk</option>
@@ -712,7 +750,7 @@
                         </select>
 
                         <!-- PM Filter -->
-                        <select wire:model.live="pmFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[130px]">
+                        <select wire:model.live="pmFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[125px]">
                             <option value="all">👤 All Managers</option>
                             @foreach($pms as $pm)
                                 <option value="{{ $pm->id }}">{{ $pm->name }}</option>
@@ -738,6 +776,9 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shadow-xs"></span> Delayed
                         </span>
                         <span class="inline-flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-amber-500 rotate-45"></span> Milestone
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
                             <span class="w-3.5 h-0.5 bg-rose-500 border-t-2 border-dashed border-rose-500"></span>
                             <span class="text-rose-600 font-bold text-[11px]">Today</span>
                         </span>
@@ -745,16 +786,16 @@
                 </div>
             </div>
 
-            <!-- ── 2. GANTT TIMELINE WORKSPACE (STRUCTURED GRID) ── -->
+            <!-- ── 2. GANTT TIMELINE WORKSPACE (STRUCTURED PIXEL-PERFECT GRID) ── -->
             <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
-                <div class="overflow-x-auto overflow-y-auto max-h-[720px] scrollbar-thin">
-                <div class="min-w-[{{ $ganttTimeframe === '12m' ? '1800px' : ($ganttTimeframe === '3m' ? '1200px' : '1500px') }}]" style="min-width:{{ $ganttTimeframe === '12m' ? '1800px' : ($ganttTimeframe === '3m' ? '1200px' : '1500px') }}">
+                <div class="overflow-x-auto overflow-y-auto max-h-[760px] scrollbar-thin">
+                    <div class="min-w-[1550px]" style="min-width: 1550px;">
                         
                         <!-- ── TIMELINE HEADER ROW (STICKY TOP) ── -->
                         <div class="flex border-b border-slate-200 bg-slate-100 text-slate-700 select-none sticky top-0 z-30 shadow-2xs">
                             
-                            <!-- Left Sidebar Column Header (440px fixed, spacious) -->
-                            <div class="w-[440px] min-w-[440px] flex-shrink-0 flex items-center justify-between px-4 h-11 border-r border-slate-200 bg-slate-100 sticky left-0 z-40">
+                            <!-- Left Sidebar Column Header (420px fixed, spacious) -->
+                            <div class="w-[420px] min-w-[420px] flex-shrink-0 flex items-center justify-between px-4 h-11 border-r border-slate-200 bg-slate-100 sticky left-0 z-40">
                                 <div class="font-black text-[11px] uppercase tracking-wider text-slate-700 flex items-center gap-2">
                                     <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
                                     <span>PROJECT &amp; GOVERNANCE</span>
@@ -764,17 +805,16 @@
                                 </span>
                             </div>
 
-                            <!-- Right Months Timeline Headers (Clean, spacious, single row) -->
-                            <div class="flex-1 min-w-[760px] flex relative bg-slate-50 h-11">
+                            <!-- Right Months Timeline Headers (px-0 exact grid alignment) -->
+                            <div class="flex-1 min-w-[1130px] flex relative bg-slate-50 h-11 px-0">
                                 @foreach($ganttTimeline['months'] as $m)
                                     @php
-                                        // Choose label size based on timeframe
+                                        // Choose label format based on timeframe & month count
                                         $mDisplayLabel = match($ganttTimeframe) {
                                             '3m'  => $m['label'],          // Aug 2026 (full)
                                             '12m' => $m['short'],          // Aug (short)
                                             default => $m['short_label'],  // Aug '26 (compact)
                                         };
-                                        // For January always show year even on 12m
                                         if ($ganttTimeframe === '12m' && $m['month_num'] === 1) {
                                             $mDisplayLabel = $m['short_label']; // Jan '27
                                         }
@@ -816,46 +856,49 @@
                                         default     => 'from-indigo-500 to-indigo-600 border-indigo-700 shadow-indigo-900/15',
                                     };
 
-                                    $barWidthPct = max(3.5, $gp['width_pct']);
-                                    $isWide = $barWidthPct >= 18.0;
+                                    $barWidthPct = max(3.0, $gp['width_pct']);
+                                    $isWide = $barWidthPct >= 16.0;
                                 @endphp
 
-                                <!-- PROJECT MAIN ROW (58px fixed height with 2-line mini card) -->
+                                <!-- 1. PROJECT MAIN ROW (58px fixed height with 2-line mini card) -->
                                 <div class="flex items-center min-h-[58px] h-[58px] hover:bg-slate-50/80 transition-all group relative z-0">
                                     
-                                    <!-- LEFT COLUMN: Project Info (440px, flex aligned, sticky left) -->
-                                    <div class="w-[440px] min-w-[440px] flex-shrink-0 px-4 py-2 h-[58px] border-r border-slate-200 bg-white group-hover:bg-slate-50 sticky left-0 z-20 transition-colors flex flex-col justify-center gap-1">
+                                    <!-- LEFT COLUMN: Project Info (420px, flex aligned, sticky left) -->
+                                    <div class="w-[420px] min-w-[420px] flex-shrink-0 px-3.5 py-2 h-[58px] border-r border-slate-200 bg-white group-hover:bg-slate-50 sticky left-0 z-20 transition-colors flex flex-col justify-center gap-1 shadow-2xs">
                                         
-                                        <!-- Row 1: Redirect Button + Code Badge + Project Name (Direct link to WBS tasks) -->
+                                        <!-- Row 1: Expand Chevron Button + Code Badge + Project Name -->
                                         <div class="flex items-center gap-2 min-w-0">
-                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
-                                               class="w-5 h-5 rounded-md bg-slate-100 hover:bg-[#c3122e] hover:text-white text-slate-500 flex items-center justify-center text-xs font-bold transition-all flex-shrink-0 cursor-pointer no-underline group/arrow shadow-2xs"
-                                               title="Open {{ $proj->name }} WBS Tasks">
-                                                <svg class="w-3.5 h-3.5 group-hover/arrow:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <!-- Chevron toggle button -->
+                                            <button wire:click="toggleGanttExpand({{ $proj->id }})"
+                                                    class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-[#c3122e] hover:text-white text-slate-500 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer shadow-2xs group/chevron"
+                                                    title="{{ $gp['is_expanded'] ? 'Collapse Deliverables' : 'Expand Deliverables' }}">
+                                                <svg class="w-3.5 h-3.5 transition-transform duration-200 {{ $gp['is_expanded'] ? 'rotate-90 text-[#c3122e] group-hover/chevron:text-white' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                                                 </svg>
-                                            </a>
+                                            </button>
 
+                                            <!-- Code badge -->
                                             <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
                                                class="px-2 py-0.5 rounded-md font-mono font-bold text-[9.5px] bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] border border-slate-200 shrink-0 transition-colors no-underline"
-                                               title="Open {{ $proj->name }} WBS Tasks">
+                                               title="Open {{ $proj->name }} Workspace">
                                                 {{ $proj->code }}
                                             </a>
 
+                                            <!-- Project Name -->
                                             <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
                                                class="font-bold text-xs text-slate-900 hover:text-[#c3122e] truncate transition-colors no-underline flex-1" 
-                                               title="Open {{ $proj->name }} WBS Tasks">
+                                               title="Open {{ $proj->name }} Workspace">
                                                 {{ $proj->name }}
                                             </a>
                                         </div>
 
                                         <!-- Row 2: Subsidiary • PM Avatar & Name • Health Pill -->
-                                        <div class="flex items-center gap-2 text-[11px] pl-7 text-slate-500 font-medium">
-                                            <span class="truncate max-w-[150px]" title="{{ $proj->subsidiary->name ?? '—' }}">
+                                        <div class="flex items-center gap-2 text-[11px] pl-8 text-slate-500 font-medium">
+                                            <span class="truncate max-w-[130px]" title="{{ $proj->subsidiary->name ?? '—' }}">
                                                 {{ $proj->subsidiary->name ?? '—' }}
                                             </span>
                                             <span class="text-slate-300">•</span>
-                                            <span class="inline-flex items-center gap-1 truncate max-w-[120px]" title="{{ $proj->projectManager->name ?? 'Unassigned' }}">
+                                            <span class="inline-flex items-center gap-1 truncate max-w-[110px]" title="{{ $proj->projectManager->name ?? 'Unassigned' }}">
                                                 @if($proj->projectManager)
                                                     <span class="w-4 h-4 rounded-full bg-gradient-to-br from-[#c3122e] to-[#800a1c] text-white font-bold text-[8px] flex items-center justify-center shrink-0">
                                                         {{ strtoupper(substr($proj->projectManager->name, 0, 1)) }}
@@ -873,8 +916,8 @@
 
                                     </div>
 
-                                    <!-- RIGHT COLUMN: Timeline Bar Track (Min 1000px) -->
-                                    <div class="flex-1 min-w-[1000px] relative h-[58px] flex items-center px-2">
+                                    <!-- RIGHT COLUMN: Timeline Bar Track (Min 1130px, px-0) -->
+                                    <div class="flex-1 min-w-[1130px] relative h-[58px] flex items-center px-0">
                                         
                                         <!-- Month Column Vertical Grid Lines with alternating zebra background -->
                                         <div class="absolute inset-0 flex pointer-events-none">
@@ -885,61 +928,205 @@
 
                                         <!-- Vertical Red TODAY Line -->
                                         @if($ganttTimeline['today_visible'])
-                                            <div class="absolute top-0 bottom-0 pointer-events-none z-10 flex flex-col items-center" 
+                                            <div class="absolute top-0 bottom-0 pointer-events-none z-20 flex flex-col items-center" 
                                                  style="left: {{ $ganttTimeline['today_pct'] }}%;">
                                                 <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-90"></div>
                                             </div>
                                         @endif
 
                                         <!-- GANTT DURATION BAR (Sleek Modern Capsule - Click to open WBS Tasks) -->
-                                        <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
-                                           class="absolute h-7 rounded-full shadow-xs transition-all flex items-center overflow-hidden cursor-pointer group/bar z-10 border bg-gradient-to-r text-white no-underline {{ $barBgColor }} hover:brightness-105 hover:shadow-md"
-                                           style="left: {{ $gp['left_pct'] }}%; width: {{ $barWidthPct }}%;"
-                                           title="{{ $proj->name }} • Open WBS Tasks • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
-                                            
-                                            <!-- Progress Stripe Inner Fill -->
-                                            <div class="h-full bg-black/20 transition-all duration-500 rounded-l-full"
-                                                 style="width: {{ $gp['progress'] }}%;"></div>
-
-                                            <!-- Inside Text: Progress & Dates if wide -->
-                                            @if($isWide)
-                                                <div class="absolute inset-0 flex items-center justify-between px-3.5 pointer-events-none text-[9.5px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-xs">
-                                                    <span>{{ $gp['progress'] }}%</span>
-                                                    <span class="opacity-90 text-[9px]">{{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}</span>
+                                        @if($gp['is_out_of_bounds'])
+                                            @if($gp['left_pct'] <= 0)
+                                                <!-- Past Project Out of Bounds Indicator -->
+                                                <div class="absolute left-2 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                                    <span>◀</span>
+                                                    <span>Ended {{ $gp['end_date']->format('M d, Y') }}</span>
+                                                    <span class="text-slate-400">({{ $gp['progress'] }}%)</span>
                                                 </div>
                                             @else
-                                                <div class="absolute inset-0 flex items-center justify-center px-1 pointer-events-none text-[9px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-xs">
-                                                    {{ $gp['progress'] }}%
+                                                <!-- Future Project Out of Bounds Indicator -->
+                                                <div class="absolute right-2 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                                    <span>Starts {{ $gp['start_date']->format('M d, Y') }}</span>
+                                                    <span>▶</span>
                                                 </div>
                                             @endif
-                                        </a>
+                                        @else
+                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                               class="absolute h-7 rounded-full shadow-xs transition-all flex items-center overflow-hidden cursor-pointer group/bar z-10 border bg-gradient-to-r text-white no-underline {{ $barBgColor }} hover:brightness-105 hover:shadow-md"
+                                               style="left: {{ $gp['left_pct'] }}%; width: {{ $barWidthPct }}%;"
+                                               title="{{ $proj->name }} • Open WBS Tasks • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
+                                                
+                                                <!-- Progress Stripe Inner Fill -->
+                                                <div class="h-full bg-black/20 transition-all duration-500 rounded-l-full"
+                                                     style="width: {{ $gp['progress'] }}%;"></div>
 
-                                        <!-- Floating Date Label Outside (if narrow) -->
-                                        @if(!$isWide)
-                                            <div class="absolute flex items-center gap-1.5 pointer-events-none whitespace-nowrap z-10"
-                                                 style="left: calc({{ $gp['left_pct'] + $barWidthPct }}% + 8px);">
-                                                <span class="text-[10px] font-mono font-medium text-slate-500">
-                                                    {{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}
-                                                </span>
-
-                                                @if($gp['is_overdue'])
-                                                    <span class="px-2 py-0.5 rounded-full font-black text-[8.5px] bg-rose-600 text-white shadow-xs animate-pulse">
-                                                        🚨 {{ abs($gp['days_remaining']) }}d Overdue
-                                                    </span>
+                                                <!-- Inside Text: Progress & Dates if wide -->
+                                                @if($isWide)
+                                                    <div class="absolute inset-0 flex items-center justify-between px-3 pointer-events-none text-[9.5px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-xs">
+                                                        <span class="flex items-center gap-1">
+                                                            @if($gp['starts_before']) <span class="opacity-75">◀</span> @endif
+                                                            <span>{{ $gp['progress'] }}%</span>
+                                                        </span>
+                                                        <span class="opacity-90 text-[9px] flex items-center gap-1">
+                                                            <span>{{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}</span>
+                                                            @if($gp['ends_after']) <span class="opacity-75">▶</span> @endif
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <div class="absolute inset-0 flex items-center justify-center px-1 pointer-events-none text-[9px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-xs">
+                                                        {{ $gp['progress'] }}%
+                                                    </div>
                                                 @endif
-                                            </div>
+                                            </a>
+
+                                            <!-- Floating Date Label Outside (if narrow) -->
+                                            @if(!$isWide)
+                                                <div class="absolute flex items-center gap-1.5 pointer-events-none whitespace-nowrap z-10"
+                                                     style="left: calc({{ $gp['left_pct'] + $barWidthPct }}% + 8px);">
+                                                    <span class="text-[10px] font-mono font-medium text-slate-500">
+                                                        {{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}
+                                                    </span>
+
+                                                    @if($gp['is_overdue'])
+                                                        <span class="px-2 py-0.5 rounded-full font-black text-[8.5px] bg-rose-600 text-white shadow-xs animate-pulse">
+                                                            🚨 {{ abs($gp['days_remaining']) }}d Overdue
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         @endif
 
                                     </div>
                                 </div>
 
+                                <!-- 2. EXPANDED CHILD WBS TASKS / DELIVERABLES -->
+                                @if($gp['is_expanded'])
+                                    @forelse($gp['wbs_tasks'] as $task)
+                                        @php
+                                            $tStatus = $task['status'];
+                                            $tStatusBadge = match($tStatus) {
+                                                'completed'   => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                                                'in_progress' => 'bg-rose-50 text-[#c3122e] border-rose-200',
+                                                'blocked'     => 'bg-rose-100 text-rose-900 border-rose-300 font-black',
+                                                'delayed'     => 'bg-amber-50 text-amber-800 border-amber-200',
+                                                default       => 'bg-slate-100 text-slate-600 border-slate-200',
+                                            };
+                                            $tBarBg = match($tStatus) {
+                                                'completed'   => 'from-emerald-500 to-emerald-600 border-emerald-700 shadow-emerald-900/10',
+                                                'in_progress' => 'from-[#c3122e] to-[#990e24] border-[#800a1c] shadow-rose-900/10',
+                                                'blocked'     => 'from-rose-600 to-rose-700 border-rose-900 shadow-rose-900/10',
+                                                'delayed'     => 'from-amber-500 to-amber-600 border-amber-700 shadow-amber-900/10',
+                                                default       => 'from-slate-400 to-slate-500 border-slate-600 shadow-slate-900/10',
+                                            };
+                                        @endphp
+                                        <div class="flex items-center min-h-[42px] h-[42px] bg-slate-50/40 hover:bg-slate-100/60 transition-colors border-b border-slate-100/80 group/task relative z-0">
+                                            
+                                            <!-- LEFT COLUMN: Task Info (420px, indented tree style) -->
+                                            <div class="w-[420px] min-w-[420px] flex-shrink-0 pl-8 pr-3 h-[42px] border-r border-slate-200 bg-slate-50/60 group-hover/task:bg-slate-100/80 sticky left-0 z-20 transition-colors flex items-center justify-between gap-2 shadow-2xs">
+                                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                    <!-- Tree elbow -->
+                                                    <span class="text-slate-300 font-mono text-xs select-none">└─</span>
 
+                                                    <!-- Item Type Icon -->
+                                                    @if($task['is_milestone'])
+                                                        <span class="w-4 h-4 rounded bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-[9px] shrink-0" title="Milestone">💎</span>
+                                                    @elseif($task['item_type'] === 'phase')
+                                                        <span class="w-4 h-4 rounded bg-indigo-100 border border-indigo-300 text-indigo-800 flex items-center justify-center text-[9px] shrink-0" title="Phase">📦</span>
+                                                    @else
+                                                        <span class="w-4 h-4 rounded bg-slate-100 border border-slate-300 text-slate-600 flex items-center justify-center text-[9px] shrink-0" title="Deliverable">📄</span>
+                                                    @endif
+
+                                                    <!-- WBS Code -->
+                                                    <span class="font-mono font-bold text-[9.5px] text-slate-500 shrink-0">{{ $task['wbs_code'] }}</span>
+
+                                                    <!-- Task Title -->
+                                                    <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
+                                                       class="text-xs font-semibold text-slate-700 hover:text-[#c3122e] truncate transition-colors no-underline flex-1"
+                                                       title="{{ $task['title'] }} ({{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }})">
+                                                        {{ $task['title'] }}
+                                                    </a>
+                                                </div>
+
+                                                <!-- Assignee + Status -->
+                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                    @if($task['assigned_user'])
+                                                        <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[8.5px] flex items-center justify-center border border-white shadow-2xs shrink-0" title="Assigned to {{ $task['assigned_user']->name }}">
+                                                            {{ strtoupper(substr($task['assigned_user']->name, 0, 1)) }}
+                                                        </span>
+                                                    @endif
+                                                    <span class="px-1.5 py-0.5 rounded text-[8.5px] font-bold border uppercase {{ $tStatusBadge }} shrink-0">
+                                                        {{ str_replace('_', ' ', $tStatus) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- RIGHT COLUMN: Task Bar Track (min 1130px, px-0) -->
+                                            <div class="flex-1 min-w-[1130px] relative h-[42px] flex items-center px-0">
+                                                <!-- Grid Lines -->
+                                                <div class="absolute inset-0 flex pointer-events-none">
+                                                    @foreach($ganttTimeline['months'] as $m)
+                                                        <div class="border-r border-slate-100/70 h-full {{ $m['is_current'] ? 'bg-rose-50/10' : ($loop->even ? 'bg-slate-50/15' : '') }}" style="width: {{ $m['width_pct'] }}%;"></div>
+                                                    @endforeach
+                                                </div>
+
+                                                <!-- Today Line -->
+                                                @if($ganttTimeline['today_visible'])
+                                                    <div class="absolute top-0 bottom-0 pointer-events-none z-20 flex flex-col items-center" 
+                                                         style="left: {{ $ganttTimeline['today_pct'] }}%;">
+                                                        <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-60"></div>
+                                                    </div>
+                                                @endif
+
+                                                @if($task['is_milestone'])
+                                                    <!-- Milestone Diamond -->
+                                                    <div class="absolute z-10 flex items-center gap-1.5 pointer-events-none" style="left: {{ $task['left_pct'] }}%;">
+                                                        <div class="w-4 h-4 bg-amber-500 border-2 border-white rounded-xs rotate-45 shadow-sm -ml-2 shrink-0"></div>
+                                                        <span class="text-[9.5px] font-mono font-bold text-amber-900 bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200 shadow-2xs whitespace-nowrap ml-1">
+                                                            {{ $task['title'] }} ({{ $task['end_date']->format('M d') }})
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <!-- Regular Task Bar -->
+                                                    <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                                       class="absolute h-5 rounded-md shadow-2xs transition-all flex items-center overflow-hidden cursor-pointer z-10 border bg-gradient-to-r text-white no-underline {{ $tBarBg }} hover:brightness-105"
+                                                       style="left: {{ $task['left_pct'] }}%; width: {{ max(1.8, $task['width_pct']) }}%;"
+                                                       title="{{ $task['title'] }} • {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }} ({{ $task['progress'] }}% Complete)">
+                                                        
+                                                        <!-- Inner Progress Fill -->
+                                                        <div class="h-full bg-black/20 rounded-l-md" style="width: {{ $task['progress'] }}%;"></div>
+
+                                                        @if($task['width_pct'] >= 10.0)
+                                                            <span class="absolute inset-0 flex items-center justify-between px-2 text-[8.5px] font-bold font-mono text-white whitespace-nowrap overflow-hidden pointer-events-none drop-shadow-xs">
+                                                                <span>{{ $task['progress'] }}%</span>
+                                                                <span class="opacity-90">{{ $task['start_date']->format('M d') }} - {{ $task['end_date']->format('M d') }}</span>
+                                                            </span>
+                                                        @endif
+                                                    </a>
+
+                                                    @if($task['width_pct'] < 10.0)
+                                                        <div class="absolute flex items-center gap-1 pointer-events-none whitespace-nowrap z-10"
+                                                             style="left: calc({{ $task['left_pct'] + max(1.8, $task['width_pct']) }}% + 6px);">
+                                                            <span class="text-[9px] font-mono text-slate-500 font-medium">
+                                                                {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }}
+                                                            </span>
+                                                        </div>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="flex items-center h-10 bg-slate-50/50 border-b border-slate-100 text-xs text-slate-400 pl-12 pr-4 italic">
+                                            No child deliverables or WBS items recorded for this project yet.
+                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" class="ml-2 text-[#c3122e] font-semibold not-italic hover:underline">Add Deliverables in Workspace →</a>
+                                        </div>
+                                    @endforelse
+                                @endif
 
                             @empty
                                 <div class="py-16 text-center text-slate-400 font-medium">
                                     <div class="text-3xl mb-2">📅</div>
                                     <h3 class="font-extrabold text-slate-800 text-sm">No scheduled projects match your search or timeframe</h3>
-                                    <p class="text-xs text-slate-400 mt-1">Try resetting your filters or switching to a 12-month timeline.</p>
+                                    <p class="text-xs text-slate-400 mt-1">Try resetting your filters or switching to "Auto (Fit All)" or "12M" timeline.</p>
                                 </div>
                             @endforelse
 

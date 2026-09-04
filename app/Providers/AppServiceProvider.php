@@ -24,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
     {
         \Illuminate\Pagination\Paginator::useTailwind();
 
+        // Enforce short timeout for SMTP so requests/actions are never stalled
+        config(['mail.mailers.smtp.timeout' => 5]);
+
+        // Register Model Observers
+        \App\Models\Project::observe(\App\Observers\ProjectObserver::class);
+
         // Register Microsoft Azure Socialite Provider
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('azure', AzureProvider::class);

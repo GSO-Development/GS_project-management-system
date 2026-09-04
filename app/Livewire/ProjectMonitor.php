@@ -34,7 +34,8 @@ class ProjectMonitor extends Component
     public string $priorityFilter = 'all';
     public string $sortBy = 'urgency'; // 'urgency', 'health', 'progress_asc', 'progress_desc', 'budget', 'name'
     public string $viewMode = 'table'; // 'matrix' (cards), 'table' (executive table), 'tasks' (master tasks monitor), 'gantt' (portfolio timeline), 'stuck' (stuck & blocked tasks radar)
-    public string $ganttTimeframe = '6m'; // '3m', '6m', '12m'
+    public string $ganttTimeframe = '6m'; // 'auto', '3m', '6m', '12m'
+    public int $ganttMonthOffset = 0;
     public array $expandedGanttProjectIds = [];
     public string $stuckTypeFilter = 'all'; // 'all', 'blocked', 'overdue', 'delay_reported', 'on_hold'
     public string $stuckProjectFilter = 'all';
@@ -212,7 +213,28 @@ class ProjectMonitor extends Component
 
     public function setGanttTimeframe(string $tf): void
     {
-        $this->ganttTimeframe = in_array($tf, ['3m', '6m', '12m']) ? $tf : '6m';
+        $this->ganttTimeframe = in_array($tf, ['auto', '3m', '6m', '12m']) ? $tf : '6m';
+        $this->ganttMonthOffset = 0;
+    }
+
+    public function ganttPrev(): void
+    {
+        $this->ganttMonthOffset--;
+    }
+
+    public function ganttNext(): void
+    {
+        $this->ganttMonthOffset++;
+    }
+
+    public function ganttToday(): void
+    {
+        $this->ganttMonthOffset = 0;
+    }
+
+    public function toggleGanttExpand(int $projectId): void
+    {
+        $this->toggleGanttProjectExpand($projectId);
     }
 
     public function toggleGanttProjectExpand(int $projectId): void
@@ -226,7 +248,11 @@ class ProjectMonitor extends Component
 
     public function expandAllGanttProjects(array $allIds = []): void
     {
-        $this->expandedGanttProjectIds = $allIds;
+        if (empty($allIds)) {
+            $this->expandedGanttProjectIds = Project::pluck('id')->toArray();
+        } else {
+            $this->expandedGanttProjectIds = $allIds;
+        }
     }
 
     public function collapseAllGanttProjects(): void
@@ -1061,24 +1087,49 @@ class ProjectMonitor extends Component
         // ═══════════════════════════════════════════════════════════
         // 📈 ENTERPRISE PORTFOLIO GANTT RADAR ENGINE
         // ═══════════════════════════════════════════════════════════
-        $ganttMonthCount = match($this->ganttTimeframe) {
-            '3m' => 3,
-            '12m' => 12,
-            default => 6,
-        };
+        $now = now();
 
-        // Anchor Gantt start to current month or earliest project start
-        $earliestProjectStart = $sortedProjects->pluck('start_date')->filter()->min();
-        $ganttStart = $earliestProjectStart && $earliestProjectStart->lt(now()->startOfMonth())
-            ? $earliestProjectStart->copy()->startOfMonth()
-            : now()->startOfMonth();
+        if ($this->ganttTimeframe === 'auto') {
+            // Dynamic Fit All Projects Mode
+            $allStarts = $sortedProjects->pluck('start_date')->filter()->map(fn($d) => Carbon::parse($d));
+            $allEnds   = $sortedProjects->map(fn($p) => $p->deadline ? Carbon::parse($p->deadline) : ($p->start_date ? Carbon::parse($p->start_date)->addMonth() : null))->filter();
 
-        // ganttEnd = last day of the last displayed month (e.g. Jan 31 for 6-month view, not Feb 28)
-        $ganttEnd = $ganttStart->copy()->addMonths($ganttMonthCount - 1)->endOfMonth();
+            $minStart = $allStarts->min() ?? $now->copy()->startOfMonth();
+            $maxEnd   = $allEnds->max() ?? $now->copy()->addMonths(4)->endOfMonth();
+
+            // Expand range slightly to include Today if outside
+            if ($now->lt($minStart)) {
+                $minStart = $now->copy();
+            }
+            if ($now->gt($maxEnd)) {
+                $maxEnd = $now->copy();
+            }
+
+            $ganttStart = $minStart->copy()->startOfMonth();
+            $ganttEnd   = $maxEnd->copy()->addMonth()->endOfMonth();
+            $ganttMonthCount = (int) max(3, ceil($ganttStart->diffInMonths($ganttEnd)) + 1);
+        } else {
+            $ganttMonthCount = match($this->ganttTimeframe) {
+                '3m' => 3,
+                '12m' => 12,
+                default => 6, // 6m
+            };
+
+            // Smart anchor: In 6m view, start 1 month before current month + offset so current month is clearly visible with context
+            $baseStartMonthsBack = match($this->ganttTimeframe) {
+                '3m' => 1,
+                '12m' => 2,
+                default => 1, // 6m: 1 month back, 4 months forward + current month = 6 months
+            };
+
+            $anchorMonth = $now->copy()->startOfMonth()->addMonths($this->ganttMonthOffset);
+            $ganttStart = $anchorMonth->copy()->subMonths($baseStartMonthsBack)->startOfMonth();
+            $ganttEnd   = $ganttStart->copy()->addMonths($ganttMonthCount - 1)->endOfMonth();
+        }
+
         $totalGanttDays = (int) max(1, $ganttStart->diffInDays($ganttEnd) + 1);
 
         // Today marker percentage position
-        $now = now();
         if ($now->lt($ganttStart)) {
             $ganttTodayPct = 0;
             $ganttTodayVisible = false;
@@ -1090,7 +1141,7 @@ class ProjectMonitor extends Component
             $ganttTodayVisible = true;
         }
 
-        // Generate Months and Weeks structure
+        // Generate Months structure
         $ganttMonths = [];
         $tempMonth = $ganttStart->copy();
         for ($m = 0; $m < $ganttMonthCount; $m++) {
@@ -1112,35 +1163,43 @@ class ProjectMonitor extends Component
             $tempMonth->addMonth();
         }
 
-        // Generate Project Gantt Bars
+        // Generate Project Gantt Bars & Children
         $ganttProjects = $sortedProjects->map(function($project) use ($ganttStart, $ganttEnd, $totalGanttDays, $now) {
             $pStart = $project->start_date 
-                ? $project->start_date->copy()->startOfDay() 
-                : ($project->created_at ? $project->created_at->copy()->startOfDay() : now()->startOfDay());
+                ? Carbon::parse($project->start_date)->startOfDay() 
+                : ($project->created_at ? Carbon::parse($project->created_at)->startOfDay() : $now->copy()->startOfDay());
             
             $pEnd = $project->deadline 
-                ? $project->deadline->copy()->endOfDay() 
-                : ($project->end_date ? $project->end_date->copy()->endOfDay() : $pStart->copy()->addDays(30)->endOfDay());
+                ? Carbon::parse($project->deadline)->endOfDay() 
+                : ($project->end_date ? Carbon::parse($project->end_date)->endOfDay() : $pStart->copy()->addDays(30)->endOfDay());
 
             if ($pEnd->lt($pStart)) {
                 $pEnd = $pStart->copy()->addDays(14)->endOfDay();
             }
 
-            // Left offset %
-            if ($pStart->lt($ganttStart)) {
-                $leftDays = 0;
-                $startsBefore = true;
-            } else {
-                $leftDays = $ganttStart->diffInDays($pStart);
-                $startsBefore = false;
-            }
-            $leftPct = max(0, min(96, round(($leftDays / $totalGanttDays) * 100, 2)));
+            $startsBefore = $pStart->lt($ganttStart);
+            $endsAfter    = $pEnd->gt($ganttEnd);
+            $isEntirelyBefore = $pEnd->lt($ganttStart);
+            $isEntirelyAfter  = $pStart->gt($ganttEnd);
 
-            // Visible end & width %
-            $vStart = $pStart->lt($ganttStart) ? $ganttStart : $pStart;
-            $vEnd = $pEnd->gt($ganttEnd) ? $ganttEnd : $pEnd;
-            $vDays = max(1, $vStart->diffInDays($vEnd) + 1);
-            $widthPct = max(3.5, min(100 - $leftPct, round(($vDays / $totalGanttDays) * 100, 2)));
+            $vStart = $startsBefore ? $ganttStart->copy() : $pStart->copy();
+            $vEnd   = $endsAfter ? $ganttEnd->copy() : $pEnd->copy();
+
+            if ($isEntirelyBefore) {
+                $leftPct = 0;
+                $widthPct = 1.8;
+            } elseif ($isEntirelyAfter) {
+                $leftPct = 98.2;
+                $widthPct = 1.8;
+            } else {
+                $leftDays = $ganttStart->diffInDays($vStart);
+                $leftPct = round(($leftDays / $totalGanttDays) * 100, 2);
+                $vDays = max(1, $vStart->diffInDays($vEnd) + 1);
+                $widthPct = max(2.5, round(($vDays / $totalGanttDays) * 100, 2));
+                if ($leftPct + $widthPct > 100) {
+                    $widthPct = max(2.5, 100 - $leftPct);
+                }
+            }
 
             $progress = (int) ($project->overall_progress ?? 0);
             $isOverdue = $pEnd->lt($now->startOfDay()) && $progress < 100;
@@ -1149,41 +1208,79 @@ class ProjectMonitor extends Component
             // Child WBS tasks if expanded
             $wbsTasks = [];
             if (in_array($project->id, $this->expandedGanttProjectIds)) {
-                $wbsTasks = $project->wbsItems->map(function($item) use ($ganttStart, $ganttEnd, $totalGanttDays, $now) {
-                    $tStart = $item->start_date ? $item->start_date->copy()->startOfDay() : now()->startOfDay();
-                    $tEnd = $item->end_date ? $item->end_date->copy()->endOfDay() : $tStart->copy()->addDay()->endOfDay();
-                    if ($tEnd->lt($tStart)) $tEnd = $tStart->copy()->addDay()->endOfDay();
+                $wbsTasks = $project->wbsItems()
+                    ->with('assignedUser')
+                    ->orderBy('sort_order')
+                    ->orderBy('wbs_code')
+                    ->get()
+                    ->map(function($item) use ($ganttStart, $ganttEnd, $totalGanttDays, $now, $pStart) {
+                        $tStart = $item->start_date ? Carbon::parse($item->start_date)->startOfDay() : $pStart->copy();
+                        $tEnd   = $item->end_date ? Carbon::parse($item->end_date)->endOfDay() : $tStart->copy()->addDay()->endOfDay();
+                        if ($tEnd->lt($tStart)) $tEnd = $tStart->copy()->addDay()->endOfDay();
 
-                    $tLeftDays = $tStart->lt($ganttStart) ? 0 : $ganttStart->diffInDays($tStart);
-                    $tLeftPct = max(0, min(97, round(($tLeftDays / $totalGanttDays) * 100, 2)));
+                        $tStartsBefore = $tStart->lt($ganttStart);
+                        $tEndsAfter    = $tEnd->gt($ganttEnd);
+                        $tIsEntirelyBefore = $tEnd->lt($ganttStart);
+                        $tIsEntirelyAfter  = $tStart->gt($ganttEnd);
 
-                    $tvStart = $tStart->lt($ganttStart) ? $ganttStart : $tStart;
-                    $tvEnd = $tEnd->gt($ganttEnd) ? $ganttEnd : $tEnd;
-                    $tvDays = max(1, $tvStart->diffInDays($tvEnd) + 1);
-                    $tWidthPct = max(2.5, min(100 - $tLeftPct, round(($tvDays / $totalGanttDays) * 100, 2)));
+                        $tvStart = $tStartsBefore ? $ganttStart->copy() : $tStart->copy();
+                        $tvEnd   = $tEndsAfter ? $ganttEnd->copy() : $tEnd->copy();
 
-                    return [
-                        'item'       => $item,
-                        'start_date' => $tStart,
-                        'end_date'   => $tEnd,
-                        'left_pct'   => $tLeftPct,
-                        'width_pct'  => $tWidthPct,
-                        'is_overdue' => $tEnd->lt($now->startOfDay()) && ($item->status->value ?? '') !== 'completed',
-                    ];
-                });
+                        if ($tIsEntirelyBefore) {
+                            $tLeftPct = 0;
+                            $tWidthPct = 1.2;
+                        } elseif ($tIsEntirelyAfter) {
+                            $tLeftPct = 98.8;
+                            $tWidthPct = 1.2;
+                        } else {
+                            $tLeftDays = $ganttStart->diffInDays($tvStart);
+                            $tLeftPct = round(($tLeftDays / $totalGanttDays) * 100, 2);
+                            $tvDays = max(1, $tvStart->diffInDays($tvEnd) + 1);
+                            $tWidthPct = max(1.8, round(($tvDays / $totalGanttDays) * 100, 2));
+                            if ($tLeftPct + $tWidthPct > 100) {
+                                $tWidthPct = max(1.8, 100 - $tLeftPct);
+                            }
+                        }
+
+                        $itemStatus = is_object($item->status) ? $item->status->value : (string) $item->status;
+                        $isOverdue  = $tEnd->lt($now->startOfDay()) && $itemStatus !== 'completed';
+                        $itemType   = is_object($item->item_type) ? $item->item_type->value : (string) $item->item_type;
+
+                        return [
+                            'item'             => $item,
+                            'title'            => $item->title,
+                            'wbs_code'         => $item->wbs_code,
+                            'item_type'        => $itemType,
+                            'is_milestone'     => $item->is_milestone || $itemType === 'milestone',
+                            'assigned_user'    => $item->assignedUser,
+                            'progress'         => (int) ($item->progress ?? 0),
+                            'start_date'       => $tStart,
+                            'end_date'         => $tEnd,
+                            'left_pct'         => $tLeftPct,
+                            'width_pct'        => $tWidthPct,
+                            'starts_before'    => $tStartsBefore,
+                            'ends_after'       => $tEndsAfter,
+                            'is_out_of_bounds' => $tIsEntirelyBefore || $tIsEntirelyAfter,
+                            'is_overdue'       => $isOverdue,
+                            'status'           => $itemStatus,
+                        ];
+                    });
             }
 
             return [
-                'project'         => $project,
-                'start_date'      => $pStart,
-                'end_date'        => $pEnd,
-                'left_pct'        => $leftPct,
-                'width_pct'       => $widthPct,
-                'progress'        => $progress,
-                'is_overdue'      => $isOverdue,
-                'days_remaining'  => $daysRemaining,
-                'wbs_tasks'       => $wbsTasks,
-                'is_expanded'     => in_array($project->id, $this->expandedGanttProjectIds),
+                'project'          => $project,
+                'start_date'       => $pStart,
+                'end_date'         => $pEnd,
+                'left_pct'         => $leftPct,
+                'width_pct'        => $widthPct,
+                'starts_before'    => $startsBefore,
+                'ends_after'       => $endsAfter,
+                'is_out_of_bounds' => $isEntirelyBefore || $isEntirelyAfter,
+                'progress'         => $progress,
+                'is_overdue'       => $isOverdue,
+                'days_remaining'   => $daysRemaining,
+                'wbs_tasks'        => $wbsTasks,
+                'is_expanded'      => in_array($project->id, $this->expandedGanttProjectIds),
             ];
         });
 
@@ -1195,6 +1292,8 @@ class ProjectMonitor extends Component
             'today_visible'  => $ganttTodayVisible,
             'months'         => $ganttMonths,
             'projects'       => $ganttProjects,
+            'month_offset'   => $this->ganttMonthOffset,
+            'timeframe'      => $this->ganttTimeframe,
         ];
 
         return view('livewire.project-monitor', compact(

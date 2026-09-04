@@ -858,10 +858,10 @@
             </div>
 
             <!-- Warning Notice Card -->
-            <div style="margin: 0 24px 16px 24px; padding: 12px 14px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; display: flex; align-items: flex-start; gap: 10px;">
-                <span style="font-size: 15px; flex-shrink: 0;">⚠️</span>
-                <p style="margin: 0; font-size: 11.5px; color: #92400e; font-weight: 600; line-height: 1.45;">
-                    This will move the project and its associated WBS schedule, deliverables, and tasks to the trash repository.
+            <div style="margin: 0 24px 16px 24px; padding: 12px 14px; background: #fff1f2; border-radius: 12px; border: 1px solid #fecdd3; display: flex; align-items: flex-start; gap: 10px;">
+                <span style="font-size: 15px; flex-shrink: 0;">🚨</span>
+                <p style="margin: 0; font-size: 11.5px; color: #9f1239; font-weight: 600; line-height: 1.45;">
+                    This will permanently delete this project and all its WBS items, deliverables, documents, risks, and records from the entire system. An audit log entry will be permanently recorded.
                 </p>
             </div>
 
@@ -871,7 +871,7 @@
                     Cancel
                 </button>
                 <button type="button" wire:click="executeDeleteProject" style="padding: 8px 20px; border-radius: 9px; border: none; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35); transition: all 0.15s; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1.0'">
-                    <span>Delete Project</span>
+                    <span>Permanently Delete Project</span>
                 </button>
             </div>
         </div>

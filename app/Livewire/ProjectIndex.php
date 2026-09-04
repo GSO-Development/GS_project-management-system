@@ -235,18 +235,19 @@ class ProjectIndex extends Component
     public function executeDeleteProject(): void
     {
         $user = auth()->user();
-        if (!$user || (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1)) {
+        if (!$user || !$user->isPmoAdmin()) {
             $this->dispatch('toast', message: 'Unauthorized. Only PMO Admin can delete projects.', type: 'error');
             $this->cancelDelete();
             return;
         }
 
         if ($this->projectToDeleteId) {
-            $project = Project::find($this->projectToDeleteId);
+            $project = Project::withTrashed()->find($this->projectToDeleteId);
             if ($project) {
                 $pName = $project->name;
-                $project->delete();
-                $this->dispatch('toast', message: "Project '{$pName}' moved to trash successfully.", type: 'info');
+                $pCode = $project->code;
+                app(\App\Services\ProjectDeletionService::class)->purgeProject($project, $user);
+                $this->dispatch('toast', message: "Project '{$pName}' ({$pCode}) permanently deleted from system.", type: 'info');
             }
         }
 

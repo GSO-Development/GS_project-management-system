@@ -367,6 +367,11 @@
                         $pillStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                         $iconBg    = 'background: linear-gradient(135deg, #059669, #0d9488);';
                         $iconSvg   = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+                    } elseif ($cat === 'schedule_change' || $actionType === 'project_schedule_updated' || str_contains($lowerMsg, 'deadline updated') || str_contains($lowerMsg, 'schedule updated') || str_contains($lowerMsg, 'start date updated') || str_contains($lowerMsg, 'timeline updated')) {
+                        $catName   = '📅 Schedule Update';
+                        $pillStyle = 'bg-amber-50 text-amber-900 border-amber-200';
+                        $iconBg    = 'background: linear-gradient(135deg, #f59e0b, #d97706);';
+                        $iconSvg   = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>';
                     } else {
                         $catName   = '📣 Daily Update';
                         $pillStyle = 'bg-sky-50 text-sky-700 border-sky-200';
