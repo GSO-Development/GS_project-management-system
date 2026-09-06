@@ -140,6 +140,13 @@ class ApprovalManager extends Component
         $this->showReviewModal   = true;
     }
 
+    public function closeReviewModal(): void
+    {
+        $this->showReviewModal   = false;
+        $this->selectedRequestId = null;
+        $this->reviewComment     = '';
+    }
+
     public function approveRequest(): void
     {
         $user = auth()->user();
@@ -278,19 +285,19 @@ class ApprovalManager extends Component
     {
         $user = auth()->user();
 
-        $query = ApprovalRequest::with(['project', 'requester', 'reviewer'])
-            ->latest();
+        $query = ApprovalRequest::with(['project.subsidiary', 'project.projectManager', 'requester', 'reviewer'])
+            ->latest('submitted_at');
 
         // Scope filter for Team Members vs Managers vs Admins
         if ($this->scopeFilter === 'my_requests') {
             $query->where('requested_by', $user->id);
         } elseif (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-            $query->where(function($q) use ($user) {
+            $query->where(function ($q) use ($user) {
                 $q->where('requested_by', $user->id)
                   ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
-                  ->orWhere(function($memberQuery) use ($user) {
+                  ->orWhere(function ($memberQuery) use ($user) {
                       $memberQuery->whereHas('project.members', fn($mq) => $mq->where('users.id', $user->id))
-                                  ->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                                  ->where('request_type', '!=', ApprovalType::NEW_PROJECT_PLAN);
                   });
             });
         }
@@ -307,6 +314,10 @@ class ApprovalManager extends Component
 
         $selectedRequest = $this->selectedRequestId
             ? ApprovalRequest::with(['project.subsidiary', 'project.projectManager', 'project.members', 'project.wbsItems.assignedUser', 'requester', 'reviewer'])->find($this->selectedRequestId)
+            : null;
+
+        $deletingRequest = $this->deletingRequestId
+            ? ApprovalRequest::with(['project.subsidiary', 'requester'])->find($this->deletingRequestId)
             : null;
 
         // Pending Leadership Projects
@@ -342,6 +353,13 @@ class ApprovalManager extends Component
                 ->get()
             : collect();
 
-        return view('livewire.approval-manager', compact('requests', 'selectedRequest', 'userProjects', 'userWbsTasks', 'pendingLeadershipProjects'));
+        return view('livewire.approval-manager', compact(
+            'requests',
+            'selectedRequest',
+            'deletingRequest',
+            'userProjects',
+            'userWbsTasks',
+            'pendingLeadershipProjects'
+        ))->layout('layouts.app', ['title' => 'Approval Workflows — GS NexusPM']);
     }
 }

@@ -110,6 +110,14 @@ class NotificationManager extends Component
         if ($notification) {
             $notification->markAsRead();
         }
+
+        // Convert full URL to relative path to maintain session consistency across 127.0.0.1 and localhost
+        $parsed = parse_url($url);
+        if (isset($parsed['path']) && !str_starts_with($url, '//')) {
+            $relativeUrl = $parsed['path'] . (isset($parsed['query']) ? '?' . $parsed['query'] : '') . (isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '');
+            return redirect()->to($relativeUrl);
+        }
+
         return redirect()->to($url);
     }
 

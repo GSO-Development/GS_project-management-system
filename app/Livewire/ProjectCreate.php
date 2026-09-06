@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Services\ProjectDetailExtractor;
+use App\Services\RbacService;
 
 class ProjectCreate extends Component
 {
@@ -39,6 +40,11 @@ class ProjectCreate extends Component
     public string $steeringSearch = '';
     public string $participantSearch = '';
     public string $templateSearch = '';
+
+    // Custom role assignments: ['role_code' => [user_ids]]
+    public array $customRoleAssignments = [];
+    // Search strings for each custom role: ['role_code' => 'search_query']
+    public array $customRoleSearch = [];
 
     // Breakdown Method Properties
     public string $creation_option = 'template'; // 'template' or 'manual'
@@ -79,6 +85,34 @@ class ProjectCreate extends Component
 
         $this->generateCode();
         $this->calculateTemplateDeadline();
+
+        // Initialize custom role assignments
+        $this->initCustomRoles();
+    }
+
+    /**
+     * Get all custom (non-system) roles from the DB.
+     */
+    protected function getCustomRoles(): array
+    {
+        $allRoles = RbacService::getAllRoles();
+        return array_filter($allRoles, fn($r) => !($r['is_system'] ?? true));
+    }
+
+    /**
+     * Initialize the customRoleAssignments and customRoleSearch arrays
+     * for all currently-known custom roles.
+     */
+    protected function initCustomRoles(): void
+    {
+        foreach ($this->getCustomRoles() as $code => $role) {
+            if (!isset($this->customRoleAssignments[$code])) {
+                $this->customRoleAssignments[$code] = [];
+            }
+            if (!isset($this->customRoleSearch[$code])) {
+                $this->customRoleSearch[$code] = '';
+            }
+        }
     }
 
     public function nextStep(): void
@@ -446,6 +480,15 @@ class ProjectCreate extends Component
             }
         }
 
+        // 6. Custom roles (dynamic, from Roles & Permissions Hub)
+        foreach ($this->customRoleAssignments as $roleCode => $userIds) {
+            foreach (array_map('intval', $userIds) as $uId) {
+                if ($uId > 0 && !isset($syncData[$uId])) {
+                    $syncData[$uId] = ['role' => $roleCode];
+                }
+            }
+        }
+
         $project->members()->sync($syncData);
 
         // Copy WBS items if created from template
@@ -601,6 +644,23 @@ class ProjectCreate extends Component
         $allParticipants = $this->subsidiary_id ? User::getUsersForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
         $allTemplates = \App\Models\ProjectTemplate::all();
 
+        // Load custom roles and filter their user lists
+        $customRoles = $this->getCustomRoles();
+        $customRoleUsers = [];
+        foreach ($customRoles as $code => $roleMeta) {
+            $search = trim($this->customRoleSearch[$code] ?? '');
+            if ($search !== '') {
+                $lowerSearch = strtolower($search);
+                $customRoleUsers[$code] = $allParticipants->filter(function ($u) use ($lowerSearch) {
+                    return str_contains(strtolower($u->name), $lowerSearch)
+                        || str_contains(strtolower($u->email), $lowerSearch)
+                        || str_contains(strtolower($u->subsidiary->code ?? ''), $lowerSearch);
+                })->values();
+            } else {
+                $customRoleUsers[$code] = $allParticipants;
+            }
+        }
+
         // Filter Leaders by search query
         $lSearch = trim($this->leaderSearch);
         if ($lSearch !== '') {
@@ -683,7 +743,8 @@ class ProjectCreate extends Component
         return view('livewire.project-create', compact(
             'subsidiaries', 'currentSub', 'pms', 'allPms',
             'sponsors', 'owners', 'steeringCommittee',
-            'participants', 'allParticipants', 'templates', 'allTemplates'
+            'participants', 'allParticipants', 'templates', 'allTemplates',
+            'customRoles', 'customRoleUsers'
         ));
     }
 }

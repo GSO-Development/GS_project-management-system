@@ -25,6 +25,7 @@ class RolePermissionManager extends Component
 
     public ?string $selectedRole = null;
     public bool $showManageDrawer = false;
+    public string $searchDrawerPermission = '';
 
     /**
      * Map of permission_code => bool for the currently edited role.
@@ -50,6 +51,12 @@ class RolePermissionManager extends Component
     public string $newPermissionCode = '';
     public string $newPermissionModule = 'project';
 
+    // Delete Role Confirmation Modal
+    public bool $showDeleteRoleModal = false;
+    public ?string $roleToDelete = null;
+    public string $roleNameToDelete = '';
+    public int $roleUsersCountToDelete = 0;
+
     public ?string $successToast = null;
 
     public function mount(): void
@@ -73,6 +80,7 @@ class RolePermissionManager extends Component
         }
 
         $this->initialRolePermissions = $this->rolePermissions;
+        $this->searchDrawerPermission = '';
         $this->showManageDrawer = true;
         $this->successToast = null;
     }
@@ -206,7 +214,8 @@ class RolePermissionManager extends Component
         ]);
 
         $this->initialRolePermissions = $this->rolePermissions;
-        $this->successToast = "Permissions for {$roleInfo['name']} updated successfully.";
+        $this->showManageDrawer = false;
+        $this->dispatch('toast', message: "Permissions for {$roleInfo['name']} saved successfully!", type: 'success');
     }
 
     public function resetRoleToDefault(?string $roleCode = null): void
@@ -297,7 +306,7 @@ class RolePermissionManager extends Component
 
         $allRoles = RbacService::getAllRoles();
         $roleName = $allRoles[$targetRole]['name'] ?? $targetRole;
-        $this->successToast = "Permissions for {$roleName} reset to default configuration.";
+        $this->dispatch('toast', message: "Permissions for {$roleName} reset to default configuration.", type: 'info');
     }
 
     // --- CREATE NEW ROLE ---
@@ -339,27 +348,144 @@ class RolePermissionManager extends Component
 
         RbacService::clearCache();
         $this->showCreateRoleModal = false;
-        $this->successToast = "New role '{$this->newRoleName}' created successfully!";
+        $this->dispatch('toast', message: "New role '{$this->newRoleName}' created successfully!", type: 'success');
         $this->openManageModal($role->name);
+    }
+
+    public function promptDeleteRole(string $roleCode): void
+    {
+        if (RbacService::isProtectedRole($roleCode)) {
+            $this->dispatch('toast', message: 'Core governance roles (Project Manager, PMO Admin, Super Admin, Project Owner, Project Sponsor, Core Project Team) cannot be deleted as they are essential to project governance.', type: 'warning');
+            return;
+        }
+
+        $role = Role::where('name', $roleCode)->first();
+        if (!$role) {
+            $this->dispatch('toast', message: 'Role not found in database.', type: 'error');
+            return;
+        }
+
+        $allRoles = RbacService::getAllRoles();
+        $this->roleToDelete = $roleCode;
+        $this->roleNameToDelete = $allRoles[$roleCode]['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role->name));
+        $this->roleUsersCountToDelete = $role->users()->count();
+        $this->showDeleteRoleModal = true;
+    }
+
+    public function cancelDeleteRole(): void
+    {
+        $this->showDeleteRoleModal = false;
+        $this->roleToDelete = null;
+        $this->roleNameToDelete = '';
+        $this->roleUsersCountToDelete = 0;
+    }
+
+    public function confirmDeleteRole(): void
+    {
+        if (!$this->roleToDelete) {
+            return;
+        }
+
+        $roleCode = $this->roleToDelete;
+        $this->showDeleteRoleModal = false;
+        $this->roleToDelete = null;
+        $this->roleNameToDelete = '';
+        $this->roleUsersCountToDelete = 0;
+
+        $this->deleteCustomRole($roleCode);
     }
 
     public function deleteCustomRole(string $roleCode): void
     {
-        $role = Role::where('name', $roleCode)->first();
-        if (!$role) return;
+        abort_if(!auth()->check() || (!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin() && auth()->user()->id !== 1), 403, 'Unauthorized.');
 
-        // Prevent deletion of core system roles
-        $systemRoles = ['super_admin', 'pmo_admin', 'lead', 'project_manager', 'sponsor', 'owner', 'steering_committee', 'member', 'team_member', 'collaborator'];
-        if (in_array($roleCode, $systemRoles)) {
-            $this->dispatch('toast', message: 'System built-in roles cannot be deleted.', type: 'error');
+        // Prevent deletion of core protected governance roles:
+        // Project Manager (lead/project_manager), PMO Admin/Super Admin (pmo_admin, super_admin),
+        // Project Owner (owner), Project Sponsor (sponsor), Core Project Team (member/team_member)
+        if (RbacService::isProtectedRole($roleCode)) {
+            $this->dispatch('toast', message: 'Core governance roles (Project Manager, PMO Admin, Super Admin, Project Owner, Project Sponsor, Core Project Team) cannot be deleted as they are essential to project governance.', type: 'warning');
             return;
         }
 
-        $roleName = $role->name;
+        $role = Role::where('name', $roleCode)->first();
+        if (!$role) {
+            $this->dispatch('toast', message: 'Role not found in database.', type: 'error');
+            return;
+        }
+
+        $allRoles = RbacService::getAllRoles();
+        $displayName = $allRoles[$roleCode]['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role->name));
+
+        // Check if role is currently assigned to users (system-wide)
+        $userCount = $role->users()->count();
+        if ($userCount > 0) {
+            $this->dispatch('toast', message: "Cannot delete role '{$displayName}' because {$userCount} user(s) are currently assigned to it. Please reassign them first.", type: 'error');
+            return;
+        }
+
+        // Check if role is assigned to project members
+        $pmCount = \App\Models\ProjectMember::where('role', $roleCode)->count();
+        if ($pmCount > 0) {
+            $this->dispatch('toast', message: "Cannot delete role '{$displayName}' because it is assigned to {$pmCount} project member(s). Please remove or reassign them in their respective projects first.", type: 'error');
+            return;
+        }
+
+        // Detach permissions and delete
+        $role->permissions()->detach();
         $role->delete();
         RbacService::clearCache();
 
-        $this->successToast = "Custom role '{$roleName}' removed.";
+        // Audit Logging
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'deleted_role',
+            'module' => 'roles_permissions',
+            'record_type' => Role::class,
+            'record_id' => null,
+            'previous_values' => ['role' => $roleCode, 'name' => $displayName],
+            'new_values' => ['summary' => "PMO Admin permanently deleted role '{$displayName}' ({$roleCode})."],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        if ($this->selectedRole === $roleCode) {
+            $this->closeManageModal();
+        }
+
+        $this->resetPage();
+        $this->successToast = "Role '{$displayName}' has been permanently deleted.";
+        $this->dispatch('toast', message: "Role '{$displayName}' has been permanently deleted.", type: 'success');
+    }
+
+    public function deleteRole(string $roleCode): void
+    {
+        $this->promptDeleteRole($roleCode);
+    }
+
+    public function cannotDeleteSystemRole(string $roleName): void
+    {
+        $this->dispatch('toast', message: "Built-in role '{$roleName}' is a core protected GS NexusPM governance role and cannot be deleted. You can customize all of its granular permissions anytime.", type: 'info');
+    }
+
+    public function deletePermission(string $permCode): void
+    {
+        // Prevent deletion of built-in system permissions
+        $standardPerms = [];
+        foreach (RbacService::MODULES as $mod) {
+            $standardPerms = array_merge($standardPerms, array_keys($mod['permissions']));
+        }
+
+        if (in_array($permCode, $standardPerms)) {
+            $this->dispatch('toast', message: "Standard system permission '{$permCode}' is protected and cannot be deleted.", type: 'warning');
+            return;
+        }
+
+        $perm = Permission::where('name', $permCode)->first();
+        if ($perm) {
+            $perm->delete();
+            RbacService::clearCache();
+            $this->successToast = "Custom permission '{$permCode}' removed successfully.";
+        }
     }
 
     // --- CREATE NEW PERMISSION ---
@@ -412,7 +538,7 @@ class RolePermissionManager extends Component
 
         RbacService::clearCache();
         $this->showCreatePermissionModal = false;
-        $this->successToast = "Granular permission '{$this->newPermissionCode}' registered successfully!";
+        $this->dispatch('toast', message: "Granular permission '{$this->newPermissionCode}' registered successfully!", type: 'success');
     }
 
     public function render()
@@ -453,7 +579,7 @@ class RolePermissionManager extends Component
 
         $currentPage = $this->getPage();
         $paginatedRoles = new \Illuminate\Pagination\LengthAwarePaginator(
-            collect($roles)->forPage($currentPage, $this->perPage)->values(),
+            collect($roles)->forPage($currentPage, $this->perPage),
             count($roles),
             $this->perPage,
             $currentPage,

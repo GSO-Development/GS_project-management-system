@@ -3,29 +3,26 @@
     {{-- ═══════════════════════════════════════════════════════════════
          1. TOP EXECUTIVE HERO BANNER  (matches other page style)
          ═══════════════════════════════════════════════════════════════ --}}
-    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-xl p-5 sm:p-6 lg:p-7 text-white"
-         style="background: linear-gradient(135deg, #18060c 0%, #2e0915 50%, #18060c 100%);">
-
-        {{-- Top Glowing Gold/Crimson Accent Line --}}
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50 z-20"></div>
-
-        {{-- Right Background Banner Image (same as other pages) --}}
-        <div class="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none opacity-20 overflow-hidden hidden md:flex items-center justify-end">
-            <img src="{{ asset('images/project-banner-luxury-2x.jpg') }}"
-                 alt=""
-                 class="h-full w-full object-cover object-center"
-                 style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 60%); mask-image: linear-gradient(to right, transparent 0%, black 60%);">
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="Activity & Notifications Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
         </div>
 
-        {{-- Gold/Crimson wave swoosh vector --}}
-        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-25 hidden md:block">
-            <svg viewBox="0 0 1200 300" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 400 0 C 520 120 580 200 750 300" stroke="#f59e0b" stroke-width="2" opacity="0.6"/>
-                <path d="M 420 0 C 540 120 600 200 770 300" stroke="#c3122e" stroke-width="1.5" opacity="0.35"/>
-            </svg>
-        </div>
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
 
             {{-- LEFT: Icon + Title + Meta --}}
             <div class="flex items-center gap-4 min-w-0">

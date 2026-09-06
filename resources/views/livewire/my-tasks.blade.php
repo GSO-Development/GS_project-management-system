@@ -32,7 +32,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP EXECUTIVE HERO BANNER & MULTI-PROJECT CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-7 lg:p-8 text-white mb-6" style="background: #2b040a;">
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
         <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
             <img 
@@ -51,15 +51,15 @@
         <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
             <!-- Left Side: Icon + Title + Meta Hierarchy -->
             <div class="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
                 <!-- 3D Productivity App Icon Container -->
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-amber-400/40 ring-2 ring-black/60 bg-slate-950/80 p-1 flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-amber-400/40 ring-2 ring-black/60 bg-slate-950/80 p-1 flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
                     <img src="{{ asset('images/tasks-banner.jpg') }}" alt="My Tasks" class="w-full h-full object-cover rounded-xl shadow-inner">
                 </div>
 
-                <div class="min-w-0 space-y-2 flex-1">
+                <div class="min-w-0 space-y-1.5 flex-1">
                     <!-- Suite Breadcrumb & Live Pills -->
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] font-black uppercase tracking-widest text-amber-300 font-mono">

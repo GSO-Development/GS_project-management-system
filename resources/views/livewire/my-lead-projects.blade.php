@@ -2,34 +2,41 @@
     {{-- ══════════════════════════════════════════════════════════
          1. HERO BANNER — MY PROJECTS
          ══════════════════════════════════════════════════════════ --}}
-    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-6 sm:p-8 lg:p-9 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e]"></div>
-        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
-            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
-        </div>
-        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
-            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75"/>
-                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5"/>
-            </svg>
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="My Projects Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
         </div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div class="flex items-center gap-5 min-w-0">
-                <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-amber-500/25 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-9 h-9 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
+            <div class="flex items-center gap-4 sm:gap-5 min-w-0">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-amber-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                 </div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-3 flex-wrap">
-                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">My Projects</h1>
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-amber-200 border border-amber-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(245, 158, 11, 0.25);">
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">My Projects</h1>
+                        <span class="px-3 py-0.5 rounded-full text-xs font-black text-amber-200 border border-amber-400/40 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(245, 158, 11, 0.25);">
                             <span>📁</span>
                             <span>{{ $totalCount }} Project{{ $totalCount !== 1 ? 's' : '' }}</span>
                         </span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
+                    <div class="flex items-center gap-3 text-xs font-semibold text-slate-300 mt-1 flex-wrap">
                         <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <span>George Steuart Project Portal</span>
@@ -41,7 +48,7 @@
             </div>
             <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
                 @if(auth()->user()->canCreateProject())
-                    <a href="{{ route('projects.create') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);">
+                    <a href="{{ route('projects.create') }}" class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                         <span>Create New Project</span>
                     </a>

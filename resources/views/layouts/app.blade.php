@@ -24,8 +24,8 @@
     <style>
         /* Smooth SPA Instant Page Transitions */
         @keyframes gsPageFadeIn {
-            0% { opacity: 0; transform: translateY(3px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
         main > div {
             animation: gsPageFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);

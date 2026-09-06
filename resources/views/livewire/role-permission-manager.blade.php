@@ -24,18 +24,29 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP EXECUTIVE HERO BANNER
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-rose-900/40 shadow-xl p-5 sm:p-6 lg:p-7 text-white" style="background: linear-gradient(135deg, #18060c 0%, #2e0915 50%, #18060c 100%);">
-        <!-- Top Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e]"></div>
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="Roles & Permissions Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+        </div>
 
-        <!-- Ambient Glow Elements -->
-        <div class="absolute -right-10 -bottom-10 w-80 h-80 rounded-full bg-rose-600/15 blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-10 -top-10 w-60 h-60 rounded-full bg-amber-500/10 blur-2xl pointer-events-none"></div>
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
             <!-- Left Side: App Icon + Title + Meta -->
-            <div class="flex items-center gap-4 min-w-0">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-lg flex-shrink-0 border border-white/20 ring-4 ring-amber-500/20 flex items-center justify-center p-2.5" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 65%, #800a1d 100%);">
+            <div class="flex items-center gap-4 sm:gap-5 min-w-0">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-lg flex-shrink-0 border border-white/20 ring-4 ring-amber-500/20 flex items-center justify-center p-2.5" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 65%, #800a1d 100%);">
                     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
@@ -219,13 +230,18 @@
                 <tbody class="divide-y divide-slate-100 bg-white text-xs">
                     @forelse($roles as $roleKey => $roleDef)
                         @php
+                            $roleCode = $roleDef['code'] ?? (is_string($roleKey) && !is_numeric($roleKey) ? $roleKey : '');
+                            if (!$roleCode && isset($roleDef['name'])) {
+                                $roleCode = strtolower(str_replace(' ', '_', $roleDef['name']));
+                            }
+                            $isProtected = $roleDef['is_protected'] ?? \App\Services\RbacService::isProtectedRole($roleCode);
                             $isSystem = $roleDef['is_system'] ?? false;
                             $userCount = $roleDef['users_count'] ?? 0;
                         @endphp
-                        <tr class="hover:bg-slate-50/70 transition-colors group">
-                            <!-- Sticky Role Column -->
+                        <tr wire:key="role-row-{{ $roleCode }}" class="hover:bg-slate-50/70 transition-colors group">
+                            <!-- Sticky Role Column (Clean Identity, No Duplicate Manage Button) -->
                             <td class="py-4 pl-6 pr-4 sticky left-0 z-10 bg-white group-hover:bg-slate-50/90 transition-colors shadow-r">
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3 min-w-0">
                                     <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold border shadow-2xs flex-shrink-0 {{ $roleDef['badge'] ?? 'bg-slate-100 text-slate-800' }}">
                                         {{ strtoupper(substr($roleDef['name'], 0, 2)) }}
                                     </div>
@@ -241,7 +257,7 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center gap-2 text-[10px] font-mono text-slate-400 mt-0.5">
-                                            <span>{{ $roleKey }}</span>
+                                            <span class="font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{{ $roleCode }}</span>
                                             @if($userCount > 0)
                                                 <span>&bull;</span>
                                                 <span class="text-slate-600 font-bold">👥 {{ $userCount }} user{{ $userCount !== 1 ? 's' : '' }}</span>
@@ -254,36 +270,52 @@
                             <!-- 9 Functional Modules Columns -->
                             @foreach(['project', 'scope', 'task', 'team', 'budget', 'risks', 'approvals', 'reports', 'settings'] as $mKey)
                                 <td class="py-4 px-3 text-center">
-                                    @php $s = \App\Services\RbacService::computeModuleSummary($roleKey, $mKey); @endphp
+                                    @php $s = \App\Services\RbacService::computeModuleSummary($roleCode, $mKey); @endphp
                                     <span class="px-2.5 py-1 rounded-lg text-[10.5px] border inline-block whitespace-nowrap {{ $s['badgeClass'] }}">
                                         {{ $s['label'] }}
                                     </span>
                                 </td>
                             @endforeach
 
-                            <!-- Actions Column -->
-                            <td class="py-4 pl-3 pr-6 text-right">
-                                <div class="flex items-center justify-end gap-1.5">
-                                    @if(!$isSystem)
-                                        <button
-                                            wire:click="deleteCustomRole('{{ $roleKey }}')"
-                                            wire:confirm="Are you sure you want to delete the custom role '{{ $roleDef['name'] }}'?"
-                                            type="button"
-                                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                            title="Delete Custom Role"
-                                        >
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
-                                    @endif
-
+                            <!-- Actions Column: 1 Manage Button + Delete Option -->
+                            <td class="py-4 pl-3 pr-6 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-2">
+                                    <!-- Single Primary Manage Button -->
                                     <button 
-                                        wire:click="openManageModal('{{ $roleKey }}')" 
+                                        wire:key="btn-manage-{{ $roleCode }}"
+                                        wire:click="openManageModal('{{ $roleCode }}')" 
                                         type="button" 
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-[#c3122e] bg-rose-50 hover:bg-[#c3122e] hover:text-white border border-rose-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                                        title="Manage {{ $roleDef['name'] }} Permissions"
                                     >
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                         <span>Manage</span>
                                     </button>
+
+                                    <!-- Delete Button Option -->
+                                    @if(!$isProtected)
+                                        <button 
+                                            wire:key="btn-del-{{ $roleCode }}"
+                                            wire:click="promptDeleteRole('{{ $roleCode }}')" 
+                                            type="button" 
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-white hover:bg-rose-600 hover:text-white border border-rose-300 hover:border-rose-600 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                                            title="Delete Role"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Delete</span>
+                                        </button>
+                                    @else
+                                        <button 
+                                            wire:key="btn-protected-{{ $roleCode }}"
+                                            wire:click="cannotDeleteSystemRole('{{ $roleDef['name'] }}')" 
+                                            type="button" 
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-95"
+                                            title="Core Protected Governance Role (Cannot be deleted)"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Delete</span>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -314,10 +346,10 @@
             $selectedCount = count(array_filter($rolePermissions));
         @endphp
 
-        <div class="fixed inset-0 z-50 overflow-hidden">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" wire:click="closeManageModal"></div>
+        <div class="fixed inset-0 overflow-hidden" style="z-index: 9999;">
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" style="z-index: 9999;" wire:click="closeManageModal"></div>
 
-            <div class="fixed inset-y-0 right-0 max-w-full flex pl-8">
+            <div class="fixed inset-y-0 right-0 max-w-full flex pl-8" style="z-index: 10000;">
                 <div class="w-screen max-w-2xl bg-white shadow-2xl flex flex-col border-l border-slate-200">
                     
                     <!-- Top Brand Line -->
@@ -334,6 +366,9 @@
                                     <h3 class="text-base font-black text-slate-900 tracking-tight leading-tight">
                                         {{ $currentRoleInfo['name'] }}
                                     </h3>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600">
+                                        {{ $selectedRole }}
+                                    </span>
                                     @if($hasUnsaved)
                                         <span class="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
                                             UNSAVED CHANGES
@@ -347,20 +382,52 @@
                         </div>
 
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <button wire:click="selectAllGlobal" type="button" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer px-2 py-1 bg-slate-100 rounded-lg">Select All</button>
-                            <button wire:click="clearAllGlobal" type="button" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer px-2 py-1 bg-slate-100 rounded-lg">Clear All</button>
+                            <button wire:click="selectAllGlobal" type="button" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Select All</button>
+                            <button wire:click="clearAllGlobal" type="button" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Clear All</button>
                             <button wire:click="closeManageModal" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer ml-1">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
                     </div>
 
+                    <!-- Drawer Search Bar & Progress Bar -->
+                    <div class="px-6 py-3 bg-slate-50 border-b border-slate-100 flex flex-col gap-2.5 flex-shrink-0">
+                        <div class="relative w-full">
+                            <input 
+                                type="text" 
+                                wire:model.live.debounce.150ms="searchDrawerPermission"
+                                placeholder="Filter permissions in this role (e.g. create, edit, delete, budget, task)..." 
+                                class="w-full text-xs font-semibold rounded-xl border border-slate-300 pl-8 pr-3 py-2 bg-white focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e] shadow-2xs"
+                                style="border: 1px solid #cbd5e1;"
+                            >
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            @if($searchDrawerPermission)
+                                <button wire:click="$set('searchDrawerPermission', '')" class="absolute right-2.5 top-2 text-xs font-bold text-slate-400 hover:text-slate-700">✕</button>
+                            @endif
+                        </div>
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-300 {{ $selectedCount === $totalPermsCount ? 'bg-emerald-500' : 'bg-[#c3122e]' }}" style="width: {{ $totalPermsCount > 0 ? round(($selectedCount / $totalPermsCount) * 100) : 0 }}%"></div>
+                        </div>
+                    </div>
+
                     <!-- Drawer Permissions Body (Scrollable Modules Accordion) -->
                     <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/40">
+                        @php $matchingModulesCount = 0; @endphp
                         @foreach($allModules as $modKey => $modDef)
                             @php
                                 $modPerms = $modDef['permissions'];
-                                $modPermKeys = array_keys($modPerms);
+                                if (!empty($searchDrawerPermission)) {
+                                    $pQ = strtolower($searchDrawerPermission);
+                                    $modPerms = array_filter($modPerms, function($label, $code) use ($pQ) {
+                                        return str_contains(strtolower($label), $pQ) || str_contains(strtolower($code), $pQ);
+                                    }, ARRAY_FILTER_USE_BOTH);
+                                }
+                                if (empty($modPerms)) {
+                                    continue;
+                                }
+                                $matchingModulesCount++;
+                                $modPermKeys = array_keys($modDef['permissions']);
                                 $grantedInMod = count(array_filter(array_intersect_key($rolePermissions, array_flip($modPermKeys))));
                                 $totalInMod = count($modPermKeys);
                             @endphp
@@ -387,34 +454,61 @@
                                 <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     @foreach($modPerms as $pCode => $pLabel)
                                         @php $checked = !empty($rolePermissions[$pCode]); @endphp
-                                        <label class="p-2.5 rounded-xl border transition-all flex items-start gap-2.5 cursor-pointer {{ $checked ? 'bg-rose-50/40 border-rose-200 text-slate-900' : 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50' }}">
+                                        <div 
+                                            wire:click="togglePermission('{{ $pCode }}')"
+                                            class="p-2.5 rounded-xl border transition-all flex items-start gap-2.5 cursor-pointer select-none {{ $checked ? 'bg-rose-50/50 border-rose-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50' }}"
+                                        >
                                             <input 
                                                 type="checkbox" 
-                                                wire:click="togglePermission('{{ $pCode }}')"
                                                 @checked($checked)
-                                                class="rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] mt-0.5"
+                                                class="pointer-events-none rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] mt-0.5 flex-shrink-0"
                                             >
                                             <div class="min-w-0 text-xs">
-                                                <span class="font-bold block leading-tight">{{ $pLabel }}</span>
+                                                <span class="font-bold block leading-tight {{ $checked ? 'text-[#c3122e]' : 'text-slate-800' }}">{{ $pLabel }}</span>
                                                 <span class="text-[10px] font-mono text-slate-400 block mt-0.5 truncate">{{ $pCode }}</span>
                                             </div>
-                                        </label>
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>
                         @endforeach
+
+                        @if($matchingModulesCount === 0)
+                            <div class="text-center py-12 text-slate-400 text-xs font-semibold">
+                                No permissions found matching "{{ $searchDrawerPermission }}".
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Sticky Drawer Footer -->
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3 bg-white flex-shrink-0">
-                        <button 
-                            wire:click="resetRoleToDefault('{{ $selectedRole }}')"
-                            wire:confirm="Reset this role to default permissions?"
-                            type="button" 
-                            class="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
-                        >
-                            Reset Defaults
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <button 
+                                wire:click="resetRoleToDefault('{{ $selectedRole }}')"
+                                wire:confirm="Reset this role to default permissions?"
+                                type="button" 
+                                class="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                            >
+                                Reset Defaults
+                            </button>
+
+                            @php
+                                $selectedIsProtected = isset($allRoles[$selectedRole]) 
+                                    ? ($allRoles[$selectedRole]['is_protected'] ?? \App\Services\RbacService::isProtectedRole($selectedRole)) 
+                                    : \App\Services\RbacService::isProtectedRole($selectedRole);
+                            @endphp
+                            @if(!$selectedIsProtected)
+                                <span class="text-slate-300">|</span>
+                                <button 
+                                    wire:click="promptDeleteRole('{{ $selectedRole }}')" 
+                                    type="button" 
+                                    class="text-xs font-bold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer flex items-center gap-1"
+                                >
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>Delete Role</span>
+                                </button>
+                            @endif
+                        </div>
 
                         <div class="flex items-center gap-2.5">
                             <button wire:click="closeManageModal" type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer">
@@ -423,10 +517,15 @@
                             <button 
                                 wire:click="savePermissions" 
                                 type="button" 
-                                class="px-5 py-2 rounded-xl text-xs font-black text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
+                                class="px-5 py-2 rounded-xl text-xs font-black text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
                                 style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                                wire:loading.attr="disabled"
                             >
-                                💾 Save Permissions
+                                <span wire:loading.remove wire:target="savePermissions">💾 Save Permissions</span>
+                                <span wire:loading wire:target="savePermissions" class="flex items-center gap-1.5">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    Saving...
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -440,10 +539,10 @@
          6. CREATE NEW ROLE MODAL
          ═══════════════════════════════════════════════════════════════ -->
     @if($showCreateRoleModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" wire:click="$set('showCreateRoleModal', false)"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999;">
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" style="z-index: 9999;" wire:click="$set('showCreateRoleModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4 z-10">
+            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4" style="z-index: 10000;">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-lg">
@@ -500,10 +599,10 @@
          7. CREATE NEW PERMISSION MODAL
          ═══════════════════════════════════════════════════════════════ -->
     @if($showCreatePermissionModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" wire:click="$set('showCreatePermissionModal', false)"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999;">
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" style="z-index: 9999;" wire:click="$set('showCreatePermissionModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4 z-10">
+            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4" style="z-index: 10000;">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
@@ -546,6 +645,68 @@
                         <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm cursor-pointer">Register Permission</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         8. DELETE ROLE CONFIRMATION MODAL
+         ═══════════════════════════════════════════════════════════════ -->
+    @if($showDeleteRoleModal)
+        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 10001;">
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" wire:click="cancelDeleteRole"></div>
+
+            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4" style="z-index: 10002;">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-2xs">
+                        🗑️
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-black text-slate-900 tracking-tight">Delete Role</h3>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">This action will permanently delete this role.</p>
+                    </div>
+                    <button wire:click="cancelDeleteRole" class="text-slate-400 hover:text-slate-700 cursor-pointer -mt-1 -mr-1 p-1">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-100 text-xs text-slate-700 space-y-2">
+                    <p class="font-semibold text-slate-900">
+                        Are you sure you want to permanently delete the role <span class="font-black text-[#c3122e]">"{{ $roleNameToDelete }}"</span> <code class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-rose-200 text-slate-700">({{ $roleToDelete }})</code>?
+                    </p>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                        All permissions assigned to this role will be detached and removed. This operation cannot be undone.
+                    </p>
+                    @if($roleUsersCountToDelete > 0)
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold flex items-center gap-2">
+                            <span>⚠️</span>
+                            <span>Warning: {{ $roleUsersCountToDelete }} user(s) are currently assigned to this role and must be reassigned.</span>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button 
+                        wire:click="cancelDeleteRole" 
+                        type="button" 
+                        class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        wire:click="confirmDeleteRole" 
+                        type="button" 
+                        class="px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
+                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                        wire:loading.attr="disabled"
+                    >
+                        <span wire:loading.remove wire:target="confirmDeleteRole">Yes, Permanently Delete</span>
+                        <span wire:loading wire:target="confirmDeleteRole" class="flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            Deleting...
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
     @endif

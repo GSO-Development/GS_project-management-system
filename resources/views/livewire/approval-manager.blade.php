@@ -6,37 +6,39 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP EXECUTIVE HERO BANNER
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-rose-900/60 shadow-2xl p-5 sm:p-7 lg:p-8 text-white mb-6" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
-        <!-- Top Ambient Glowing Gold/Crimson Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
-
-        <!-- Right Background Cityscape Dark Illustration -->
-        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-30 overflow-hidden hidden md:flex items-center justify-end">
-            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%); mask-image: linear-gradient(to right, transparent 0%, black 45%);">
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="Approval Workflows Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
         </div>
 
-        <!-- Gold Elegant Wave Swoosh Vector Overlay -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35 hidden md:block">
-            <svg viewBox="0 0 1200 400" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 460 0 C 560 160 620 260 780 400" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" />
-                <path d="M 480 0 C 580 160 640 260 800 400" stroke="#c3122e" stroke-width="1.5" opacity="0.5" />
-            </svg>
-        </div>
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5">
             <!-- Left Side: Shield Icon + Title + Meta -->
             <div class="flex items-center gap-4 sm:gap-5 min-w-0">
-                <div class="w-12 h-12 sm:w-15 sm:h-15 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
                     <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-md">
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
                             Approval Workflows
                         </h1>
-                        <span class="px-3 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
+                        <span class="px-3 py-0.5 rounded-full text-[11px] font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
                             <span>✓</span>
                             <span>Governance Sign-Off Desk</span>
                         </span>
@@ -153,17 +155,17 @@
          ═══════════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden mb-6">
         <div class="overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse min-w-[1000px]">
+            <table class="w-full text-left border-collapse min-w-[1050px]">
                 <thead>
                     <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                        <th class="py-4 px-5">Project &amp; Subsidiary</th>
-                        <th class="py-4 px-4">Request Type &amp; Details</th>
-                        <th class="py-4 px-4">Requested By</th>
-                        <th class="py-4 px-4">Reason / Justification</th>
-                        <th class="py-4 px-4">Reviewed / Signed By</th>
-                        <th class="py-4 px-4">Submitted</th>
-                        <th class="py-4 px-4">Status</th>
-                        <th class="py-4 px-5 text-right">Action</th>
+                        <th class="py-4 px-5 min-w-[220px]">Project &amp; Subsidiary</th>
+                        <th class="py-4 px-4 min-w-[190px]">Request Type &amp; Details</th>
+                        <th class="py-4 px-4 min-w-[140px]">Requested By</th>
+                        <th class="py-4 px-4 min-w-[180px]">Reason / Justification</th>
+                        <th class="py-4 px-4 min-w-[150px]">Reviewed / Signed By</th>
+                        <th class="py-4 px-4 min-w-[120px]">Submitted</th>
+                        <th class="py-4 px-4 min-w-[110px]">Status</th>
+                        <th class="py-4 px-5 text-right whitespace-nowrap min-w-[150px]">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
@@ -306,32 +308,37 @@
                             </td>
 
                             {{-- 8. Actions --}}
-                            <td class="py-4 px-5 text-right">
-                                <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                            <td class="py-4 px-5 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-2">
                                     @if($req->status->value === 'pending')
                                         @if($isNewProjectPlan && ($req->project?->project_manager_id === auth()->id() || auth()->user()->isSuperAdmin()))
                                             <button wire:click="review({{ $req->id }})"
-                                                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-                                                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                                                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                                                    title="Review &amp; Accept Project Assignment">
                                                 <span>⭐ Review &amp; Accept</span>
                                             </button>
                                         @elseif(auth()->user()->isSuperAdmin() || $req->project?->project_manager_id === auth()->id())
                                             <button wire:click="review({{ $req->id }})"
-                                                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-                                                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                                                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                                                    title="Review &amp; Sign Request">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 <span>Review &amp; Sign</span>
                                             </button>
                                         @else
                                             <button wire:click="review({{ $req->id }})"
-                                                    class="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-black text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs">
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-[#c3122e] border border-slate-200 hover:border-rose-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                                    title="View Request Details">
+                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 <span>Details</span>
                                             </button>
                                         @endif
                                     @else
                                         <button wire:click="review({{ $req->id }})"
-                                                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs">
-                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-[#c3122e] border border-slate-200 hover:border-rose-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                                title="View Approval Details &amp; Audit Trail">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             <span>Details</span>
                                         </button>
                                     @endif
@@ -339,15 +346,16 @@
                                     @if($req->status->value === 'pending' && $req->requested_by === auth()->id() && !$isNewProjectPlan)
                                         <button wire:click="cancelRequest({{ $req->id }})"
                                                 wire:confirm="Are you sure you want to withdraw this request?"
-                                                class="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-all cursor-pointer">
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-amber-700 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-200 transition-all cursor-pointer shadow-2xs"
+                                                title="Withdraw Request">
                                             <span>Withdraw</span>
                                         </button>
                                     @endif
 
                                     @if(auth()->user()->isSuperAdmin() || $req->requested_by === auth()->id())
                                         <button wire:click="openDeleteModal({{ $req->id }})"
-                                                class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
-                                                title="Delete Record">
+                                                class="inline-flex items-center justify-center w-8 h-8 rounded-xl text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex-shrink-0"
+                                                title="Delete Request #{{ $req->id }}">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     @endif
@@ -501,16 +509,16 @@
                         </div>
                         <div class="min-w-0">
                             <h3 class="text-base sm:text-lg font-black text-slate-900 truncate">
-                                @if($selectedRequest->request_type->value === 'new_project_plan')
-                                    Project Manager Assignment Sign-Off
+                                @if($selectedRequest->status->value === 'pending')
+                                    {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Project Manager Assignment Sign-Off' : 'Review Approval Request' }}
                                 @else
-                                    {{ $selectedRequest->status->value === 'pending' ? 'Review Approval Request' : 'Governance Sign-Off Audit Trail' }}
+                                    Approval Details &amp; Sign-Off Audit Trail
                                 @endif
                             </h3>
                             <span class="text-[10px] text-slate-400 font-medium">Request Reference #{{ $selectedRequest->id }} · {{ $proj->code ?? 'GST' }}</span>
                         </div>
                     </div>
-                    <button wire:click="$set('showReviewModal', false)" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer flex-shrink-0">&times;</button>
+                    <button wire:click="closeReviewModal" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors text-lg font-bold cursor-pointer flex-shrink-0" title="Close Modal">&times;</button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
@@ -702,7 +710,7 @@
                                 ✕ {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Decline Assignment' : 'Reject Request' }}
                             </button>
                             <div class="flex items-center gap-2">
-                                <button type="button" wire:click="$set('showReviewModal', false)" class="btn btn-secondary text-xs px-3.5 py-2.5 rounded-xl">Cancel</button>
+                                <button type="button" wire:click="closeReviewModal" class="btn btn-secondary text-xs px-3.5 py-2.5 rounded-xl cursor-pointer">Cancel</button>
                                 <button type="button" wire:click="approveRequest" class="btn text-white text-xs px-5 py-2.5 rounded-xl font-black shadow-md cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                                     ✓ {{ $selectedRequest->request_type->value === 'new_project_plan' ? 'Accept Assignment & Launch →' : 'Approve Request' }}
                                 </button>
@@ -710,7 +718,7 @@
                         </div>
                     @else
                         <div class="flex items-center justify-end">
-                            <button type="button" wire:click="$set('showReviewModal', false)" class="btn btn-secondary text-xs px-5 py-2 rounded-xl font-bold">Close</button>
+                            <button type="button" wire:click="closeReviewModal" class="btn btn-secondary text-xs px-5 py-2 rounded-xl font-bold cursor-pointer">Close</button>
                         </div>
                     @endif
                 </div>
@@ -767,30 +775,60 @@
          MODAL 4: DELETE APPROVAL REQUEST CONFIRMATION
     ══════════════════════════════════════════════════════ --}}
     @if($showDeleteConfirmModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/65 backdrop-blur-sm animate-in fade-in duration-150">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150 my-auto">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-sm border border-rose-200">
+                        <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-base border border-rose-200 shadow-2xs">
                             🗑️
                         </div>
                         <div>
                             <h3 class="text-sm font-black text-slate-900">Delete Approval Record</h3>
-                            <span class="text-[10px] text-slate-400 font-medium">Permanent Removal</span>
+                            <span class="text-[10px] text-slate-400 font-medium">Permanent Record Removal</span>
                         </div>
                     </div>
-                    <button wire:click="closeDeleteModal" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">&times;</button>
+                    <button wire:click="closeDeleteModal" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors text-lg font-bold cursor-pointer" title="Close Modal">&times;</button>
                 </div>
 
+                @if($deletingRequest)
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-bold">Request Ref:</span>
+                            <span class="font-mono font-black text-slate-800">#{{ $deletingRequest->id }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-bold">Project:</span>
+                            <span class="font-black text-slate-900 truncate max-w-[200px]">{{ $deletingRequest->project->name ?? ($deletingRequest->requested_value['project_name'] ?? 'Project') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-bold">Type:</span>
+                            <span class="font-bold text-[#c3122e]">{{ $deletingRequest->request_type->label() }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-bold">Status:</span>
+                            <span class="font-bold uppercase tracking-wider text-[10px] {{ $deletingRequest->status->value === 'approved' ? 'text-emerald-700' : ($deletingRequest->status->value === 'rejected' ? 'text-rose-700' : 'text-amber-700') }}">
+                                {{ $deletingRequest->status->label() }}
+                            </span>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-xs text-rose-900 font-medium space-y-1">
-                    <p class="font-bold">⚠️ Are you sure you want to permanently delete this approval request?</p>
-                    <p class="text-[11px] text-rose-800">This action will remove the record from the governance log and cannot be undone.</p>
+                    <p class="font-bold flex items-center gap-1.5">
+                        <span>⚠️</span>
+                        <span>Are you sure you want to permanently delete this approval request?</span>
+                    </p>
+                    <p class="text-[11px] text-rose-800 leading-relaxed">This action will remove the record from the governance audit trail and cannot be undone.</p>
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-                    <button type="button" wire:click="closeDeleteModal" class="btn btn-secondary text-xs px-3.5 py-2 cursor-pointer">Cancel</button>
-                    <button type="button" wire:click="confirmDelete" class="btn bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2 font-bold shadow-sm cursor-pointer">
-                        Confirm Delete
+                    <button type="button" wire:click="closeDeleteModal" class="btn btn-secondary text-xs px-4 py-2 cursor-pointer">Cancel</button>
+                    <button type="button" wire:click="confirmDelete" class="btn bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2 font-bold shadow-sm cursor-pointer flex items-center gap-1.5">
+                        <span wire:loading.remove wire:target="confirmDelete">Confirm Delete</span>
+                        <span wire:loading wire:target="confirmDelete" class="flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            Deleting...
+                        </span>
                     </button>
                 </div>
             </div>

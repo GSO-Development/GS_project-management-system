@@ -62,68 +62,71 @@
     @endif
 
     {{-- ═══════════════════ 1. HERO BANNER ═══════════════════ --}}
-    <div class="relative rounded-3xl overflow-hidden shadow-xl" style="background: linear-gradient(135deg, #160a0f 0%, #200d14 45%, #13060b 100%); border: 1px solid rgba(195,18,46,0.25);">
-        
-        {{-- Crimson Wave Vector Lines Background Graphic --}}
-        <div class="absolute right-0 top-0 bottom-0 w-full md:w-2/3 pointer-events-none opacity-30 overflow-hidden flex items-center justify-end">
-            <svg viewBox="0 0 800 400" class="w-full h-full object-cover" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M100 350C250 200 400 380 600 220C750 80 850 150 900 100" stroke="#c3122e" stroke-width="1.5" opacity="0.6"/>
-                <path d="M150 370C300 220 450 400 650 240C800 100 900 170 950 120" stroke="#ff4d6d" stroke-width="1.2" opacity="0.4"/>
-                <path d="M50 330C200 180 350 360 550 200C700 60 800 130 850 80" stroke="#c3122e" stroke-width="1.8" opacity="0.5"/>
-                <path d="M200 390C350 240 500 420 700 260C850 120 950 190 1000 140" stroke="#e01e37" stroke-width="1" opacity="0.3"/>
-                <path d="M0 310C150 160 300 340 500 180C650 40 750 110 800 60" stroke="#ff758f" stroke-width="0.8" opacity="0.4"/>
-            </svg>
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="Collaborator Workspace Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
         </div>
 
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+
         {{-- Main Banner Flex Grid --}}
-        <div class="relative p-6 sm:p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 z-10">
+        <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5 z-10">
             
             {{-- LEFT COLUMN: Identity, Greeting & CTAs --}}
-            <div class="space-y-4 max-w-xl">
+            <div class="space-y-1.5 sm:space-y-2 max-w-xl">
                 {{-- Top Badge Pill --}}
-                <div class="flex items-center gap-3 flex-wrap">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-rose-300" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-rose-300" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
                         <svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
                         <span>COLLABORATOR WORKSPACE</span>
                     </span>
-                    <span class="text-xs font-semibold text-slate-400">
+                    <span class="text-xs font-semibold text-slate-300">
                         {{ auth()->user()->subsidiary->name ?? 'George Steuart Optimize' }}
                     </span>
                 </div>
 
                 {{-- Greeting & Welcome --}}
                 <div>
-                    <p class="text-xs font-bold text-[#f87171] uppercase tracking-wider mb-1">
-                        Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 17 ? 'afternoon' : 'evening') }},
-                    </p>
-                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                        Welcome back, <span class="text-[#f87171]">{{ auth()->user()->name }}</span>
+                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                        Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 17 ? 'afternoon' : 'evening') }}, <span class="text-rose-300">{{ auth()->user()->name }}</span>
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-300 font-medium mt-2 leading-relaxed">
+                    <p class="text-xs sm:text-sm text-slate-300 font-medium mt-0.5 leading-normal line-clamp-1">
                         Track WBS tasks, submit approvals &amp; collaborate with your Project Manager.
                     </p>
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="flex items-center gap-3 flex-wrap pt-2">
-                    <a href="{{ route('approvals.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #a00e24 100%);">
-                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <div class="flex items-center gap-2 flex-wrap pt-0.5">
+                    <a href="{{ route('approvals.index') }}" class="px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #a00e24 100%);">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span>Submit Approval</span>
                     </a>
                     
-                    <a href="{{ route('calendar.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-2 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <a href="{{ route('calendar.index') }}" class="px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-1.5 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                         <span>Calendar</span>
                     </a>
 
-                    <a href="{{ route('my-tasks.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-2 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <a href="{{ route('my-tasks.index') }}" class="px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-1.5 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                         <span>My Tasks</span>
@@ -132,60 +135,56 @@
             </div>
 
             {{-- RIGHT COLUMN: 2x2 Metric Stat Cards Grid --}}
-            <div class="grid grid-cols-2 gap-2 sm:gap-4 w-full lg:w-auto min-w-0 sm:min-w-[340px]">
+            <div class="grid grid-cols-2 gap-2 sm:gap-2.5 w-full lg:w-auto min-w-0 sm:min-w-[320px]">
                 {{-- Metric 1: Projects --}}
-                <div class="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(195,18,46,0.2); border: 1px solid rgba(195,18,46,0.35); color: #f87171;">
-                        <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(195,18,46,0.2); border: 1px solid rgba(195,18,46,0.35); color: #f87171;">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                         </svg>
                     </div>
                     <div>
-                        <div class="text-base sm:text-2xl font-black text-white tracking-tight leading-none font-mono">{{ $attachedProjects->count() }}</div>
-                        <div class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 sm:mt-1 truncate">PROJECTS</div>
-                        <div class="hidden sm:block text-[9px] text-slate-400 font-medium">Active</div>
+                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $attachedProjects->count() }}</div>
+                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">PROJECTS</div>
                     </div>
                 </div>
 
                 {{-- Metric 2: Tasks --}}
-                <div class="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24;">
-                        <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24;">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
                     <div>
-                        <div class="text-base sm:text-2xl font-black text-white tracking-tight leading-none font-mono">{{ $totalCount }}</div>
-                        <div class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 sm:mt-1 truncate">TASKS</div>
-                        <div class="hidden sm:block text-[9px] text-slate-400 font-medium">{{ $dueToday->count() }} Due today</div>
+                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $totalCount }}</div>
+                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">TASKS</div>
                     </div>
                 </div>
 
                 {{-- Metric 3: In Progress --}}
-                <div class="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.35); color: #60a5fa;">
-                        <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.35); color: #60a5fa;">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                     </div>
                     <div>
-                        <div class="text-base sm:text-2xl font-black text-white tracking-tight leading-none font-mono">{{ $inProgress->count() }}</div>
-                        <div class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 sm:mt-1 truncate">IN PROGRESS</div>
-                        <div class="hidden sm:block text-[9px] text-slate-400 font-medium">Executing</div>
+                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $inProgress->count() }}</div>
+                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">IN PROGRESS</div>
                     </div>
                 </div>
 
                 {{-- Metric 4: Completion --}}
-                <div class="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.35); color: #34d399;">
-                        <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.35); color: #34d399;">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <div class="text-base sm:text-2xl font-black text-white tracking-tight leading-none font-mono">{{ $completionPct }}%</div>
-                        <div class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 sm:mt-1 truncate">COMPLETION</div>
-                        <div class="hidden sm:block text-[9px] text-slate-400 font-medium">Overall</div>
+                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $completionPct }}%</div>
+                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">COMPLETION</div>
                     </div>
                 </div>
             </div>

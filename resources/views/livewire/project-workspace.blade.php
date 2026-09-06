@@ -173,7 +173,7 @@
     @endphp
 
     <!-- ===== 1. TOP EXECUTIVE PROJECT BANNER (LUXURY CRIMSON & GOLD SUNSET) ===== -->
-    <div class="relative overflow-hidden rounded-2xl border border-amber-500/30 shadow-md mb-4 p-4 sm:p-5 text-white" style="background: #2b040a;">
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
         <!-- Full Banner Background Image (User's Luxury Crimson & Gold Skyline Artwork) -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
             <img 
@@ -190,14 +190,14 @@
         </div>
 
         <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
             <!-- Left Side: App Icon + Breadcrumbs + Title + Sleek Essential Meta Pills -->
             <div class="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
                 <!-- 3D Luxury App Icon Container -->
-                <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-white/25 ring-2 ring-rose-500/25 flex items-center justify-center p-2 sm:p-2.5" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-lg flex-shrink-0 border border-white/25 ring-2 ring-rose-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                 </div>

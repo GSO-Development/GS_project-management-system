@@ -16,6 +16,33 @@ class RbacService
     protected static array $rolePermissionsCache = [];
 
     /**
+     * Core system roles that are permanently protected and cannot be deleted.
+     * project manager (lead/project_manager), PMO admin/superadmin (pmo_admin, super_admin),
+     * Project owner (owner), Project Sponsor (sponsor), Core Project Team (member/team_member).
+     */
+    public const PROTECTED_ROLES = [
+        'super_admin',
+        'pmo_admin',
+        'lead',
+        'project_manager',
+        'sponsor',
+        'owner',
+        'member',
+        'team_member',
+    ];
+
+    /**
+     * Check if a role code is one of the core protected roles.
+     */
+    public static function isProtectedRole(?string $code): bool
+    {
+        if (!$code) {
+            return false;
+        }
+        return in_array(strtolower($code), self::PROTECTED_ROLES, true);
+    }
+
+    /**
      * Standard built-in role definitions with metadata.
      */
     public const ROLES = [
@@ -26,6 +53,7 @@ class RbacService
             'badge' => 'bg-red-50 text-red-800 border-red-200 font-black',
             'description' => 'Unrestricted global system administration, enterprise security, and audit governance.',
             'is_system' => true,
+            'is_protected' => true,
         ],
         'pmo_admin' => [
             'name' => 'PMO Administrator',
@@ -34,6 +62,7 @@ class RbacService
             'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200 font-extrabold',
             'description' => 'Enterprise PMO authority overseeing subsidiary portfolios, workflows, and cross-project governance.',
             'is_system' => true,
+            'is_protected' => true,
         ],
         'lead' => [
             'name' => 'Project Manager',
@@ -42,6 +71,7 @@ class RbacService
             'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200',
             'description' => 'Operational leader managing day-to-day WBS scheduling, task execution, and team assignments.',
             'is_system' => true,
+            'is_protected' => true,
         ],
         'sponsor' => [
             'name' => 'Project Sponsor',
@@ -50,6 +80,7 @@ class RbacService
             'badge' => 'bg-amber-50 text-amber-800 border-amber-200',
             'description' => 'Executive sponsor with oversight, budget governance, and final sign-off authority.',
             'is_system' => true,
+            'is_protected' => true,
         ],
         'owner' => [
             'name' => 'Project Owner',
@@ -58,6 +89,7 @@ class RbacService
             'badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
             'description' => 'Business owner responsible for project outcomes, scope verification, and milestone sign-offs.',
             'is_system' => true,
+            'is_protected' => true,
         ],
         'steering_committee' => [
             'name' => 'Steering Committee',
@@ -66,6 +98,7 @@ class RbacService
             'badge' => 'bg-violet-50 text-violet-800 border-violet-200',
             'description' => 'Governance board member reviewing strategic alignment, risks, and high-level milestones.',
             'is_system' => true,
+            'is_protected' => false,
         ],
         'member' => [
             'name' => 'Core Project Team',
@@ -74,6 +107,7 @@ class RbacService
             'badge' => 'bg-blue-50 text-blue-700 border-blue-200',
             'description' => 'Active team collaborator executing assigned WBS deliverables and providing status updates.',
             'is_system' => true,
+            'is_protected' => true,
         ],
         'collaborator' => [
             'name' => 'Collaborator / Specialist',
@@ -82,6 +116,7 @@ class RbacService
             'badge' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
             'description' => 'Specialist contributor assisting on specific deliverables and technical tasks.',
             'is_system' => true,
+            'is_protected' => false,
         ],
     ];
 
@@ -107,6 +142,7 @@ class RbacService
                 $roles[$code] = self::ROLES[$code];
                 $roles[$code]['id'] = $role->id;
                 $roles[$code]['users_count'] = $role->users()->count();
+                $roles[$code]['is_protected'] = self::isProtectedRole($code);
             } else {
                 $roles[$code] = [
                     'id' => $role->id,
@@ -116,14 +152,15 @@ class RbacService
                     'badge' => 'bg-slate-100 text-slate-800 border-slate-200',
                     'description' => 'Custom user-defined governance role in GS NexusPM.',
                     'is_system' => false,
+                    'is_protected' => false,
                     'users_count' => $role->users()->count(),
                 ];
             }
         }
 
-        // Ensure all built-in roles appear even if not yet in DB table
+        // Ensure ONLY core protected built-in roles appear even if not yet in DB table
         foreach (self::ROLES as $code => $def) {
-            if (!isset($roles[$code])) {
+            if (!empty($def['is_protected']) && !isset($roles[$code])) {
                 $roles[$code] = $def;
                 $roles[$code]['id'] = null;
                 $roles[$code]['users_count'] = 0;

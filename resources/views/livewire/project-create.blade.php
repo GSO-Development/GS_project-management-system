@@ -782,6 +782,113 @@
                 </div>
             </div>
 
+            {{-- ─── CUSTOM ROLES (Dynamic - from Roles & Permissions Hub) ─── --}}
+            @foreach($customRoles as $crCode => $crMeta)
+            @php
+                $crAssigned = $customRoleAssignments[$crCode] ?? [];
+                $crUsers = $customRoleUsers[$crCode] ?? $allParticipants;
+                $crSearch = $customRoleSearch[$crCode] ?? '';
+            @endphp
+            <div class="relative" x-data="{ expanded: true }">
+                <div class="absolute left-6 top-full w-px h-3 bg-gradient-to-b from-slate-400/60 to-transparent z-10 hidden sm:block"></div>
+                <div class="rounded-3xl overflow-hidden shadow-sm border" style="border-color: rgba(100,116,139,0.35); background: linear-gradient(135deg, #f8fafc 0%, #ffffff 60%);">
+                    <button type="button" @click="expanded = !expanded" class="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-slate-50/50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); border: 2px solid rgba(100,116,139,0.3);">
+                                <span class="text-xl">{{ $crMeta['icon'] ?? '🏷️' }}</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-black text-slate-900">{{ $crMeta['name'] }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">Custom Role</span>
+                                    @if(count($crAssigned) > 0)
+                                        <span class="w-5 h-5 rounded-full bg-slate-600 text-white text-[10px] font-black flex items-center justify-center shadow-sm">{{ count($crAssigned) }}</span>
+                                    @endif
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $crMeta['description'] ?? 'Custom project role' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-[10px] font-black text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">Optional</span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    @if(count($crAssigned) > 0)
+                        <div class="px-5 pb-2 flex items-center gap-2 flex-wrap">
+                            @foreach($allParticipants->whereIn('id', $crAssigned) as $sel)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-800 border border-slate-300">
+                                    <span class="w-4 h-4 rounded-full bg-slate-600 text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">{{ strtoupper(substr($sel->name, 0, 1)) }}</span>
+                                    {{ $sel->name }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div x-show="expanded" x-collapse class="border-t border-slate-100">
+                        <div class="p-5 space-y-3">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                                <input type="text"
+                                    wire:model.live.debounce.250ms="customRoleSearch.{{ $crCode }}"
+                                    placeholder="Search {{ $crMeta['name'] }} by name, email, or subsidiary..."
+                                    class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-900 placeholder:text-slate-400/70 focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-400/15 outline-none transition-all">
+                                @if($crSearch)<button type="button" wire:click="$set('customRoleSearch.{{ $crCode }}', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>@endif
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+                                @forelse($crUsers as $user)
+                                    @php
+                                        $uIdStr = (string)$user->id;
+                                        $isCrSelected = in_array($uIdStr, array_map('strval', $crAssigned));
+                                        $otherRole = match(true) {
+                                            in_array($uIdStr, $sponsor_ids) => 'Sponsor',
+                                            in_array($uIdStr, $owner_ids) => 'Owner',
+                                            in_array($uIdStr, $steering_committee_ids) => 'Committee',
+                                            $project_manager_id == $user->id => 'PM',
+                                            default => null
+                                        };
+                                    @endphp
+                                    <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-150 {{ $otherRole ? 'border-slate-100 bg-slate-50/80 opacity-60 cursor-not-allowed' : ($isCrSelected ? 'border-slate-500 bg-gradient-to-r from-slate-50 to-slate-50/30 shadow-xs cursor-pointer' : 'border-transparent bg-slate-50 hover:bg-slate-100/40 hover:border-slate-300 cursor-pointer') }}">
+                                        @if($otherRole)
+                                            <div class="w-4 h-4 rounded-md bg-slate-200/80 text-slate-400 flex items-center justify-center flex-shrink-0" title="Assigned as {{ $otherRole }}">
+                                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            </div>
+                                        @else
+                                            <input type="checkbox"
+                                                wire:model.live="customRoleAssignments.{{ $crCode }}"
+                                                value="{{ $user->id }}"
+                                                class="w-4 h-4 text-slate-600 rounded border-slate-300 focus:ring-slate-400 cursor-pointer flex-shrink-0">
+                                        @endif
+
+                                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] flex-shrink-0 {{ $otherRole ? 'bg-slate-200 text-slate-500' : ($isCrSelected ? 'bg-slate-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600') }}">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="text-xs font-bold text-slate-900 truncate" title="{{ $user->name }}">{{ $user->name }}</div>
+                                            <div class="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                                <span class="font-mono">{{ $user->subsidiary->code ?? 'GS' }}</span>
+                                                @if($otherRole)
+                                                    <span class="text-slate-300 mx-1">·</span>
+                                                    <span class="text-slate-500 font-semibold">🔒 {{ $otherRole }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        @if($isCrSelected && !$otherRole)
+                                            <svg class="w-4 h-4 text-slate-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        @endif
+                                    </label>
+                                @empty
+                                    <div class="col-span-3 py-5 text-center text-xs font-bold text-slate-400">No candidates found.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+
             {{-- ─── LIVE GOVERNANCE SUMMARY CARD (WITH SELECTED USERS LIST) ─── --}}
             @php
                 $selSponsors = $allParticipants->whereIn('id', $sponsor_ids);
@@ -789,7 +896,8 @@
                 $selCommittee = $allParticipants->whereIn('id', $steering_committee_ids);
                 $selLeader = $project_manager_id ? $allPms->firstWhere('id', $project_manager_id) : null;
                 $selMembers = $allParticipants->whereIn('id', $selected_participant_ids)->where('id', '!=', $project_manager_id);
-                $totalAssigned = $selSponsors->count() + $selOwners->count() + $selCommittee->count() + ($selLeader ? 1 : 0) + $selMembers->count();
+                $customRoleTotal = array_sum(array_map('count', $customRoleAssignments));
+                $totalAssigned = $selSponsors->count() + $selOwners->count() + $selCommittee->count() + ($selLeader ? 1 : 0) + $selMembers->count() + $customRoleTotal;
             @endphp
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" x-data="{ showDetailList: true }">
                 {{-- Header Bar --}}
@@ -838,6 +946,14 @@
                                 🤝 {{ $selMembers->count() }} Member{{ $selMembers->count() !== 1 ? 's' : '' }}
                             </span>
                         @endif
+                        @foreach($customRoles as $crCode => $crMeta)
+                            @php $crCount = count($customRoleAssignments[$crCode] ?? []); @endphp
+                            @if($crCount > 0)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-200">
+                                    {{ $crMeta['icon'] ?? '🏷️' }} {{ $crCount }} {{ $crMeta['name'] }}
+                                </span>
+                            @endif
+                        @endforeach
                     </div>
                 </div>
 
@@ -942,6 +1058,35 @@
                                 </div>
                             </div>
                         @endif
+
+                        {{-- 4. Custom Role Assignments --}}
+                        @foreach($customRoles as $crCode => $crMeta)
+                            @php
+                                $crAssignedIds = $customRoleAssignments[$crCode] ?? [];
+                                $crSelUsers = $allParticipants->whereIn('id', $crAssignedIds);
+                            @endphp
+                            @if($crSelUsers->count() > 0)
+                                <div class="space-y-2">
+                                    <span class="text-[10.5px] font-black text-slate-500 uppercase tracking-wider block">{{ $crMeta['name'] }} ({{ $crSelUsers->count() }})</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                        @foreach($crSelUsers as $u)
+                                            <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-slate-200/90 hover:border-slate-400 shadow-2xs transition-all">
+                                                <div class="flex items-center gap-3 min-w-0">
+                                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 text-white font-black text-[10.5px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                        {{ strtoupper(substr($u->name, 0, 1)) }}
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="text-xs font-bold text-slate-900 truncate" title="{{ $u->name }}">{{ $u->name }}</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono truncate mt-0.5">{{ $u->subsidiary->code ?? 'GS' }} · {{ $u->email }}</div>
+                                                    </div>
+                                                </div>
+                                                <span class="text-[8.5px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 flex-shrink-0">{{ $crMeta['icon'] ?? '🏷️' }} {{ $crMeta['name'] }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
                     @else
                         <div class="py-6 text-center text-xs font-bold text-slate-400">
                             No team members or leaders selected yet. Choose participants from the sections above.

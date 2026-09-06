@@ -185,6 +185,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Whether this user is a project manager (has role or manages at least one project).
+     */
+    public function isProjectManager(): bool
+    {
+        return $this->hasRole('project_manager')
+            || $this->hasRole('lead')
+            || $this->isProjectLeader()
+            || Project::where('project_manager_id', $this->id)->exists();
+    }
+
+    /**
      * Get the user's role in a specific project.
      * Returns: 'lead', 'sponsor', 'owner', 'steering_committee', 'member', or null.
      */

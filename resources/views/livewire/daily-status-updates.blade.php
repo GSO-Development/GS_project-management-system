@@ -25,39 +25,49 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP EXECUTIVE HERO BANNER
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-rose-950/80 shadow-2xl p-6 sm:p-8 lg:p-9 text-white" style="background: linear-gradient(135deg, #18060c 0%, #300a16 45%, #1b0710 100%);">
-        <!-- Glowing Top Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#c3122e] via-amber-400 to-[#c3122e] shadow-sm shadow-rose-500/50"></div>
-
-        <!-- Background Cityscape Skyline Silhouette -->
-        <div class="absolute right-0 top-0 bottom-0 w-3/5 pointer-events-none opacity-20 overflow-hidden hidden md:flex items-center justify-end">
-            <img src="{{ asset('images/project-banner-dark.jpg') }}" alt="Skyline" class="h-full w-full object-cover object-right" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%); mask-image: linear-gradient(to right, transparent 0%, black 40%);">
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="Daily Project Updates Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
         </div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
             <!-- Left Side: Icon + Title + Meta -->
             <div class="flex items-center gap-4 sm:gap-5 min-w-0">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/20 ring-4 ring-rose-500/20 flex items-center justify-center p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
+                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/20 ring-4 ring-rose-500/20 flex items-center justify-center p-2.5" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
                     <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                             Daily Project Updates
                         </h1>
-                        <span class="px-3 py-1 rounded-full text-xs font-black text-rose-200 border border-rose-400/30 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="px-3 py-0.5 rounded-full text-[11px] font-black text-rose-200 border border-rose-400/30 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span>{{ $updatedTodayCount }} Logged Today</span>
                         </span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs font-medium text-slate-300 mt-2 flex-wrap">
+                    <div class="flex items-center gap-2.5 text-xs font-medium text-slate-300 mt-1 flex-wrap">
                         <span class="text-rose-200 font-bold flex items-center gap-1.5" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             <span>{{ now()->format('l, M d, Y') }}</span>
                         </span>
-                        <span class="text-slate-600 hidden sm:inline">•</span>
+                        <span class="text-slate-500 hidden sm:inline">•</span>
                         <span class="text-slate-300">Track, review, and collaborate on project execution logs across your enterprise</span>
                     </div>
                 </div>
@@ -498,7 +508,7 @@
                     @endif
 
                     <!-- Feedback Comments Section -->
-                    <div x-data="{ showComments: false }" class="pt-3 border-t border-slate-100 space-y-3">
+                    <div x-data="{ showComments: {{ (isset($selectedHistoryUpdateId) && $selectedHistoryUpdateId === $update->id) || request()->query('update') == $update->id ? 'true' : 'false' }} }" class="pt-3 border-t border-slate-100 space-y-3">
                         <div class="flex items-center justify-between">
                             <button 
                                 @click="showComments = !showComments" 
@@ -569,16 +579,20 @@
          ═══════════════════════════════════════════════════════════════ -->
     @if($showHistoryModal && $historyProjectId)
         @php
-            $historyGroup = collect($allGroupedProjectUpdates ?? $groupedProjectUpdates)->firstWhere(fn($g) => $g['project']->id === $historyProjectId);
+            $historyProject = \App\Models\Project::with(['projectManager', 'subsidiary'])->find($historyProjectId);
+            $historyAllUpdates = $historyProject 
+                ? \App\Models\ProjectStatusUpdate::with(['creator', 'comments.user', 'wbsItem'])
+                    ->where('project_id', $historyProjectId)
+                    ->latest()
+                    ->get()
+                : collect();
+            $historyLatestUpdate = $selectedHistoryUpdateId 
+                ? ($historyAllUpdates->firstWhere('id', $selectedHistoryUpdateId) ?? $historyAllUpdates->first())
+                : $historyAllUpdates->first();
+            $historyUpdatesCount = $historyAllUpdates->count();
         @endphp
 
-        @if($historyGroup)
-            @php
-                $historyProject = $historyGroup['project'];
-                $historyLatestUpdate = $historyGroup['latestUpdate'];
-                $historyAllUpdates = $historyGroup['allUpdates'];
-                $historyUpdatesCount = $historyAllUpdates->count();
-            @endphp
+        @if($historyProject)
 
             <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10 animate-fade-in">
                 <!-- Overlay Backdrop with soft blur -->
@@ -779,12 +793,12 @@
                                             }
                                         }
                                     @endphp
-                                    <div class="relative group">
+                                    <div class="relative group cursor-pointer" wire:click="selectHistoryUpdate({{ $pUpdate->id }})" title="Click to view details and feedback comments for this log">
                                         <!-- Timeline Dot Node -->
-                                        <span class="absolute -left-[24px] top-2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-2xs flex-shrink-0 transition-transform group-hover:scale-125" style="background: {{ $pIndex === 0 ? '#c3122e' : '#cbd5e1' }};"></span>
+                                        <span class="absolute -left-[24px] top-2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-2xs flex-shrink-0 transition-transform group-hover:scale-125" style="background: {{ ($historyLatestUpdate && $historyLatestUpdate->id === $pUpdate->id) ? '#c3122e' : ($pIndex === 0 ? '#c3122e' : '#cbd5e1') }};"></span>
 
                                         <!-- Log Card Content -->
-                                        <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all duration-200 space-y-3">
+                                        <div class="p-5 rounded-2xl bg-white border {{ ($historyLatestUpdate && $historyLatestUpdate->id === $pUpdate->id) ? 'border-[#c3122e] ring-2 ring-[#c3122e]/10 shadow-md' : 'border-slate-200/90 shadow-2xs hover:border-slate-300' }} transition-all duration-200 space-y-3">
                                             <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-wrap gap-2">
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-2 py-0.5 rounded-md text-[9px] font-mono font-black bg-[#c3122e] text-white shadow-2xs">

@@ -83,76 +83,92 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- 1. EXECUTIVE HERO BANNER & KPI CARDS                       --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="tm-hero-card">
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #c3122e 0%, #d97706 50%, #059669 100%);"></div>
+    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
+        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+            <img 
+                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
+                alt="Team & PM Executive Work Monitor Banner" 
+                class="w-full h-full object-cover object-right opacity-90"
+            >
+            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
+            <!-- Right Dark Vignette over Sunset -->
+            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
+            <!-- Depth Vignettes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+        </div>
 
-        <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px;">
+        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
             
             {{-- Header Text & Badges --}}
-            <div style="flex: 1; min-width: 280px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 9999px; font-size: 12px; font-weight: 800; color: #c3122e;">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #c3122e;"></span>
+            <div class="flex-1 min-w-[280px]">
+                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-slate-950/70 border border-white/15 backdrop-blur-md text-amber-300 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span>{{ now()->format('l, F j, Y') }}</span>
                     </div>
 
-                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; background: #fef3c7; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; color: #92400e;">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400/10 text-amber-300 border border-amber-400/30 backdrop-blur-md">
                         ⚡ PMO Admin Command Center
                     </span>
                 </div>
 
-                <h1 style="font-size: 28px; font-weight: 900; color: #1c1917; margin: 0 0 6px 0; line-height: 1.2; letter-spacing: -0.02em;">
+                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                     Team &amp; PM Executive Work Monitor
                 </h1>
-                <p style="font-size: 13px; color: #78716c; margin: 0; max-width: 620px; line-height: 1.5;">
+                <p class="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-xl line-clamp-1">
                     Centralized daily task execution monitoring for Project Managers and Team Members. Real-time oversight of reported blockers, delay reasons, and task completion metrics.
                 </p>
             </div>
 
-            {{-- 4 Executive Stat Tile Cards --}}
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; width: 100%; max-width: 580px;">
+            {{-- 4 Executive Stat Tile Cards in Frosted Glass --}}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 w-full lg:max-w-xl">
                 
                 {{-- Reported Issues --}}
-                <div class="tm-kpi-card" style="border-color: #fecdd3; background: #fff1f2;">
-                    <div style="width: 38px; height: 38px; border-radius: 12px; background: #ffffff; color: #c3122e; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #fecdd3; flex-shrink: 0;">
-                        <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div class="p-2 sm:p-2.5 rounded-xl border border-rose-400/30 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
                     <div>
-                        <span style="font-size: 22px; font-weight: 900; color: #c3122e; display: block; line-height: 1;">{{ $totalIssuesCount }}</span>
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9f1239; margin-top: 3px; display: block; letter-spacing: 0.04em;">Issues Logged</span>
+                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $totalIssuesCount }}</span>
+                        <span class="text-[9px] font-extrabold uppercase text-rose-300 mt-0.5 block tracking-wider">Issues Logged</span>
                     </div>
                 </div>
 
                 {{-- Blocked Tasks --}}
-                <div class="tm-kpi-card" style="border-color: #fde68a; background: #fffbeb;">
-                    <div style="width: 38px; height: 38px; border-radius: 12px; background: #ffffff; color: #d97706; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #fde68a; flex-shrink: 0;">
-                        <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                <div class="p-2 sm:p-2.5 rounded-xl border border-amber-400/30 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center border border-amber-500/30 flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                     </div>
                     <div>
-                        <span style="font-size: 22px; font-weight: 900; color: #d97706; display: block; line-height: 1;">{{ $totalBlockedCount }}</span>
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #92400e; margin-top: 3px; display: block; letter-spacing: 0.04em;">Blocked Tasks</span>
+                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $totalBlockedCount }}</span>
+                        <span class="text-[9px] font-extrabold uppercase text-amber-300 mt-0.5 block tracking-wider">Blocked Tasks</span>
                     </div>
                 </div>
 
                 {{-- Overdue Tasks --}}
-                <div class="tm-kpi-card" style="border-color: #e7e5e4; background: #faf8f5;">
-                    <div style="width: 38px; height: 38px; border-radius: 12px; background: #ffffff; color: #1c1917; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #e7e5e4; flex-shrink: 0;">
-                        <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="p-2 sm:p-2.5 rounded-xl border border-white/20 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 text-slate-200 flex items-center justify-center border border-white/20 flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <div>
-                        <span style="font-size: 22px; font-weight: 900; color: #1c1917; display: block; line-height: 1;">{{ $totalOverdueCount }}</span>
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #78716c; margin-top: 3px; display: block; letter-spacing: 0.04em;">Overdue Tasks</span>
+                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $totalOverdueCount }}</span>
+                        <span class="text-[9px] font-extrabold uppercase text-slate-300 mt-0.5 block tracking-wider">Overdue Tasks</span>
                     </div>
                 </div>
 
                 {{-- Monitored Personnel --}}
-                <div class="tm-kpi-card" style="border-color: #a7f3d0; background: #ecfdf5;">
-                    <div style="width: 38px; height: 38px; border-radius: 12px; background: #ffffff; color: #059669; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #a7f3d0; flex-shrink: 0;">
-                        <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <div class="p-2 sm:p-2.5 rounded-xl border border-emerald-400/30 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <div>
-                        <span style="font-size: 22px; font-weight: 900; color: #059669; display: block; line-height: 1;">{{ $teamDailyStats->count() }}</span>
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #065f46; margin-top: 3px; display: block; letter-spacing: 0.04em;">Staff Monitored</span>
+                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $teamDailyStats->count() }}</span>
+                        <span class="text-[9px] font-extrabold uppercase text-emerald-300 mt-0.5 block tracking-wider">Staff Monitored</span>
                     </div>
                 </div>
 

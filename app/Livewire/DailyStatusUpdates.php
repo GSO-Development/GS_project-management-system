@@ -52,17 +52,25 @@ class DailyStatusUpdates extends Component
     // Modal State for viewing history
     public bool $showHistoryModal = false;
     public ?int $historyProjectId = null;
+    public ?int $selectedHistoryUpdateId = null;
 
-    public function openHistoryModal(int $projectId)
+    public function openHistoryModal(int $projectId, ?int $updateId = null)
     {
         $this->historyProjectId = $projectId;
+        $this->selectedHistoryUpdateId = $updateId;
         $this->showHistoryModal = true;
+    }
+
+    public function selectHistoryUpdate(int $updateId)
+    {
+        $this->selectedHistoryUpdateId = $updateId;
     }
 
     public function closeHistoryModal()
     {
         $this->showHistoryModal = false;
         $this->historyProjectId = null;
+        $this->selectedHistoryUpdateId = null;
     }
 
     protected $queryString = [
@@ -75,14 +83,17 @@ class DailyStatusUpdates extends Component
     {
         $projectId = request()->query('project') ? (int) request()->query('project') : null;
         $taskId = request()->query('task') ? (int) request()->query('task') : null;
-        $autoCreate = request()->query('create') || $taskId || request()->query('project');
+        $updateId = request()->query('update') ? (int) request()->query('update') : null;
+        $shouldCreate = request()->boolean('create');
 
         if ($projectId) {
             $this->selectedProjectId = $projectId;
         }
 
-        if ($autoCreate) {
+        if ($shouldCreate) {
             $this->openStatusUpdateModal($projectId, $taskId);
+        } elseif ($projectId) {
+            $this->openHistoryModal($projectId, $updateId);
         }
     }
 
@@ -232,7 +243,7 @@ class DailyStatusUpdates extends Component
                     updateTitle: $this->updateTitle,
                     reporterName: $user->name,
                     projectName: $project->name,
-                    url: route('daily-updates.index', ['project' => $project->id]),
+                    url: route('daily-updates.index', ['project' => $project->id, 'update' => $statusUpdate->id]),
                     actionType: $actionType,
                     summary: Str::limit($this->updateSummary, 120)
                 ));
@@ -287,7 +298,7 @@ class DailyStatusUpdates extends Component
                     updateTitle: $update->title,
                     reporterName: $user->name,
                     projectName: $update->project->name ?? 'Project',
-                    url: route('daily-updates.index', ['project' => $update->project_id]),
+                    url: route('daily-updates.index', ['project' => $update->project_id, 'update' => $update->id]),
                     actionType: 'comment',
                     summary: Str::limit($content, 120)
                 ));
