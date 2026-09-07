@@ -1,121 +1,35 @@
 <div class="space-y-6 pb-16">
 
-    {{-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER  (matches other page style)
-         ═══════════════════════════════════════════════════════════════ --}}
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Activity & Notifications Banner" 
-                class="w-full h-full object-cover object-right opacity-90"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Activity &amp; Notifications
+            </h1>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-
-            {{-- LEFT: Icon + Title + Meta --}}
-            <div class="flex items-center gap-4 min-w-0">
-
-                {{-- Icon badge --}}
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-xl flex-shrink-0 border border-white/25 ring-4 ring-rose-500/20 flex items-center justify-center p-2.5"
-                     style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 60%, #4a0410 100%);">
-                    <svg class="w-7 h-7 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        <div class="flex items-center gap-3 flex-shrink-0 flex-wrap sm:flex-nowrap">
+            @if($unreadCount > 0)
+                <button wire:click="markAllAsRead"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
-                </div>
+                    Mark All Read
+                </button>
+            @endif
 
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap mb-0.5">
-                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md"
-                            style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            Activity &amp; Notifications
-                        </h1>
-                        @if($unreadCount > 0)
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black inline-flex items-center gap-1.5 backdrop-blur-md"
-                                  style="background: rgba(195,18,46,0.35); color:#fecaca; border:1px solid rgba(195,18,46,0.5);">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
-                                {{ $unreadCount }} Unread
-                            </span>
-                        @else
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black inline-flex items-center gap-1.5 backdrop-blur-md"
-                                  style="background: rgba(16,185,129,0.2); color:#a7f3d0; border:1px solid rgba(16,185,129,0.35);">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                All Caught Up
-                            </span>
-                        @endif
-                    </div>
-
-                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-300 flex-wrap mt-1">
-                        <span class="text-rose-200 font-bold flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            {{ now()->format('D, M d, Y') }}
-                        </span>
-                        <span class="text-slate-500">|</span>
-                        <span class="text-slate-400 font-medium hidden sm:inline">Real-time alerts, approvals &amp; team updates</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- RIGHT: Stats + Actions --}}
-            <div class="flex items-center gap-3 flex-shrink-0 flex-wrap sm:flex-nowrap">
-
-                {{-- Mini stat chips --}}
-                <div class="flex items-center gap-2">
-                    <div class="px-3 py-1.5 rounded-xl border border-white/15 backdrop-blur-md flex items-center gap-2"
-                         style="background:rgba(0,0,0,0.4);">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Total</span>
-                        <span class="text-base font-black text-white font-mono leading-none">{{ $totalCount }}</span>
-                    </div>
-                    <div class="px-3 py-1.5 rounded-xl border border-rose-500/30 backdrop-blur-md flex items-center gap-2"
-                         style="background:rgba(195,18,46,0.2);">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400 {{ $unreadCount > 0 ? 'animate-pulse' : '' }}"></span>
-                        <span class="text-base font-black text-rose-300 font-mono leading-none">{{ $unreadCount }}</span>
-                    </div>
-                    <div class="px-3 py-1.5 rounded-xl border border-amber-500/25 backdrop-blur-md flex items-center gap-2"
-                         style="background:rgba(245,158,11,0.12);">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">Approvals</span>
-                        <span class="text-base font-black text-amber-300 font-mono leading-none">{{ $approvalsCount }}</span>
-                    </div>
-                </div>
-
-                {{-- Action Buttons --}}
-                @if($unreadCount > 0)
-                    <button wire:click="markAllAsRead"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer active:scale-95"
-                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Mark All Read
-                    </button>
-                @endif
-
-                @if($readCount > 0)
-                    <button wire:click="deleteAllRead"
-                        wire:confirm="Clear all read notifications? This cannot be undone."
-                        class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all hover:bg-white/10"
-                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1;">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        Clear Read
-                    </button>
-                @endif
-            </div>
+            @if($readCount > 0)
+                <button wire:click="deleteAllRead"
+                    wire:confirm="Clear all read notifications? This cannot be undone."
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Clear Read
+                </button>
+            @endif
         </div>
     </div>
 

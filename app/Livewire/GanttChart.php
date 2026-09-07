@@ -35,6 +35,20 @@ class GanttChart extends Component
             abort(403, 'This project is pending Project Manager acceptance.');
         }
 
+        // Intelligently select default timeframe based on project span
+        if ($project->start_date && $project->deadline) {
+            $totalDays = (int) $project->start_date->diffInDays($project->deadline);
+            if ($totalDays <= 45) {
+                $this->timeframe = 'day';
+            } elseif ($totalDays <= 120) {
+                $this->timeframe = 'week';
+            } else {
+                $this->timeframe = 'month';
+            }
+        } else {
+            $this->timeframe = 'day';
+        }
+
         // Collapse every phase row by default
         $this->collapsedIds = WbsItem::where('project_id', $project->id)
             ->where('item_type', 'phase')

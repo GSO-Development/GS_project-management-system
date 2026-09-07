@@ -51,52 +51,68 @@
     <!-- =================== SIDEBAR =================== -->
     <aside
         id="app-sidebar"
-        class="fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all duration-300 overflow-hidden"
-        style="background: #ffffff; border-color: #e8e1e1; box-shadow: 2px 0 16px rgba(195,18,46,0.06);"
+        class="fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all duration-300 overflow-hidden bg-white select-none"
+        style="border-color: #e9e4e4; box-shadow: 2px 0 16px rgba(0,0,0,0.03);"
         :class="{
-            'w-64': !sidebarCollapsed || mobileSidebarOpen,
+            'w-64': !sidebarCollapsed && !mobileSidebarOpen,
             'w-[72px]': sidebarCollapsed && !mobileSidebarOpen,
+            'w-72 sm:w-80 shadow-2xl z-50': mobileSidebarOpen,
             '-translate-x-full lg:translate-x-0': !mobileSidebarOpen,
-            'translate-x-0 w-72 sm:w-80 shadow-2xl z-50': mobileSidebarOpen
+            'translate-x-0': mobileSidebarOpen
         }"
     >
-        <!-- GS Crimson accent top bar -->
-        <div class="h-1 flex-shrink-0" style="background: linear-gradient(90deg, #c3122e, #b8860b, #c3122e);"></div>
+        <!-- GS Crimson signature accent line -->
+        <div class="h-1 flex-shrink-0" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, #c3122e 100%);"></div>
 
-        <!-- Logo & Brand -->
-        <div class="flex items-center gap-3 py-3.5 flex-shrink-0 transition-all"
-             :class="{ 'justify-center px-2': sidebarCollapsed && !mobileSidebarOpen, 'justify-between px-4': !sidebarCollapsed || mobileSidebarOpen }"
-             style="border-bottom: 1px solid #f0e8e8;">
-            <div class="flex items-center gap-3 min-w-0">
-                <!-- GS Brand Mark — Shield icon -->
-                <a href="{{ route('dashboard') }}" wire:navigate.hover class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform hover:scale-105" style="background: linear-gradient(135deg,#c3122e,#8b0d1f); box-shadow: 0 4px 16px rgba(195,18,46,0.3);" title="{{ $appName }}">
-                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <!-- Brand & Logo Header (Matches topnav height 64px) -->
+        <div class="h-16 flex items-center flex-shrink-0 transition-all border-b border-slate-200/80"
+             :class="{ 'justify-center px-2': sidebarCollapsed && !mobileSidebarOpen, 'justify-between px-4': !sidebarCollapsed || mobileSidebarOpen }">
+            <a href="{{ route('dashboard') }}" 
+               wire:navigate.hover 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="flex items-center gap-3 min-w-0 group"
+               title="{{ $appName }}">
+                <!-- GS Brand Mark Shield -->
+                <div class="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm shadow-rose-900/20"
+                     style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                </a>
-                <div x-show="!sidebarCollapsed || mobileSidebarOpen" class="min-w-0">
-                    <div class="font-extrabold text-base tracking-tight leading-none truncate" style="font-family:'Playfair Display',serif; color:#1a0a0d;" title="{{ $appName }}">{{ $appName }}</div>
-                    <div class="text-[9px] font-bold mt-0.5 tracking-widest uppercase" style="color: #c3122e;">George Steuart Group</div>
                 </div>
-            </div>
+
+                <!-- Brand Typography -->
+                <div x-show="!sidebarCollapsed || mobileSidebarOpen" class="min-w-0">
+                    <div class="font-extrabold text-sm tracking-tight leading-none text-slate-900 truncate" style="font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;">
+                        {{ $appName }}
+                    </div>
+                    <div class="text-[8.5px] font-extrabold mt-1 tracking-widest uppercase text-[#c3122e] flex items-center gap-1">
+                        <span>George Steuart</span>
+                        <span class="w-1 h-1 rounded-full bg-amber-500 inline-block"></span>
+                    </div>
+                </div>
+            </a>
 
             <!-- Mobile Drawer Close Button -->
-            <button @click="mobileSidebarOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer" title="Close Menu">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <button @click="mobileSidebarOpen = false" 
+                    type="button"
+                    class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer" 
+                    title="Close Menu">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
             </button>
         </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-2.5 space-y-0.5 scrollbar-none transition-all"
-             :class="{ 'px-2': sidebarCollapsed && !mobileSidebarOpen, 'px-2.5': !sidebarCollapsed || mobileSidebarOpen }">
-            <div class="px-2 pb-1.5 text-[9px] font-bold uppercase tracking-widest" style="color: #c3122e; opacity:0.6;" x-show="!sidebarCollapsed || mobileSidebarOpen">Main Menu</div>
+        <!-- Navigation Links Body -->
+        <nav class="flex-1 overflow-y-auto py-3 space-y-0.5 scrollbar-none transition-all"
+             :class="{ 'px-2': sidebarCollapsed && !mobileSidebarOpen, 'px-3': !sidebarCollapsed || mobileSidebarOpen }">
 
             @php
                 $user = auth()->user();
                 $isSuperAdmin = $user ? ($user->hasRole('super_admin') || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
                 $isPM = $user ? $user->hasRole('project_manager') : false;
 
-                // Accurate dynamic pending approval count matching Approvals Hub
+                // Pending Approvals Count
                 $pendingApprovalsCount = 0;
                 if ($user) {
                     if ($isSuperAdmin) {
@@ -110,7 +126,11 @@
                             ->count();
                     }
                 }
+
+                // Unread Notifications Count
                 $unreadNotificationsCount = $user ? $user->unreadNotifications()->count() : 0;
+
+                // Open Risks & Blockers Count
                 $openRisksAndBlockersCount = 0;
                 if ($user) {
                     if ($isSuperAdmin) {
@@ -127,315 +147,401 @@
                             + \App\Models\TaskBlocker::where('status', '!=', 'resolved')->whereHas('wbsItem', fn($wq) => $wq->whereIn('project_id', $allowedProjectIds)->whereHas('project'))->count();
                     }
                 }
+
+                // User Projects Count
+                $myProjectCount = 0;
+                if ($user && !$isSuperAdmin) {
+                    $myProjectCount = \App\Models\Project::where(function($q) use ($user) {
+                        $q->where('project_manager_id', $user->id)
+                          ->orWhere(function($subQ) use ($user) {
+                              $subQ->where('pm_accepted', true)
+                                   ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                          });
+                    })->count();
+                }
             @endphp
 
             @php
-            $navItem = function(bool $active): string {
+            $navItemClass = function(bool $active): string {
                 return $active
-                    ? 'flex items-center rounded-xl font-bold text-xs text-white transition-all relative'
-                    : 'flex items-center rounded-xl font-medium text-xs transition-all relative';
+                    ? 'flex items-center rounded-xl font-bold text-xs text-white transition-all duration-150 relative group shadow-sm select-none'
+                    : 'flex items-center rounded-xl font-semibold text-xs text-slate-600 hover:text-[#c3122e] hover:bg-rose-50/70 hover:translate-x-0.5 transition-all duration-150 relative group select-none';
             };
-            $navStyle = fn(bool $active): string => $active
-                ? 'background: linear-gradient(135deg,#c3122e,#a00e24); box-shadow: 0 2px 10px rgba(195,18,46,0.3);'
-                : 'color: #706565;';
+            $navItemStyle = fn(bool $active): string => $active
+                ? 'background: linear-gradient(135deg, #c3122e 0%, #9e0d23 100%); box-shadow: 0 3px 10px rgba(195,18,46,0.25);'
+                : '';
             @endphp
 
-            <!-- Dashboard -->
+            <!-- 1. Dashboard -->
             <a href="{{ route('dashboard') }}" 
                wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('dashboard')) }}" 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('dashboard')) }}" 
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('dashboard')) }}" 
-               @if(!request()->routeIs('dashboard')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
+               style="{{ $navItemStyle(request()->routeIs('dashboard')) }}" 
                title="Dashboard">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('dashboard') ? '2.5' : '2' }}">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
                 <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Dashboard</span>
             </a>
 
-            {{-- Projects Navigation --}}
-
+            <!-- 2. Projects Area -->
             @if($isSuperAdmin)
-            {{-- PMO Admin: Project Monitor & Governance Direct Link --}}
-            <a href="{{ route('project-monitor.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('project-monitor.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('project-monitor.*')) }}" 
-               @if(!request()->routeIs('project-monitor.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Project Monitor (PMO)">
-                <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate font-black">Project Monitor</span>
-                </div>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-200">PMO</span>
-            </a>
-
-            {{-- PMO Admin: Manage All Projects + Templates dropdown --}}
-            <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
-                <button @click="open = !open" type="button" 
-                        class="{{ $navItem(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full" 
-                        :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                        style="{{ $navStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}" 
-                        @if(!(request()->routeIs('projects.*') || request()->routeIs('templates.*'))) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-                        title="Projects Directory">
-                    <div class="flex items-center gap-3" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                        <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                        <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Projects Directory</span>
+                <!-- PMO Admin: Project Monitor Direct Link -->
+                <a href="{{ route('project-monitor.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('project-monitor.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('project-monitor.*')) }}" 
+                   title="Project Monitor (PMO)">
+                    <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
+                        <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('project-monitor.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('project-monitor.*') ? '2.5' : '2' }}">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Project Monitor</span>
                     </div>
-                    <svg x-show="!sidebarCollapsed || mobileSidebarOpen" :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && (!sidebarCollapsed || mobileSidebarOpen)" x-collapse class="mt-1 space-y-1 pl-9 pr-2">
-                    <a href="{{ route('projects.index') }}" wire:navigate.hover class="block px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('projects.index') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">Manage All Projects</a>
-                    <a href="{{ route('templates.index') }}" wire:navigate.hover class="block px-3 py-2 text-xs font-medium rounded-xl transition-colors {{ request()->routeIs('templates.*') ? 'text-[#c3122e] bg-[#fdf4f4]' : 'text-slate-500 hover:text-[#c3122e] hover:bg-[#fdf4f4]' }}">Manage Templates</a>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider {{ request()->routeIs('project-monitor.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">PMO</span>
+                </a>
+
+                <!-- PMO Admin: Projects Directory Accordion -->
+                <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
+                    <button @click="open = !open" 
+                            type="button" 
+                            class="{{ $navItemClass(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full cursor-pointer" 
+                            :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                            style="{{ $navItemStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}" 
+                            title="Projects Directory">
+                        <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
+                            <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? '2.5' : '2' }}">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Projects Directory</span>
+                        </div>
+                        <svg x-show="!sidebarCollapsed || mobileSidebarOpen" :class="{'rotate-180': open}" class="w-3.5 h-3.5 transition-transform duration-200 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open && (!sidebarCollapsed || mobileSidebarOpen)" x-collapse class="mt-1 space-y-0.5 pl-7 pr-1 border-l-2 border-slate-100 ml-4">
+                        <a href="{{ route('projects.index') }}" 
+                           wire:navigate.hover 
+                           @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                           class="block px-3 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('projects.index') ? 'text-[#c3122e] bg-rose-50 font-bold' : 'text-slate-500 hover:text-[#c3122e] hover:bg-rose-50/50' }}">
+                            Manage All Projects
+                        </a>
+                        <a href="{{ route('templates.index') }}" 
+                           wire:navigate.hover 
+                           @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                           class="block px-3 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('templates.*') ? 'text-[#c3122e] bg-rose-50 font-bold' : 'text-slate-500 hover:text-[#c3122e] hover:bg-rose-50/50' }}">
+                            Manage Templates
+                        </a>
+                    </div>
                 </div>
-            </div>
             @else
-            {{-- Regular User: Direct "My Projects" link (all roles unified) --}}
-            @php
-                $myProjectCount = \App\Models\Project::where(function($q) use ($user) {
-                    $q->where('project_manager_id', $user->id)
-                      ->orWhere(function($subQ) use ($user) {
-                          $subQ->where('pm_accepted', true)
-                               ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
-                      });
-                })->count();
-            @endphp
-            <a href="{{ route('projects.my-leads') }}"
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('projects.my-leads') || request()->routeIs('projects.my-collaborations')) }}"
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('projects.my-leads') || request()->routeIs('projects.my-collaborations')) }}"
-               @if(!(request()->routeIs('projects.my-leads') || request()->routeIs('projects.my-collaborations'))) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Projects"
-            >
-                <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Projects</span>
-                </div>
-                @if($myProjectCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.5 rounded-full text-[9px] font-black flex-shrink-0" style="background:#c3122e; color:#fff;">{{ $myProjectCount }}</span>
-                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#c3122e] ring-2 ring-white"></span>
-                @endif
-            </a>
+                <!-- Regular User & Project Manager: Projects Link -->
+                <a href="{{ route('projects.my-leads') }}"
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('projects.my-leads') || request()->routeIs('projects.my-collaborations') || request()->routeIs('projects.show')) }}"
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('projects.my-leads') || request()->routeIs('projects.my-collaborations') || request()->routeIs('projects.show')) }}"
+                   title="Projects">
+                    <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
+                        <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('projects.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('projects.*') ? '2.5' : '2' }}">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Projects</span>
+                    </div>
+                    @if($myProjectCount > 0)
+                        <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                              class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('projects.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">
+                            {{ $myProjectCount }}
+                        </span>
+                        <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#c3122e] ring-2 ring-white"></span>
+                    @endif
+                </a>
             @endif
 
-            <!-- My Tasks (Hidden for PMO Admin) -->
+            <!-- 3. My Tasks (For Non-Super Admins) -->
             @if(!($user && $user->isPmoAdmin()))
-            <a href="{{ route('my-tasks.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('my-tasks.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('my-tasks.*')) }}" 
-               @if(!request()->routeIs('my-tasks.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="My Tasks">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">My Tasks</span>
-            </a>
+                <a href="{{ route('my-tasks.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('my-tasks.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('my-tasks.*')) }}" 
+                   title="My Tasks">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('my-tasks.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('my-tasks.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">My Tasks</span>
+                </a>
             @endif
 
-            <!-- Daily Updates -->
+            <!-- 4. Daily Updates -->
             <a href="{{ route('daily-updates.index') }}" 
                wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('daily-updates.*')) }}" 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('daily-updates.*')) }}" 
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('daily-updates.*')) }}" 
-               @if(!request()->routeIs('daily-updates.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
+               style="{{ $navItemStyle(request()->routeIs('daily-updates.*')) }}" 
                title="Daily Updates">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('daily-updates.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('daily-updates.*') ? '2.5' : '2' }}">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
                 <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Daily Updates</span>
             </a>
 
-            <!-- Calendar -->
+            <!-- 5. Calendar -->
             <a href="{{ route('calendar.index') }}" 
                wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('calendar.*')) }}" 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('calendar.*')) }}" 
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('calendar.*')) }}" 
-               @if(!request()->routeIs('calendar.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
+               style="{{ $navItemStyle(request()->routeIs('calendar.*')) }}" 
                title="Corporate Calendar">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('calendar.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('calendar.*') ? '2.5' : '2' }}">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
                 <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Calendar</span>
             </a>
 
             <!-- Approvals Hub -->
             <a href="{{ route('approvals.index') }}" 
                wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('approvals.*')) }}" 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('approvals.*')) }}" 
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('approvals.*')) }}" 
-               @if(!request()->routeIs('approvals.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
+               style="{{ $navItemStyle(request()->routeIs('approvals.*')) }}" 
                title="Approvals Hub">
                 <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('approvals.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('approvals.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Approvals Hub</span>
                 </div>
                 @if($pendingApprovalsCount > 0)
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#c3122e;">{{ $pendingApprovalsCount }}</span>
-                <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#c3122e] ring-2 ring-white"></span>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('approvals.*') ? 'bg-white text-[#c3122e]' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70 shadow-2xs' }}">
+                        {{ $pendingApprovalsCount }}
+                    </span>
+                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#c3122e] ring-2 ring-white animate-pulse"></span>
                 @endif
             </a>
 
             <!-- Risks & Blockers -->
             <a href="{{ route('risks.index') }}" 
                wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('risks.*')) }}" 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('risks.*')) }}" 
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('risks.*')) }}" 
-               @if(!request()->routeIs('risks.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
+               style="{{ $navItemStyle(request()->routeIs('risks.*')) }}" 
                title="Risks & Blockers Hub">
                 <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('risks.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('risks.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Risks &amp; Blockers</span>
                 </div>
                 @if($openRisksAndBlockersCount > 0)
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#d97706;">{{ $openRisksAndBlockersCount }}</span>
-                <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white"></span>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('risks.*') ? 'bg-white text-amber-700' : 'bg-amber-50 text-amber-800 border border-amber-200/70 shadow-2xs' }}">
+                        {{ $openRisksAndBlockersCount }}
+                    </span>
+                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white"></span>
                 @endif
             </a>
 
-            <!-- Subsidiaries (SA only) -->
+            <!-- Subsidiaries (Super Admin Only) -->
             @if($isSuperAdmin)
-            <a href="{{ route('subsidiaries.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('subsidiaries.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('subsidiaries.*')) }}" 
-               @if(!request()->routeIs('subsidiaries.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Subsidiaries">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Subsidiaries</span>
-            </a>
+                <a href="{{ route('subsidiaries.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('subsidiaries.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('subsidiaries.*')) }}" 
+                   title="Subsidiaries">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('subsidiaries.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('subsidiaries.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Subsidiaries</span>
+                </a>
             @endif
 
-            <!-- Participants (SA: /users, PM: /team-members) -->
+            <!-- Participants / Team Members -->
             @if($isSuperAdmin)
-            <a href="{{ route('users.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('users.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('users.*')) }}" 
-               @if(!request()->routeIs('users.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Participants">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Participants</span>
-            </a>
+                <a href="{{ route('users.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('users.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('users.*')) }}" 
+                   title="Participants & Users">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('users.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('users.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Participants</span>
+                </a>
             @elseif($isPM)
-            <a href="{{ route('team-members.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('team-members.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('team-members.*')) }}" 
-               @if(!request()->routeIs('team-members.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Team Members">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Participants</span>
-            </a>
+                <a href="{{ route('team-members.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('team-members.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('team-members.*')) }}" 
+                   title="Team Members">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('team-members.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('team-members.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Team Members</span>
+                </a>
             @endif
 
             <!-- Reports -->
             @if($isSuperAdmin || $isPM || auth()->user()->hasProjectPermission('report.view'))
-            <a href="{{ route('reports.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('reports.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('reports.*')) }}" 
-               @if(!request()->routeIs('reports.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Reports">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
-            </a>
+                <a href="{{ route('reports.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('reports.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('reports.*')) }}" 
+                   title="Reports">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('reports.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
+                </a>
             @endif
 
             <!-- Notifications -->
             <a href="{{ route('notifications.index') }}" 
                wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('notifications.*')) }}" 
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('notifications.*')) }}" 
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('notifications.*')) }}" 
-               @if(!request()->routeIs('notifications.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
+               style="{{ $navItemStyle(request()->routeIs('notifications.*')) }}" 
                title="Notifications">
                 <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('notifications.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('notifications.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Notifications</span>
                 </div>
                 @if($unreadNotificationsCount > 0)
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#b8860b;">{{ $unreadNotificationsCount }}</span>
-                <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white"></span>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('notifications.*') ? 'bg-white text-amber-800' : 'bg-slate-100 text-slate-700 border border-slate-200/80' }}">
+                        {{ $unreadNotificationsCount }}
+                    </span>
+                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white"></span>
                 @endif
             </a>
 
-            <!-- Audit Logs + Settings -->
+            <!-- ================= ADMINISTRATION (Super Admin Only) ================= -->
             @if($isSuperAdmin)
-            <div class="px-2 pb-1 pt-2.5 text-[9px] font-bold uppercase tracking-widest" style="color:#c3122e; opacity:0.5;" x-show="!sidebarCollapsed || mobileSidebarOpen">Admin</div>
-            
-            <a href="{{ route('roles-permissions.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('roles-permissions.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('roles-permissions.*')) }}" 
-               @if(!request()->routeIs('roles-permissions.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Roles & Permissions">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Roles &amp; Permissions</span>
-            </a>
+                <!-- Roles & Permissions -->
+                <a href="{{ route('roles-permissions.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('roles-permissions.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('roles-permissions.*')) }}" 
+                   title="Roles & Permissions">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('roles-permissions.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('roles-permissions.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Roles &amp; Permissions</span>
+                </a>
 
-            <a href="{{ route('audit-logs.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('audit-logs.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('audit-logs.*')) }}" 
-               @if(!request()->routeIs('audit-logs.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Audit Logs">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Audit Logs</span>
-            </a>
+                <!-- Audit Logs -->
+                <a href="{{ route('audit-logs.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('audit-logs.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('audit-logs.*')) }}" 
+                   title="Audit Logs">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('audit-logs.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('audit-logs.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Audit Logs</span>
+                </a>
 
-            <a href="{{ route('settings.index') }}" 
-               wire:navigate.hover
-               class="{{ $navItem(request()->routeIs('settings.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navStyle(request()->routeIs('settings.*')) }}" 
-               @if(!request()->routeIs('settings.*')) onmouseover="this.style.background='#fdf4f4'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" @endif
-               title="Settings">
-                <svg class="w-4.5 h-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Settings</span>
-            </a>
+                <!-- Settings -->
+                <a href="{{ route('settings.index') }}" 
+                   wire:navigate.hover
+                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                   class="{{ $navItemClass(request()->routeIs('settings.*')) }}" 
+                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+                   style="{{ $navItemStyle(request()->routeIs('settings.*')) }}" 
+                   title="Settings">
+                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('settings.*') ? '2.5' : '2' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Settings</span>
+                </a>
             @endif
         </nav>
 
         <!-- Bottom: User Profile Card & Collapse Toggle -->
-        <div class="p-2 flex-shrink-0 space-y-1.5" style="border-top: 1px solid #f1e9e9;">
+        <div class="p-3 flex-shrink-0 space-y-2 border-t border-slate-200/80 bg-white">
+            @php
+                $userRoleLabel = 'Team Member';
+                $userRoleBadgeClass = 'bg-slate-100 text-slate-700 border border-slate-200';
+                if ($isSuperAdmin) {
+                    $userRoleLabel = 'PMO Admin';
+                    $userRoleBadgeClass = 'bg-rose-50 text-[#c3122e] border border-rose-200/70';
+                } elseif ($isPM) {
+                    $userRoleLabel = 'Project Manager';
+                    $userRoleBadgeClass = 'bg-amber-50 text-amber-800 border border-amber-200/70';
+                }
+            @endphp
+
             <!-- User Profile Card -->
-            <div class="transition-all rounded-xl"
+            <div class="transition-all rounded-2xl"
                  :class="{
                      'p-1 flex items-center justify-center': sidebarCollapsed && !mobileSidebarOpen,
-                     'p-2 bg-slate-50/90 hover:bg-slate-100/80 border border-slate-200/80 shadow-2xs': !sidebarCollapsed || mobileSidebarOpen
+                     'p-2.5 bg-slate-50 border border-slate-200/90 shadow-2xs hover:border-slate-300': !sidebarCollapsed || mobileSidebarOpen
                  }">
-                <div class="flex items-center gap-2 min-w-0 w-full" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
+                <div class="flex items-center gap-2.5 min-w-0 w-full" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                     <!-- Circular Avatar -->
-                    <div class="flex-shrink-0" title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[11px] shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                    <a href="{{ route('profile.edit') }}" 
+                       wire:navigate.hover
+                       @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                       class="flex-shrink-0" 
+                       title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
+                        <div class="w-8.5 h-8.5 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-2xs transition-transform hover:scale-105" 
+                             style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         </div>
-                    </div>
+                    </a>
 
-                    <!-- User Name & Email -->
-                    <div class="min-w-0 flex-1" x-show="!sidebarCollapsed || mobileSidebarOpen">
-                        <div class="text-[11px] font-bold text-slate-900 truncate leading-tight">
-                            {{ auth()->user()->name }}
+                    <!-- User Name, Role & Email -->
+                    <div class="min-w-0 flex-1 space-y-0.5" x-show="!sidebarCollapsed || mobileSidebarOpen">
+                        <div class="flex items-center gap-1.5">
+                            <a href="{{ route('profile.edit') }}" 
+                               wire:navigate.hover 
+                               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                               class="text-xs font-bold text-slate-900 truncate leading-tight hover:text-[#c3122e] transition-colors" 
+                               title="{{ auth()->user()->name }}">
+                                {{ auth()->user()->name }}
+                            </a>
                         </div>
-                        <div class="text-[9.5px] font-medium text-slate-400 font-mono truncate leading-tight mt-0.5" title="{{ auth()->user()->email }}">
-                            {{ auth()->user()->email }}
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded inline-block leading-tight {{ $userRoleBadgeClass }}">
+                                {{ $userRoleLabel }}
+                            </span>
                         </div>
                     </div>
 
                     <!-- Quick Logout Action Button -->
                     <form method="POST" action="{{ route('logout') }}" class="flex-shrink-0 ml-auto" x-show="!sidebarCollapsed || mobileSidebarOpen">
                         @csrf
-                        <button type="submit" class="w-6 h-6 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer" title="Sign Out">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <button type="submit" 
+                                class="w-7 h-7 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer" 
+                                title="Sign Out">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                         </button>
@@ -443,8 +549,9 @@
                 </div>
             </div>
 
-            <!-- Collapse Toggle Button -->
+            <!-- Desktop Collapse / Expand Toggle Button -->
             <button @click="sidebarCollapsed = !sidebarCollapsed" 
+                    type="button"
                     class="hidden lg:flex items-center justify-center w-full py-1.5 px-2 rounded-xl text-slate-400 hover:text-[#c3122e] hover:bg-rose-50/60 transition-all cursor-pointer gap-1.5" 
                     :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
                 <svg class="w-3.5 h-3.5 transition-transform duration-300" :class="{ 'rotate-180': sidebarCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -455,15 +562,19 @@
         </div>
     </aside>
 
-    <!-- Mobile Overlay -->
+    <!-- Mobile Drawer Overlay Backdrop -->
     <div
         x-show="mobileSidebarOpen"
+        x-cloak
         @click="mobileSidebarOpen = false"
         class="fixed inset-0 z-30 lg:hidden"
-        style="background: rgba(26,10,13,0.6); backdrop-filter: blur(4px);"
-        x-transition:enter="transition duration-200"
+        style="background: rgba(26,10,13,0.55); backdrop-filter: blur(4px);"
+        x-transition:enter="transition duration-200 ease-out"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
+        x-transition:leave="transition duration-150 ease-in"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
     ></div>
 
     <!-- =================== TOP NAV =================== -->
@@ -571,67 +682,6 @@
                             <button @click="mobileSearchOpen = false" class="text-slate-400 hover:text-slate-700 text-xs font-bold p-1">✕</button>
                         </div>
                         @livewire('global-search')
-                    </div>
-                </div>
-
-                <!-- ⚡ Universal Quick Actions Dropdown -->
-                <div x-data="{ quickActionOpen: false }" class="relative">
-                    <button 
-                        @click="quickActionOpen = !quickActionOpen" 
-                        type="button" 
-                        class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-[#c3122e] to-[#a00e24] hover:from-[#a00e24] hover:to-[#800a1d] shadow-sm shadow-rose-900/20 hover:shadow-md transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer active:scale-95"
-                        title="Quick Actions (1-Click Shortcuts)"
-                    >
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        <span class="hidden sm:inline">Quick Action</span>
-                        <svg class="w-3 h-3 transition-transform text-rose-200" :class="{ 'rotate-180': quickActionOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-
-                    <div 
-                        x-show="quickActionOpen" 
-                        @click.away="quickActionOpen = false"
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-100"
-                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                        class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 p-1.5 z-50 overflow-hidden space-y-0.5"
-                    >
-                        <div class="px-3 py-2 border-b border-slate-100">
-                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">1-Click Shortcuts</p>
-                        </div>
-
-                        @if($isSuperAdmin)
-                            <a href="{{ route('projects.create') }}" wire:navigate.hover class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
-                                <span class="w-6 h-6 rounded-lg bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center text-xs">🚀</span>
-                                <span>Create New Project</span>
-                            </a>
-                        @endif
-
-                        <a href="{{ route('daily-updates.index') }}" wire:navigate.hover class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
-                            <span class="w-6 h-6 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center text-xs">💬</span>
-                            <span>Post Daily Status</span>
-                        </a>
-
-                        @if(!($user && $user->isPmoAdmin()))
-                        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
-                            <span class="w-6 h-6 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-xs">✅</span>
-                            <span>My Tasks Workspace</span>
-                        </a>
-                        @endif
-
-                        <a href="{{ route('approvals.index') }}" wire:navigate.hover class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
-                            <span class="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-xs">🛡️</span>
-                            <span>Formal Approvals</span>
-                        </a>
-
-                        <a href="{{ route('calendar.index') }}" wire:navigate.hover class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 hover:bg-rose-50 hover:text-[#c3122e] transition-colors">
-                            <span class="w-6 h-6 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center text-xs">📅</span>
-                            <span>Corporate Calendar</span>
-                        </a>
                     </div>
                 </div>
 

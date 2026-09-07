@@ -3,9 +3,9 @@
     showTooltip(el, data) {
         this.tooltip.data = data;
         const rect = el.getBoundingClientRect();
-        const tw = 310, th = 220;
+        const tw = 300, th = 210;
         const gap = 10;
-        let x = rect.left + 290;
+        let x = rect.left + 270;
         let y = rect.top + (rect.height / 2) - (th / 2);
         if (x + tw > window.innerWidth - 8) x = rect.left - tw - gap;
         if (y < 8) y = 8;
@@ -19,9 +19,9 @@
         const container = this.$refs.timelineScrollContainer;
         if (!container) return;
         if (type === 'today' && {{ !is_null($todayPx) ? 'true' : 'false' }}) {
-            container.scrollTo({ left: Math.max(0, {{ 280 + ($todayPx ?? 0) }} - 400), behavior: 'smooth' });
+            container.scrollTo({ left: Math.max(0, {{ 280 + ($todayPx ?? 0) }} - 350), behavior: 'smooth' });
         } else if (type === 'deadline' && {{ !is_null($deadlinePx) ? 'true' : 'false' }}) {
-            container.scrollTo({ left: Math.max(0, {{ 280 + ($deadlinePx ?? 0) }} - 400), behavior: 'smooth' });
+            container.scrollTo({ left: Math.max(0, {{ 280 + ($deadlinePx ?? 0) }} - 350), behavior: 'smooth' });
         }
     },
     scrollTimeline(dir) {
@@ -36,7 +36,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
     <style>
         .gantt-scroll::-webkit-scrollbar {
-            height: 7px;
+            height: 6px;
         }
         .gantt-scroll::-webkit-scrollbar-track {
             background: #f8fafc;
@@ -52,144 +52,113 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
     </style>
 
     <!-- ===== GANTT HERO CARD CONTAINER ===== -->
-    <div class="card p-0 overflow-hidden shadow-2xs border border-slate-200/90 bg-white rounded-2xl mb-4">
+    <div class="bg-white border border-slate-200/80 shadow-2xs rounded-3xl overflow-hidden mb-5">
         
-        <!-- ── Modern Executive Toolbar (2 Clean Rows) ── -->
-        <!-- Row 1: Primary Controls & Navigation -->
-        <div class="px-4 py-2.5 sm:px-5 bg-white border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+        <!-- ── Clean Minimalist Toolbar ── -->
+        <div class="p-4 sm:px-5 bg-white border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-3.5">
             
-            <!-- Left: Icon + Title + Code + Date Navigator -->
-            <div class="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap">
+            <!-- Left: Title, Code, Period Navigator & Zoom Scale -->
+            <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                 <!-- Title & Code -->
-                <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-2xs" style="background: #c3122e;">
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-2xs bg-[#c3122e]">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </span>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-sm font-extrabold text-slate-900 tracking-tight whitespace-nowrap">WBS Gantt Schedule</span>
-                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
-                            {{ $project->code }}
-                        </span>
-                    </div>
+                    <span class="text-sm font-extrabold text-slate-900 tracking-tight whitespace-nowrap">WBS Gantt Schedule</span>
+                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-200/70 shadow-2xs">
+                        {{ $project->code }}
+                    </span>
                 </div>
 
                 <!-- Date Navigator (< Today / Deadline >) -->
-                <div class="inline-flex items-center rounded-xl border border-slate-200/90 bg-slate-50/80 shadow-2xs p-0.5 gap-0.5">
-                    <button wire:click="goToPrevious" class="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Left">
+                <div class="inline-flex items-center rounded-xl border border-slate-200/90 bg-slate-50/80 shadow-2xs p-0.5 shrink-0">
+                    <button wire:click="goToPrevious" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Scroll Left">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        <span class="hidden sm:inline">Prev</span>
                     </button>
                     @if(!is_null($todayPx))
-                        <button wire:click="goToToday" class="px-2.5 py-1 text-slate-700 hover:text-[#c3122e] hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5" title="Jump to Today">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                        <button wire:click="goToToday" class="px-2.5 py-1 text-slate-700 hover:text-[#c3122e] hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-x border-slate-200/60" title="Center Timeline on Today">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e] animate-pulse"></span>
                             <span>Today</span>
                         </button>
                     @endif
                     @if(!is_null($deadlinePx))
-                        <button wire:click="goToDeadline" class="px-2.5 py-1 text-slate-700 hover:text-amber-800 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-l border-slate-200/60" title="Jump to Project Deadline">
+                        <button wire:click="goToDeadline" class="px-2.5 py-1 text-slate-700 hover:text-amber-800 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-r border-slate-200/60" title="Jump to Project Deadline">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             <span>Deadline</span>
                         </button>
                     @endif
-                    <button wire:click="goToNext" class="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer" title="Scroll Right">
+                    <button wire:click="goToNext" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Scroll Right">
+                        <span class="hidden sm:inline">Next</span>
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
-            </div>
 
-            <!-- Right: Timeframe Switcher (Day / Week / Month) + Search Input -->
-            <div class="flex items-center gap-2 shrink-0">
-                <!-- Timeframe Tabs: Day vs Week vs Month -->
-                <div class="inline-flex p-0.5 rounded-xl bg-slate-100/90 border border-slate-200/80 gap-0.5 text-xs">
+                <!-- Timeframe Scale Switcher (Day / Week / Month) -->
+                <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold shrink-0">
                     <button wire:click="setTimeframe('day')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $timeframe === 'day' ? 'bg-gradient-to-r from-[#c3122e] to-[#9e0f26] text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
-                            title="Daily Schedule">
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $timeframe === 'day' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                            title="Daily Resolution">
                         Day
                     </button>
                     <button wire:click="setTimeframe('week')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $timeframe === 'week' ? 'bg-gradient-to-r from-[#c3122e] to-[#9e0f26] text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
-                            title="Weekly Schedule">
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $timeframe === 'week' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                            title="Weekly Resolution">
                         Week
                     </button>
                     <button wire:click="setTimeframe('month')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $timeframe === 'month' ? 'bg-gradient-to-r from-[#c3122e] to-[#9e0f26] text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}"
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $timeframe === 'month' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
                             title="Monthly Overview">
                         Month
                     </button>
                 </div>
+            </div>
+
+            <!-- Right: Search, Status Legend & Tree Controls -->
+            <div class="flex items-center gap-3 flex-wrap justify-between xl:justify-end">
+                
+                <!-- Status Legend Dots -->
+                <div class="flex items-center gap-3 text-xs font-semibold text-slate-600 overflow-x-auto scrollbar-none py-0.5 shrink-0">
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span> Done</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shadow-xs"></span> In Progress</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-xs"></span> Planned</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-amber-500 rotate-45 rounded-xs"></span> Milestone</span>
+                </div>
+
+                <div class="h-3.5 w-px bg-slate-200 hidden sm:block"></div>
 
                 <!-- Search Input -->
-                <div class="relative w-36 sm:w-44">
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search WBS..."
-                           class="w-full text-xs font-medium rounded-xl border border-slate-200/90 pl-7.5 pr-2.5 py-1 bg-white focus:border-slate-400 focus:ring-1 focus:ring-slate-200 outline-none placeholder:text-slate-400 shadow-2xs transition-all">
+                <div class="relative w-36 sm:w-44 shrink-0">
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search WBS…"
+                           class="w-full text-xs font-medium rounded-xl border border-slate-200/90 pl-7.5 pr-2.5 py-1 bg-slate-50/90 focus:bg-white focus:outline-none focus:ring-1.5 focus:ring-slate-400 placeholder:text-slate-400 shadow-2xs transition-all">
                     <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-            </div>
-        </div>
 
-        <!-- Row 2: Secondary Bar (Tree Controls + Roadmap Dates + Clean Legend + Deliverables Count) -->
-        <div class="px-4 sm:px-5 py-2 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between gap-4 text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none">
-            <!-- Left: Tree Expand/Collapse + Divider + Project Dates Info -->
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="inline-flex items-center gap-1.5 text-xs">
-                    <button wire:click="expandAll" class="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
-                        Expand All
-                    </button>
-                    <span class="text-slate-300">•</span>
-                    <button wire:click="collapseAll" class="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
-                        Collapse All
-                    </button>
-                </div>
-
-                <div class="h-3 w-px bg-slate-200 hidden sm:block"></div>
-
-                <!-- Project Roadmap Bounds -->
-                <div class="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-                    <span>Start: <strong class="text-slate-700 font-semibold">{{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}</strong></span>
-                    <span class="text-slate-300">➔</span>
-                    <span>Deadline: <strong class="text-slate-800 font-semibold">{{ $project->deadline ? $project->deadline->format('M d, Y') : '—' }}</strong></span>
-                    @if(!is_null($daysToDeadline))
-                        <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold font-mono {{ $daysToDeadline >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-rose-50 text-[#c3122e] border border-rose-200/60' }}">
-                            {{ $daysToDeadline >= 0 ? $daysToDeadline . 'd left' : abs($daysToDeadline) . 'd overdue' }}
-                        </span>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Right: Clean Legend Dots + Deliverables Count -->
-            <div class="flex items-center gap-3.5 shrink-0">
-                <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-600">
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#c3122e]"></span> In Progress</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Planned</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-500 rotate-45"></span> Milestone</span>
-                    <span class="flex items-center gap-1 text-amber-700 font-bold"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Has Risk</span>
-                </div>
-
-                <div class="h-3 w-px bg-slate-200 hidden md:block"></div>
-
-                <div class="hidden md:flex items-center gap-1 text-slate-400 font-medium text-[11px] whitespace-nowrap">
-                    <span>Showing <strong class="text-slate-700 font-bold">{{ $wbsItems->count() }}</strong> of <strong class="text-slate-700 font-bold">{{ $allRawItems->count() }}</strong> deliverables</span>
-                </div>
             </div>
         </div>
 
         <!-- ── Scrollable Gantt Canvas Area ── -->
-        <div class="overflow-x-auto gantt-scroll pt-5 pb-2" x-ref="timelineScrollContainer">
+        <div class="overflow-x-auto gantt-scroll" x-ref="timelineScrollContainer">
             {{-- Outer wrapper is exactly: 280px title col + totalCanvasPx --}}
             <div style="min-width: {{ 280 + $totalCanvasPx }}px;" class="flex flex-col relative">
 
-                <!-- 1. MULTI-TIER HEADER -->
-                <div class="bg-slate-50/90 border-b border-slate-200 flex flex-col flex-shrink-0 sticky top-0 z-20 shadow-2xs">
+                <!-- 1. MULTI-TIER HEADER (STICKY TOP) -->
+                <div class="bg-slate-50/95 border-b border-slate-200/90 flex flex-col flex-shrink-0 sticky top-0 z-30 shadow-2xs backdrop-blur-xs">
 
                     <!-- Top: Month / Year headers -->
                     <div class="flex items-stretch border-b border-slate-200/80 text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                        <div class="flex-shrink-0 border-r border-slate-200 bg-slate-100/70 text-slate-700 flex items-center justify-between px-4 py-2" style="width:280px;">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Work Breakdown</span>
-                            <span class="text-[9.5px] font-mono font-bold text-slate-400">HIERARCHY</span>
+                        <div class="flex-shrink-0 border-r border-slate-200/90 bg-slate-50 text-slate-700 flex items-center justify-between px-4 py-2 sticky left-0 z-40" style="width:280px;">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                                <span>WBS / TASK</span>
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[9.5px] font-mono font-bold bg-white text-slate-600 border border-slate-200 shadow-2xs">
+                                {{ $wbsItems->count() }} {{ $wbsItems->count() === 1 ? 'Item' : 'Items' }}
+                            </span>
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($monthHeaders as $mHead)
-                                <div class="text-center border-r border-slate-200 font-bold text-slate-800 bg-slate-50/80 py-2 px-1 truncate tracking-wide text-xs"
+                                <div class="text-center border-r border-slate-200/80 font-bold text-slate-800 bg-slate-50/80 py-2 px-1 truncate tracking-wide text-xs"
                                      style="width:{{ $mHead['pxWidth'] }}px; flex-shrink:0;">
                                     {{ $mHead['label'] }}
                                 </div>
@@ -199,16 +168,16 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                     <!-- Bottom: Sub-column (Day / Week / Month) headers -->
                     <div class="flex items-stretch text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                        <div class="border-r border-slate-200 flex items-center px-4 py-2 bg-slate-50/50 text-[11px] font-bold text-slate-600" style="width:280px; flex-shrink:0;">
-                            Phase &amp; Deliverable Title
+                        <div class="border-r border-slate-200/90 flex items-center px-4 py-1.5 bg-slate-50 text-[11px] font-bold text-slate-600 sticky left-0 z-40" style="width:280px; flex-shrink:0;">
+                            Deliverable Hierarchy
                         </div>
                         <div class="flex" style="width:{{ $totalCanvasPx }}px; flex-shrink:0;">
                             @foreach($columns as $col)
-                                <div class="text-center border-r border-slate-200 py-1.5 px-1 flex-shrink-0 flex flex-col items-center justify-center
-                                        {{ ($col['isToday'] ?? false) ? 'bg-rose-50 text-[#c3122e] font-bold border-rose-200' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/40' : '') }}"
+                                <div class="text-center border-r border-slate-200/80 py-1.5 px-1 flex-shrink-0 flex flex-col items-center justify-center relative
+                                        {{ ($col['isToday'] ?? false) ? 'bg-rose-50/80 text-[#c3122e] font-black border-b-2 border-b-[#c3122e]' : (($col['isWeekend'] ?? false) ? 'bg-slate-100/30 text-slate-400' : 'text-slate-700') }}"
                                      style="width:{{ $col['px'] }}px;">
-                                    <div class="text-xs leading-tight font-black {{ ($col['isToday'] ?? false) ? 'text-[#c3122e]' : 'text-slate-800' }}">{{ $col['label'] }}</div>
-                                    <div class="text-[10px] font-mono font-semibold {{ ($col['isToday'] ?? false) ? 'text-rose-600' : 'text-slate-500' }} mt-0.5">{{ $col['sublabel'] }}</div>
+                                    <div class="text-xs leading-tight font-extrabold {{ ($col['isToday'] ?? false) ? 'text-[#c3122e]' : 'text-slate-800' }}">{{ $col['label'] }}</div>
+                                    <div class="text-[9.5px] font-mono font-bold {{ ($col['isToday'] ?? false) ? 'text-rose-600' : 'text-slate-400' }} mt-0.5">{{ $col['sublabel'] }}</div>
                                 </div>
                             @endforeach
                         </div>
@@ -216,26 +185,26 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                 </div>
 
                 <!-- 2. GANTT ROWS & TIMELINE CANVAS -->
-                <div class="relative divide-y divide-slate-100/80 bg-white">
+                <div class="relative divide-y divide-slate-100 bg-white">
 
-                    <!-- Today Line -->
+                    <!-- Today Laser Line (Background Layer, z-10) -->
                     @if(!is_null($todayPx))
-                        <div class="absolute top-0 bottom-0 z-30 pointer-events-none" style="left:{{ 280 + $todayPx }}px; width:1.5px; background:#c3122e;">
+                        <div class="absolute top-0 bottom-0 z-10 pointer-events-none" style="left:{{ 280 + $todayPx }}px; width:1.5px; border-left:2px dashed #c3122e; opacity:0.85;">
                             <!-- Top Capsule Flag -->
-                            <div class="absolute top-0 -translate-x-1/2 -mt-5 z-40 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#c3122e] text-white shadow-xs flex items-center gap-1 pointer-events-auto">
+                            <div class="absolute top-1 -translate-x-1/2 z-20 whitespace-nowrap px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-[#c3122e] text-white shadow-xs flex items-center gap-1 pointer-events-auto">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                                <span>Today • {{ now()->format('M d') }}</span>
+                                <span>Today</span>
                             </div>
                         </div>
                     @endif
 
-                    <!-- Target Project Deadline Marker Line -->
+                    <!-- Target Project Deadline Marker Line (Background Layer, z-10) -->
                     @if(!is_null($deadlinePx))
-                        <div class="absolute top-0 bottom-0 z-30 pointer-events-none" style="left:{{ 280 + $deadlinePx }}px; width:1.5px; border-left:1.5px dashed #f59e0b;">
+                        <div class="absolute top-0 bottom-0 z-10 pointer-events-none" style="left:{{ 280 + $deadlinePx }}px; width:1.5px; border-left:2px dashed #f59e0b; opacity:0.85;">
                             <!-- Top Banner Tag -->
-                            <div class="absolute top-0 -translate-x-1/2 -mt-5 z-40 whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs flex items-center gap-1 pointer-events-auto">
+                            <div class="absolute top-1 -translate-x-1/2 z-20 whitespace-nowrap px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-500 text-white shadow-xs flex items-center gap-1 pointer-events-auto">
                                 <span>🎯</span>
-                                <span>Deadline • {{ $project->deadline ? $project->deadline->format('M d') : '' }}</span>
+                                <span>Deadline</span>
                             </div>
                         </div>
                     @endif
@@ -270,18 +239,18 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                             /* ── Modern Sleek Phase & Task Styling ── */
                             $phaseStyles = [
-                                ['bg' => 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', 'border' => '#1d4ed8'],
-                                ['bg' => 'linear-gradient(135deg, #c3122e 0%, #e11d48 100%)', 'border' => '#9f1239'],
-                                ['bg' => 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', 'border' => '#0f766e'],
-                                ['bg' => 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)', 'border' => '#b45309'],
-                                ['bg' => 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)', 'border' => '#6d28d9'],
+                                ['bg' => 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 border-blue-700 text-white shadow-xs shadow-blue-950/20'],
+                                ['bg' => 'bg-gradient-to-r from-[#c3122e] via-rose-600 to-[#9e0f26] border-rose-800 text-white shadow-xs shadow-rose-950/20'],
+                                ['bg' => 'bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 border-teal-800 text-white shadow-xs shadow-teal-950/20'],
+                                ['bg' => 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border-amber-700 text-white shadow-xs shadow-amber-950/20'],
+                                ['bg' => 'bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 border-purple-800 text-white shadow-xs shadow-purple-950/20'],
                             ];
                             $pStyle = $phaseStyles[$index % count($phaseStyles)];
 
                             $taskStyle = match($item->status->value) {
-                                'completed' => ['bg' => '#059669', 'border' => '#047857'],
-                                'in_progress' => ['bg' => '#c3122e', 'border' => '#9f1239'],
-                                default => ['bg' => '#4f46e5', 'border' => '#4338ca'],
+                                'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-700 text-white shadow-xs shadow-emerald-950/20',
+                                'in_progress' => 'bg-gradient-to-r from-[#c3122e] to-[#990e24] border-[#800a1c] text-white shadow-xs shadow-rose-950/20',
+                                default       => 'bg-gradient-to-r from-indigo-500 to-indigo-600 border-indigo-700 text-white shadow-xs shadow-indigo-950/20',
                             };
 
                             /* ── Detect hour/time-slot items ── */
@@ -320,19 +289,19 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                             ], JSON_HEX_APOS | JSON_HEX_QUOT);
                         @endphp
 
-                        <div class="flex items-center transition-colors py-2 text-xs cursor-default hover:bg-slate-50/80">
+                        <div class="flex items-center transition-colors min-h-[44px] h-[44px] text-xs cursor-default hover:bg-slate-50/80 group">
 
-                            <!-- Left: WBS Title Column (fixed 280px) -->
-                            <div class="border-r border-slate-100 flex-shrink-0 flex items-center overflow-hidden px-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
+                            <!-- Left: WBS Title Column (fixed 280px, sticky left) -->
+                            <div class="border-r border-slate-200/90 flex-shrink-0 flex items-center justify-between overflow-hidden px-3.5 h-[44px] bg-white group-hover:bg-slate-50 sticky left-0 z-20 transition-colors cursor-pointer shadow-2xs"
                                  style="width:280px;"
                                  @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                  @mouseleave="hideTooltip()">
-                                <div style="padding-left: {{ $levelIndent * 0.75 }}rem;" class="flex items-center gap-2 min-w-0 w-full">
+                                <div style="padding-left: {{ $levelIndent * 0.75 }}rem;" class="flex items-center gap-2 min-w-0 flex-1">
                                     @if($item->children->isNotEmpty())
                                         @php $isCollapsed = in_array($item->id, $collapsedIds); @endphp
                                         <button type="button"
                                                 wire:click="toggleCollapse({{ $item->id }})"
-                                                class="p-0.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0 focus:outline-none"
+                                                class="w-5 h-5 rounded-lg bg-slate-100 hover:bg-[#c3122e] hover:text-white text-slate-500 transition-all flex items-center justify-center cursor-pointer flex-shrink-0 focus:outline-none shadow-2xs"
                                                 @mouseenter.stop @mouseleave.stop>
                                             <svg class="w-3.5 h-3.5 transform transition-transform duration-150 {{ $isCollapsed ? '-rotate-90' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
@@ -350,32 +319,31 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                         </span>
                                     @elseif($item->item_type->value === 'phase')
                                         <span class="text-amber-500 text-sm flex-shrink-0">📁</span>
-                                    @endif
-
-                                    <span class="font-mono text-[11px] font-black flex-shrink-0 {{ $isHourSlot ? 'text-violet-600' : 'text-[#c3122e]' }}">{{ $item->wbs_code }}</span>
-
-                                    @if($isHourSlot)
-                                        <span class="truncate text-slate-900 font-bold text-xs" title="{{ $item->title }}">
-                                            {{ $item->title }}
-                                        </span>
+                                    @elseif($item->is_milestone)
+                                        <span class="text-amber-500 text-sm flex-shrink-0">💎</span>
                                     @else
-                                        <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-black text-slate-900 text-xs' : 'font-semibold' }}">
-                                            {{ $item->title }}
-                                        </span>
+                                        <span class="text-slate-400 text-xs flex-shrink-0">📄</span>
                                     @endif
 
-                                    {{-- ⚠️ RISK INDICATOR ICON ON TASK ROW --}}
+                                    <span class="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 border border-slate-200/80 flex-shrink-0">{{ $item->wbs_code }}</span>
+
+                                    <span class="truncate text-slate-800 {{ $item->item_type->value === 'phase' ? 'font-extrabold text-slate-900 text-xs' : 'font-medium' }}" title="{{ $item->title }}">
+                                        {{ $item->title }}
+                                    </span>
+                                </div>
+
+                                <!-- Right: Badges inside left column -->
+                                <div class="flex items-center gap-1.5 flex-shrink-0 pl-1">
                                     @if($risksCount > 0)
-                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-black {{ $highestRiskScore >= 6 ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-amber-100 text-amber-800 border border-amber-300' }} shadow-2xs flex-shrink-0"
-                                              title="{{ $risksCount }} Active Risk(s) Associated with this Task">
+                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-black {{ $highestRiskScore >= 6 ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-amber-100 text-amber-800 border border-amber-300' }} shadow-2xs flex-shrink-0"
+                                              title="{{ $risksCount }} Active Risk(s)">
                                             <span>⚠️</span>
                                             <span class="font-mono">{{ $risksCount }}</span>
                                         </span>
                                     @endif
 
-                                    {{-- Exceeds Deadline Badge --}}
                                     @if($exceedsDeadline)
-                                        <span class="px-1 py-0.2 rounded text-[9px] font-black bg-rose-100 text-[#c3122e] border border-rose-300 flex-shrink-0" title="This deliverable exceeds the project deadline">
+                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-rose-100 text-[#c3122e] border border-rose-300 flex-shrink-0" title="Exceeds deadline">
                                             Late
                                         </span>
                                     @endif
@@ -383,12 +351,12 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                             </div>
 
                             <!-- Right: Timeline canvas (exact totalCanvasPx wide) -->
-                            <div class="relative flex-shrink-0 h-9 flex items-center" style="width:{{ $totalCanvasPx }}px;">
+                            <div class="relative flex-shrink-0 h-[44px] flex items-center" style="width:{{ $totalCanvasPx }}px;">
 
                                 <!-- Grid column lines (subtle background) -->
                                 @php $lineLeft = 0; @endphp
                                 @foreach($columns as $col)
-                                    <div class="absolute top-0 bottom-0 border-r border-slate-100/70 {{ ($col['isWeekend'] ?? false) ? 'bg-slate-50/60' : '' }}"
+                                    <div class="absolute top-0 bottom-0 border-r border-slate-100 {{ ($col['isToday'] ?? false) ? 'bg-rose-50/15' : (($col['isWeekend'] ?? false) ? 'bg-slate-50/40' : '') }}"
                                          style="left:{{ $lineLeft }}px; width:{{ $col['px'] }}px;"></div>
                                     @php $lineLeft += $col['px']; @endphp
                                 @endforeach
@@ -400,15 +368,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                          @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                          <div class="relative">
-                                            <div class="w-5 h-5 bg-gradient-to-br from-[#c3122e] via-rose-600 to-amber-500 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-rose-200"></div>
+                                            <div class="w-5 h-5 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-amber-200"></div>
                                             @if($risksCount > 0)
                                                 <span class="absolute -top-2 -right-2 text-[10px] bg-amber-400 text-slate-950 rounded-full w-4 h-4 flex items-center justify-center font-black ring-1 ring-white shadow-xs">⚠️</span>
                                             @endif
                                          </div>
-                                        <span class="text-[11px] font-black text-[#c3122e] whitespace-nowrap bg-white/95 px-2.5 py-0.5 rounded-lg shadow-sm border border-rose-200 flex items-center gap-1.5">
+                                        <span class="text-[10.5px] font-bold text-amber-900 whitespace-nowrap bg-amber-50/95 px-2.5 py-0.5 rounded-lg shadow-2xs border border-amber-200 flex items-center gap-1.5">
                                             <span>◆ {{ $item->title }}</span>
                                             @if($risksCount > 0)
-                                                <span class="text-amber-700 font-extrabold text-[10px] bg-amber-100 px-1 py-0.2 rounded border border-amber-200">⚠️ {{ $risksCount }} Risk</span>
+                                                <span class="text-amber-700 font-black text-[9px] bg-amber-100 px-1 py-0.2 rounded border border-amber-200">⚠️ {{ $risksCount }}</span>
                                             @endif
                                         </span>
                                     </div>
@@ -421,9 +389,9 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                         $tEnd   = $hasPattern ? $tParts[2] : ($item->end_time_formatted ?? $item->end_time);
 
                                         $hourBg = match($item->status->value) {
-                                            'completed'   => 'linear-gradient(135deg, #047857 0%, #10b981 60%, #34d399 100%)',
-                                            'in_progress' => 'linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 70%, #fbbf24 100%)',
-                                            default       => 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 40%, #a78bfa 100%)',
+                                            'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-700 shadow-xs shadow-emerald-950/20',
+                                            'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 shadow-xs shadow-amber-950/20',
+                                            default       => 'bg-gradient-to-r from-violet-600 to-purple-600 border-purple-700 shadow-xs shadow-purple-950/20',
                                         };
                                         $slotWidth = max(24, $barWidth - 2);
                                     @endphp
@@ -432,13 +400,12 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                          style="left:{{ $barLeft + 1 }}px; width:{{ $slotWidth }}px;"
                                          @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
-                                        <div class="relative h-6 rounded-md overflow-hidden flex items-center cursor-pointer hover:scale-[1.02] hover:brightness-110 transition-all shadow-xs border border-white/40"
-                                             style="background:{{ $hourBg }};">
+                                        <div class="relative h-6 rounded-lg overflow-hidden flex items-center cursor-pointer hover:scale-[1.01] hover:brightness-105 transition-all shadow-xs border border-white/20 {{ $hourBg }}">
                                             @if($item->progress > 0)
-                                                <div class="absolute inset-y-0 left-0 rounded-l-md bg-black/20"
+                                                <div class="absolute inset-y-0 left-0 rounded-l-lg bg-white/20 backdrop-blur-[0.5px]"
                                                      style="width:{{ $item->progress }}%;"></div>
                                             @endif
-                                            <span class="absolute inset-0 flex items-center px-1.5 gap-1 overflow-hidden justify-center sm:justify-start">
+                                            <span class="absolute inset-0 flex items-center px-2 gap-1 overflow-hidden justify-center sm:justify-start">
                                                 <svg class="w-2.5 h-2.5 text-white flex-shrink-0 opacity-90 hidden sm:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
@@ -447,33 +414,33 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                                     $compactEnd   = $tEnd   ? trim(preg_replace('/\s*(AM|PM)/i', '', $tEnd))   : null;
                                                 @endphp
                                                 @if($slotWidth >= 110 && $compactStart && $compactEnd)
-                                                    <span class="text-[9px] font-black text-white truncate drop-shadow-sm font-mono">{{ $compactStart }}–{{ $compactEnd }}</span>
+                                                    <span class="text-[9.5px] font-bold text-white truncate drop-shadow-sm font-mono">{{ $compactStart }}–{{ $compactEnd }}</span>
                                                 @elseif($slotWidth >= 32 && $compactStart)
-                                                    <span class="text-[9px] font-black text-white truncate drop-shadow-sm font-mono tracking-tight">{{ $compactStart }}</span>
+                                                    <span class="text-[9.5px] font-bold text-white truncate drop-shadow-sm font-mono tracking-tight">{{ $compactStart }}</span>
                                                 @else
-                                                    <span class="text-[8px] font-bold text-white/90">1h</span>
+                                                    <span class="text-[8.5px] font-bold text-white/90">1h</span>
                                                 @endif
                                             </span>
                                         </div>
                                     </div>
 
                                 @elseif($item->item_type->value === 'phase')
-                                    <!-- ── PHASE BAR ── -->
-                                    <div class="absolute h-7 rounded-lg flex items-center overflow-hidden z-20 hover:brightness-105 transition-all cursor-pointer shadow-xs {{ $exceedsDeadline ? 'ring-2 ring-rose-500' : '' }}"
-                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $pStyle['bg'] }}; border:1px solid {{ $pStyle['border'] }};"
+                                    <!-- ── PHASE CAPSULE BAR ── -->
+                                    <div class="absolute h-7.5 rounded-xl flex items-center overflow-hidden z-20 hover:brightness-105 transition-all cursor-pointer shadow-xs border {{ $pStyle['bg'] }} {{ $exceedsDeadline ? 'ring-2 ring-rose-500' : '' }}"
+                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px;"
                                          @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                         @if($item->progress > 0)
-                                            <div class="h-full bg-black/15 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
+                                            <div class="h-full bg-white/20 backdrop-blur-[0.5px] rounded-l-xl transition-all duration-300" style="width:{{ $item->progress }}%"></div>
                                         @endif
-                                        <span class="absolute inset-0 flex items-center justify-between px-3 text-xs font-bold text-white truncate tracking-wide">
+                                        <span class="absolute inset-0 flex items-center justify-between px-3 text-xs font-bold text-white truncate tracking-tight drop-shadow-xs">
                                             <span class="truncate">📁 {{ $item->title }} ({{ $item->progress }}%)</span>
                                             <div class="flex items-center gap-1.5 flex-shrink-0">
                                                 @if($exceedsDeadline)
-                                                    <span class="px-1.5 py-0.5 rounded bg-rose-700 text-white text-[9px] font-bold shadow-xs">Late</span>
+                                                    <span class="px-1.5 py-0.2 rounded bg-rose-700 text-white text-[8.5px] font-bold shadow-xs">Late</span>
                                                 @endif
                                                 @if($risksCount > 0)
-                                                    <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-900 text-[9px] font-bold shadow-xs flex items-center gap-0.5">
+                                                    <span class="px-1.5 py-0.2 rounded bg-amber-400 text-slate-900 text-[8.5px] font-black shadow-xs flex items-center gap-0.5">
                                                         <span>⚠️</span>
                                                         <span>{{ $risksCount }}</span>
                                                     </span>
@@ -483,15 +450,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                     </div>
 
                                 @else
-                                    <!-- ── TASK / SUBTASK BAR ── -->
-                                    <div class="absolute h-6 rounded-md flex items-center overflow-hidden z-20 hover:brightness-105 transition-all cursor-pointer shadow-2xs {{ $exceedsDeadline ? 'ring-2 ring-rose-500' : '' }}"
-                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px; background:{{ $taskStyle['bg'] }}; border:1px solid {{ $taskStyle['border'] }};"
+                                    <!-- ── TASK / SUBTASK CAPSULE BAR ── -->
+                                    <div class="absolute h-6 rounded-lg flex items-center overflow-hidden z-20 hover:brightness-105 transition-all cursor-pointer shadow-xs border {{ $taskStyle }} {{ $exceedsDeadline ? 'ring-2 ring-rose-500' : '' }}"
+                                         style="left:{{ $barLeft }}px; width:{{ $barWidth }}px;"
                                          @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                         @if($item->progress > 0)
-                                            <div class="h-full bg-black/15 transition-all duration-300" style="width:{{ $item->progress }}%"></div>
+                                            <div class="h-full bg-white/20 backdrop-blur-[0.5px] rounded-l-lg transition-all duration-300" style="width:{{ $item->progress }}%"></div>
                                         @endif
-                                        <span class="absolute inset-0 flex items-center justify-between px-2.5 text-[11px] font-semibold truncate text-white">
+                                        <span class="absolute inset-0 flex items-center justify-between px-2.5 text-[10.5px] font-bold truncate text-white drop-shadow-xs">
                                             <span class="truncate">
                                                 @if($item->status->value === 'completed') ✓ {{ $item->title }} (100%)
                                                 @else {{ $item->title }} ({{ $item->progress }}%)
@@ -499,10 +466,10 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                             </span>
                                             <div class="flex items-center gap-1 flex-shrink-0">
                                                 @if($exceedsDeadline)
-                                                    <span class="px-1 py-0.5 rounded bg-rose-700 text-white text-[8px] font-bold">Late</span>
+                                                    <span class="px-1 py-0.2 rounded bg-rose-700 text-white text-[8px] font-bold">Late</span>
                                                 @endif
                                                 @if($risksCount > 0)
-                                                    <span class="px-1 py-0.5 rounded bg-amber-400 text-slate-900 text-[9px] font-bold shadow-xs flex items-center gap-0.5" title="{{ $risksCount }} Associated Risk(s)">
+                                                    <span class="px-1 py-0.2 rounded bg-amber-400 text-slate-900 text-[8.5px] font-black shadow-xs flex items-center gap-0.5" title="{{ $risksCount }} Associated Risk(s)">
                                                         <span>⚠️</span>
                                                         <span class="font-mono">{{ $risksCount }}</span>
                                                     </span>
@@ -527,7 +494,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
     <div
         x-show="tooltip.visible && tooltip.data"
         x-cloak
-        :style="`position:fixed; left:${tooltip.x}px; top:${tooltip.y}px; z-index:9999; pointer-events:none; width:310px;`"
+        :style="`position:fixed; left:${tooltip.x}px; top:${tooltip.y}px; z-index:9999; pointer-events:none; width:300px;`"
         x-transition:enter="transition ease-out duration-120"
         x-transition:enter-start="opacity-0 translate-y-1"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -539,7 +506,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
             <div class="bg-white rounded-r-2xl rounded-l-md shadow-2xl border-y border-r border-slate-200 border-l-4 border-l-[#c3122e] overflow-hidden ring-1 ring-black/5">
 
                 <!-- Header -->
-                <div class="px-4 pt-3.5 pb-2.5 bg-gradient-to-r from-[#fdf4f4]/60 to-white border-b border-[#faeaea]">
+                <div class="px-4 pt-3 pb-2 bg-gradient-to-r from-[#fdf4f4]/60 to-white border-b border-[#faeaea]">
                     <div class="flex items-center justify-between gap-1.5 mb-1">
                         <div class="flex items-center gap-1.5">
                             <span class="text-[9px] font-black uppercase tracking-widest text-[#c3122e]" x-text="'WBS ' + tooltip.data.wbs"></span>
@@ -549,15 +516,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                         </div>
                         <template x-if="tooltip.data.exceeds_deadline">
                             <span class="px-1.5 py-0.5 rounded text-[8.5px] font-black bg-rose-100 text-[#c3122e] border border-rose-300">
-                                ⚠️ Exceeds Deadline
+                                ⚠️ Late
                             </span>
                         </template>
                     </div>
-                    <div class="font-extrabold text-slate-800 text-[13px] leading-snug" x-text="tooltip.data.title"></div>
+                    <div class="font-extrabold text-slate-800 text-xs leading-snug" x-text="tooltip.data.title"></div>
                 </div>
 
                 <!-- Body -->
-                <div class="px-4 py-3 space-y-3 bg-white">
+                <div class="px-4 py-3 space-y-2.5 bg-white">
                     <!-- Assignee & Progress Row -->
                     <div class="flex items-center justify-between gap-4">
                         <div class="flex items-center gap-2 min-w-0">
@@ -571,13 +538,6 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                         <div class="text-right flex-shrink-0">
                             <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Progress</div>
                             <div class="flex items-center gap-1.5 justify-end">
-                                <span class="text-[8px] font-bold px-1.5 py-0.5 rounded-full border leading-none"
-                                      :class="{
-                                          'bg-emerald-50 text-emerald-700 border-emerald-200': tooltip.data.progress == 100,
-                                          'bg-sky-50 text-sky-700 border-sky-200': tooltip.data.progress > 0 && tooltip.data.progress < 100,
-                                          'bg-slate-50 text-slate-650 border-slate-200': tooltip.data.progress == 0
-                                      }"
-                                      x-text="tooltip.data.status"></span>
                                 <span class="text-xs font-black text-slate-800" x-text="tooltip.data.progress + '%'"></span>
                             </div>
                         </div>
@@ -607,19 +567,19 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                     <!-- Associated Risks Box in Tooltip -->
                     <template x-if="tooltip.data.has_risk">
-                        <div class="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-950">
-                            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-amber-800 mb-1.5">
+                        <div class="p-2 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-950">
+                            <div class="flex items-center justify-between text-[9.5px] font-black uppercase tracking-wider text-amber-800 mb-1">
                                 <span class="flex items-center gap-1">
                                     <span>⚠️</span>
                                     <span>Associated Risks</span>
                                 </span>
-                                <span class="px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-mono text-[9px] font-black" x-text="tooltip.data.risks_count + ' ' + (tooltip.data.risks_count > 1 ? 'Risks' : 'Risk')"></span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 font-mono text-[8.5px] font-black" x-text="tooltip.data.risks_count + ' ' + (tooltip.data.risks_count > 1 ? 'Risks' : 'Risk')"></span>
                             </div>
-                            <div class="space-y-1 max-h-24 overflow-y-auto">
+                            <div class="space-y-1 max-h-20 overflow-y-auto">
                                 <template x-for="r in tooltip.data.risks_list" :key="r.title">
-                                    <div class="flex items-center justify-between text-[10px] font-semibold bg-white/90 p-1.5 rounded-lg border border-amber-100">
+                                    <div class="flex items-center justify-between text-[9.5px] font-semibold bg-white/90 p-1 rounded border border-amber-100">
                                         <span class="truncate max-w-[170px] text-slate-800" x-text="r.title"></span>
-                                        <span class="text-[8px] font-black px-1.5 py-0.2 rounded" :class="r.score >= 6 ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'" x-text="r.severity"></span>
+                                        <span class="text-[8px] font-black px-1 py-0.2 rounded" :class="r.score >= 6 ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'" x-text="r.severity"></span>
                                     </div>
                                 </template>
                             </div>

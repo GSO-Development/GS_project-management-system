@@ -40,199 +40,66 @@
     @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER & GOVERNANCE COMMAND HUB
+         1. TOP HEADER (PROJECT MONITOR)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Governance Command Hub Banner" 
-                class="w-full h-full object-cover object-right opacity-90"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Project Monitor
+            </h1>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-            <!-- Left Side: Shield Mark + Title + Subtitle -->
-            <div class="flex items-center gap-4 min-w-0">
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-xl flex-shrink-0 border border-white/20 ring-4 ring-rose-500/15 flex items-center justify-center p-2.5" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            Tracking Center
-                        </h1>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold text-amber-200 border border-amber-400/30 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(184, 134, 11, 0.35);">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                            <span>Enterprise Governance</span>
-                        </span>
-                    </div>
-                    <p class="text-xs sm:text-sm text-slate-300 mt-1 font-medium line-clamp-1">
-                        Cross-subsidiary portfolio monitoring, RAG health diagnostics &amp; execution velocity.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Right Side: View Mode Switcher + Print / Export Action -->
-            <div class="flex items-center gap-2.5 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
-                <!-- View Mode Switcher: Table vs Tasks vs Gantt vs Stuck -->
-                <div class="overflow-x-auto scrollbar-none max-w-full pb-1 sm:pb-0" style="scrollbar-width: none;">
-                    <div class="inline-flex p-1 rounded-xl border border-white/15 shadow-xl backdrop-blur-xl flex-nowrap min-w-max" style="background: rgba(0, 0, 0, 0.45);">
-                        <button 
-                            wire:click="setViewMode('table')" 
-                            type="button" 
-                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-md scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}"
-                            title="Master Governance Table"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                            <span>Table</span>
-                        </button>
-
-                        <button 
-                            wire:click="setViewMode('gantt')" 
-                            type="button" 
-                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'gantt' ? 'bg-white text-amber-900 shadow-md scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}"
-                            title="Master Portfolio Gantt Radar"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>Portfolio Gantt</span>
-                        </button>
-                        <button 
-                            wire:click="setViewMode('stuck')" 
-                            type="button" 
-                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'stuck' ? 'bg-[#c3122e] text-white shadow-md scale-[1.02]' : 'text-rose-300 hover:text-white hover:bg-rose-900/40' }}"
-                            title="Live Stuck & Blocked Tasks Radar"
-                        >
-                            <span class="w-2 h-2 rounded-full bg-rose-400 {{ $totalStuckTasksCount > 0 ? 'animate-pulse' : '' }}"></span>
-                            <span>Stuck Tasks</span>
-                            <span class="px-1.5 py-0.2 rounded-md text-[10px] font-mono bg-white/20 text-white">{{ $totalStuckTasksCount }}</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Print & PDF Brief Button -->
+        <!-- Right Side: View Mode Switcher + Print / Export Action -->
+        <div class="flex items-center gap-2.5 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+            <!-- View Mode Switcher: Table vs Gantt vs Stuck -->
+            <div class="inline-flex p-1 rounded-xl border border-slate-200/90 bg-slate-100/90 shadow-2xs flex-nowrap min-w-max">
                 <button 
-                    onclick="window.print()" 
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold text-white border border-white/20 hover:bg-white/10 shadow-md transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-                    title="Print Executive Portfolio Brief"
+                    wire:click="setViewMode('table')" 
+                    type="button" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                    title="Master Governance Table"
                 >
-                    <svg class="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>Print Brief</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    <span>Table</span>
+                </button>
+
+                <button 
+                    wire:click="setViewMode('gantt')" 
+                    type="button" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'gantt' ? 'bg-white text-slate-900 shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                    title="Master Portfolio Gantt Radar"
+                >
+                    <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Portfolio Gantt</span>
+                </button>
+                <button 
+                    wire:click="setViewMode('stuck')" 
+                    type="button" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'stuck' ? 'bg-[#c3122e] text-white shadow-xs scale-[1.02]' : 'text-rose-700 hover:text-rose-900 hover:bg-rose-50' }}"
+                    title="Live Stuck & Blocked Tasks Radar"
+                >
+                    <span class="w-2 h-2 rounded-full bg-rose-400 {{ $totalStuckTasksCount > 0 ? 'animate-pulse' : '' }}"></span>
+                    <span>Stuck Tasks</span>
+                    <span class="px-1.5 py-0.2 rounded-md text-[10px] font-mono {{ $viewMode === 'stuck' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">{{ $totalStuckTasksCount }}</span>
                 </button>
             </div>
+
+            <!-- Print & PDF Brief Button -->
+            <button 
+                onclick="window.print()" 
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+                title="Print Executive Portfolio Brief"
+            >
+                <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>Print Brief</span>
+            </button>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         2. CLEAN 5 KPI METRIC CARDS (EXACT MATCH TO REFERENCE)
+         2. CLEAN SIMPLE SEARCH & FILTER BAR
          ═══════════════════════════════════════════════════════════════ -->
     @if($viewMode === 'matrix' || $viewMode === 'table')
-        <style>
-            @media (min-width: 1024px) {
-                .kpi-5-grid {
-                    display: grid !important;
-                    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-                }
-                .filter-single-row {
-                    display: flex !important;
-                    align-items: flex-end !important;
-                    gap: 0.75rem !important;
-                }
-            }
-        </style>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 kpi-5-grid gap-3.5 sm:gap-4">
-
-            <!-- 1. Total Projects (Blue Folder) -->
-            <button type="button" wire:click="setQuickSegment('all'); $set('healthFilter', 'all'); $set('statusFilter', 'all')"
-                    class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 flex items-center gap-4 text-left transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5
-                           {{ $quickSegment === 'all' && $healthFilter === 'all' && $statusFilter === 'all' ? 'border-blue-400 shadow-sm' : 'hover:border-slate-300' }}">
-                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-800 leading-tight tracking-tight">{{ $totalProjectsCount }}</div>
-                    <div class="text-xs font-semibold text-slate-400 mt-0.5">Total Projects</div>
-                </div>
-            </button>
-
-            <!-- 2. On Track (Green Checkmark) -->
-            <button type="button" wire:click="setQuickSegment('on_track'); $set('statusFilter', 'all')"
-                    class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 flex items-center gap-4 text-left transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5
-                           {{ $quickSegment === 'on_track' ? 'border-emerald-400 shadow-sm' : 'hover:border-slate-300' }}">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-800 leading-tight tracking-tight">{{ $onTrackCount }}</div>
-                    <div class="text-xs font-semibold text-slate-400 mt-0.5">On Track</div>
-                </div>
-            </button>
-
-            <!-- 3. Delayed (Amber Clock) -->
-            <button type="button" wire:click="setQuickSegment('critical'); $set('statusFilter', 'all')"
-                    class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 flex items-center gap-4 text-left transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5
-                           {{ $quickSegment === 'critical' ? 'border-amber-400 shadow-sm' : 'hover:border-slate-300' }}">
-                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-800 leading-tight tracking-tight">{{ $delayedCount }}</div>
-                    <div class="text-xs font-semibold text-slate-400 mt-0.5">Delayed</div>
-                </div>
-            </button>
-
-            <!-- 4. At Risk / Blocked (Red Alert Circle) -->
-            <button type="button" wire:click="setQuickSegment('at_risk'); $set('statusFilter', 'all')"
-                    class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 flex items-center gap-4 text-left transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5
-                           {{ $quickSegment === 'at_risk' ? 'border-rose-400 shadow-sm' : 'hover:border-slate-300' }}">
-                <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-800 leading-tight tracking-tight">{{ $atRiskOrBlockedCount }}</div>
-                    <div class="text-xs font-semibold text-slate-400 mt-0.5">At Risk / Blocked</div>
-                </div>
-            </button>
-
-            <!-- 5. On Hold (Purple Users) -->
-            <button type="button" wire:click="$set('statusFilter', 'on_hold'); setQuickSegment('all')"
-                    class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 flex items-center gap-4 text-left transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5
-                           {{ $statusFilter === 'on_hold' ? 'border-purple-400 shadow-sm' : 'hover:border-slate-300' }}">
-                <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-800 leading-tight tracking-tight">{{ $onHoldCount }}</div>
-                    <div class="text-xs font-semibold text-slate-400 mt-0.5">On Hold</div>
-                </div>
-            </button>
-
-        </div>
-
-        <!-- 3. CLEAN SIMPLE SEARCH & FILTER BAR (EXACT MATCH TO UPLOADED MOCKUP) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <!-- Left: Search projects by name or code... -->
             <div class="relative flex-1 min-w-[260px]">
@@ -641,196 +508,192 @@
         </div>
 
     <!-- ═══════════════════════════════════════════════════════════
-         VIEW 3: 📈 MASTER PORTFOLIO GANTT RADAR
+         VIEW 3: 📈 MASTER PORTFOLIO GANTT RADAR (MODERN EXECUTIVE UI)
          ═══════════════════════════════════════════════════════════ -->
     @elseif($viewMode === 'gantt')
         <div class="space-y-4">
             
-            <!-- ── 1. GANTT HEADER & FILTER COMMAND STRIP ── -->
-            <div class="bg-white border border-slate-200 shadow-xs rounded-2xl p-4 sm:p-5 space-y-4">
+            <!-- ── 1. CLEAN GANTT CONTROL & FILTER TOOLBAR ── -->
+            <div class="bg-white border border-slate-200/80 shadow-2xs rounded-3xl p-4 sm:p-5 space-y-3.5">
                 
-                <!-- Top Row: Title, Horizon Summary & Timeframe Switcher -->
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-rose-900/20 ring-4 ring-rose-50 flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #800a1c 100%);">
-                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h2 class="text-base font-black text-slate-900 tracking-tight">Enterprise Multi-Project Schedule Radar</h2>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-200">
-                                    {{ $ganttTimeframe === 'auto' ? 'Auto (Fit All)' : ($ganttTimeframe === '3m' ? '3 Months' : ($ganttTimeframe === '12m' ? '12 Months' : '6 Months')) }}
-                                </span>
-                                @if($ganttMonthOffset !== 0)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                                        <span>Shifted {{ $ganttMonthOffset > 0 ? "+{$ganttMonthOffset}" : $ganttMonthOffset }} mo</span>
-                                        <button wire:click="ganttToday" class="underline hover:text-amber-950 cursor-pointer text-[9px] font-black" title="Reset to today">Reset</button>
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="text-xs text-slate-500 mt-0.5 font-medium flex items-center gap-1.5 flex-wrap">
-                                <span>Timeline Span:</span>
-                                <strong class="text-slate-800 font-mono font-bold">{{ $ganttTimeline['start']->format('M d, Y') }}</strong>
-                                <span class="text-slate-400">→</span>
-                                <strong class="text-slate-800 font-mono font-bold">{{ $ganttTimeline['end']->format('M d, Y') }}</strong>
-                                <span class="text-slate-400 font-normal">({{ $ganttTimeline['total_days'] }} Days)</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Right Controls: Navigation Buttons & Timeframe Switcher -->
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <!-- Date Navigator (Prev / Today / Next) -->
-                        <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden p-0.5">
-                            <button wire:click="ganttPrev" class="px-2.5 py-1.5 flex items-center gap-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Shift 1 Month Earlier">
+                <!-- Row 1: Timeline Navigation, Scale Zoom, Date Span & Status Legend -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    
+                    <!-- Left: Navigation + Zoom + Date Range Chip -->
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        
+                        <!-- Date Navigation Buttons (< Prev, Today, Next >) -->
+                        <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-2xs p-0.5 shrink-0">
+                            <button wire:click="ganttPrev" type="button" class="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Shift 1 Month Earlier">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                                <span class="hidden sm:inline">Prev</span>
+                                <span>Prev</span>
                             </button>
-                            <button wire:click="ganttToday" class="px-2.5 py-1.5 text-slate-700 hover:text-[#c3122e] hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-x border-slate-100" title="Center Timeline on Current Month">
+                            <button wire:click="ganttToday" type="button" class="px-2.5 py-1.5 text-slate-700 hover:text-[#c3122e] hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-x border-slate-100" title="Center Timeline on Current Month">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
                                 <span>Today</span>
                             </button>
-                            <button wire:click="ganttNext" class="px-2.5 py-1.5 flex items-center gap-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer" title="Shift 1 Month Later">
-                                <span class="hidden sm:inline">Next</span>
+                            <button wire:click="ganttNext" type="button" class="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Shift 1 Month Later">
+                                <span>Next</span>
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
 
                         <!-- Horizon switcher (Auto / 3M / 6M / 12M) -->
-                        <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/90 text-xs font-bold">
-                            <button wire:click="setGanttTimeframe('auto')" 
-                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === 'auto' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
-                                    title="Auto fit all projects from earliest start to latest deadline">
+                        <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold shrink-0">
+                            <button wire:click="setGanttTimeframe('auto')" type="button"
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === 'auto' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                                    title="Auto fit timeline to project start and deadline dates">
                                 Auto
                             </button>
-                            <button wire:click="setGanttTimeframe('3m')" 
-                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '3m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                            <button wire:click="setGanttTimeframe('3m')" type="button"
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '3m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                                 3M
                             </button>
-                            <button wire:click="setGanttTimeframe('6m')" 
-                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '6m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                            <button wire:click="setGanttTimeframe('6m')" type="button"
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '6m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                                 6M
                             </button>
-                            <button wire:click="setGanttTimeframe('12m')" 
-                                    class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '12m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                            <button wire:click="setGanttTimeframe('12m')" type="button"
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '12m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                                 12M
                             </button>
                         </div>
+
+                        <!-- Date Span Details -->
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 shrink-0">
+                            <span class="text-slate-800 font-mono font-bold">{{ $ganttTimeline['start']->format('M d, Y') }}</span>
+                            <span class="text-slate-400">→</span>
+                            <span class="text-slate-800 font-mono font-bold">{{ $ganttTimeline['end']->format('M d, Y') }}</span>
+                            <span class="text-slate-400 font-normal">({{ $ganttTimeline['total_days'] }}d)</span>
+                        </div>
+
                     </div>
+
+                    <!-- Right: Modern Status Legend Indicators -->
+                    <div class="flex items-center gap-3 text-xs font-semibold text-slate-600 overflow-x-auto scrollbar-none py-0.5 shrink-0">
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-xs"></span>
+                            <span>On Track</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 shadow-xs"></span>
+                            <span>At Risk</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shrink-0 shadow-xs"></span>
+                            <span>Delayed</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2.5 h-2.5 bg-amber-500 rotate-45 shrink-0 rounded-xs"></span>
+                            <span>Milestone</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-3.5 h-0.5 bg-rose-500 shrink-0"></span>
+                            <span class="text-rose-600 font-bold text-[11px]">Today</span>
+                        </span>
+                    </div>
+
                 </div>
 
-                <!-- Bottom Filter, Expand/Collapse & Legend Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-                    <!-- Expand/Collapse + Filters -->
-                    <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
-                        <!-- Expand All / Collapse All Toggle -->
-                        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 shrink-0">
-                            <button wire:click="expandAllGanttProjects" class="hover:text-[#c3122e] transition-colors cursor-pointer" title="Expand deliverables for all projects">
-                                Expand All
-                            </button>
-                            <span class="text-slate-300">•</span>
-                            <button wire:click="collapseAllGanttProjects" class="hover:text-slate-900 transition-colors cursor-pointer" title="Collapse all deliverables">
-                                Collapse All
-                            </button>
+                <!-- Row 2: Search, Dropdown Filters & Expand/Collapse Deliverables Switch -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                    
+                    <!-- Left: Search Box + Dropdown Filters -->
+                    <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                        <!-- Search Box -->
+                        <div class="relative w-full sm:w-56 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search projects…"
+                                   class="w-full pl-8.5 pr-3 py-1.5 bg-slate-50/90 border border-slate-200/90 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all">
                         </div>
 
-                        <!-- Search -->
-                        <div class="relative flex-1 min-w-[160px] max-w-[240px]">
-                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search scheduled projects…"
-                                   class="w-full pl-8.5 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all">
-                        </div>
-
-                        <!-- Subsidiary Filter -->
-                        <select wire:model.live="subsidiaryFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[130px]">
+                        <!-- Subsidiary Select -->
+                        <select wire:model.live="subsidiaryFilter" 
+                                class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer max-w-[160px] truncate shrink-0">
                             <option value="all">🏢 All Subsidiaries</option>
                             @foreach($subsidiaries as $sub)
                                 <option value="{{ $sub->id }}">{{ $sub->name }}</option>
                             @endforeach
                         </select>
 
-                        <!-- Health Filter -->
-                        <select wire:model.live="healthFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[115px]">
-                            <option value="all">🚦 All Health</option>
-                            <option value="delayed">🔴 Delayed</option>
-                            <option value="at_risk">🟡 At Risk</option>
+                        <!-- Health Select -->
+                        <select wire:model.live="healthFilter" 
+                                class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer shrink-0">
+                            <option value="all">🚦 Health: All</option>
                             <option value="on_track">🟢 On Track</option>
+                            <option value="at_risk">🟡 At Risk</option>
+                            <option value="delayed">🔴 Delayed</option>
                         </select>
 
-                        <!-- PM Filter -->
-                        <select wire:model.live="pmFilter" class="custom-select px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all min-w-[125px]">
-                            <option value="all">👤 All Managers</option>
+                        <!-- PM Select -->
+                        <select wire:model.live="pmFilter" 
+                                class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer max-w-[155px] truncate shrink-0">
+                            <option value="all">👤 Manager: All</option>
                             @foreach($pms as $pm)
                                 <option value="{{ $pm->id }}">{{ $pm->name }}</option>
                             @endforeach
                         </select>
 
                         @if($search || $subsidiaryFilter !== 'all' || $healthFilter !== 'all' || $pmFilter !== 'all')
-                            <button wire:click="resetFilters" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all cursor-pointer">
-                                Reset
+                            <button wire:click="resetFilters" type="button" title="Reset all filters"
+                                    class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:text-[#c3122e] hover:border-rose-200 transition-all flex items-center gap-1 cursor-pointer shadow-2xs shrink-0">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span>Reset</span>
                             </button>
                         @endif
                     </div>
 
-                    <!-- Legend -->
-                    <div class="flex items-center gap-3 text-xs font-semibold text-slate-600 flex-wrap">
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span> On Track
-                        </span>
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></span> At Risk
-                        </span>
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shadow-xs"></span> Delayed
-                        </span>
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2 h-2 bg-amber-500 rotate-45"></span> Milestone
-                        </span>
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-3.5 h-0.5 bg-rose-500 border-t-2 border-dashed border-rose-500"></span>
-                            <span class="text-rose-600 font-bold text-[11px]">Today</span>
-                        </span>
+                    <!-- Right: Expand / Collapse Deliverables Toggle -->
+                    <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold items-center shrink-0 self-start lg:self-auto">
+                        <button wire:click="expandAllGanttProjects" type="button" class="px-3 py-1 rounded-lg text-slate-600 hover:text-[#c3122e] hover:bg-white transition-all cursor-pointer" title="Expand all project deliverables">
+                            Expand All
+                        </button>
+                        <span class="text-slate-300 font-normal">|</span>
+                        <button wire:click="collapseAllGanttProjects" type="button" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Collapse all deliverables">
+                            Collapse All
+                        </button>
                     </div>
+
                 </div>
+
             </div>
 
             <!-- ── 2. GANTT TIMELINE WORKSPACE (STRUCTURED PIXEL-PERFECT GRID) ── -->
-            <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+            <div class="bg-white border border-slate-200/80 shadow-2xs rounded-3xl overflow-hidden">
                 <div class="overflow-x-auto overflow-y-auto max-h-[760px] scrollbar-thin">
                     <div class="min-w-[1550px]" style="min-width: 1550px;">
                         
                         <!-- ── TIMELINE HEADER ROW (STICKY TOP) ── -->
-                        <div class="flex border-b border-slate-200 bg-slate-100 text-slate-700 select-none sticky top-0 z-30 shadow-2xs">
+                        <div class="flex border-b border-slate-200/90 bg-slate-50/95 text-slate-700 select-none sticky top-0 z-30 shadow-2xs backdrop-blur-xs">
                             
-                            <!-- Left Sidebar Column Header (420px fixed, spacious) -->
-                            <div class="w-[420px] min-w-[420px] flex-shrink-0 flex items-center justify-between px-4 h-11 border-r border-slate-200 bg-slate-100 sticky left-0 z-40">
-                                <div class="font-black text-[11px] uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                                    <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                            <!-- Left Sidebar Column Header (400px fixed) -->
+                            <div class="w-[400px] min-w-[400px] flex-shrink-0 flex items-center justify-between px-4 h-12 border-r border-slate-200/90 bg-slate-50 sticky left-0 z-40">
+                                <div class="font-extrabold text-xs uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
                                     <span>PROJECT &amp; GOVERNANCE</span>
                                 </div>
-                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-600 border border-slate-200/80 shadow-2xs">
-                                    {{ count($ganttTimeline['projects']) }} Projects
+                                <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                                    {{ count($ganttTimeline['projects']) }} {{ count($ganttTimeline['projects']) === 1 ? 'Project' : 'Projects' }}
                                 </span>
                             </div>
 
-                            <!-- Right Months Timeline Headers (px-0 exact grid alignment) -->
-                            <div class="flex-1 min-w-[1130px] flex relative bg-slate-50 h-11 px-0">
+                            <!-- Right Months Timeline Headers -->
+                            <div class="flex-1 min-w-[1150px] flex relative bg-slate-50 h-12 px-0">
                                 @foreach($ganttTimeline['months'] as $m)
                                     @php
-                                        // Choose label format based on timeframe & month count
                                         $mDisplayLabel = match($ganttTimeframe) {
-                                            '3m'  => $m['label'],          // Aug 2026 (full)
-                                            '12m' => $m['short'],          // Aug (short)
-                                            default => $m['short_label'],  // Aug '26 (compact)
+                                             '3m'  => $m['label'],
+                                             '12m' => $m['short'],
+                                             default => $m['short_label'],
                                         };
                                         if ($ganttTimeframe === '12m' && $m['month_num'] === 1) {
-                                            $mDisplayLabel = $m['short_label']; // Jan '27
+                                            $mDisplayLabel = $m['short_label'];
                                         }
                                     @endphp
-                                    <div class="border-r border-slate-200 flex items-center justify-center text-center h-full px-1 overflow-hidden {{ $m['is_current'] ? 'bg-rose-50/70 font-black text-[#c3122e] border-b-2 border-b-[#c3122e]' : 'text-slate-700 font-bold' }}" style="width: {{ $m['width_pct'] }}%;" title="{{ $m['label'] }}">
-                                        <div class="flex items-center gap-1 text-xs tracking-tight whitespace-nowrap">
+                                    <div class="border-r border-slate-200/80 flex items-center justify-center text-center h-full px-1 overflow-hidden relative {{ $m['is_current'] ? 'bg-rose-50/80 font-black text-[#c3122e] border-b-2 border-b-[#c3122e]' : 'text-slate-700 font-bold' }}" style="width: {{ $m['width_pct'] }}%;" title="{{ $m['label'] }}">
+                                        <div class="flex items-center gap-1.5 text-xs tracking-tight whitespace-nowrap">
                                             <span>{{ $mDisplayLabel }}</span>
                                             @if($m['is_current'])
                                                 <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e] animate-pulse flex-shrink-0" title="Current Month"></span>
@@ -852,29 +715,29 @@
                                     $health = is_object($rawHealth) ? ($rawHealth->value ?? 'on_track') : (string)$rawHealth;
                                     
                                     $hBadge = match($health) {
-                                        'delayed'   => 'bg-rose-50 text-[#c3122e] border-rose-200',
-                                        'at_risk'   => 'bg-amber-50 text-amber-800 border-amber-200',
-                                        'on_track'  => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                        default     => 'bg-indigo-50 text-indigo-800 border-indigo-200',
+                                        'delayed'   => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
+                                        'at_risk'   => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                                        'on_track'  => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                                        default     => 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
                                     };
                                     
-                                    // Gradient bar styles
+                                    // Sleek modern gradients for Gantt capsule
                                     $barBgColor = match($health) {
-                                        'delayed'   => 'from-[#c3122e] to-[#990e24] border-[#800a1c] shadow-rose-900/15',
-                                        'at_risk'   => 'from-amber-500 to-amber-600 border-amber-700 shadow-amber-900/15',
-                                        'on_track'  => 'from-emerald-500 to-emerald-600 border-emerald-700 shadow-emerald-900/15',
-                                        default     => 'from-indigo-500 to-indigo-600 border-indigo-700 shadow-indigo-900/15',
+                                        'delayed'   => 'bg-gradient-to-r from-[#c3122e] via-[#b01029] to-[#940c21] border-[#800a1c] shadow-xs shadow-rose-950/20',
+                                        'at_risk'   => 'bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 border-amber-700 shadow-xs shadow-amber-950/20',
+                                        'on_track'  => 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
+                                        default     => 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 border-indigo-700 shadow-xs shadow-indigo-950/20',
                                     };
 
-                                    $barWidthPct = max(3.0, $gp['width_pct']);
+                                    $barWidthPct = max(3.5, $gp['width_pct']);
                                     $isWide = $barWidthPct >= 16.0;
                                 @endphp
 
-                                <!-- 1. PROJECT MAIN ROW (58px fixed height with 2-line mini card) -->
-                                <div class="flex items-center min-h-[58px] h-[58px] hover:bg-slate-50/80 transition-all group relative z-0">
+                                <!-- 1. PROJECT MAIN ROW (66px height with 2-line mini card) -->
+                                <div class="flex items-center min-h-[66px] h-[66px] hover:bg-slate-50/70 transition-all group relative z-0">
                                     
-                                    <!-- LEFT COLUMN: Project Info (420px, flex aligned, sticky left) -->
-                                    <div class="w-[420px] min-w-[420px] flex-shrink-0 px-3.5 py-2 h-[58px] border-r border-slate-200 bg-white group-hover:bg-slate-50 sticky left-0 z-20 transition-colors flex flex-col justify-center gap-1 shadow-2xs">
+                                    <!-- LEFT COLUMN: Project Info (400px, flex aligned, sticky left) -->
+                                    <div class="w-[400px] min-w-[400px] flex-shrink-0 px-4 py-2.5 h-[66px] border-r border-slate-200/90 bg-white group-hover:bg-slate-50 sticky left-0 z-20 transition-colors flex flex-col justify-center gap-1.5 shadow-2xs">
                                         
                                         <!-- Row 1: Expand Chevron Button + Code Badge + Project Name -->
                                         <div class="flex items-center gap-2 min-w-0">
@@ -889,14 +752,14 @@
 
                                             <!-- Code badge -->
                                             <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
-                                               class="px-2 py-0.5 rounded-md font-mono font-bold text-[9.5px] bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] border border-slate-200 shrink-0 transition-colors no-underline"
+                                               class="px-2 py-0.5 rounded-md font-mono font-bold text-[10px] bg-rose-50 text-[#c3122e] border border-rose-200/80 shrink-0 transition-colors no-underline"
                                                title="Open {{ $proj->name }} Workspace">
                                                 {{ $proj->code }}
                                             </a>
 
                                             <!-- Project Name -->
                                             <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
-                                               class="font-bold text-xs text-slate-900 hover:text-[#c3122e] truncate transition-colors no-underline flex-1" 
+                                               class="font-extrabold text-[13px] text-slate-900 hover:text-[#c3122e] truncate transition-colors no-underline flex-1 leading-tight" 
                                                title="Open {{ $proj->name }} Workspace">
                                                 {{ $proj->name }}
                                             </a>
@@ -904,13 +767,13 @@
 
                                         <!-- Row 2: Subsidiary • PM Avatar & Name • Health Pill -->
                                         <div class="flex items-center gap-2 text-[11px] pl-8 text-slate-500 font-medium">
-                                            <span class="truncate max-w-[130px]" title="{{ $proj->subsidiary->name ?? '—' }}">
+                                            <span class="truncate max-w-[130px] font-semibold text-slate-400" title="{{ $proj->subsidiary->name ?? '—' }}">
                                                 {{ $proj->subsidiary->name ?? '—' }}
                                             </span>
                                             <span class="text-slate-300">•</span>
-                                            <span class="inline-flex items-center gap-1 truncate max-w-[110px]" title="{{ $proj->projectManager->name ?? 'Unassigned' }}">
+                                            <span class="inline-flex items-center gap-1.5 truncate max-w-[115px]" title="{{ $proj->projectManager->name ?? 'Unassigned' }}">
                                                 @if($proj->projectManager)
-                                                    <span class="w-4 h-4 rounded-full bg-gradient-to-br from-[#c3122e] to-[#800a1c] text-white font-bold text-[8px] flex items-center justify-center shrink-0">
+                                                    <span class="w-4.5 h-4.5 rounded-full bg-gradient-to-br from-[#c3122e] to-[#800a1c] text-white font-bold text-[8.5px] flex items-center justify-center shrink-0 shadow-2xs">
                                                         {{ strtoupper(substr($proj->projectManager->name, 0, 1)) }}
                                                     </span>
                                                     <span class="text-slate-700 font-semibold truncate">{{ Str::before($proj->projectManager->name, ' ') }}</span>
@@ -926,8 +789,8 @@
 
                                     </div>
 
-                                    <!-- RIGHT COLUMN: Timeline Bar Track (Min 1130px, px-0) -->
-                                    <div class="flex-1 min-w-[1130px] relative h-[58px] flex items-center px-0">
+                                    <!-- RIGHT COLUMN: Timeline Bar Track (Min 1150px, px-0) -->
+                                    <div class="flex-1 min-w-[1150px] relative h-[66px] flex items-center px-0">
                                         
                                         <!-- Month Column Vertical Grid Lines with alternating zebra background -->
                                         <div class="absolute inset-0 flex pointer-events-none">
@@ -936,74 +799,85 @@
                                             @endforeach
                                         </div>
 
-                                        <!-- Vertical Red TODAY Line -->
+                                        <!-- Vertical Red TODAY Line (Subtle background indicator, z-5) -->
                                         @if($ganttTimeline['today_visible'])
-                                            <div class="absolute top-0 bottom-0 pointer-events-none z-20 flex flex-col items-center" 
+                                            <div class="absolute top-0 bottom-0 pointer-events-none z-5 flex flex-col items-center" 
                                                  style="left: {{ $ganttTimeline['today_pct'] }}%;">
-                                                <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-90"></div>
+                                                <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-60"></div>
                                             </div>
                                         @endif
 
-                                        <!-- GANTT DURATION BAR (Sleek Modern Capsule - Click to open WBS Tasks) -->
+                                        <!-- GANTT DURATION BAR (Sleek Modern Capsule Track) -->
                                         @if($gp['is_out_of_bounds'])
                                             @if($gp['left_pct'] <= 0)
                                                 <!-- Past Project Out of Bounds Indicator -->
-                                                <div class="absolute left-2 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                                <div class="absolute left-3 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
                                                     <span>◀</span>
                                                     <span>Ended {{ $gp['end_date']->format('M d, Y') }}</span>
                                                     <span class="text-slate-400">({{ $gp['progress'] }}%)</span>
                                                 </div>
                                             @else
                                                 <!-- Future Project Out of Bounds Indicator -->
-                                                <div class="absolute right-2 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                                <div class="absolute right-3 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
                                                     <span>Starts {{ $gp['start_date']->format('M d, Y') }}</span>
                                                     <span>▶</span>
                                                 </div>
                                             @endif
                                         @else
-                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
-                                               class="absolute h-7 rounded-full shadow-xs transition-all flex items-center overflow-hidden cursor-pointer group/bar z-10 border bg-gradient-to-r text-white no-underline {{ $barBgColor }} hover:brightness-105 hover:shadow-md"
-                                               style="left: {{ $gp['left_pct'] }}%; width: {{ $barWidthPct }}%;"
-                                               title="{{ $proj->name }} • Open WBS Tasks • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
+                                            
+                                            <!-- Full-width Lane Track -->
+                                            <div class="w-full h-8 rounded-full bg-slate-50/80 border border-slate-100/90 flex items-center relative overflow-hidden px-0.5 mx-3">
                                                 
-                                                <!-- Progress Stripe Inner Fill -->
-                                                <div class="h-full bg-black/20 transition-all duration-500 rounded-l-full"
-                                                     style="width: {{ $gp['progress'] }}%;"></div>
+                                                <!-- Capsule Gantt Bar -->
+                                                <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                                   class="absolute h-full rounded-full shadow-xs transition-all flex items-center overflow-hidden cursor-pointer group/bar z-10 border text-white no-underline {{ $barBgColor }} hover:brightness-105 hover:shadow-md"
+                                                   style="left: {{ $gp['left_pct'] }}%; width: {{ $barWidthPct }}%;"
+                                                   title="{{ $proj->name }} • Open WBS Tasks • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
+                                                    
+                                                    <!-- Progress Stripe Inner Fill -->
+                                                    @if($gp['progress'] > 0)
+                                                        <div class="h-full bg-white/20 transition-all duration-500 rounded-l-full backdrop-blur-[0.5px]"
+                                                             style="width: {{ $gp['progress'] }}%;"></div>
+                                                    @endif
 
-                                                <!-- Inside Text: Progress & Dates if wide -->
-                                                @if($isWide)
-                                                    <div class="absolute inset-0 flex items-center justify-between px-3 pointer-events-none text-[9.5px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-xs">
-                                                        <span class="flex items-center gap-1">
-                                                            @if($gp['starts_before']) <span class="opacity-75">◀</span> @endif
-                                                            <span>{{ $gp['progress'] }}%</span>
+                                                    <!-- Inside Text: Progress & Dates if wide -->
+                                                    @if($isWide)
+                                                        <div class="absolute inset-0 flex items-center justify-between px-3 pointer-events-none text-[10.5px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-sm">
+                                                            <span class="flex items-center gap-1">
+                                                                @if($gp['starts_before']) <span class="opacity-75 text-[9px]">◀</span> @endif
+                                                                <span class="bg-black/20 px-1.5 py-0.5 rounded-full text-[10px]">{{ $gp['progress'] }}%</span>
+                                                            </span>
+                                                            <span class="opacity-95 text-[10px] font-semibold flex items-center gap-1">
+                                                                <span>{{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}</span>
+                                                                @if($gp['ends_after']) <span class="opacity-75 text-[9px]">▶</span> @endif
+                                                            </span>
+                                                        </div>
+                                                    @else
+                                                        <div class="absolute inset-0 flex items-center justify-center px-1 pointer-events-none text-[10px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-sm">
+                                                            {{ $gp['progress'] }}%
+                                                        </div>
+                                                    @endif
+                                                </a>
+
+                                                <!-- Floating Date Label Outside (if narrow) -->
+                                                @if(!$isWide)
+                                                    <div class="absolute flex items-center gap-2 pointer-events-none whitespace-nowrap z-10"
+                                                         style="left: calc({{ $gp['left_pct'] + $barWidthPct }}% + 12px);">
+                                                        <span class="text-[11px] font-mono font-bold text-slate-600 bg-white/95 px-2 py-0.5 rounded-md border border-slate-200/90 shadow-2xs">
+                                                            {{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}
                                                         </span>
-                                                        <span class="opacity-90 text-[9px] flex items-center gap-1">
-                                                            <span>{{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}</span>
-                                                            @if($gp['ends_after']) <span class="opacity-75">▶</span> @endif
-                                                        </span>
-                                                    </div>
-                                                @else
-                                                    <div class="absolute inset-0 flex items-center justify-center px-1 pointer-events-none text-[9px] font-bold font-mono text-white whitespace-nowrap overflow-hidden drop-shadow-xs">
-                                                        {{ $gp['progress'] }}%
+
+                                                        @if($gp['is_overdue'])
+                                                            <span class="px-2 py-0.5 rounded-full font-black text-[9px] bg-rose-600 text-white shadow-xs animate-pulse flex items-center gap-1">
+                                                                <span>🚨</span>
+                                                                <span>{{ abs($gp['days_remaining']) }}d Overdue</span>
+                                                            </span>
+                                                        @endif
                                                     </div>
                                                 @endif
-                                            </a>
 
-                                            <!-- Floating Date Label Outside (if narrow) -->
-                                            @if(!$isWide)
-                                                <div class="absolute flex items-center gap-1.5 pointer-events-none whitespace-nowrap z-10"
-                                                     style="left: calc({{ $gp['left_pct'] + $barWidthPct }}% + 8px);">
-                                                    <span class="text-[10px] font-mono font-medium text-slate-500">
-                                                        {{ $gp['start_date']->format('M d') }} – {{ $gp['end_date']->format('M d') }}
-                                                    </span>
+                                            </div>
 
-                                                    @if($gp['is_overdue'])
-                                                        <span class="px-2 py-0.5 rounded-full font-black text-[8.5px] bg-rose-600 text-white shadow-xs animate-pulse">
-                                                            🚨 {{ abs($gp['days_remaining']) }}d Overdue
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            @endif
                                         @endif
 
                                     </div>
@@ -1022,36 +896,36 @@
                                                 default       => 'bg-slate-100 text-slate-600 border-slate-200',
                                             };
                                             $tBarBg = match($tStatus) {
-                                                'completed'   => 'from-emerald-500 to-emerald-600 border-emerald-700 shadow-emerald-900/10',
-                                                'in_progress' => 'from-[#c3122e] to-[#990e24] border-[#800a1c] shadow-rose-900/10',
-                                                'blocked'     => 'from-rose-600 to-rose-700 border-rose-900 shadow-rose-900/10',
-                                                'delayed'     => 'from-amber-500 to-amber-600 border-amber-700 shadow-amber-900/10',
-                                                default       => 'from-slate-400 to-slate-500 border-slate-600 shadow-slate-900/10',
+                                                'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-600 shadow-xs shadow-emerald-950/20',
+                                                'in_progress' => 'bg-gradient-to-r from-[#c3122e] to-[#990e24] border-[#800a1c] shadow-xs shadow-rose-950/20',
+                                                'blocked'     => 'bg-gradient-to-r from-rose-600 to-rose-700 border-rose-800 shadow-xs shadow-rose-950/20',
+                                                'delayed'     => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-600 shadow-xs shadow-amber-950/20',
+                                                default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-500 shadow-xs shadow-slate-950/20',
                                             };
                                         @endphp
-                                        <div class="flex items-center min-h-[42px] h-[42px] bg-slate-50/40 hover:bg-slate-100/60 transition-colors border-b border-slate-100/80 group/task relative z-0">
+                                        <div class="flex items-center min-h-[46px] h-[46px] bg-slate-50/40 hover:bg-slate-100/60 transition-colors border-b border-slate-100/80 group/task relative z-0">
                                             
-                                            <!-- LEFT COLUMN: Task Info (420px, indented tree style) -->
-                                            <div class="w-[420px] min-w-[420px] flex-shrink-0 pl-8 pr-3 h-[42px] border-r border-slate-200 bg-slate-50/60 group-hover/task:bg-slate-100/80 sticky left-0 z-20 transition-colors flex items-center justify-between gap-2 shadow-2xs">
+                                            <!-- LEFT COLUMN: Task Info (400px, indented tree style) -->
+                                            <div class="w-[400px] min-w-[400px] flex-shrink-0 pl-9 pr-4 h-[46px] border-r border-slate-200/90 bg-slate-50/60 group-hover/task:bg-slate-100/80 sticky left-0 z-20 transition-colors flex items-center justify-between gap-2 shadow-2xs">
                                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                                     <!-- Tree elbow -->
                                                     <span class="text-slate-300 font-mono text-xs select-none">└─</span>
 
                                                     <!-- Item Type Icon -->
                                                     @if($task['is_milestone'])
-                                                        <span class="w-4 h-4 rounded bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-[9px] shrink-0" title="Milestone">💎</span>
+                                                        <span class="w-4.5 h-4.5 rounded bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-[10px] shrink-0" title="Milestone">💎</span>
                                                     @elseif($task['item_type'] === 'phase')
-                                                        <span class="w-4 h-4 rounded bg-indigo-100 border border-indigo-300 text-indigo-800 flex items-center justify-center text-[9px] shrink-0" title="Phase">📦</span>
+                                                        <span class="w-4.5 h-4.5 rounded bg-indigo-100 border border-indigo-300 text-indigo-800 flex items-center justify-center text-[10px] shrink-0" title="Phase">📦</span>
                                                     @else
-                                                        <span class="w-4 h-4 rounded bg-slate-100 border border-slate-300 text-slate-600 flex items-center justify-center text-[9px] shrink-0" title="Deliverable">📄</span>
+                                                        <span class="w-4.5 h-4.5 rounded bg-slate-100 border border-slate-300 text-slate-600 flex items-center justify-center text-[10px] shrink-0" title="Deliverable">📄</span>
                                                     @endif
 
                                                     <!-- WBS Code -->
-                                                    <span class="font-mono font-bold text-[9.5px] text-slate-500 shrink-0">{{ $task['wbs_code'] }}</span>
+                                                    <span class="font-mono font-bold text-[10px] text-slate-400 shrink-0">{{ $task['wbs_code'] }}</span>
 
                                                     <!-- Task Title -->
                                                     <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
-                                                       class="text-xs font-semibold text-slate-700 hover:text-[#c3122e] truncate transition-colors no-underline flex-1"
+                                                       class="text-xs font-semibold text-slate-800 hover:text-[#c3122e] truncate transition-colors no-underline flex-1"
                                                        title="{{ $task['title'] }} ({{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }})">
                                                         {{ $task['title'] }}
                                                     </a>
@@ -1060,18 +934,18 @@
                                                 <!-- Assignee + Status -->
                                                 <div class="flex items-center gap-1.5 shrink-0">
                                                     @if($task['assigned_user'])
-                                                        <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[8.5px] flex items-center justify-center border border-white shadow-2xs shrink-0" title="Assigned to {{ $task['assigned_user']->name }}">
+                                                        <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[9px] flex items-center justify-center border border-white shadow-2xs shrink-0" title="Assigned to {{ $task['assigned_user']->name }}">
                                                             {{ strtoupper(substr($task['assigned_user']->name, 0, 1)) }}
                                                         </span>
                                                     @endif
-                                                    <span class="px-1.5 py-0.5 rounded text-[8.5px] font-bold border uppercase {{ $tStatusBadge }} shrink-0">
+                                                    <span class="px-2 py-0.5 rounded text-[8.5px] font-bold border uppercase {{ $tStatusBadge }} shrink-0">
                                                         {{ str_replace('_', ' ', $tStatus) }}
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            <!-- RIGHT COLUMN: Task Bar Track (min 1130px, px-0) -->
-                                            <div class="flex-1 min-w-[1130px] relative h-[42px] flex items-center px-0">
+                                            <!-- RIGHT COLUMN: Task Bar Track (min 1150px, px-0) -->
+                                            <div class="flex-1 min-w-[1150px] relative h-[46px] flex items-center px-0">
                                                 <!-- Grid Lines -->
                                                 <div class="absolute inset-0 flex pointer-events-none">
                                                     @foreach($ganttTimeline['months'] as $m)
@@ -1079,53 +953,61 @@
                                                     @endforeach
                                                 </div>
 
-                                                <!-- Today Line -->
+                                                <!-- Today Line (z-5) -->
                                                 @if($ganttTimeline['today_visible'])
-                                                    <div class="absolute top-0 bottom-0 pointer-events-none z-20 flex flex-col items-center" 
+                                                    <div class="absolute top-0 bottom-0 pointer-events-none z-5 flex flex-col items-center" 
                                                          style="left: {{ $ganttTimeline['today_pct'] }}%;">
-                                                        <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-60"></div>
+                                                        <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-50"></div>
                                                     </div>
                                                 @endif
 
-                                                @if($task['is_milestone'])
-                                                    <!-- Milestone Diamond -->
-                                                    <div class="absolute z-10 flex items-center gap-1.5 pointer-events-none" style="left: {{ $task['left_pct'] }}%;">
-                                                        <div class="w-4 h-4 bg-amber-500 border-2 border-white rounded-xs rotate-45 shadow-sm -ml-2 shrink-0"></div>
-                                                        <span class="text-[9.5px] font-mono font-bold text-amber-900 bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200 shadow-2xs whitespace-nowrap ml-1">
-                                                            {{ $task['title'] }} ({{ $task['end_date']->format('M d') }})
-                                                        </span>
-                                                    </div>
-                                                @else
-                                                    <!-- Regular Task Bar -->
-                                                    <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
-                                                       class="absolute h-5 rounded-md shadow-2xs transition-all flex items-center overflow-hidden cursor-pointer z-10 border bg-gradient-to-r text-white no-underline {{ $tBarBg }} hover:brightness-105"
-                                                       style="left: {{ $task['left_pct'] }}%; width: {{ max(1.8, $task['width_pct']) }}%;"
-                                                       title="{{ $task['title'] }} • {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }} ({{ $task['progress'] }}% Complete)">
-                                                        
-                                                        <!-- Inner Progress Fill -->
-                                                        <div class="h-full bg-black/20 rounded-l-md" style="width: {{ $task['progress'] }}%;"></div>
-
-                                                        @if($task['width_pct'] >= 10.0)
-                                                            <span class="absolute inset-0 flex items-center justify-between px-2 text-[8.5px] font-bold font-mono text-white whitespace-nowrap overflow-hidden pointer-events-none drop-shadow-xs">
-                                                                <span>{{ $task['progress'] }}%</span>
-                                                                <span class="opacity-90">{{ $task['start_date']->format('M d') }} - {{ $task['end_date']->format('M d') }}</span>
-                                                            </span>
-                                                        @endif
-                                                    </a>
-
-                                                    @if($task['width_pct'] < 10.0)
-                                                        <div class="absolute flex items-center gap-1 pointer-events-none whitespace-nowrap z-10"
-                                                             style="left: calc({{ $task['left_pct'] + max(1.8, $task['width_pct']) }}% + 6px);">
-                                                            <span class="text-[9px] font-mono text-slate-500 font-medium">
-                                                                {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }}
+                                                <!-- Full-width Lane Track -->
+                                                <div class="w-full h-6 rounded-full bg-slate-50/60 border border-slate-100/80 mx-3 relative overflow-hidden flex items-center">
+                                                    
+                                                    @if($task['is_milestone'])
+                                                        <!-- Milestone Diamond -->
+                                                        <div class="absolute z-10 flex items-center gap-1.5 pointer-events-none" style="left: {{ $task['left_pct'] }}%;">
+                                                            <div class="w-4 h-4 bg-gradient-to-br from-amber-400 to-amber-600 border-2 border-white rounded-xs rotate-45 shadow-xs -ml-2 shrink-0"></div>
+                                                            <span class="text-[9.5px] font-mono font-bold text-amber-900 bg-amber-50/95 px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs whitespace-nowrap ml-1.5">
+                                                                {{ $task['title'] }} ({{ $task['end_date']->format('M d') }})
                                                             </span>
                                                         </div>
+                                                    @else
+                                                        <!-- Regular Task Bar -->
+                                                        <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                                           class="absolute h-full rounded-full shadow-2xs transition-all flex items-center overflow-hidden cursor-pointer z-10 border text-white no-underline {{ $tBarBg }} hover:brightness-105"
+                                                           style="left: {{ $task['left_pct'] }}%; width: {{ max(2.5, $task['width_pct']) }}%;"
+                                                           title="{{ $task['title'] }} • {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }} ({{ $task['progress'] }}% Complete)">
+                                                            
+                                                            <!-- Inner Progress Fill -->
+                                                            @if($task['progress'] > 0)
+                                                                <div class="h-full bg-white/20 rounded-l-full" style="width: {{ $task['progress'] }}%;"></div>
+                                                            @endif
+
+                                                            @if($task['width_pct'] >= 10.0)
+                                                                <span class="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-bold font-mono text-white whitespace-nowrap overflow-hidden pointer-events-none drop-shadow-xs">
+                                                                    <span>{{ $task['progress'] }}%</span>
+                                                                    <span class="opacity-95">{{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }}</span>
+                                                                </span>
+                                                            @endif
+                                                        </a>
+
+                                                        @if($task['width_pct'] < 10.0)
+                                                            <div class="absolute flex items-center gap-1 pointer-events-none whitespace-nowrap z-10"
+                                                                 style="left: calc({{ $task['left_pct'] + max(2.5, $task['width_pct']) }}% + 8px);">
+                                                                <span class="text-[9.5px] font-mono text-slate-500 font-medium">
+                                                                    {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }}
+                                                                </span>
+                                                            </div>
+                                                        @endif
                                                     @endif
-                                                @endif
+
+                                                </div>
+
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="flex items-center h-10 bg-slate-50/50 border-b border-slate-100 text-xs text-slate-400 pl-12 pr-4 italic">
+                                        <div class="flex items-center h-11 bg-slate-50/50 border-b border-slate-100 text-xs text-slate-400 pl-12 pr-4 italic">
                                             No child deliverables or WBS items recorded for this project yet.
                                             <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" class="ml-2 text-[#c3122e] font-semibold not-italic hover:underline">Add Deliverables in Workspace →</a>
                                         </div>
@@ -1143,8 +1025,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
         </div>
 
     <!-- ═══════════════════════════════════════════════════════════

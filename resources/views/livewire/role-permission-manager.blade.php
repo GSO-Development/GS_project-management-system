@@ -21,73 +21,33 @@
         </div>
     @endif
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Roles & Permissions Banner" 
-                class="w-full h-full object-cover object-right opacity-90"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Roles &amp; Permissions Hub
+            </h1>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+        <div class="flex items-center gap-2.5 flex-wrap flex-shrink-0">
+            <button
+                wire:click="openCreatePermissionModal"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95"
+            >
+                <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Permission</span>
+            </button>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-            <!-- Left Side: App Icon + Title + Meta -->
-            <div class="flex items-center gap-4 sm:gap-5 min-w-0">
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-lg flex-shrink-0 border border-white/20 ring-4 ring-amber-500/20 flex items-center justify-center p-2.5" style="background: linear-gradient(135deg, #f59e0b 0%, #c3122e 65%, #800a1d 100%);">
-                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            Roles &amp; Permissions Hub
-                        </h1>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black text-amber-200 border border-amber-400/40 shadow-inner flex items-center gap-1.5 backdrop-blur-md" style="background: rgba(245, 158, 11, 0.25);">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                            <span>{{ $totalRolesCount }} Active Roles · {{ $totalPermsCount }} Granular Rights</span>
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-300 font-medium mt-1">
-                        Enterprise RBAC governance, capability matrices, and granular access control across GS NexusPM
-                    </p>
-                </div>
-            </div>
-
-            <!-- Right Side: Top Action Buttons -->
-            <div class="flex items-center gap-2.5 flex-wrap flex-shrink-0 self-start lg:self-center">
-                <button
-                    wire:click="openCreatePermissionModal"
-                    type="button"
-                    class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-200 bg-white/10 hover:bg-white/15 border border-white/20 transition-all cursor-pointer active:scale-95 backdrop-blur-sm shadow-xs"
-                >
-                    <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Add Permission</span>
-                </button>
-
-                <button
-                    wire:click="openCreateRoleModal"
-                    type="button"
-                    class="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl text-xs font-black text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer active:scale-95"
-                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.25);"
-                >
-                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                    <span>Create New Role</span>
-                </button>
-            </div>
+            <button
+                wire:click="openCreateRoleModal"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+            >
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                <span>Create New Role</span>
+            </button>
         </div>
     </div>
 

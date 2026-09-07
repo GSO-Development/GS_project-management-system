@@ -67,107 +67,43 @@
 
 <div class="tmd3 f3-1" style="background: #f5f3ef; padding: 2px; display: flex; flex-direction: column; gap: 18px;">
 
-{{-- ══════════════════════════════════════════════════════════════ --}}
-{{-- 1 · HERO                                                       --}}
-{{-- ══════════════════════════════════════════════════════════════ --}}
-<div style="position:relative; overflow:hidden; border-radius:24px;
-            background: linear-gradient(135deg, #111010 0%, #1d0b0b 45%, #1a1005 100%);
-            border: 1px solid rgba(255,255,255,.07);
-            box-shadow: 0 20px 50px rgba(0,0,0,.35);">
-
-    {{-- Glows --}}
-    <div style="position:absolute;top:-60px;right:8%;width:340px;height:340px;border-radius:50%;
-                background:radial-gradient(circle,rgba(195,18,46,.28) 0%,transparent 65%);pointer-events:none;
-                animation:glowB 4s ease-in-out infinite;"></div>
-    <div style="position:absolute;bottom:-50px;left:12%;width:260px;height:260px;border-radius:50%;
-                background:radial-gradient(circle,rgba(217,119,6,.14) 0%,transparent 65%);pointer-events:none;"></div>
-
-    {{-- Shimmer top accent --}}
-    <div class="shim" style="position:absolute;top:0;left:0;right:0;height:2px;"></div>
-
-    <div style="position:relative;z-index:5;display:flex;flex-wrap:wrap;align-items:stretch;min-height:240px;">
-
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         {{-- Left text --}}
-        <div style="flex:1;min-width:260px;padding:32px 36px;display:flex;flex-direction:column;justify-content:center;gap:16px;">
-
-            {{-- Date badge --}}
-            <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 13px;border-radius:99px;
-                        background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-                        font-size:11px;font-weight:700;color:rgba(255,255,255,.55);width:fit-content;">
-                <span style="width:6px;height:6px;border-radius:50%;background:#10b981;flex-shrink:0;animation:glowB 2s ease infinite;"></span>
-                {{ now()->format('l, F j') }}
-                <span style="opacity:.3">·</span>
-                <span style="color:#fde68a;font-weight:800;">GS NexusPM</span>
-            </div>
-
-            {{-- Greeting --}}
-            <div>
-                <p style="font-size:13px;font-weight:500;color:rgba(255,255,255,.35);margin-bottom:4px;">
-                    {{ now()->hour < 12 ? '🌅 Good Morning' : (now()->hour < 17 ? '☀️ Good Afternoon' : '🌙 Good Evening') }}
-                </p>
-                <h1 style="font-size:38px;font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.025em;">
-                    {{ auth()->user()->name }}
-                </h1>
-                <div style="width:40px;height:3px;border-radius:99px;background:linear-gradient(90deg,#c3122e,#f59e0b);margin-top:10px;"></div>
-            </div>
-
-            {{-- Status line --}}
-            <p style="font-size:13px;color:rgba(255,255,255,.45);max-width:380px;line-height:1.6;">
-                @if($overdue->count() > 0)
-                    <strong style="color:#fca5a5;">{{ $overdue->count() }} task{{ $overdue->count()>1?'s':'' }} overdue</strong> — action needed today.
-                @elseif($dueToday->count() > 0)
-                    <strong style="color:#fde68a;">{{ $dueToday->count() }} task{{ $dueToday->count()>1?'s':'' }} due today</strong> — let's finish strong.
-                @elseif($inProgress->count() > 0)
-                    <strong style="color:#a7f3d0;">{{ $inProgress->count() }} task{{ $inProgress->count()>1?'s':'' }} in progress</strong> — keep the momentum.
-                @else
-                    <strong style="color:rgba(255,255,255,.75);">{{ $totalCount }} task{{ $totalCount!==1?'s':'' }} assigned</strong> — you're all set.
-                @endif
+        <div class="space-y-1.5">
+            <p class="text-xs font-semibold text-slate-500">
+                {{ now()->hour < 12 ? '🌅 Good Morning' : (now()->hour < 17 ? '☀️ Good Afternoon' : '🌙 Good Evening') }} · {{ now()->format('l, F j, Y') }}
             </p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                {{ auth()->user()->name }}
+            </h1>
 
             {{-- Buttons --}}
-            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <div class="flex items-center gap-2.5 flex-wrap pt-1">
                 <a href="{{ route('my-tasks.index') }}"
-                   style="display:inline-flex;align-items:center;gap:7px;padding:10px 20px;
-                          background:linear-gradient(135deg,#c3122e,#9b0e23);color:#fff;
-                          font-size:12px;font-weight:800;border-radius:12px;text-decoration:none;
-                          box-shadow:0 5px 18px rgba(195,18,46,.4);">
-                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                   class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all no-underline"
+                   style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
-                    Full Task Board
+                    <span>Full Task Board</span>
                 </a>
                 <a href="{{ route('calendar.index') }}"
-                   style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;
-                          background:rgba(255,255,255,.09);color:rgba(255,255,255,.8);
-                          font-size:12px;font-weight:700;border-radius:12px;text-decoration:none;
-                          border:1px solid rgba(255,255,255,.15);">
-                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all no-underline">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
-                    Calendar
+                    <span>Calendar</span>
                 </a>
             </div>
         </div>
 
-        {{-- Right: Image + ring --}}
-        <div style="flex-shrink:0;width:40%;min-width:200px;position:relative;overflow:hidden;" class="hidden lg:block">
-            <img src="{{ asset('images/tm-hero-v2.png') }}"
-                 alt=""
-                 class="img-fl"
-                 style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left center;
-                        opacity:.4;mix-blend-mode:luminosity;
-                        mask-image:linear-gradient(to right,transparent,rgba(0,0,0,.7) 30%);
-                        -webkit-mask-image:linear-gradient(to right,transparent,rgba(0,0,0,.7) 30%);">
-
-            {{-- Floating gauge --}}
-            <div style="position:absolute;bottom:24px;right:24px;
-                        background:rgba(255,255,255,.07);backdrop-filter:blur(16px);
-                        border:1px solid rgba(255,255,255,.13);border-radius:18px;
-                        padding:16px 20px;display:flex;flex-direction:column;align-items:center;gap:3px;">
-                <div style="position:relative;width:80px;height:80px;">
-                    <div class="rot" style="position:absolute;inset:-4px;border-radius:50%;border:1.5px dashed rgba(245,158,11,.35);"></div>
-                    <svg viewBox="0 0 80 80" style="width:100%;height:100%;transform:rotate(-90deg);">
-                        <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="6"/>
+        {{-- Right: Circular progress gauge --}}
+        <div class="flex items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs self-start lg:self-center">
+            <div class="flex items-center gap-4 px-3 py-1">
+                <div class="relative w-16 h-16 sm:w-18 sm:h-18 flex-shrink-0">
+                    <svg viewBox="0 0 80 80" class="w-full h-full -rotate-90">
+                        <circle cx="40" cy="40" r="32" fill="none" stroke="#f1f5f9" stroke-width="6"/>
                         <circle cx="40" cy="40" r="32" fill="none"
                                 stroke="url(#hg3)" stroke-width="6"
                                 stroke-linecap="round"
@@ -176,22 +112,26 @@
                                 style="transition:stroke-dashoffset 1.5s ease;"/>
                         <defs>
                             <linearGradient id="hg3" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#fbbf24"/>
+                                <stop offset="0%" stop-color="#f59e0b"/>
                                 <stop offset="100%" stop-color="#c3122e"/>
                             </linearGradient>
                         </defs>
                     </svg>
-                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-                        <span style="font-size:20px;font-weight:900;color:#fff;line-height:1;">{{ $completionPct }}%</span>
-                        <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">done</span>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span class="text-base font-black text-slate-900 leading-none font-mono">{{ $completionPct }}%</span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">done</span>
                     </div>
                 </div>
-                <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-top:2px;">Progress</span>
+                <div class="space-y-1">
+                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Deliverable Score</span>
+                    <span class="text-xs font-bold text-slate-700 block">{{ $completed->count() }} of {{ $totalCount }} Done</span>
+                    <span class="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
+                        <span>✓</span> Active Pace
+                    </span>
+                </div>
             </div>
         </div>
     </div>
-    <div class="shim" style="position:absolute;bottom:0;left:0;right:0;height:1px;opacity:.5;"></div>
-</div>
 
 {{-- ══════════════════════════════════════════════════════════════ --}}
 {{-- 2 · BENTO GRID: Stats + Due Today + Upcoming                  --}}

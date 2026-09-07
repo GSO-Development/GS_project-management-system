@@ -10,69 +10,24 @@
             padding-right: 36px !important;
         }
     </style>
-    <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER (PARTICIPANTS & USERS DIRECTORY)
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Participants & System Users Banner" 
-                class="w-full h-full object-cover object-right opacity-90"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Participants &amp; System Users
+            </h1>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-            <!-- Left Side: 3D Users Icon + Title + Meta -->
-            <div class="flex items-center gap-4 sm:gap-5 min-w-0">
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border-2 border-white/25 ring-4 ring-rose-500/25 flex items-center justify-center p-2.5 sm:p-3" style="background: linear-gradient(135deg, #e02d4b 0%, #c3122e 60%, #7f0b1a 100%);">
-                    <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2.5 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
-                            Participants &amp; System Users
-                        </h1>
-                        <span class="px-3.5 py-1 rounded-full text-xs font-black text-rose-200 border border-rose-400/40 shadow-inner flex items-center gap-2 backdrop-blur-md" style="background: rgba(195, 18, 46, 0.35);">
-                            <span>👥</span>
-                            <span>Organization Directory</span>
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-3 text-xs font-bold text-slate-300 mt-2 flex-wrap">
-                        <span class="text-rose-200 font-extrabold flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            <span>Enterprise Identity &amp; Access</span>
-                        </span>
-                        <span class="text-slate-500 font-normal">|</span>
-                        <span class="text-slate-300 font-medium">Manage organization users, role assignments, and subsidiary authorizations</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Primary Action -->
-            <div class="flex items-center gap-3 flex-shrink-0 self-start lg:self-center">
-                <button
-                    wire:click="openCreateModal"
-                    type="button"
-                    class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer"
-                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(255,255,255,0.2);"
-                >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    <span>Add New User</span>
-                </button>
-            </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <button
+                wire:click="openCreateModal"
+                type="button"
+                class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+            >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>Add New User</span>
+            </button>
         </div>
     </div>
 

@@ -80,98 +80,58 @@
 
 <div class="tm-root space-y-6">
 
-    {{-- ══════════════════════════════════════════════════════════ --}}
-    {{-- 1. EXECUTIVE HERO BANNER & KPI CARDS                       --}}
-    {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Team & PM Executive Work Monitor Banner" 
-                class="w-full h-full object-cover object-right opacity-90"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Team &amp; PM Work Monitor
+            </h1>
+        </div>
+    </div>
+
+    <!-- 4 Executive Stat Tile Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
+        {{-- Reported Issues --}}
+        <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/60 shadow-2xs flex items-center gap-3 bg-white">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div>
+                <span class="text-xl font-black text-slate-900 leading-none block font-mono">{{ $totalIssuesCount }}</span>
+                <span class="text-[10px] font-bold uppercase text-rose-700 mt-1 block tracking-wider">Issues Logged</span>
+            </div>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-            
-            {{-- Header Text & Badges --}}
-            <div class="flex-1 min-w-[280px]">
-                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-slate-950/70 border border-white/15 backdrop-blur-md text-amber-300 shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>{{ now()->format('l, F j, Y') }}</span>
-                    </div>
-
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400/10 text-amber-300 border border-amber-400/30 backdrop-blur-md">
-                        ⚡ PMO Admin Command Center
-                    </span>
-                </div>
-
-                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Team &amp; PM Executive Work Monitor
-                </h1>
-                <p class="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-xl line-clamp-1">
-                    Centralized daily task execution monitoring for Project Managers and Team Members. Real-time oversight of reported blockers, delay reasons, and task completion metrics.
-                </p>
+        {{-- Blocked Tasks --}}
+        <div class="p-4 rounded-2xl border border-amber-200 bg-amber-50/60 shadow-2xs flex items-center gap-3 bg-white">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
             </div>
+            <div>
+                <span class="text-xl font-black text-slate-900 leading-none block font-mono">{{ $totalBlockedCount }}</span>
+                <span class="text-[10px] font-bold uppercase text-amber-800 mt-1 block tracking-wider">Blocked Tasks</span>
+            </div>
+        </div>
 
-            {{-- 4 Executive Stat Tile Cards in Frosted Glass --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 w-full lg:max-w-xl">
-                
-                {{-- Reported Issues --}}
-                <div class="p-2 sm:p-2.5 rounded-xl border border-rose-400/30 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 flex-shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    </div>
-                    <div>
-                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $totalIssuesCount }}</span>
-                        <span class="text-[9px] font-extrabold uppercase text-rose-300 mt-0.5 block tracking-wider">Issues Logged</span>
-                    </div>
-                </div>
+        {{-- Overdue Tasks --}}
+        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 shadow-2xs flex items-center gap-3 bg-white">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <span class="text-xl font-black text-slate-900 leading-none block font-mono">{{ $totalOverdueCount }}</span>
+                <span class="text-[10px] font-bold uppercase text-slate-600 mt-1 block tracking-wider">Overdue Tasks</span>
+            </div>
+        </div>
 
-                {{-- Blocked Tasks --}}
-                <div class="p-2 sm:p-2.5 rounded-xl border border-amber-400/30 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center border border-amber-500/30 flex-shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                    </div>
-                    <div>
-                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $totalBlockedCount }}</span>
-                        <span class="text-[9px] font-extrabold uppercase text-amber-300 mt-0.5 block tracking-wider">Blocked Tasks</span>
-                    </div>
-                </div>
-
-                {{-- Overdue Tasks --}}
-                <div class="p-2 sm:p-2.5 rounded-xl border border-white/20 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 text-slate-200 flex items-center justify-center border border-white/20 flex-shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $totalOverdueCount }}</span>
-                        <span class="text-[9px] font-extrabold uppercase text-slate-300 mt-0.5 block tracking-wider">Overdue Tasks</span>
-                    </div>
-                </div>
-
-                {{-- Monitored Personnel --}}
-                <div class="p-2 sm:p-2.5 rounded-xl border border-emerald-400/30 bg-slate-950/60 backdrop-blur-md shadow-lg flex items-center gap-2 sm:gap-2.5">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 flex-shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </div>
-                    <div>
-                        <span class="text-base sm:text-lg font-black text-white leading-none block font-mono">{{ $teamDailyStats->count() }}</span>
-                        <span class="text-[9px] font-extrabold uppercase text-emerald-300 mt-0.5 block tracking-wider">Staff Monitored</span>
-                    </div>
-                </div>
-
+        {{-- Monitored Personnel --}}
+        <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 shadow-2xs flex items-center gap-3 bg-white">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+                <span class="text-xl font-black text-slate-900 leading-none block font-mono">{{ $teamDailyStats->count() }}</span>
+                <span class="text-[10px] font-bold uppercase text-emerald-800 mt-1 block tracking-wider">Staff Monitored</span>
             </div>
         </div>
     </div>

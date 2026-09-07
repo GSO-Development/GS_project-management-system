@@ -62,6 +62,37 @@ class Project extends Model
         ];
     }
 
+    public function getComputedHealthAttribute(): string
+    {
+        if (isset($this->attributes['computed_health'])) {
+            return $this->attributes['computed_health'];
+        }
+
+        if ($this->status?->value === 'completed') {
+            return 'on_track';
+        }
+
+        $today = now()->startOfDay();
+        $isPastDeadline = $this->deadline && $this->deadline->lt($today) && $this->overall_progress < 100;
+        
+        $start = $this->start_date ?: $this->created_at->startOfDay();
+        $end = $this->deadline ?: $start->copy()->addMonths(2);
+        $totalDays = max(1, $start->diffInDays($end));
+        $elapsedDays = $start->diffInDays(now()->startOfDay(), false);
+        $timeElapsedPct = min(100, max(0, round(($elapsedDays / $totalDays) * 100)));
+        $progressDelta = $this->overall_progress - $timeElapsedPct;
+
+        if ($isPastDeadline || $progressDelta <= -25 || ($this->health?->value === 'critical') || $this->isPmRejected()) {
+            return 'delayed';
+        }
+
+        if ($progressDelta <= -10 || ($this->health?->value === 'at_risk') || $this->isPendingPmAcceptance()) {
+            return 'at_risk';
+        }
+
+        return 'on_track';
+    }
+
     public function isPmAccepted(): bool
     {
         return (bool) $this->pm_accepted;

@@ -24,8 +24,22 @@ class SuperAdminDashboard extends Component
 
     // Timeline Scale for Gantt Preview ('today', 'week', 'month')
     public string $timelineScale = 'month';
+    public int $timelineMonthOffset = 0;
 
+    public function prevTimelineMonth(): void
+    {
+        $this->timelineMonthOffset--;
+    }
 
+    public function nextTimelineMonth(): void
+    {
+        $this->timelineMonthOffset++;
+    }
+
+    public function currentTimelineMonth(): void
+    {
+        $this->timelineMonthOffset = 0;
+    }
 
     public function setTimelineScale(string $scale): void
     {
@@ -403,6 +417,84 @@ class SuperAdminDashboard extends Component
             ->take(5)
             ->get();
 
+        // Selected Timeline scale and horizon window
+        if ($this->timelineScale === 'today') {
+            $windowStart = now()->startOfDay()->setHour(8);
+            $windowEnd = now()->startOfDay()->setHour(20);
+            $totalWindowDays = 0.5;
+            $timelineColumns = [
+                ['label' => '8 AM', 'year' => '', 'is_current' => now()->hour >= 8 && now()->hour < 12, 'sub' => now()->hour >= 8 && now()->hour < 12 ? 'Now' : ''],
+                ['label' => '12 PM', 'year' => '', 'is_current' => now()->hour >= 12 && now()->hour < 16, 'sub' => now()->hour >= 12 && now()->hour < 16 ? 'Now' : ''],
+                ['label' => '4 PM', 'year' => '', 'is_current' => now()->hour >= 16 && now()->hour < 19, 'sub' => now()->hour >= 16 && now()->hour < 19 ? 'Now' : ''],
+                ['label' => '8 PM', 'year' => '', 'is_current' => now()->hour >= 19, 'sub' => now()->hour >= 19 ? 'Now' : ''],
+            ];
+            $todayPct = max(0, min(100, round((now()->diffInMinutes($windowStart, false) / (12 * 60)) * 100)));
+        } elseif ($this->timelineScale === 'week') {
+            $sow = now()->startOfWeek();
+            $windowStart = $sow->copy();
+            $windowEnd = $sow->copy()->addWeeks(4);
+            $totalWindowDays = 28;
+            $timelineColumns = [
+                ['label' => 'Week ' . $sow->weekOfYear, 'year' => $sow->format('Y'), 'is_current' => true, 'sub' => 'Today'],
+                ['label' => 'Week ' . $sow->copy()->addWeeks(1)->weekOfYear, 'year' => $sow->copy()->addWeeks(1)->format('Y'), 'is_current' => false, 'sub' => ''],
+                ['label' => 'Week ' . $sow->copy()->addWeeks(2)->weekOfYear, 'year' => $sow->copy()->addWeeks(2)->format('Y'), 'is_current' => false, 'sub' => ''],
+                ['label' => 'Week ' . $sow->copy()->addWeeks(3)->weekOfYear, 'year' => $sow->copy()->addWeeks(3)->format('Y'), 'is_current' => false, 'sub' => ''],
+            ];
+            $todayPct = max(0, min(100, round(($sow->diffInDays(now()->startOfDay(), false) / 28) * 100)));
+        } else { // 'month' (standard 4-month view as in the screenshot)
+            $m0 = now()->startOfMonth()->addMonths($this->timelineMonthOffset);
+            $windowStart = $m0->copy();
+            $windowEnd = $m0->copy()->addMonths(3)->endOfMonth();
+            $totalWindowDays = max(1, $windowStart->diffInDays($windowEnd));
+            $timelineColumns = [
+                ['label' => $m0->format('M'), 'year' => $m0->format('Y'), 'is_current' => $this->timelineMonthOffset === 0, 'sub' => $this->timelineMonthOffset === 0 ? 'Today' : ''],
+                ['label' => $m0->copy()->addMonths(1)->format('M'), 'year' => $m0->copy()->addMonths(1)->format('Y'), 'is_current' => false, 'sub' => ''],
+                ['label' => $m0->copy()->addMonths(2)->format('M'), 'year' => $m0->copy()->addMonths(2)->format('Y'), 'is_current' => false, 'sub' => ''],
+                ['label' => $m0->copy()->addMonths(3)->format('M'), 'year' => $m0->copy()->addMonths(3)->format('Y'), 'is_current' => false, 'sub' => ''],
+            ];
+            $todayPct = max(2, min(95, round(($windowStart->diffInDays(now()->startOfDay(), false) / $totalWindowDays) * 100)));
+        }
+
+        $selectedTimelineMonth = now()->startOfMonth()->addMonths($this->timelineMonthOffset);
+        $monthName = $selectedTimelineMonth->format('M Y');
+        $isCurrentMonth = $this->timelineMonthOffset === 0;
+
+        // 5 Projects for the Timeline Widget
+        $timelineProjects = Project::with(['subsidiary', 'projectManager'])
+            ->whereNotIn('status', ['cancelled'])
+            ->orderByRaw("CASE 
+                WHEN status = 'in_progress' THEN 1 
+                WHEN status = 'planning' THEN 2 
+                WHEN status = 'on_hold' THEN 3 
+                WHEN status = 'completed' THEN 4 
+                ELSE 5 END")
+            ->latest('updated_at')
+            ->take(5)
+            ->get();
+
+        // Upcoming Deadlines / Milestones (5 items)
+        $upcomingMilestones = WbsItem::with(['project.subsidiary'])
+            ->whereNotNull('end_date')
+            ->where('end_date', '>=', now()->today())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->orderBy('end_date', 'asc')
+            ->take(5)
+            ->get();
+
+        if ($upcomingMilestones->count() < 5) {
+            $fallback = WbsItem::with(['project.subsidiary'])
+                ->whereNotNull('end_date')
+                ->whereNotIn('id', $upcomingMilestones->pluck('id'))
+                ->orderBy('end_date', 'desc')
+                ->take(5 - $upcomingMilestones->count())
+                ->get();
+            $upcomingMilestones = $upcomingMilestones->concat($fallback);
+        }
+
+        $upcomingTasks = $upcomingMilestones;
+
+        $taskCompletedPct = $totalTasksCount > 0 ? (int) round(($completedTasksCount / $totalTasksCount) * 100) : 0;
+
         // Top Subsidiaries Overview Table
         $topSubsidiaries = Subsidiary::withCount([
             'projects',
@@ -415,27 +507,10 @@ class SuperAdminDashboard extends Component
         ->take(5)
         ->get();
 
-        // Upcoming Deadlines (Tasks & Milestones) for Bottom-Left Box
-        $upcomingTasks = WbsItem::with('project')
-            ->whereNotNull('end_date')
-            ->where('end_date', '>=', now()->today())
-            ->whereNotIn('status', ['completed', 'cancelled'])
-            ->orderBy('end_date', 'asc')
-            ->take(3)
-            ->get();
-
-        if ($upcomingTasks->isEmpty()) {
-            $upcomingTasks = WbsItem::with('project')
-                ->whereNotNull('end_date')
-                ->orderBy('end_date', 'desc')
-                ->take(3)
-                ->get();
-        }
-
         // Real Activity Logs & Updates
         $recentUpdates = ProjectStatusUpdate::with(['project', 'creator'])
             ->latest()
-            ->take(4)
+            ->take(6)
             ->get();
 
         $latestUpdate = ProjectStatusUpdate::with(['project', 'creator'])
@@ -444,7 +519,7 @@ class SuperAdminDashboard extends Component
 
         $recentActivityLogs = ActivityLog::with('user')
             ->latest()
-            ->take(4)
+            ->take(6)
             ->get();
 
         $pendingApprovalList = ApprovalRequest::with(['project.subsidiary', 'requester'])
@@ -553,6 +628,34 @@ class SuperAdminDashboard extends Component
         $allUsersList = User::orderBy('name')->get();
         $allSubsidiaries = Subsidiary::orderBy('name')->get();
 
+        $timelineScale = $this->timelineScale;
+        $timelineMonthOffset = $this->timelineMonthOffset;
+        $dashboardTab = $this->dashboardTab;
+        $trackerSearch = $this->trackerSearch;
+        $trackerSubsidiaryFilter = $this->trackerSubsidiaryFilter;
+        $trackerStatusFilter = $this->trackerStatusFilter;
+        $trackerLayout = $this->trackerLayout;
+        $showAllProjects = $this->showAllProjects;
+        $approvalStatusFilter = $this->approvalStatusFilter;
+        $approvalTypeFilter = $this->approvalTypeFilter;
+        $showReviewModal = $this->showReviewModal;
+        $selectedRequestId = $this->selectedRequestId;
+        $reviewComment = $this->reviewComment;
+        $showResolveBlockerModal = $this->showResolveBlockerModal;
+        $selectedBlockerId = $this->selectedBlockerId;
+        $blockerResolutionInput = $this->blockerResolutionInput;
+        $showAddRiskModal = $this->showAddRiskModal;
+        $riskProjectId = $this->riskProjectId;
+        $riskTitle = $this->riskTitle;
+        $riskCategory = $this->riskCategory;
+        $riskProbability = $this->riskProbability;
+        $riskImpact = $this->riskImpact;
+        $riskOwnerId = $this->riskOwnerId;
+        $riskMitigation = $this->riskMitigation;
+        $showReassignModal = $this->showReassignModal;
+        $reassignProjectId = $this->reassignProjectId;
+        $newLeaderId = $this->newLeaderId;
+
         return view('livewire.super-admin-dashboard', compact(
             'declinedProjects',
             'reassignProject',
@@ -602,7 +705,45 @@ class SuperAdminDashboard extends Component
             'upcomingDeadlinesCount',
             'overviewProjects',
             'upcomingTasks',
-            'latestUpdate'
+            'latestUpdate',
+            'timelineProjects',
+            'selectedTimelineMonth',
+            'monthName',
+            'isCurrentMonth',
+            'timelineColumns',
+            'upcomingMilestones',
+            'taskCompletedPct',
+            'windowStart',
+            'windowEnd',
+            'totalWindowDays',
+            'todayPct',
+            'timelineScale',
+            'timelineMonthOffset',
+            'dashboardTab',
+            'trackerSearch',
+            'trackerSubsidiaryFilter',
+            'trackerStatusFilter',
+            'trackerLayout',
+            'showAllProjects',
+            'approvalStatusFilter',
+            'approvalTypeFilter',
+            'showReviewModal',
+            'selectedRequestId',
+            'reviewComment',
+            'showResolveBlockerModal',
+            'selectedBlockerId',
+            'blockerResolutionInput',
+            'showAddRiskModal',
+            'riskProjectId',
+            'riskTitle',
+            'riskCategory',
+            'riskProbability',
+            'riskImpact',
+            'riskOwnerId',
+            'riskMitigation',
+            'showReassignModal',
+            'reassignProjectId',
+            'newLeaderId'
         ));
     }
 }

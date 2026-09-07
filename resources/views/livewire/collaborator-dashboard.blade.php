@@ -61,134 +61,91 @@
         </div>
     @endif
 
-    {{-- ═══════════════════ 1. HERO BANNER ═══════════════════ --}}
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Collaborator Workspace Banner" 
-                class="w-full h-full object-cover object-right opacity-90"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 17 ? 'afternoon' : 'evening') }}, <span class="text-[#c3122e]">{{ auth()->user()->name }}</span>
+            </h1>
+            <p class="text-xs font-semibold text-slate-500 mt-0.5">{{ now()->format('l, M d, Y') }}</p>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
-
-        {{-- Main Banner Flex Grid --}}
-        <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5 z-10">
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('approvals.index') }}" class="px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer no-underline" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Submit Approval</span>
+            </a>
             
-            {{-- LEFT COLUMN: Identity, Greeting & CTAs --}}
-            <div class="space-y-1.5 sm:space-y-2 max-w-xl">
-                {{-- Top Badge Pill --}}
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-rose-300" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                        <span>COLLABORATOR WORKSPACE</span>
-                    </span>
-                    <span class="text-xs font-semibold text-slate-300">
-                        {{ auth()->user()->subsidiary->name ?? 'George Steuart Optimize' }}
-                    </span>
-                </div>
+            <a href="{{ route('calendar.index') }}" class="px-3.5 py-2.5 rounded-xl font-bold text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer no-underline">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Calendar</span>
+            </a>
 
-                {{-- Greeting & Welcome --}}
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-                        Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 17 ? 'afternoon' : 'evening') }}, <span class="text-rose-300">{{ auth()->user()->name }}</span>
-                    </h1>
-                    <p class="text-xs sm:text-sm text-slate-300 font-medium mt-0.5 leading-normal line-clamp-1">
-                        Track WBS tasks, submit approvals &amp; collaborate with your Project Manager.
-                    </p>
-                </div>
+            <a href="{{ route('my-tasks.index') }}" class="px-3.5 py-2.5 rounded-xl font-bold text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer no-underline">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+                <span>My Tasks</span>
+            </a>
+        </div>
+    </div>
 
-                {{-- Action Buttons --}}
-                <div class="flex items-center gap-2 flex-wrap pt-0.5">
-                    <a href="{{ route('approvals.index') }}" class="px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #a00e24 100%);">
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span>Submit Approval</span>
-                    </a>
-                    
-                    <a href="{{ route('calendar.index') }}" class="px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-1.5 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <span>Calendar</span>
-                    </a>
-
-                    <a href="{{ route('my-tasks.index') }}" class="px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs text-white transition-all flex items-center gap-1.5 cursor-pointer hover:bg-white/15" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                        </svg>
-                        <span>My Tasks</span>
-                    </a>
-                </div>
+    <!-- 4 Metric Stat Cards Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
+        {{-- Metric 1: Projects --}}
+        <div class="p-4 rounded-2xl flex items-center gap-3 border border-slate-200/90 bg-white shadow-2xs hover:shadow-xs transition-all">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-50 border border-rose-100 text-[#c3122e]">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
             </div>
-
-            {{-- RIGHT COLUMN: 2x2 Metric Stat Cards Grid --}}
-            <div class="grid grid-cols-2 gap-2 sm:gap-2.5 w-full lg:w-auto min-w-0 sm:min-w-[320px]">
-                {{-- Metric 1: Projects --}}
-                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(195,18,46,0.2); border: 1px solid rgba(195,18,46,0.35); color: #f87171;">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $attachedProjects->count() }}</div>
-                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">PROJECTS</div>
-                    </div>
-                </div>
-
-                {{-- Metric 2: Tasks --}}
-                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24;">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $totalCount }}</div>
-                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">TASKS</div>
-                    </div>
-                </div>
-
-                {{-- Metric 3: In Progress --}}
-                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.35); color: #60a5fa;">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $inProgress->count() }}</div>
-                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">IN PROGRESS</div>
-                    </div>
-                </div>
-
-                {{-- Metric 4: Completion --}}
-                <div class="p-2 sm:p-2.5 rounded-xl flex items-center gap-2 sm:gap-2.5 transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(10px);">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.35); color: #34d399;">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-base sm:text-lg font-black text-white tracking-tight leading-none font-mono">{{ $completionPct }}%</div>
-                        <div class="text-[9px] font-bold uppercase tracking-wider text-slate-300 mt-0.5 truncate">COMPLETION</div>
-                    </div>
-                </div>
+            <div>
+                <div class="text-xl font-black text-slate-900 tracking-tight leading-none font-mono">{{ $attachedProjects->count() }}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-1 truncate">PROJECTS</div>
             </div>
+        </div>
 
+        {{-- Metric 2: Tasks --}}
+        <div class="p-4 rounded-2xl flex items-center gap-3 border border-slate-200/90 bg-white shadow-2xs hover:shadow-xs transition-all">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50 border border-amber-100 text-amber-700">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <div>
+                <div class="text-xl font-black text-slate-900 tracking-tight leading-none font-mono">{{ $totalCount }}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-1 truncate">TASKS</div>
+            </div>
+        </div>
+
+        {{-- Metric 3: In Progress --}}
+        <div class="p-4 rounded-2xl flex items-center gap-3 border border-slate-200/90 bg-white shadow-2xs hover:shadow-xs transition-all">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-50 border border-blue-100 text-blue-700">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="text-xl font-black text-slate-900 tracking-tight leading-none font-mono">{{ $inProgress->count() }}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-1 truncate">IN PROGRESS</div>
+            </div>
+        </div>
+
+        {{-- Metric 4: Completion --}}
+        <div class="p-4 rounded-2xl flex items-center gap-3 border border-slate-200/90 bg-white shadow-2xs hover:shadow-xs transition-all">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 border border-emerald-100 text-emerald-700">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="text-xl font-black text-slate-900 tracking-tight leading-none font-mono">{{ $completionPct }}%</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-1 truncate">COMPLETION</div>
+            </div>
         </div>
     </div>
 

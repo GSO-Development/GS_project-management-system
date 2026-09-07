@@ -30,98 +30,53 @@
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP EXECUTIVE HERO BANNER & MULTI-PROJECT CONTROLS
+         1. TOP HEADER & MULTI-PROJECT CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Luxury Crimson & Gold Skyline Panorama) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="My Tasks Banner" 
-                class="w-full h-full object-cover object-center"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    My Tasks
+                </h1>
+                <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-[#c3122e] bg-rose-50 border border-rose-200/70 flex items-center gap-1.5">
+                    <span>{{ $activeProjectsCount }} {{ Str::plural('Project', $activeProjectsCount) }}</span>
+                </span>
+                @if(($dueTodayCount + $overdueCount) > 0)
+                    <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-amber-700 bg-amber-50 border border-amber-200/70 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span>{{ $dueTodayCount + $overdueCount }} Urgent</span>
+                    </span>
+                @endif
+            </div>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-            <!-- Left Side: Icon + Title + Meta Hierarchy -->
-            <div class="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
-                <!-- 3D Productivity App Icon Container -->
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-amber-400/40 ring-2 ring-black/60 bg-slate-950/80 p-1 flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
-                    <img src="{{ asset('images/tasks-banner.jpg') }}" alt="My Tasks" class="w-full h-full object-cover rounded-xl shadow-inner">
-                </div>
-
-                <div class="min-w-0 space-y-1.5 flex-1">
-                    <!-- Suite Breadcrumb & Live Pills -->
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-amber-300 font-mono">
-                            ⚡ PERSONAL PRODUCTIVITY &amp; WORKLOAD
-                        </span>
-                        <span class="text-white/30 text-xs">•</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-slate-950/80 text-emerald-300 border border-emerald-400/50 shadow-xs backdrop-blur-md inline-flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>{{ $activeProjectsCount }} {{ Str::plural('Project', $activeProjectsCount) }}</span>
-                        </span>
-                        @if(($dueTodayCount + $overdueCount) > 0)
-                            <span class="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-slate-950/80 text-amber-300 border border-amber-400/50 shadow-xs backdrop-blur-md inline-flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                                <span>{{ $dueTodayCount + $overdueCount }} Urgent / Due</span>
-                            </span>
-                        @endif
-                    </div>
-
-                    <!-- Main Title -->
-                    <h1 class="text-xl sm:text-2xl lg:text-[27px] font-black text-white tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        My Tasks
-                    </h1>
-
-                    <!-- Date & Subtitle Badge -->
-                    <div class="flex items-center gap-2.5 text-xs font-semibold text-slate-200 flex-wrap pt-0.5">
-                        <span class="text-rose-300 font-bold flex items-center gap-1">
-                            <span>📅 {{ now()->format('l, M d, Y') }}</span>
-                        </span>
-                        <span class="text-white/30">•</span>
-                        <span class="text-slate-300 text-xs">Multi-Project Deliverables &amp; Level 4 Hour Scheduling</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: View Mode Switcher -->
-            <div class="flex items-center gap-3 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
-                <div class="inline-flex p-1 rounded-xl border border-white/20 shadow-xl backdrop-blur-xl" style="background: rgba(0, 0, 0, 0.55);">
-                    <button 
-                        wire:click="setViewMode('table')" 
-                        type="button" 
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-black transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-sm scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}"
-                        title="Grouped Table View"
-                    >
-                        <span>📑 Table</span>
-                    </button>
-                    <button 
-                        wire:click="setViewMode('kanban')" 
-                        type="button" 
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-black transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'kanban' ? 'bg-white text-[#c3122e] shadow-sm scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}"
-                        title="Kanban Board"
-                    >
-                        <span>📋 Kanban</span>
-                    </button>
-                    <button 
-                        wire:click="setViewMode('timeline')" 
-                        type="button" 
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-black transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'timeline' ? 'bg-white text-[#c3122e] shadow-sm scale-[1.02]' : 'text-slate-200 hover:text-white hover:bg-white/10' }}"
-                        title="Hourly Timeline"
-                    >
-                        <span>⏱️ Schedule</span>
-                    </button>
-                </div>
+        <!-- Right: View Mode Switcher -->
+        <div class="flex items-center gap-3 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+            <div class="inline-flex p-1 rounded-xl border border-slate-200 bg-slate-100/80 shadow-2xs">
+                <button 
+                    wire:click="setViewMode('table')" 
+                    type="button" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                    title="Grouped Table View"
+                >
+                    <span>📑 Table</span>
+                </button>
+                <button 
+                    wire:click="setViewMode('kanban')" 
+                    type="button" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'kanban' ? 'bg-white text-[#c3122e] shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                    title="Kanban Board"
+                >
+                    <span>📋 Kanban</span>
+                </button>
+                <button 
+                    wire:click="setViewMode('timeline')" 
+                    type="button" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'timeline' ? 'bg-white text-[#c3122e] shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                    title="Hourly Timeline"
+                >
+                    <span>⏱️ Schedule</span>
+                </button>
             </div>
         </div>
     </div>

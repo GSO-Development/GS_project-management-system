@@ -1,92 +1,26 @@
 <div wire:poll.15s class="space-y-6 sm:space-y-7">
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- 1. TOP WELCOME HERO BANNER (Full-Width Panoramic Skyline)  -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="relative overflow-hidden rounded-3xl border border-amber-500/40 shadow-2xl p-5 sm:p-6 lg:px-8 lg:py-4 text-white mb-6 min-h-[160px] lg:h-[160px] flex flex-col justify-center" style="background: #2b040a;">
-        <!-- Full Banner Background Image (Sunset City Skyline Panorama - Preserved) -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-            <img 
-                src="{{ asset('images/project-banner-luxury-2x.jpg') }}" 
-                alt="Welcome Banner" 
-                class="w-full h-full object-cover object-center"
-            >
-            <!-- Left Crimson Velvet Scrim for 100% Contrast & Legibility -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#140205] via-[#24030a]/90 to-transparent lg:w-3/5"></div>
-            <!-- Right Dark Vignette over Sunset -->
-            <div class="absolute right-0 top-0 bottom-0 w-2/5 bg-gradient-to-l from-black/50 via-black/20 to-transparent hidden lg:block"></div>
-            <!-- Depth Vignettes -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    <!-- Clean Standard Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Welcome back, {{ auth()->user()->name }}! 👋
+            </h1>
+            <p class="text-xs font-semibold text-slate-500 mt-0.5">{{ now()->format('l, M d, Y') }}</p>
         </div>
 
-        <!-- Top Glowing Gold & Ruby Ambient Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300 shadow-sm shadow-amber-500/50 z-20"></div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <!-- Action Button: My Tasks -->
+            <a href="{{ route('my-tasks.index') }}" class="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer no-underline active:scale-95 flex-shrink-0">
+                <svg class="w-4 h-4 text-[#c3122e] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span>My Tasks</span>
+            </a>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
-            <!-- Left Side: User Initials/Avatar + Welcome Heading + Date -->
-            <div class="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
-                <!-- User Avatar Squircle with Gold Border -->
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-amber-400/40 ring-2 ring-black/60 bg-slate-950/80 p-1 flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
-                    <div class="w-full h-full rounded-xl flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-inner" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                    </div>
-                </div>
-
-                <div class="min-w-0 space-y-1 sm:space-y-1.5 flex-1">
-                    <!-- Suite Tag & Status Pill -->
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-amber-300 font-mono">
-                            🏛️ GEORGE STEUART WORKSPACE
-                        </span>
-                        <span class="text-white/30 text-xs hidden sm:inline">•</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-slate-950/80 text-amber-300 border border-amber-400/50 shadow-xs backdrop-blur-md inline-flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>Workspace Active</span>
-                        </span>
-                    </div>
-
-                    <!-- Welcome Title -->
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Welcome back, {{ auth()->user()->name }}! 👋
-                    </h1>
-
-                    <!-- Date Badge -->
-                    <div class="flex items-center gap-2.5 text-xs font-semibold text-slate-200 flex-wrap pt-0.5">
-                        <span class="inline-flex items-center gap-1.5 text-amber-300 font-bold bg-slate-950/70 px-2.5 py-0.5 rounded-lg border border-white/15 backdrop-blur-md text-[11px] shadow-sm">
-                            <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>{{ now()->format('l, M d, Y') }}</span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Active Focus HUD + Action Buttons (Obsidian Glass) -->
-            <div class="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 flex-shrink-0 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-white/10">
-                <!-- Floating Mini Gauge Card -->
-                <div class="px-3.5 py-2 rounded-2xl border border-white/20 ring-1 ring-black/50 shadow-2xl backdrop-blur-2xl flex items-center justify-between sm:justify-start gap-3 bg-slate-950/85 hover:bg-slate-950 transition-all flex-shrink-0">
-                    <div class="flex flex-col">
-                        <span class="text-[8.5px] font-black text-amber-300 uppercase tracking-widest leading-none">ASSIGNED TASKS</span>
-                        <span class="text-xs sm:text-sm font-black text-white leading-tight font-mono mt-0.5">
-                            <span class="text-white text-base">{{ $myTasksCount }}</span> <span class="text-[10px] font-bold text-slate-300 ml-0.5">Active</span>
-                        </span>
-                    </div>
-                    <div class="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 flex-shrink-0 shadow-inner">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    </div>
-                </div>
-
-                <!-- Action Button: My Tasks -->
-                <a href="{{ route('my-tasks.index') }}" class="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black text-white shadow-xl hover:brightness-110 transition-all duration-200 cursor-pointer no-underline active:scale-95 hover:scale-105 flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border: 1px solid rgba(251, 191, 36, 0.6); box-shadow: 0 4px 15px rgba(195,18,46,0.5);">
-                    <svg class="w-4 h-4 text-amber-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    <span>My Tasks</span>
+            @if(auth()->user()?->canCreateProject())
+                <a href="{{ route('projects.create') }}" class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer no-underline flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                    <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>New Project</span>
                 </a>
-
-                @if(auth()->user()?->canCreateProject())
-                    <a href="{{ route('projects.create') }}" class="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black text-slate-950 shadow-xl hover:brightness-110 transition-all duration-200 cursor-pointer no-underline active:scale-95 hover:scale-105 flex-shrink-0 bg-amber-400 border border-amber-300">
-                        <svg class="w-4 h-4 text-slate-950 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        <span>New Project</span>
-                    </a>
-                @endif
-            </div>
+            @endif
         </div>
     </div>
 
