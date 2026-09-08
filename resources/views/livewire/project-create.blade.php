@@ -1482,30 +1482,51 @@
         <!-- ─── Bottom Nav ─── -->
         <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200/90 gap-3 w-full">
             @if($currentStep > 1)
-                <button type="button" wire:click="prevStep" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border-radius:10px; font-size:13px; font-weight:700; color:#475569; background:#fff; border:1.5px solid #e2e8f0; cursor:pointer; transition:all .15s; box-shadow:0 1px 2px rgba(0,0,0,.04);" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'" onmouseout="this.style.background='#fff'; this.style.borderColor='#e2e8f0'">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                <button
+                    type="button"
+                    wire:click="prevStep"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-xs cursor-pointer active:scale-98"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     <span>Back</span>
                 </button>
             @else
-                <a href="{{ route('projects.index') }}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600; color:#64748b; background:#fff; border:1.5px solid #e2e8f0; text-decoration:none; transition:all .15s; box-shadow:0 1px 2px rgba(0,0,0,.04);" onmouseover="this.style.background='#f8fafc'; this.style.color='#0f172a'" onmouseout="this.style.background='#fff'; this.style.color='#64748b'">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                <a
+                    href="{{ route('projects.index') }}"
+                    class="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-xs no-underline"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     <span>Cancel</span>
                 </a>
             @endif
 
             @if($currentStep < 3)
-                <button type="button" wire:click="nextStep" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 28px; border-radius:10px; font-size:13px; font-weight:700; color:#fff; background:linear-gradient(135deg, #c3122e 0%, #a00e24 100%); border:none; cursor:pointer; box-shadow:0 4px 14px rgba(195,18,46,.3); transition:all .15s;" onmouseover="this.style.boxShadow='0 6px 20px rgba(195,18,46,.4)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 4px 14px rgba(195,18,46,.3)'; this.style.transform='none'">
+                <button
+                    type="button"
+                    wire:click="nextStep"
+                    class="inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white cursor-pointer transition-all duration-150 hover:brightness-105 active:scale-98 shadow-sm"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #a00e24 100%);"
+                >
                     <span>@if($currentStep === 1) Continue to Team Governance @elseif($currentStep === 2) Continue to Delivery Blueprint @else Continue @endif</span>
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
             @else
-                <button type="submit" wire:loading.attr="disabled" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 32px; border-radius:10px; font-size:13px; font-weight:800; color:#fff; background:linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); border:none; cursor:pointer; box-shadow:0 6px 22px rgba(195,18,46,.45); transition:all .15s;" onmouseover="this.style.boxShadow='0 8px 26px rgba(195,18,46,.55)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 6px 22px rgba(195,18,46,.45)'; this.style.transform='none'">
-                    <span wire:loading.remove wire:target="save" style="display:inline-flex; align-items:center; gap:8px;">
+                <button
+                    type="submit"
+                    wire:loading.attr="disabled"
+                    wire:target="save"
+                    class="inline-flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-white cursor-pointer transition-all duration-150 hover:brightness-105 active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); box-shadow: 0 4px 16px rgba(195,18,46,0.35);"
+                >
+                    {{-- Default State: Visible when NOT saving --}}
+                    <span wire:loading.remove wire:target="save" class="inline-flex items-center gap-2">
                         <span>Launch Project</span>
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </span>
-                    <span wire:loading wire:target="save" style="display:inline-flex; align-items:center; gap:8px;">
-                        <svg class="animate-spin" width="15" height="15" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+
+                    {{-- Loading State: Strictly hidden by default, only shown while saving --}}
+                    <span wire:loading.inline-flex wire:target="save" class="items-center gap-2" style="display: none;">
+                        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                         <span>Initializing Project...</span>
                     </span>
                 </button>

@@ -16,6 +16,7 @@
         $displayProjects = $myProjects->take(5);
         $displayTasks = $myTasksDueSoonList->take(5);
     @endphp
+    
 
     {{-- Clean & Simple Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
@@ -115,7 +116,67 @@
             </div>
         </div>
 
-        {{-- 2. My Tasks (Soft Emerald Tint) --}}
+        {{-- 2. My Project Roles (Soft Violet/Indigo Tint — Multi-Role Portfolio) --}}
+        <div class="rounded-2xl border border-indigo-100/80 bg-[#fbfaff] p-4.5 sm:p-5 shadow-2xs flex flex-col justify-between hover:shadow-xs transition-shadow">
+            <div class="flex items-start justify-between gap-2">
+                <div class="space-y-0.5">
+                    <span class="text-xs font-semibold text-slate-500 block">My Project Roles</span>
+                    <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-2">
+                        <span>{{ $distinctActiveRolesCount }}</span>
+                        <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                            {{ Str::plural('Role', $distinctActiveRolesCount) }}
+                        </span>
+                    </div>
+                    <div class="text-[11px] font-semibold text-slate-400">
+                        Across {{ $myProjectsCount }} assigned {{ Str::plural('project', $myProjectsCount) }}
+                    </div>
+                </div>
+                <div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-600 shrink-0" title="Project Roles Portfolio">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            {{-- Interactive Role Badges / Pills --}}
+            <div class="flex items-center gap-1.5 flex-wrap pt-2.5 mt-1 border-t border-indigo-100/60">
+                @if($leadProjectsCount > 0)
+                    <a href="{{ route('projects.my-leads', ['role' => 'lead']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition-colors no-underline" title="View {{ $leadProjectsCount }} project(s) as Project Manager">
+                        <span>⭐</span>
+                        <span>{{ $leadProjectsCount }} PM</span>
+                    </a>
+                @endif
+                @if($sponsorProjectsCount > 0)
+                    <a href="{{ route('projects.my-leads', ['role' => 'sponsor']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 transition-colors no-underline" title="View {{ $sponsorProjectsCount }} project(s) as Sponsor">
+                        <span>💼</span>
+                        <span>{{ $sponsorProjectsCount }} Sponsor</span>
+                    </a>
+                @endif
+                @if($ownerProjectsCount > 0)
+                    <a href="{{ route('projects.my-leads', ['role' => 'owner']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 transition-colors no-underline" title="View {{ $ownerProjectsCount }} project(s) as Owner">
+                        <span>🏛️</span>
+                        <span>{{ $ownerProjectsCount }} Owner</span>
+                    </a>
+                @endif
+                @if($steeringCommitteeProjectsCount > 0)
+                    <a href="{{ route('projects.my-leads', ['role' => 'steering_committee']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 transition-colors no-underline" title="View {{ $steeringCommitteeProjectsCount }} project(s) in Steering Committee">
+                        <span>🎖️</span>
+                        <span>{{ $steeringCommitteeProjectsCount }} Committee</span>
+                    </a>
+                @endif
+                @if($coreMemberProjectsCount > 0)
+                    <a href="{{ route('projects.my-leads', ['role' => 'member']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 transition-colors no-underline" title="View {{ $coreMemberProjectsCount }} project(s) as Core Team Member">
+                        <span>🤝</span>
+                        <span>{{ $coreMemberProjectsCount }} Member</span>
+                    </a>
+                @endif
+                @if($totalRoleAssignmentsCount === 0)
+                    <span class="text-[11px] font-medium text-slate-400">No active project roles</span>
+                @endif
+            </div>
+        </div>
+
+        {{-- 3. My Tasks (Soft Emerald Tint) --}}
         <div class="rounded-2xl border border-emerald-100/80 bg-[#f8fdfa] p-4.5 sm:p-5 shadow-2xs flex items-start justify-between hover:shadow-xs transition-shadow">
             <div class="space-y-1">
                 <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-500 hover:text-slate-900 block transition-colors">
@@ -142,22 +203,6 @@
             <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0 hover:scale-105 transition-transform" title="Go to My Tasks">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
             </a>
-        </div>
-
-        {{-- 3. In Progress (Soft Sky Blue Tint) --}}
-        <div class="rounded-2xl border border-sky-100/80 bg-[#f8fbfe] p-4.5 sm:p-5 shadow-2xs flex items-start justify-between hover:shadow-xs transition-shadow">
-            <div class="space-y-1">
-                <span class="text-xs font-semibold text-slate-500 block">In Progress</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $inProgressTasksCount }}
-                </div>
-                <div class="text-xs font-semibold text-sky-600 flex items-center gap-1 pt-0.5">
-                    <span>{{ $onTrackProjectsCount }} on track</span>
-                </div>
-            </div>
-            <div class="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200/60 flex items-center justify-center text-sky-600 shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
         </div>
 
         {{-- 4. Overdue (Soft Amber/Orange Tint) --}}
@@ -240,9 +285,17 @@
                         <div class="flex items-center justify-between gap-3 group py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 rounded-xl px-2 transition-colors">
                             {{-- Project Info --}}
                             <div class="min-w-0 flex-1">
-                                <a href="{{ route('projects.show', $p->id) }}" wire:navigate.hover class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors block no-underline">
-                                    {{ $p->name }}
-                                </a>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <a href="{{ route('projects.show', $p->id) }}" wire:navigate.hover class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors block no-underline">
+                                        {{ $p->name }}
+                                    </a>
+                                    @if(isset($p->user_assigned_role))
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[10px] font-bold border {{ $p->user_role_badge }} shrink-0">
+                                            <span>{{ $p->user_role_icon }}</span>
+                                            <span>{{ $p->user_role_short }}</span>
+                                        </span>
+                                    @endif
+                                </div>
                                 <span class="text-[11px] text-slate-400 truncate block font-medium mt-0.5">
                                     {{ $p->subsidiary?->name ?? 'George Steuart Group' }}
                                 </span>
@@ -719,42 +772,258 @@
     {{-- 5. LIVEWIRE MODALS (PRESERVED FUNCTIONALITY)               --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
 
-    {{-- A. Review Project Assignment Modal --}}
+    {{-- A. Review Project Assignment Modal (Rich Sign-Off Detail Card) --}}
     @if($showReviewModal && $reviewProject)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl p-6 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div>
-                        <span class="text-xs font-mono font-bold text-[#c3122e]">{{ $reviewProject->code }}</span>
-                        <h3 class="text-base font-bold text-slate-900">{{ $reviewProject->name }}</h3>
-                    </div>
-                    <button wire:click="closeReviewModal" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600">✕</button>
-                </div>
-
-                <div class="text-xs text-slate-600 space-y-2">
-                    <p>{{ $reviewProject->description ?? 'No description provided.' }}</p>
-                    <div class="grid grid-cols-2 gap-2 pt-2 text-[11px]">
-                        <div><strong class="text-slate-700">Department:</strong> {{ $reviewProject->subsidiary?->name ?? 'N/A' }}</div>
-                        <div><strong class="text-slate-700">Target Date:</strong> {{ $reviewProject->deadline ? \Carbon\Carbon::parse($reviewProject->deadline)->format('M d, Y') : 'N/A' }}</div>
-                    </div>
-                </div>
-
-                @if($showRejectModal)
-                    <div class="pt-3 border-t border-slate-100 space-y-2">
-                        <label class="text-xs font-bold text-rose-700">Reason for Declining:</label>
-                        <textarea wire:model="rejectionReasonInput" class="w-full text-xs p-2.5 rounded-xl border border-rose-200 focus:ring-1 focus:ring-rose-500" rows="3" placeholder="Please state reasons for declining this assignment..."></textarea>
-                        @error('rejectionReasonInput') <span class="text-xs text-rose-600 block">{{ $message }}</span> @enderror
-                        <div class="flex justify-end gap-2">
-                            <button wire:click="$set('showRejectModal', false)" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
-                            <button wire:click="submitRejection" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700">Confirm Decline</button>
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+            <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-2xl p-6 sm:p-7 space-y-4 my-8 max-h-[90vh] flex flex-col">
+                
+                {{-- Header --}}
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-xl shadow-2xs shrink-0">
+                            ⭐
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight">
+                                Project Manager Assignment Sign-Off
+                            </h3>
+                            <span class="text-xs text-slate-400 font-medium block mt-0.5">
+                                Request Reference #{{ $reviewApproval->id ?? $reviewProject->id }} · {{ $reviewProject->code }}
+                            </span>
                         </div>
                     </div>
-                @else
-                    <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
-                        <button wire:click="openRejectForm({{ $reviewProject->id }})" type="button" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50">Decline</button>
-                        <button wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)" type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm">Accept Leadership</button>
+                    <button wire:click="closeReviewModal" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors text-lg font-bold cursor-pointer shrink-0" title="Close">
+                        &times;
+                    </button>
+                </div>
+
+                {{-- Scrollable Modal Body --}}
+                <div class="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+                    
+                    {{-- 1. Request Overview Box --}}
+                    <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 space-y-2.5 text-xs shadow-2xs">
+                        <div class="flex justify-between items-center py-0.5">
+                            <span class="text-slate-500 font-bold">Project:</span>
+                            <span class="font-black text-slate-900">{{ $reviewProject->name }} ({{ $reviewProject->code }})</span>
+                        </div>
+                        <div class="flex justify-between items-center py-0.5">
+                            <span class="text-slate-500 font-bold">Request Type:</span>
+                            <span class="font-black text-[#c3122e]">New Project Plan</span>
+                        </div>
+                        <div class="flex justify-between items-center py-0.5">
+                            <span class="text-slate-500 font-bold">Requested By:</span>
+                            <span class="font-bold text-slate-900">{{ $reviewApproval->requester->name ?? ($reviewProject->creator->name ?? 'Super Administrator') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-0.5">
+                            <span class="text-slate-500 font-bold">Current Status:</span>
+                            <span class="font-black text-amber-700">Pending Review</span>
+                        </div>
                     </div>
-                @endif
+
+                    {{-- 2. Four Key Parameter Tiles --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                        <div class="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">🏛️ START DATE</span>
+                            <span class="font-mono font-bold text-slate-900 block mt-1 text-xs">
+                                {{ $reviewProject->start_date ? $reviewProject->start_date->format('M d, Y') : 'Immediate' }}
+                            </span>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">🏁 TARGET DEADLINE</span>
+                            <span class="font-mono font-bold text-slate-900 block mt-1 text-xs">
+                                {{ $reviewProject->deadline ? $reviewProject->deadline->format('M d, Y') : 'TBD' }}
+                            </span>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">⏳ EST. DURATION</span>
+                            <span class="font-bold text-slate-900 block mt-1 text-xs">
+                                {{ $reviewDurationDays ? "{$reviewDurationDays} Days" : '30 Days' }}
+                            </span>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">💰 EST. BUDGET</span>
+                            <span class="font-mono font-bold text-slate-900 block mt-1 text-xs">
+                                {{ $reviewProject->estimated_budget > 0 ? 'Rs. ' . number_format($reviewProject->estimated_budget, 0) : 'Not Set' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- 3. WBS Execution Structure --}}
+                    <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 space-y-3 text-xs shadow-2xs">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">📋</span>
+                                <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">WBS EXECUTION STRUCTURE</h5>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/70">
+                                    {{ $reviewWbsItems->count() }} Items
+                                </span>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/70">
+                                    {{ $reviewPhases->count() }} Phases
+                                </span>
+                                @if($reviewMilestonesCount > 0)
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                                        🎯 {{ $reviewMilestonesCount }} Milestones
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if($reviewWbsItems->count() > 0)
+                            <div class="max-h-52 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin rounded-xl bg-white p-1">
+                                @foreach($reviewWbsItems as $item)
+                                    @php 
+                                        $isPhase = ($item->item_type?->value === 'phase' || !$item->parent_id); 
+                                    @endphp
+                                    <div class="flex items-center justify-between gap-2 p-2 rounded-xl text-xs {{ $isPhase ? 'bg-slate-50/80 font-bold text-slate-900' : 'pl-6 text-slate-600 font-medium hover:bg-slate-50/50' }}">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="text-xs font-mono {{ $isPhase ? 'text-[#c3122e] font-bold' : 'text-slate-400' }}">
+                                                {{ $isPhase ? '📁' : '↳' }}
+                                            </span>
+                                            <span class="truncate">{{ $item->title }}</span>
+                                        </div>
+                                        <span class="text-slate-400 font-mono text-xs shrink-0 font-medium">
+                                            {{ $item->duration ? $item->duration . 'd' : ($item->estimated_hours ? $item->estimated_hours . 'h' : '') }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="p-3.5 rounded-xl bg-slate-50 text-center text-slate-400 text-xs font-medium border border-slate-200/60">
+                                No pre-configured WBS breakdown. Project blueprint will be structured in workspace.
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- 4. Governance Team Roster --}}
+                    <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 space-y-3 text-xs shadow-2xs">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">👥</span>
+                                <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">GOVERNANCE TEAM ROSTER</h5>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-rose-50 text-[#c3122e] border border-rose-200/70">
+                                {{ $reviewTotalTeam }} Assigned
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {{-- PM --}}
+                            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-[#c3122e]/30 shadow-2xs">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-[11px] shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                    {{ strtoupper(substr($reviewProject->projectManager->name ?? 'PM', 0, 1)) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="font-black text-slate-900 block truncate text-xs">{{ $reviewProject->projectManager->name ?? 'You' }}</span>
+                                    <span class="text-[9.5px] text-[#c3122e] font-bold">⭐ Designated Project Manager</span>
+                                </div>
+                            </div>
+                            {{-- Sponsors --}}
+                            @foreach($reviewSponsors as $sp)
+                                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-purple-200 shadow-2xs">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                                        {{ strtoupper(substr($sp->name, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-black text-slate-900 block truncate text-xs">{{ $sp->name }}</span>
+                                        <span class="text-[9.5px] text-purple-700 font-bold">💼 Project Sponsor</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                            {{-- Owners --}}
+                            @foreach($reviewOwners as $ow)
+                                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-blue-200 shadow-2xs">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                                        {{ strtoupper(substr($ow->name, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-black text-slate-900 block truncate text-xs">{{ $ow->name }}</span>
+                                        <span class="text-[9.5px] text-blue-700 font-bold">🏛️ Project Owner</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                            {{-- Committee --}}
+                            @foreach($reviewCommittee as $cm)
+                                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-rose-200 shadow-2xs">
+                                    <div class="w-7 h-7 rounded-lg bg-rose-600 text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                                        {{ strtoupper(substr($cm->name, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-black text-slate-900 block truncate text-xs">{{ $cm->name }}</span>
+                                        <span class="text-[9.5px] text-rose-700 font-bold">🎖️ Steering Committee</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                            {{-- Members --}}
+                            @foreach($reviewMembers->take(4) as $mb)
+                                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-emerald-200 shadow-2xs">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                                        {{ strtoupper(substr($mb->name, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-black text-slate-900 block truncate text-xs">{{ $mb->name }}</span>
+                                        <span class="text-[9.5px] text-emerald-700 font-bold">🤝 Core Team Member</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- 5. Decline Reason Sub-Form (If showRejectModal is toggled) --}}
+                    @if($showRejectModal)
+                        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-2.5">
+                            <label class="text-xs font-bold text-rose-800 block">
+                                Reason for Declining Assignment: <span class="text-rose-600">*</span>
+                            </label>
+                            <textarea wire:model="rejectionReasonInput" class="w-full text-xs p-3 rounded-xl border border-rose-300 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/30" rows="3" placeholder="Please state reasons or issues preventing you from accepting leadership of this project..."></textarea>
+                            @error('rejectionReasonInput') <span class="text-xs text-rose-600 font-bold block">{{ $message }}</span> @enderror
+                            <div class="flex justify-end gap-2 pt-1">
+                                <button wire:click="$set('showRejectModal', false)" type="button" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 bg-white border border-slate-200 cursor-pointer">
+                                    Back
+                                </button>
+                                <button wire:click="submitRejection" type="button" class="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 cursor-pointer shadow-xs">
+                                    Confirm Decline
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+
+                </div>
+
+                {{-- Modal Action Footer --}}
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 flex-shrink-0 gap-3">
+                    <div>
+                        @if(!$showRejectModal)
+                            <button
+                                wire:click="openRejectForm({{ $reviewProject->id }})"
+                                type="button"
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#e11d48] hover:bg-[#be123c] transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span>Decline Assignment</span>
+                            </button>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button
+                            wire:click="closeReviewModal"
+                            type="button"
+                            class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)"
+                            type="button"
+                            class="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#8b1424] hover:bg-[#70101d] transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-98"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Accept Assignment &amp; Launch &rarr;</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     @endif

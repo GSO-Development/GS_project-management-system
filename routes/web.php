@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CalendarExportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ProfileController;
@@ -48,8 +49,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // My Tasks (Team Member & PM task workspace)
     Route::get('/my-tasks', MyTasks::class)->name('my-tasks.index');
 
-    // Calendar
+    // Calendar & Microsoft Outlook Integration
     Route::get('/calendar', CalendarView::class)->name('calendar.index');
+    Route::get('/calendar/export/{type}/{id}.ics', [CalendarExportController::class, 'downloadIcs'])->name('calendar.export-ics');
+    Route::get('/calendar/feed.ics', [CalendarExportController::class, 'feed'])->name('calendar.feed-ics');
 
     // Document Repository, Download & View
     Route::get('/documents', DocumentManager::class)->name('documents.index');

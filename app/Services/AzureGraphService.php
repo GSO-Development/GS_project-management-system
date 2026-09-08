@@ -280,5 +280,92 @@ class AzureGraphService
 
         return $normalized;
     }
+
+    /**
+     * Create an event in a user's Microsoft 365 / Outlook calendar via Microsoft Graph API.
+     */
+    public static function createCalendarEvent(string $userPrincipalName, array $eventData): array
+    {
+        $token = self::getAccessToken();
+        if (!$token) {
+            return ['success' => false, 'message' => 'Microsoft Azure AD is not connected or token expired.'];
+        }
+
+        try {
+            $startDate = $eventData['start_date'];
+            $endDate = $eventData['end_date'] ?? $startDate;
+            $startTime = !empty($eventData['start_time']) ? $eventData['start_time'] : '09:00:00';
+            $endTime = !empty($eventData['end_time']) ? $eventData['end_time'] : '10:00:00';
+
+            $startDateTime = \Carbon\Carbon::parse("{$startDate} {$startTime}")->format('Y-m-d\TH:i:s');
+            $endDateTime = \Carbon\Carbon::parse("{$endDate} {$endTime}")->format('Y-m-d\TH:i:s');
+            $timezone = config('app.timezone', 'Asia/Colombo');
+
+            $attendees = [];
+            if (!empty($eventData['attendee_emails'])) {
+                foreach ($eventData['attendee_emails'] as $attEmail) {
+                    $attendees[] = [
+                        'emailAddress' => [
+                            'address' => $attEmail,
+                            'name'    => $attEmail,
+                        ],
+                        'type' => 'required',
+                    ];
+                }
+            }
+
+            $payload = [
+                'subject' => $eventData['title'],
+                'body' => [
+                    'contentType' => 'HTML',
+                    'content'     => nl2br(e($eventData['description'] ?? '')),
+                ],
+                'start' => [
+                    'dateTime' => $startDateTime,
+                    'timeZone' => $timezone,
+                ],
+                'end' => [
+                    'dateTime' => $endDateTime,
+                    'timeZone' => $timezone,
+                ],
+                'location' => [
+                    'displayName' => $eventData['location'] ?? ($eventData['meeting_link'] ?? 'GS NexusPM'),
+                ],
+                'isAllDay' => !empty($eventData['is_all_day']),
+            ];
+
+            if (!empty($attendees)) {
+                $payload['attendees'] = $attendees;
+            }
+
+            $url = "https://graph.microsoft.com/v1.0/users/" . urlencode($userPrincipalName) . "/events";
+
+            $response = \Illuminate\Support\Facades\Http::withToken($token)
+                ->withHeaders(['Prefer' => 'outlook.timezone="' . $timezone . '"'])
+                ->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'success' => true,
+                    'microsoft_event_id' => $data['id'] ?? null,
+                    'web_link' => $data['webLink'] ?? null,
+                    'message' => 'Successfully synchronized to Microsoft Outlook Calendar.',
+                ];
+            }
+
+            \Illuminate\Support\Facades\Log::warning('AzureGraphService: Calendar event creation returned error — ' . $response->body());
+            return [
+                'success' => false,
+                'message' => 'Microsoft Graph API: ' . ($response->json('error.message') ?? 'Permissions restricted or user calendar not accessible.'),
+            ];
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AzureGraphService: Calendar event exception — ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
 }
 

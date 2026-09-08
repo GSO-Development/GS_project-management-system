@@ -516,8 +516,119 @@ class ProjectManagerDashboard extends Component
                           ->whereHas('members', fn($m) => $m->where('users.id', $user->id));
                   });
             })
-            ->with(['subsidiary', 'wbsItems'])
+            ->with(['subsidiary', 'wbsItems', 'members'])
             ->get();
+
+        // ─── User Role Breakdown across Projects (Dynamic Matrix Organization) ───
+        $leadProjectsCount = Project::where('project_manager_id', $user->id)->count();
+
+        // Projects where user is a governance/team member (and not the PM)
+        $memberProjectsBase = Project::where('project_manager_id', '!=', $user->id)
+            ->where(function($q) use ($user) {
+                $q->where('pm_accepted', true)
+                  ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+            });
+
+        $sponsorProjectsCount = (clone $memberProjectsBase)
+            ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'sponsor'))
+            ->count();
+
+        $ownerProjectsCount = (clone $memberProjectsBase)
+            ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'owner'))
+            ->count();
+
+        $steeringCommitteeProjectsCount = (clone $memberProjectsBase)
+            ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'steering_committee'))
+            ->count();
+
+        $coreMemberProjectsCount = (clone $memberProjectsBase)
+            ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'member'))
+            ->count();
+
+        // Attach user's specific role to each project in $myProjects for dashboard display
+        $myProjects->each(function($p) use ($user) {
+            if ($p->project_manager_id === $user->id) {
+                $p->user_assigned_role = 'lead';
+                $p->user_role_label = 'Project Manager';
+                $p->user_role_short = 'Lead PM';
+                $p->user_role_icon = '⭐';
+                $p->user_role_badge = 'bg-amber-50 text-amber-800 border-amber-200/80';
+            } else {
+                $member = $p->members->firstWhere('id', $user->id);
+                $roleKey = $member?->pivot?->role ?? 'member';
+                $p->user_assigned_role = $roleKey;
+                $p->user_role_label = match($roleKey) {
+                    'sponsor' => 'Project Sponsor',
+                    'owner' => 'Project Owner',
+                    'steering_committee' => 'Steering Committee',
+                    default => 'Team Member',
+                };
+                $p->user_role_short = match($roleKey) {
+                    'sponsor' => 'Sponsor',
+                    'owner' => 'Owner',
+                    'steering_committee' => 'Committee',
+                    default => 'Member',
+                };
+                $p->user_role_icon = match($roleKey) {
+                    'sponsor' => '💼',
+                    'owner' => '🏛️',
+                    'steering_committee' => '🎖️',
+                    default => '🤝',
+                };
+                $p->user_role_badge = match($roleKey) {
+                    'sponsor' => 'bg-purple-50 text-purple-800 border-purple-200/80',
+                    'owner' => 'bg-blue-50 text-blue-800 border-blue-200/80',
+                    'steering_committee' => 'bg-rose-50 text-rose-800 border-rose-200/80',
+                    default => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                };
+            }
+        });
+
+        $roleBreakdown = [
+            'lead' => [
+                'label' => 'Project Manager',
+                'short' => 'Lead PM',
+                'icon'  => '⭐',
+                'count' => $leadProjectsCount,
+                'bg'    => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                'pill'  => 'bg-amber-100 text-amber-900',
+            ],
+            'sponsor' => [
+                'label' => 'Project Sponsor',
+                'short' => 'Sponsor',
+                'icon'  => '💼',
+                'count' => $sponsorProjectsCount,
+                'bg'    => 'bg-purple-50 text-purple-800 border-purple-200/80',
+                'pill'  => 'bg-purple-100 text-purple-900',
+            ],
+            'owner' => [
+                'label' => 'Project Owner',
+                'short' => 'Owner',
+                'icon'  => '🏛️',
+                'count' => $ownerProjectsCount,
+                'bg'    => 'bg-blue-50 text-blue-800 border-blue-200/80',
+                'pill'  => 'bg-blue-100 text-blue-900',
+            ],
+            'steering_committee' => [
+                'label' => 'Steering Committee',
+                'short' => 'Committee',
+                'icon'  => '🎖️',
+                'count' => $steeringCommitteeProjectsCount,
+                'bg'    => 'bg-rose-50 text-rose-800 border-rose-200/80',
+                'pill'  => 'bg-rose-100 text-rose-900',
+            ],
+            'member' => [
+                'label' => 'Team Member',
+                'short' => 'Core Member',
+                'icon'  => '🤝',
+                'count' => $coreMemberProjectsCount,
+                'bg'    => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                'pill'  => 'bg-emerald-100 text-emerald-900',
+            ],
+        ];
+
+        $distinctActiveRolesCount = count(array_filter($roleBreakdown, fn($r) => $r['count'] > 0));
+        $totalRoleAssignmentsCount = $leadProjectsCount + $sponsorProjectsCount + $ownerProjectsCount + $steeringCommitteeProjectsCount + $coreMemberProjectsCount;
 
         $myProjectsCount = $myProjects->count();
         $inProgressProjectsCount = $myProjects->where('status', 'in_progress')->count();
@@ -720,12 +831,62 @@ class ProjectManagerDashboard extends Component
         })->sortByDesc('activeTasks')->values()->take(6);
 
 
-        $reviewProject = $this->reviewProjectId ? Project::with(['subsidiary', 'projectManager', 'template.tasks', 'wbsItems', 'members'])->find($this->reviewProjectId) : null;
+        $reviewProject = null;
+        $reviewApproval = null;
+        $reviewWbsItems = collect();
+        $reviewPhases = collect();
+        $reviewMilestonesCount = 0;
+        $reviewSponsors = collect();
+        $reviewOwners = collect();
+        $reviewCommittee = collect();
+        $reviewMembers = collect();
+        $reviewDurationDays = 0;
+        $reviewTotalTeam = 0;
+
+        if ($this->reviewProjectId) {
+            $reviewProject = Project::with(['subsidiary', 'projectManager', 'creator', 'template.tasks', 'wbsItems', 'members'])->find($this->reviewProjectId);
+
+            if ($reviewProject) {
+                $reviewApproval = ApprovalRequest::with('requester')
+                    ->where('project_id', $reviewProject->id)
+                    ->where('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN)
+                    ->latest()
+                    ->first();
+
+                $reviewWbsItems = $reviewProject->wbsItems()->orderBy('id')->get();
+                if ($reviewWbsItems->isEmpty() && $reviewProject->template) {
+                    $reviewWbsItems = $reviewProject->template->tasks()->orderBy('id')->get();
+                }
+
+                $reviewPhases = $reviewWbsItems->filter(fn($i) => ($i->item_type?->value === 'phase' || !$i->parent_id));
+                $reviewMilestonesCount = $reviewWbsItems->where('is_milestone', true)->count();
+
+                $reviewSponsors = $reviewProject->members->where('pivot.role', 'sponsor');
+                $reviewOwners = $reviewProject->members->where('pivot.role', 'owner');
+                $reviewCommittee = $reviewProject->members->where('pivot.role', 'steering_committee');
+                $reviewMembers = $reviewProject->members->where('pivot.role', 'member');
+                $reviewTotalTeam = 1 + $reviewSponsors->count() + $reviewOwners->count() + $reviewCommittee->count() + $reviewMembers->count();
+
+                if ($reviewProject->start_date && $reviewProject->deadline) {
+                    $reviewDurationDays = max(1, $reviewProject->start_date->diffInDays($reviewProject->deadline));
+                }
+            }
+        }
 
 
         return view('livewire.project-manager-dashboard', compact(
             'pendingInvitations',
             'reviewProject',
+            'reviewApproval',
+            'reviewWbsItems',
+            'reviewPhases',
+            'reviewMilestonesCount',
+            'reviewSponsors',
+            'reviewOwners',
+            'reviewCommittee',
+            'reviewMembers',
+            'reviewDurationDays',
+            'reviewTotalTeam',
             'myProjects',
             'myProjectsCount',
             'inProgressProjectsCount',
@@ -774,7 +935,14 @@ class ProjectManagerDashboard extends Component
             'totalProjectTasksCount',
             'completedTasksPct',
             'inProgressTasksPct',
-            'pendingTasksPct'
+            'pendingTasksPct',
+            'roleBreakdown',
+            'sponsorProjectsCount',
+            'ownerProjectsCount',
+            'steeringCommitteeProjectsCount',
+            'coreMemberProjectsCount',
+            'distinctActiveRolesCount',
+            'totalRoleAssignmentsCount'
         ));
     }
 }

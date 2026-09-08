@@ -312,6 +312,20 @@ class RbacService
                 'project_settings.manage_roles' => 'Manage Project Roles',
             ],
         ],
+        'calendar' => [
+            'key' => 'calendar',
+            'name' => 'Calendar & Microsoft 365',
+            'icon' => '📅',
+            'permissions' => [
+                'calendar.view' => 'View Calendar',
+                'calendar.view_all' => 'View All Project Calendars',
+                'calendar.create' => 'Schedule Event / Meeting',
+                'calendar.edit' => 'Edit Calendar Event',
+                'calendar.delete' => 'Delete Calendar Event',
+                'calendar.sync_outlook' => 'Sync to Microsoft Outlook',
+                'calendar.export' => 'Export Calendar (.ICS / Feed)',
+            ],
+        ],
     ];
 
     /**
@@ -506,7 +520,7 @@ class RbacService
 
         $isOnlyView = true;
         foreach ($grantedPerms as $p) {
-            if (!str_contains($p, 'view') && !str_contains($p, 'report')) {
+            if (!str_contains($p, 'view') && !str_contains($p, 'report') && !str_contains($p, 'sync') && !str_contains($p, 'export')) {
                 $isOnlyView = false;
                 break;
             }

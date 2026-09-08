@@ -171,7 +171,7 @@
 
         <!-- Table View -->
         <div class="w-full overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse min-w-[1150px]">
+            <table class="w-full text-left border-collapse min-w-[1260px]">
                 <thead>
                     <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
                         <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[240px] shadow-r">Project Role</th>
@@ -184,6 +184,7 @@
                         <th class="py-4 px-3 text-center min-w-[110px]">Approvals</th>
                         <th class="py-4 px-3 text-center min-w-[105px]">Reports</th>
                         <th class="py-4 px-3 text-center min-w-[115px]">Settings</th>
+                        <th class="py-4 px-3 text-center min-w-[115px]">Calendar</th>
                         <th class="py-4 pl-3 pr-6 text-right min-w-[160px]">Actions</th>
                     </tr>
                 </thead>
@@ -227,8 +228,8 @@
                                 </div>
                             </td>
 
-                            <!-- 9 Functional Modules Columns -->
-                            @foreach(['project', 'scope', 'task', 'team', 'budget', 'risks', 'approvals', 'reports', 'settings'] as $mKey)
+                            <!-- 10 Functional Modules Columns -->
+                            @foreach(['project', 'scope', 'task', 'team', 'budget', 'risks', 'approvals', 'reports', 'settings', 'calendar'] as $mKey)
                                 <td class="py-4 px-3 text-center">
                                     @php $s = \App\Services\RbacService::computeModuleSummary($roleCode, $mKey); @endphp
                                     <span class="px-2.5 py-1 rounded-lg text-[10.5px] border inline-block whitespace-nowrap {{ $s['badgeClass'] }}">
@@ -281,7 +282,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="text-center py-12 text-slate-400 text-xs font-semibold">
+                            <td colspan="12" class="text-center py-12 text-slate-400 text-xs font-semibold">
                                 No matching roles found matching search criteria.
                             </td>
                         </tr>

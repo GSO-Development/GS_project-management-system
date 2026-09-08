@@ -20,6 +20,22 @@ class MyLeadProjects extends Component
     public bool $showRejectModal = false;
     public string $rejectionReasonInput = '';
 
+    protected $queryString = [
+        'roleFilter'   => ['except' => 'all', 'as' => 'role'],
+        'statusFilter' => ['except' => 'all', 'as' => 'status'],
+        'search'       => ['except' => ''],
+    ];
+
+    public function mount()
+    {
+        if (request()->has('role')) {
+            $this->roleFilter = request('role');
+        }
+        if (request()->has('status')) {
+            $this->statusFilter = request('status');
+        }
+    }
+
     public function updatedSearch() { $this->resetPage(); }
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedRoleFilter() { $this->resetPage(); }
@@ -121,6 +137,19 @@ class MyLeadProjects extends Component
         $overdueCount    = (clone $baseQuery)->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled'])->count();
         $completedCount  = (clone $baseQuery)->where('status', 'completed')->count();
 
+        // Role breakdown counts (before filters)
+        $roleCounts = [
+            'lead' => (clone $baseQuery)->where('project_manager_id', $user->id)->count(),
+            'sponsor' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
+                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'sponsor'))->count(),
+            'owner' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
+                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'owner'))->count(),
+            'steering_committee' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
+                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'steering_committee'))->count(),
+            'member' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
+                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'member'))->count(),
+        ];
+
         // Role filter
         if ($this->roleFilter !== 'all') {
             if ($this->roleFilter === 'lead') {
@@ -170,6 +199,7 @@ class MyLeadProjects extends Component
             'activeCount',
             'overdueCount',
             'completedCount',
+            'roleCounts',
             'userRoles'
         ))->title('My Projects — GS NexusPM');
     }

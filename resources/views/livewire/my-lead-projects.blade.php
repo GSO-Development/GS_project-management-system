@@ -48,6 +48,56 @@
         @endforeach
     </div>
 
+    {{-- Quick Role Filter Pills --}}
+    <div class="flex items-center gap-1.5 flex-wrap mb-4">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Your Role:</span>
+        <button type="button" wire:click="$set('roleFilter', 'all')"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {{ $roleFilter === 'all' ? 'bg-slate-900 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50' }}">
+            <span>👥 All Roles</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $roleFilter === 'all' ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-700' }}">{{ $totalCount }}</span>
+        </button>
+
+        @if(($roleCounts['lead'] ?? 0) > 0 || $roleFilter === 'lead')
+            <button type="button" wire:click="$set('roleFilter', 'lead')"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {{ $roleFilter === 'lead' ? 'bg-amber-500 text-white shadow-xs' : 'bg-white border border-amber-200/80 text-amber-900 hover:bg-amber-50' }}">
+                <span>⭐ PM</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $roleFilter === 'lead' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-900' }}">{{ $roleCounts['lead'] ?? 0 }}</span>
+            </button>
+        @endif
+
+        @if(($roleCounts['sponsor'] ?? 0) > 0 || $roleFilter === 'sponsor')
+            <button type="button" wire:click="$set('roleFilter', 'sponsor')"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {{ $roleFilter === 'sponsor' ? 'bg-purple-600 text-white shadow-xs' : 'bg-white border border-purple-200/80 text-purple-900 hover:bg-purple-50' }}">
+                <span>💼 Sponsor</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $roleFilter === 'sponsor' ? 'bg-purple-700 text-white' : 'bg-purple-100 text-purple-900' }}">{{ $roleCounts['sponsor'] ?? 0 }}</span>
+            </button>
+        @endif
+
+        @if(($roleCounts['owner'] ?? 0) > 0 || $roleFilter === 'owner')
+            <button type="button" wire:click="$set('roleFilter', 'owner')"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {{ $roleFilter === 'owner' ? 'bg-blue-600 text-white shadow-xs' : 'bg-white border border-blue-200/80 text-blue-900 hover:bg-blue-50' }}">
+                <span>🏛️ Owner</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $roleFilter === 'owner' ? 'bg-blue-700 text-white' : 'bg-blue-100 text-blue-900' }}">{{ $roleCounts['owner'] ?? 0 }}</span>
+            </button>
+        @endif
+
+        @if(($roleCounts['steering_committee'] ?? 0) > 0 || $roleFilter === 'steering_committee')
+            <button type="button" wire:click="$set('roleFilter', 'steering_committee')"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {{ $roleFilter === 'steering_committee' ? 'bg-rose-600 text-white shadow-xs' : 'bg-white border border-rose-200/80 text-rose-900 hover:bg-rose-50' }}">
+                <span>🎖️ Committee</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $roleFilter === 'steering_committee' ? 'bg-rose-700 text-white' : 'bg-rose-100 text-rose-900' }}">{{ $roleCounts['steering_committee'] ?? 0 }}</span>
+            </button>
+        @endif
+
+        @if(($roleCounts['member'] ?? 0) > 0 || $roleFilter === 'member')
+            <button type="button" wire:click="$set('roleFilter', 'member')"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 {{ $roleFilter === 'member' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white border border-emerald-200/80 text-emerald-900 hover:bg-emerald-50' }}">
+                <span>🤝 Core Member</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $roleFilter === 'member' ? 'bg-emerald-700 text-white' : 'bg-emerald-100 text-emerald-900' }}">{{ $roleCounts['member'] ?? 0 }}</span>
+            </button>
+        @endif
+    </div>
+
     {{-- ══════════════════════════════════════════════════════════
          3. SEARCH & FILTER TOOLBAR
          ══════════════════════════════════════════════════════════ --}}
@@ -69,15 +119,15 @@
         {{-- Filters --}}
         <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
             {{-- Role Filter --}}
-            <div class="min-w-[160px]">
+            <div class="min-w-[180px]">
                 <select wire:model.live="roleFilter"
                     class="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
-                    <option value="all">👥 All My Roles</option>
-                    <option value="lead">⭐ Project Manager (PM)</option>
-                    <option value="sponsor">💼 Project Sponsor</option>
-                    <option value="owner">🏛️ Project Owner</option>
-                    <option value="steering_committee">🎖️ Steering Committee</option>
-                    <option value="member">🤝 Team Member</option>
+                    <option value="all">👥 All My Roles ({{ $totalCount }})</option>
+                    <option value="lead">⭐ Project Manager (PM) ({{ $roleCounts['lead'] ?? 0 }})</option>
+                    <option value="sponsor">💼 Project Sponsor ({{ $roleCounts['sponsor'] ?? 0 }})</option>
+                    <option value="owner">🏛️ Project Owner ({{ $roleCounts['owner'] ?? 0 }})</option>
+                    <option value="steering_committee">🎖️ Steering Committee ({{ $roleCounts['steering_committee'] ?? 0 }})</option>
+                    <option value="member">🤝 Team Member ({{ $roleCounts['member'] ?? 0 }})</option>
                 </select>
             </div>
 
