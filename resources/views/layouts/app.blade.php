@@ -470,15 +470,11 @@
         <!-- Bottom: User Profile Card & Collapse Toggle -->
         <div class="p-3 flex-shrink-0 space-y-2 border-t border-slate-200/80 bg-white">
             @php
-                $userRoleLabel = 'Team Member';
-                $userRoleBadgeClass = 'bg-slate-100 text-slate-700 border border-slate-200';
-                if ($isSuperAdmin) {
-                    $userRoleLabel = 'PMO Admin';
-                    $userRoleBadgeClass = 'bg-rose-50 text-[#c3122e] border border-rose-200/70';
-                } elseif ($isPM) {
-                    $userRoleLabel = 'Project Manager';
-                    $userRoleBadgeClass = 'bg-amber-50 text-amber-800 border border-amber-200/70';
-                }
+                $isPmoAdminUser = $user && ($user->isSuperAdmin() || $user->hasRole('pmo_admin') || $user->hasRole('super_admin') || $user->id === 1 || $user->email === 'admin@nexuspm.local');
+                $userRoleLabel = $isPmoAdminUser ? 'PMO Admin' : 'User';
+                $userRoleBadgeClass = $isPmoAdminUser 
+                    ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' 
+                    : 'bg-slate-100 text-slate-600 border border-slate-200';
             @endphp
 
             <!-- User Profile Card -->

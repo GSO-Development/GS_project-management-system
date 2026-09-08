@@ -108,83 +108,102 @@
 
     @php
         $currentUser     = auth()->user();
-        $isSuperAdmin    = $currentUser->isSuperAdmin();
+        $isSuperAdmin    = $currentUser->isSuperAdmin() || $currentUser->hasRole('pmo_admin');
         $isPm            = ($project->project_manager_id === $currentUser->id);
         $memberRecord    = $project->members->firstWhere('id', $currentUser->id);
         $memberPivotRole = $memberRecord?->pivot?->role;
 
         if ($isPm) {
-            $myRoleLabel  = 'Project Leader (PM)';
-            $myRoleDesc   = 'You are the primary operational leader with authority over deliverables, schedule & budget.';
-            $myRoleIcon   = '⭐';
-            $myRoleBorder = 'border-rose-400/60';
-            $myRoleText   = 'text-rose-200';
-            $myRoleDot    = 'bg-rose-400';
-            $myRoleBg     = 'bg-gradient-to-r from-rose-950/90 to-slate-950/90';
+            $myRoleLabel      = 'Project Leader';
+            $myRoleDesc       = 'You are the primary operational leader with authority over deliverables, schedule & budget.';
+            $myRoleBadgeClass = 'bg-rose-50 text-[#c3122e] border-rose-200/80';
         } elseif ($memberPivotRole === 'sponsor') {
-            $myRoleLabel  = 'Project Sponsor';
-            $myRoleDesc   = 'You are the executive sponsor championing this strategic project.';
-            $myRoleIcon   = '💼';
-            $myRoleBorder = 'border-amber-400/60';
-            $myRoleText   = 'text-amber-200';
-            $myRoleDot    = 'bg-amber-400';
-            $myRoleBg     = 'bg-gradient-to-r from-amber-950/90 to-slate-950/90';
+            $myRoleLabel      = 'Project Sponsor';
+            $myRoleDesc       = 'You are the executive sponsor championing this strategic project.';
+            $myRoleBadgeClass = 'bg-amber-50 text-amber-800 border-amber-200/80';
         } elseif ($memberPivotRole === 'owner') {
-            $myRoleLabel  = 'Project Owner';
-            $myRoleDesc   = 'You are the business owner accountable for project value and outcomes.';
-            $myRoleIcon   = '👑';
-            $myRoleBorder = 'border-emerald-400/60';
-            $myRoleText   = 'text-emerald-200';
-            $myRoleDot    = 'bg-emerald-400';
-            $myRoleBg     = 'bg-gradient-to-r from-emerald-950/90 to-slate-950/90';
+            $myRoleLabel      = 'Project Owner';
+            $myRoleDesc       = 'You are the business owner accountable for project value and outcomes.';
+            $myRoleBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
         } elseif ($memberPivotRole === 'steering_committee') {
-            $myRoleLabel  = 'Steering Committee';
-            $myRoleDesc   = 'You provide steering governance and strategic advisory oversight.';
-            $myRoleIcon   = '🏛️';
-            $myRoleBorder = 'border-purple-400/60';
-            $myRoleText   = 'text-purple-200';
-            $myRoleDot    = 'bg-purple-400';
-            $myRoleBg     = 'bg-gradient-to-r from-purple-950/90 to-slate-950/90';
+            $myRoleLabel      = 'Steering Committee';
+            $myRoleDesc       = 'You provide steering governance and strategic advisory oversight.';
+            $myRoleBadgeClass = 'bg-purple-50 text-purple-800 border-purple-200/80';
         } elseif ($memberPivotRole) {
-            $myRoleLabel  = 'Collaborator / Contributor';
-            $myRoleDesc   = 'You are an assigned project collaborator executing deliverables.';
-            $myRoleIcon   = '🤝';
-            $myRoleBorder = 'border-blue-400/60';
-            $myRoleText   = 'text-blue-200';
-            $myRoleDot    = 'bg-blue-400';
-            $myRoleBg     = 'bg-gradient-to-r from-blue-950/90 to-slate-950/90';
+            $myRoleLabel      = 'Collaborator';
+            $myRoleDesc       = 'You are an assigned project collaborator executing deliverables.';
+            $myRoleBadgeClass = 'bg-blue-50 text-blue-800 border-blue-200/80';
         } elseif ($isSuperAdmin) {
-            $myRoleLabel  = 'PMO Super Admin';
-            $myRoleDesc   = 'You have enterprise governance, audit authority, and full workspace access.';
-            $myRoleIcon   = '🛡️';
-            $myRoleBorder = 'border-amber-400/60';
-            $myRoleText   = 'text-amber-300';
-            $myRoleDot    = 'bg-amber-400';
-            $myRoleBg     = 'bg-gradient-to-r from-slate-900/95 to-slate-950/95';
+            $myRoleLabel      = 'PMO Admin';
+            $myRoleDesc       = 'Enterprise governance, audit authority, and full workspace access.';
+            $myRoleBadgeClass = 'bg-rose-50 text-[#c3122e] border-rose-200/80';
         } else {
-            $myRoleLabel  = 'Observer / Stakeholder';
-            $myRoleDesc   = 'You have read-only stakeholder visibility on this project.';
-            $myRoleIcon   = '👁️';
-            $myRoleBorder = 'border-slate-500/50';
-            $myRoleText   = 'text-slate-300';
-            $myRoleDot    = 'bg-slate-400';
-            $myRoleBg     = 'bg-slate-950/80';
+            $myRoleLabel      = 'Stakeholder';
+            $myRoleDesc       = 'You have read-only stakeholder visibility on this project.';
+            $myRoleBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
         }
+
+        $statusStyle = match($project->status) {
+            \App\Enums\ProjectStatus::COMPLETED => [
+                'bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500'
+            ],
+            \App\Enums\ProjectStatus::IN_PROGRESS => [
+                'bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200/80', 'dot' => 'bg-blue-500'
+            ],
+            \App\Enums\ProjectStatus::PLANNING => [
+                'bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200/80', 'dot' => 'bg-indigo-500'
+            ],
+            \App\Enums\ProjectStatus::ON_HOLD => [
+                'bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
+            ],
+            \App\Enums\ProjectStatus::DELAYED, \App\Enums\ProjectStatus::CANCELLED => [
+                'bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-200/80', 'dot' => 'bg-rose-500'
+            ],
+            default => [
+                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-500'
+            ],
+        };
+
+        $healthStyle = match($project->health) {
+            \App\Enums\ProjectHealth::ON_TRACK => [
+                'bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500'
+            ],
+            \App\Enums\ProjectHealth::AT_RISK => [
+                'bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
+            ],
+            \App\Enums\ProjectHealth::DELAYED => [
+                'bg' => 'bg-orange-50', 'text' => 'text-orange-700', 'border' => 'border-orange-200/80', 'dot' => 'bg-orange-500'
+            ],
+            \App\Enums\ProjectHealth::CRITICAL => [
+                'bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-200/80', 'dot' => 'bg-rose-500'
+            ],
+            default => [
+                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-500'
+            ],
+        };
+
+        $completedWbsCount  = $project->wbsItems->where('status', \App\Enums\WbsStatus::COMPLETED)->count();
+        $totalWbsCount      = $project->wbsItems->count();
+        $inProgressWbsCount = $project->wbsItems->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
     @endphp
 
     <!-- Project Workspace Header Card -->
-    <div class="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 mb-5 shadow-xs">
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 mb-5 shadow-xs transition-all">
         <!-- 1. Top Bar: Breadcrumbs & Executive Actions -->
-        <div class="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+        <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-100/90">
             <!-- Breadcrumbs -->
             <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500">
-                <a href="{{ route('projects.index') }}" class="inline-flex items-center gap-1.5 font-semibold text-slate-600 hover:text-[#c3122e] transition-colors no-underline">
-                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                <a href="{{ route('projects.index') }}" wire:navigate.hover class="inline-flex items-center gap-1.5 font-semibold text-slate-600 hover:text-[#c3122e] transition-colors no-underline">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
                     <span>Projects</span>
                 </a>
                 <span class="text-slate-300">/</span>
                 <span class="inline-flex items-center gap-1.5 text-slate-700 font-semibold max-w-[200px] sm:max-w-xs truncate">
-                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
                     <span class="truncate">{{ $project->subsidiary->name ?? 'George Steuart Group' }}</span>
                 </span>
                 <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
@@ -195,7 +214,7 @@
             <!-- Right Actions: Favorite & Details Button -->
             <div class="flex items-center gap-2" x-data="{ fav: false }">
                 <button type="button" @click="fav = !fav" 
-                        class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 transition-all cursor-pointer"
+                        class="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 transition-all cursor-pointer shadow-2xs"
                         :class="fav ? 'text-amber-500 border-amber-200 bg-amber-50/50' : ''"
                         title="Toggle Favorite">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" x-show="fav"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
@@ -205,7 +224,7 @@
                 <button
                     wire:click="openProjectDetailsModal"
                     type="button"
-                    class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-rose-50/60 hover:text-[#c3122e] border border-slate-200 hover:border-rose-200/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
                     title="View comprehensive project details, budget, team, and delivery specs"
                 >
                     <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
@@ -218,43 +237,46 @@
         </div>
 
         <!-- 2. Main Body: Project Title, Badges, Clean Metadata & Progress -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             <!-- Left Side: Title, Badges, Metadata -->
-            <div class="space-y-2.5 min-w-0 flex-1">
+            <div class="space-y-2 min-w-0 flex-1">
                 <!-- Title & Status Badges -->
                 <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                         {{ $project->name }}
                     </h1>
 
                     <!-- Status Badge -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} {{ $statusStyle['border'] }} border">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
                         <span>{{ $project->status->label() }}</span>
                     </span>
 
                     <!-- Health Badge -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} {{ $healthStyle['border'] }} border">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $healthStyle['dot'] }}"></span>
                         <span>{{ $project->health->label() }}</span>
                     </span>
 
-                    <!-- Role Badge -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-white shadow-2xs" title="{{ $myRoleDesc }}">
-                        <span>{{ $myRoleIcon }}</span>
+                    <!-- Project Role Badge (Clean, elegant, no harsh black boxes or tacky emojis) -->
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $myRoleBadgeClass }} border" title="{{ $myRoleDesc }}">
+                        <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
                         <span>{{ $myRoleLabel }}</span>
                     </span>
                 </div>
 
                 <!-- Clean Metadata Row -->
-                <div class="flex items-center gap-x-3.5 gap-y-1.5 flex-wrap text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-x-3.5 gap-y-1.5 flex-wrap text-xs text-slate-500 font-medium pt-0.5">
                     <!-- Category -->
-                    <span class="text-slate-600 font-semibold">
-                        {{ $project->category ?? 'Corporate Strategy' }}
-                    </span>
-
-                    <span class="text-slate-300">•</span>
+                    @if($project->category)
+                        <span class="text-slate-700 font-semibold">
+                            {{ $project->category }}
+                        </span>
+                        <span class="text-slate-300">•</span>
+                    @endif
 
                     <!-- Created Date -->
                     <span>Created {{ $project->created_at->format('M d, Y') }}</span>
@@ -263,7 +285,7 @@
 
                     <!-- Project Leader -->
                     <div class="inline-flex items-center gap-1.5 text-slate-700">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <span>Lead: <strong class="text-slate-900 font-semibold">{{ $project->projectManager->name ?? 'Unassigned' }}</strong></span>
                     </div>
 
@@ -272,10 +294,10 @@
 
                         <!-- Deadline -->
                         <div class="inline-flex items-center gap-1.5 {{ $project->deadline->isPast() ? 'text-rose-600 font-semibold' : 'text-slate-700' }}">
-                            <svg class="w-3.5 h-3.5 {{ $project->deadline->isPast() ? 'text-rose-500' : 'text-slate-400' }} shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <svg class="w-3.5 h-3.5 {{ $project->deadline->isPast() ? 'text-rose-500' : 'text-slate-400' }} shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             <span>Due {{ $project->deadline->format('M d, Y') }}</span>
                             @if($project->deadline->isPast())
-                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">Overdue</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">Overdue</span>
                             @endif
                         </div>
                     @endif
@@ -283,10 +305,10 @@
             </div>
 
             <!-- Right Side: Clean Mini Progress Widget -->
-            <div class="shrink-0 flex items-center gap-3.5 bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 min-w-[200px] shadow-2xs">
+            <div class="shrink-0 flex items-center gap-3.5 bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 min-w-[210px] shadow-2xs transition-colors">
                 <!-- Circular Progress Ring -->
-                <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
-                    <svg class="w-10 h-10 transform -rotate-90" viewBox="0 0 36 36">
+                <div class="relative w-11 h-11 flex items-center justify-center shrink-0">
+                    <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
                         <path class="text-slate-200" stroke-width="3" stroke="currentColor" fill="none"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                         <path class="text-[#c3122e] transition-all duration-700 ease-out" 
@@ -303,15 +325,16 @@
                 </div>
 
                 <!-- Progress Details -->
-                <div class="flex flex-col justify-center">
+                <div class="flex flex-col justify-center min-w-[110px]">
                     <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none">PROGRESS</span>
-                    <span class="text-xs font-black text-slate-900 leading-tight mt-1">
-                        <span class="font-mono text-slate-900 font-bold">{{ $project->wbsItems->where('status', \App\Enums\WbsStatus::COMPLETED)->count() }}</span><span class="text-slate-400 font-normal"> / </span><span class="font-mono text-slate-600 font-medium">{{ $project->wbsItems->count() }}</span>
+                    <div class="text-xs font-black text-slate-900 leading-tight mt-1">
+                        <span class="font-mono text-slate-900 font-bold">{{ $completedWbsCount }}</span><span class="text-slate-400 font-normal"> / </span><span class="font-mono text-slate-600 font-medium">{{ $totalWbsCount }}</span>
                         <span class="text-[10px] font-medium text-slate-500 ml-0.5">Done</span>
-                    </span>
-                    <span class="text-[10px] text-slate-400 font-medium mt-0.5">
-                        {{ $project->wbsItems->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count() }} in progress
-                    </span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        <span>{{ $inProgressWbsCount }} in progress</span>
+                    </div>
                 </div>
             </div>
 

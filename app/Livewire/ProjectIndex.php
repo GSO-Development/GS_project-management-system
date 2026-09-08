@@ -88,8 +88,12 @@ class ProjectIndex extends Component
 
     public function mount()
     {
+        if (request()->query('viewMode') === 'stuck') {
+            return redirect()->route('all-tasks.index', ['view' => 'stuck']);
+        }
+
         if (request()->query('viewMode')) {
-            $this->viewMode = in_array(request()->query('viewMode'), ['table', 'gantt', 'stuck']) ? request()->query('viewMode') : 'table';
+            $this->viewMode = in_array(request()->query('viewMode'), ['table', 'gantt']) ? request()->query('viewMode') : 'table';
         }
 
         if (request()->routeIs('projects.create') || request()->query('create') == 1) {
