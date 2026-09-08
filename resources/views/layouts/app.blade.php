@@ -246,7 +246,7 @@
                 </a>
             @endif
 
-            <!-- 3. My Tasks (For Non-Super Admins) -->
+            <!-- 3. Tasks (For Non-Super Admins) -->
             @if(!($user && $user->isPmoAdmin()))
                 <a href="{{ route('my-tasks.index') }}" 
                    wire:navigate.hover
@@ -254,11 +254,11 @@
                    class="{{ $navItemClass(request()->routeIs('my-tasks.*')) }}" 
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
                    style="{{ $navItemStyle(request()->routeIs('my-tasks.*')) }}" 
-                   title="My Tasks">
+                   title="Tasks">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('my-tasks.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('my-tasks.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">My Tasks</span>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Tasks</span>
                 </a>
             @endif
 
@@ -571,7 +571,7 @@
                     @elseif(request()->routeIs('my-tasks*'))
                         <span class="font-bold text-[#c3122e]">Execution</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">My Tasks</span>
+                        <span class="text-slate-900 font-black">Tasks</span>
                     @elseif(request()->routeIs('daily-updates*'))
                         <span class="font-bold text-[#c3122e]">Execution</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

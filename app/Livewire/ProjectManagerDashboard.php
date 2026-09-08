@@ -146,6 +146,25 @@ class ProjectManagerDashboard extends Component
         $task->save();
         (new \App\Services\ProgressCalculationService())->updateItemProgress($task);
 
+        // Record personal & project activity
+        \App\Models\ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => $isCompleted ? 'updated_wbs_item' : 'completed_wbs_item',
+            'module' => 'wbs',
+            'record_type' => \App\Models\WbsItem::class,
+            'record_id' => $task->id,
+            'new_values' => [
+                'project_id' => $task->project_id,
+                'title' => $task->title,
+                'name' => $task->title,
+                'progress' => $task->progress,
+                'status' => is_object($task->status) ? $task->status->value : $task->status,
+                'summary' => $isCompleted ? "Moved task '{$task->title}' to In Progress" : "Completed task '{$task->title}'",
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         $msg = $isCompleted ? "Task '{$task->title}' marked In Progress." : "🎉 Task '{$task->title}' marked Completed!";
         $this->dispatch('toast', message: $msg, type: 'success');
     }
@@ -174,6 +193,22 @@ class ProjectManagerDashboard extends Component
         if ($blocker->wbsItem && $blocker->wbsItem->status->value === 'blocked') {
             $blocker->wbsItem->update(['status' => \App\Enums\WbsStatus::IN_PROGRESS]);
         }
+
+        // Record activity log
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'resolved_blocker',
+            'module' => 'blockers',
+            'record_type' => \App\Models\TaskBlocker::class,
+            'record_id' => $blocker->id,
+            'new_values' => [
+                'project_id' => $blocker->wbsItem?->project_id,
+                'title' => $blocker->title,
+                'summary' => "Resolved blocker for task '{$blocker->wbsItem?->title}'",
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
 
         $this->showResolveBlockerModal = false;
         $this->selectedBlockerId = null;
@@ -208,7 +243,7 @@ class ProjectManagerDashboard extends Component
         $impWeights  = ['low' => 1, 'medium' => 2, 'high' => 3];
         $score = ($probWeights[$this->riskProbability] ?? 2) * ($impWeights[$this->riskImpact] ?? 2);
 
-        ProjectRisk::create([
+        $risk = ProjectRisk::create([
             'project_id' => $this->riskProjectId,
             'title' => trim($this->riskTitle),
             'category' => $this->riskCategory,
@@ -218,6 +253,23 @@ class ProjectManagerDashboard extends Component
             'owner_id' => auth()->id(),
             'mitigation_plan' => trim($this->riskMitigation),
             'status' => 'open',
+        ]);
+
+        // Record activity log
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'created_risk',
+            'module' => 'risks',
+            'record_type' => \App\Models\ProjectRisk::class,
+            'record_id' => $risk->id,
+            'new_values' => [
+                'project_id' => $this->riskProjectId,
+                'title' => $risk->title,
+                'name' => $risk->title,
+                'summary' => "Logged new risk: '{$risk->title}'",
+            ],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
 
         $this->showAddRiskModal = false;
@@ -232,11 +284,12 @@ class ProjectManagerDashboard extends Component
     }
 
     /**
-     * Calculate 100% real trend data points for the Tasks Progress chart
+     * Calculate 100% real system data points for the Tasks Progress chart
      */
-    protected function calculateTasksTrend(array $myProjectIds, int $completedTotal, int $inProgressTotal, int $pendingTotal): array
+    protected function calculateTasksTrend(array $myProjectIds): array
     {
         $points = [];
+        $today = now()->today();
         
         if ($this->chartPeriod === 'month') {
             // 4 Weeks of Current Month
@@ -245,36 +298,35 @@ class ProjectManagerDashboard extends Component
                 $weekStart = $startOfMonth->copy()->addWeeks($w - 1);
                 $weekEnd = $weekStart->copy()->endOfWeek();
                 $label = "Wk {$w}";
-                
-                $comp = WbsItem::whereIn('project_id', $myProjectIds)
-                    ->where('status', \App\Enums\WbsStatus::COMPLETED)
-                    ->whereDate('updated_at', '<=', $weekEnd)
-                    ->count();
-                    
-                $inProg = WbsItem::whereIn('project_id', $myProjectIds)
-                    ->where('status', \App\Enums\WbsStatus::IN_PROGRESS)
-                    ->whereDate('created_at', '<=', $weekEnd)
-                    ->count();
-                    
-                $pend = WbsItem::whereIn('project_id', $myProjectIds)
-                    ->whereIn('status', [\App\Enums\WbsStatus::NOT_STARTED, \App\Enums\WbsStatus::BACKLOG])
-                    ->whereDate('created_at', '<=', $weekEnd)
-                    ->count();
+                $isCurrentOrPast = $weekStart->lte($today);
 
-                if ($comp === 0 && $completedTotal > 0) {
-                    $comp = (int) round(($completedTotal / 4) * $w);
-                }
-                if ($inProg === 0 && $inProgressTotal > 0) {
-                    $inProg = (int) round($inProgressTotal * (0.75 + ($w * 0.06)));
-                }
-                if ($pend === 0 && $pendingTotal > 0) {
-                    $pend = (int) max(0, $pendingTotal - (int) round(($completedTotal / 4) * $w));
+                if ($isCurrentOrPast) {
+                    $comp = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->where('status', \App\Enums\WbsStatus::COMPLETED)
+                        ->whereDate('updated_at', '<=', $weekEnd)
+                        ->count();
+
+                    $inProg = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->where('status', \App\Enums\WbsStatus::IN_PROGRESS)
+                        ->whereDate('updated_at', '<=', $weekEnd)
+                        ->count();
+
+                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->whereBetween('end_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
+                        ->count();
+                } else {
+                    $comp = 0;
+                    $inProg = 0;
+                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->whereBetween('end_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
+                        ->count();
                 }
 
                 $points[] = [
                     'label' => $label,
                     'sub' => $weekStart->format('M d'),
                     'isToday' => now()->between($weekStart, $weekEnd),
+                    'isFuture' => $weekStart->gt($today),
                     'completed' => $comp,
                     'in_progress' => $inProg,
                     'pending' => $pend,
@@ -283,49 +335,41 @@ class ProjectManagerDashboard extends Component
         } else {
             // 7 Days: Mon, Tue, Wed, Thu, Fri, Sat, Sun
             $startOfWeek = now()->startOfWeek();
-            $todayIndex = (int) now()->dayOfWeekIso - 1;
             
             for ($i = 0; $i < 7; $i++) {
                 $date = $startOfWeek->copy()->addDays($i);
                 $dateStr = $date->format('Y-m-d');
                 $dayLabel = $date->format('D');
-                
-                $comp = WbsItem::whereIn('project_id', $myProjectIds)
-                    ->where('status', \App\Enums\WbsStatus::COMPLETED)
-                    ->whereDate('updated_at', '<=', $dateStr)
-                    ->count();
-                    
-                $inProg = WbsItem::whereIn('project_id', $myProjectIds)
-                    ->where('status', \App\Enums\WbsStatus::IN_PROGRESS)
-                    ->whereDate('created_at', '<=', $dateStr)
-                    ->count();
-                    
-                $pend = WbsItem::whereIn('project_id', $myProjectIds)
-                    ->whereIn('status', [\App\Enums\WbsStatus::NOT_STARTED, \App\Enums\WbsStatus::BACKLOG])
-                    ->whereDate('created_at', '<=', $dateStr)
-                    ->count();
+                $isToday = $date->isToday();
+                $isPastOrToday = $date->lte($today);
 
-                if ($i <= $todayIndex) {
-                    $factor = ($i + 1) / ($todayIndex + 1);
-                    if ($comp === 0 && $completedTotal > 0) {
-                        $comp = (int) round($completedTotal * $factor);
-                    }
-                    if ($inProg === 0 && $inProgressTotal > 0) {
-                        $inProg = $inProgressTotal;
-                    }
-                    if ($pend === 0 && $pendingTotal > 0) {
-                        $pend = (int) max(0, $pendingTotal - (int) round($completedTotal * $factor));
-                    }
+                if ($isPastOrToday) {
+                    $comp = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->where('status', \App\Enums\WbsStatus::COMPLETED)
+                        ->whereDate('updated_at', '<=', $dateStr)
+                        ->count();
+
+                    $inProg = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->where('status', \App\Enums\WbsStatus::IN_PROGRESS)
+                        ->whereDate('updated_at', '<=', $dateStr)
+                        ->count();
+
+                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->whereDate('end_date', $dateStr)
+                        ->count();
                 } else {
-                    $comp = $comp > 0 ? $comp : $completedTotal;
-                    $inProg = $inProg > 0 ? $inProg : $inProgressTotal;
-                    $pend = $pend > 0 ? $pend : $pendingTotal;
+                    $comp = 0;
+                    $inProg = 0;
+                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
+                        ->whereDate('end_date', $dateStr)
+                        ->count();
                 }
 
                 $points[] = [
                     'label' => $dayLabel,
                     'sub' => $date->format('M d'),
-                    'isToday' => $date->isToday(),
+                    'isToday' => $isToday,
+                    'isFuture' => $date->gt($today),
                     'completed' => $comp,
                     'in_progress' => $inProg,
                     'pending' => $pend,
@@ -502,26 +546,31 @@ class ProjectManagerDashboard extends Component
         $completedTodayCount = $myAssignedTasks->where('status', \App\Enums\WbsStatus::COMPLETED)
             ->filter(fn($t) => $t->updated_at && $t->updated_at->isToday())->count();
 
-        // All tasks across involved projects (for team metrics)
+        // All tasks across involved projects (for project scope & task progress)
         $allProjectTasks = WbsItem::whereIn('project_id', $myProjectIds)
             ->with('project')
             ->get();
         $teamTasksCount = $allProjectTasks->count();
+        $totalProjectTasksCount = $allProjectTasks->count();
 
-        // Tasks pool for dashboard cards:
-        $myTasks = $myAssignedTasksCount > 0 ? $myAssignedTasks : $allProjectTasks;
-        $myTasksCount = $myTasks->count();
-        $completedTasksCount = $myTasks->where('status', \App\Enums\WbsStatus::COMPLETED)->count();
-        $inProgressTasksCount = $myTasks->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
-        $pendingTasksCount = $myTasks->whereIn('status', [\App\Enums\WbsStatus::NOT_STARTED, \App\Enums\WbsStatus::BACKLOG])->count();
+        // Tasks pool for dashboard cards & system progress:
+        $completedTasksCount = $allProjectTasks->where('status', \App\Enums\WbsStatus::COMPLETED)->count();
+        $inProgressTasksCount = $allProjectTasks->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
+        $pendingTasksCount = $allProjectTasks->whereIn('status', [\App\Enums\WbsStatus::NOT_STARTED, \App\Enums\WbsStatus::BACKLOG])->count();
+        $myTasksCount = $totalProjectTasksCount;
+
+        // Accurate completion percentages
+        $completedTasksPct = $totalProjectTasksCount > 0 ? (int) round(($completedTasksCount / $totalProjectTasksCount) * 100) : 0;
+        $inProgressTasksPct = $totalProjectTasksCount > 0 ? (int) round(($inProgressTasksCount / $totalProjectTasksCount) * 100) : 0;
+        $pendingTasksPct = $totalProjectTasksCount > 0 ? (int) round(($pendingTasksCount / $totalProjectTasksCount) * 100) : 0;
         
-        $tasksDueSoon = $myTasks->filter(function($t) {
+        $tasksDueSoon = $allProjectTasks->filter(function($t) {
             return $t->end_date && $t->end_date->isFuture() && $t->end_date->diffInDays(now()->today()) <= 7 && !in_array($t->status?->value, ['completed', 'cancelled']);
         });
         $tasksDueSoonCount = $tasksDueSoon->count();
 
-        // Overdue tasks
-        $overdueTasksCount = $myTasks->filter(function($t) {
+        // Overdue tasks across user's projects
+        $overdueTasksCount = $allProjectTasks->filter(function($t) {
             return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
         })->count();
 
@@ -539,7 +588,7 @@ class ProjectManagerDashboard extends Component
         }
 
         // Hours this week (100% Real logged actual hours)
-        $totalActualHours = (float) $myTasks->sum('actual_hours');
+        $totalActualHours = (float) $allProjectTasks->sum('actual_hours');
         if ($totalActualHours > 0) {
             $h = floor($totalActualHours);
             $m = round(($totalActualHours - $h) * 60);
@@ -550,7 +599,7 @@ class ProjectManagerDashboard extends Component
 
         // Overall progress (100% Real average)
         $avgProgress = $myProjects->whereNotIn('status', ['cancelled'])->avg('overall_progress');
-        $overallAvgProgress = $avgProgress ? (int) round($avgProgress) : ($myTasksCount > 0 ? (int) round(($completedTasksCount / $myTasksCount) * 100) : 0);
+        $overallAvgProgress = $avgProgress ? (int) round($avgProgress) : ($totalProjectTasksCount > 0 ? (int) round(($completedTasksCount / $totalProjectTasksCount) * 100) : 0);
 
         // Upcoming Milestones (100% Real From WbsItems - Milestones Only)
         $upcomingMilestones = WbsItem::with('project')
@@ -584,11 +633,46 @@ class ProjectManagerDashboard extends Component
             $myTasksDueSoonList = $directUpcoming->take(6);
         }
 
-        // Recent Activity (100% Real)
+        // Recent Activity: Strictly User Personal & Involved Projects Updates (100% Real)
+        $wbsIds = $allProjectTasks->pluck('id')->toArray();
+        $approvalIds = ApprovalRequest::whereIn('project_id', $myProjectIds)->orWhere('requested_by', $user->id)->pluck('id')->toArray();
+        $riskIds = ProjectRisk::whereIn('project_id', $myProjectIds)->pluck('id')->toArray();
+
         $recentActivities = \App\Models\ActivityLog::with('user')
+            ->where(function($q) use ($user, $myProjectIds, $wbsIds, $approvalIds, $riskIds) {
+                $q->where('user_id', $user->id)
+                   ->orWhere(function($sq) use ($myProjectIds) {
+                       $sq->where('record_type', \App\Models\Project::class)
+                          ->whereIn('record_id', $myProjectIds);
+                   })
+                   ->orWhere(function($sq) use ($wbsIds) {
+                       $sq->where('record_type', \App\Models\WbsItem::class)
+                          ->whereIn('record_id', $wbsIds);
+                   })
+                   ->orWhere(function($sq) use ($approvalIds) {
+                       $sq->where('record_type', \App\Models\ApprovalRequest::class)
+                          ->whereIn('record_id', $approvalIds);
+                   })
+                   ->orWhere(function($sq) use ($riskIds) {
+                       $sq->where('record_type', \App\Models\ProjectRisk::class)
+                          ->whereIn('record_id', $riskIds);
+                   });
+            })
             ->latest()
-            ->take(5)
+            ->take(6)
             ->get();
+
+        if ($recentActivities->isEmpty()) {
+            $recentActivities = \App\Models\ActivityLog::with('user')
+                ->whereIn('module', ['projects', 'wbs', 'tasks', 'approvals', 'risks'])
+                ->latest()
+                ->take(6)
+                ->get();
+        }
+
+        $projectNamesMap = Project::pluck('name', 'id')->toArray();
+        $projectCodesMap = Project::pluck('code', 'id')->toArray();
+        $wbsTitlesMap = WbsItem::whereIn('id', $wbsIds)->pluck('title', 'id')->toArray();
 
         // My Approvals List (100% Real)
         $myApprovalsList = ApprovalRequest::with(['project', 'requester'])
@@ -597,7 +681,7 @@ class ProjectManagerDashboard extends Component
             ->get();
 
         // Weekly / Monthly real trend data points for chart
-        $trendData = $this->calculateTasksTrend($myProjectIds, $completedTasksCount, $inProgressTasksCount, $pendingTasksCount);
+        $trendData = $this->calculateTasksTrend($myProjectIds);
         $chartPoints = $trendData['points'];
         $chartYMax = $trendData['yMax'];
 
@@ -683,7 +767,14 @@ class ProjectManagerDashboard extends Component
             'currentBlockers',
             'allBlockers',
             'teamTaskIssues',
-            'teamMembers'
+            'teamMembers',
+            'projectNamesMap',
+            'projectCodesMap',
+            'wbsTitlesMap',
+            'totalProjectTasksCount',
+            'completedTasksPct',
+            'inProgressTasksPct',
+            'pendingTasksPct'
         ));
     }
 }

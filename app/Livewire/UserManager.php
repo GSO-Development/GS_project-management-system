@@ -379,14 +379,28 @@ class UserManager extends Component
         }
 
         $user = User::findOrFail($id);
-        \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
-        \App\Models\Project::where('created_by', $user->id)->update(['created_by' => null]);
-        \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
-        \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
-        \App\Models\ProjectStatusUpdate::where('created_by', $user->id)->update(['created_by' => null]);
-        \App\Models\ProjectDocument::where('uploaded_by', $user->id)->update(['uploaded_by' => null]);
-        $user->projects()->detach();
-        $user->forceDelete();
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            // 1. Unassign from active projects where this user is the Project Manager
+            \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
+
+            // 2. Unassign from active/pending deliverables & tasks
+            \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
+
+            // 3. Clear risk ownership
+            \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
+
+            // 4. Detach from project team memberships
+            $user->projects()->detach();
+
+            // 5. Deactivate and soft delete
+            // Note: User model uses SoftDeletes. Historical audit records (project_status_updates.created_by,
+            // project_documents.uploaded_by, projects.created_by, comments) are non-nullable and must remain
+            // intact for compliance. Soft-deleting immediately removes the user from active listings and logins.
+            $user->is_active = false;
+            $user->save();
+            $user->delete();
+        });
 
         $this->dispatch('toast', message: 'User deleted successfully.', type: 'info');
     }

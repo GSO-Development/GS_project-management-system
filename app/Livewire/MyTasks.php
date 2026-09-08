@@ -149,6 +149,10 @@ class MyTasks extends Component
     public function setViewMode(string $mode): void
     {
         $this->viewMode = in_array($mode, ['table', 'kanban', 'timeline']) ? $mode : 'table';
+        if ($this->viewMode === 'timeline') {
+            $this->statusFilter = 'all';
+            $this->dueDateFilter = 'all';
+        }
     }
 
     public function setKanbanMode(string $mode): void

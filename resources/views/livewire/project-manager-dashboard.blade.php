@@ -6,48 +6,64 @@
     @php
         $hour = now()->hour;
         $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
-        $userName = auth()->user()->name ?? 'User';
+        $currentUser = auth()->user();
+        $userName = $currentUser->name ?? 'User';
         $firstName = explode(' ', $userName)[0];
+        $userRole = $currentUser->roles->first()?->name ?? 'Project Manager';
+        $subsidiaryName = $currentUser->subsidiary?->name ?? 'George Steuart Group';
 
         // Format dates & fallback project listings
         $displayProjects = $myProjects->take(5);
         $displayTasks = $myTasksDueSoonList->take(5);
     @endphp
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+    {{-- Clean & Simple Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 {{ $greeting }}, {{ $firstName }}
             </h1>
-            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
-                <span class="inline-flex items-center gap-1.5 font-bold text-slate-700">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div class="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                <span class="inline-flex items-center gap-1.5 font-semibold text-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span>Workspace</span>
                 </span>
                 <span class="text-slate-300">•</span>
                 <span>{{ now()->format('l, F j, Y') }}</span>
                 <span class="text-slate-300 hidden sm:inline">•</span>
-                <span class="font-semibold text-slate-600 hidden sm:inline">George Steuart Group</span>
+                <span class="font-medium text-slate-600 hidden sm:inline">{{ $subsidiaryName }}</span>
             </div>
         </div>
 
-        {{-- Quick User Action shortcuts --}}
-        <div class="flex items-center gap-2">
+        {{-- Quick User Action Shortcuts --}}
+        <div class="flex items-center gap-2.5">
+            <a href="{{ route('my-tasks.index') }}" 
+               wire:navigate.hover
+               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors no-underline">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span>My Tasks</span>
+                @if(($myAssignedTasksCount > 0 ? $myAssignedTasksCount : $myTasksCount) > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                        {{ $myAssignedTasksCount > 0 ? $myAssignedTasksCount : $myTasksCount }}
+                    </span>
+                @endif
+            </a>
+
             @if(auth()->user()?->canCreateProject())
                 <a href="{{ route('projects.create') }}" 
                    wire:navigate.hover
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm hover:shadow transition-all duration-150 cursor-pointer no-underline active:scale-98">
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer no-underline active:scale-98">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>New Project</span>
                 </a>
-            @else
-                <a href="{{ route('daily-updates.index') }}" 
-                   wire:navigate.hover
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm hover:shadow transition-all duration-150 cursor-pointer no-underline active:scale-98">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    <span>Daily Update</span>
-                </a>
             @endif
+
+            <a href="{{ route('daily-updates.index') }}" 
+               wire:navigate.hover
+               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold {{ auth()->user()?->canCreateProject() ? 'text-slate-700 bg-white hover:bg-slate-50 border border-slate-200' : 'text-white bg-[#c3122e] hover:bg-[#a90f27]' }} shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer no-underline active:scale-98">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span>Daily Update</span>
+            </a>
         </div>
     </div>
 
@@ -353,96 +369,140 @@
         </div>
 
         {{-- ────────────────────────────────────────────────────────── --}}
-        {{-- COLUMN 3: CALENDAR WIDGET & INSPIRATION QUOTE (lg:col-span-3) --}}
+        {{-- COLUMN 3: RECENT ACTIVITIES (lg:col-span-3)                 --}}
         {{-- ────────────────────────────────────────────────────────── --}}
-        <div class="lg:col-span-3 flex flex-col justify-between gap-4">
-
-            {{-- 1. Mini Interactive Calendar Widget with 100% Reliable 7-Column Grid --}}
-            <div x-data="{
-                    monthOffset: 0,
-                    get displayMonth() {
-                        const d = new Date();
-                        d.setDate(1);
-                        d.setMonth(d.getMonth() + this.monthOffset);
-                        return d.toLocaleString('default', { month: 'long', year: 'numeric' });
-                    },
-                    get daysInMonth() {
-                        const d = new Date();
-                        d.setDate(1);
-                        d.setMonth(d.getMonth() + this.monthOffset + 1, 0);
-                        return d.getDate();
-                    },
-                    get firstDayIndex() {
-                        const d = new Date();
-                        d.setDate(1);
-                        d.setMonth(d.getMonth() + this.monthOffset);
-                        return d.getDay();
-                    },
-                    isCurrentDay(day) {
-                        if (this.monthOffset !== 0) return false;
-                        const today = new Date();
-                        return today.getDate() === day;
-                    }
-                 }" 
-                 class="bg-white rounded-2xl border border-slate-200/80 p-4.5 shadow-2xs">
-                
-                {{-- Calendar Header with Prev/Next Navigation --}}
-                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                    <span class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight" x-text="displayMonth"></span>
-                    <div class="flex items-center gap-1">
-                        <button type="button" @click="monthOffset--" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer" title="Previous Month">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <button type="button" @click="monthOffset++" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer" title="Next Month">
+        <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
+            <div>
+                {{-- Card Header --}}
+                <div class="flex items-center justify-between mb-4 pb-1 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Recent Activities</h2>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1"></span>Live
+                        </span>
+                    </div>
+                    @can('view audit logs')
+                        <a href="{{ route('audit-logs.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors no-underline">
+                            <span>View all</span>
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                        </button>
-                    </div>
+                        </a>
+                    @endcan
                 </div>
 
-                {{-- Week Days Labels --}}
-                <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center;" class="text-[10px] font-bold text-slate-400 mb-2 select-none">
-                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-                </div>
+                {{-- Activity List --}}
+                <div class="space-y-3">
+                    @forelse($recentActivities as $act)
+                        @php
+                            $action = $act->action;
+                            $module = $act->module;
+                            $newVals = is_array($act->new_values) ? $act->new_values : [];
+                            $prevVals = is_array($act->previous_values) ? $act->previous_values : [];
 
-                {{-- Calendar Dates Grid --}}
-                <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center;" class="text-xs font-semibold select-none">
-                    {{-- Blank spaces for first day --}}
-                    <template x-for="blank in firstDayIndex" :key="'blank-' + blank">
-                        <div class="h-7"></div>
-                    </template>
-                    {{-- Days of Month --}}
-                    <template x-for="day in daysInMonth" :key="'day-' + day">
-                        <div class="flex items-center justify-center">
-                            <button type="button"
-                                    :class="isCurrentDay(day) ? 'bg-[#c3122e] text-white font-black shadow-xs ring-2 ring-rose-200' : 'text-slate-700 hover:bg-rose-50 hover:text-[#c3122e]'"
-                                    class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] cursor-pointer transition-colors"
-                                    x-text="day">
-                            </button>
+                            $actionDesc = 'updated item';
+                            $targetName = $newVals['name'] ?? $newVals['title'] ?? $newVals['code'] ?? '';
+                            $iconBg = 'bg-slate-100 text-slate-600 border border-slate-200/60';
+                            $accentColor = 'text-slate-600';
+
+                            // Icons
+                            $projectIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>';
+                            $taskIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+                            $approvalIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+                            $alertIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+                            $userIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>';
+                            $defaultIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
+
+                            $iconSvg = $defaultIcon;
+
+                            if (str_contains($action, 'project')) {
+                                $iconSvg = $projectIcon;
+                                $iconBg = 'bg-blue-50 text-blue-600 border border-blue-200/60';
+                                $accentColor = 'text-blue-700';
+                                if ($action === 'created_project') $actionDesc = 'created project';
+                                elseif ($action === 'updated_project') $actionDesc = 'updated project';
+                                elseif ($action === 'accepted_project_assignment') $actionDesc = 'accepted project';
+                                elseif ($action === 'declined_project_assignment') $actionDesc = 'declined project';
+                                elseif ($action === 'deleted_project') $actionDesc = 'archived project';
+                            } elseif (str_contains($action, 'wbs') || str_contains($action, 'task') || $module === 'wbs') {
+                                $iconSvg = $taskIcon;
+                                $iconBg = 'bg-emerald-50 text-emerald-600 border border-emerald-200/60';
+                                $accentColor = 'text-emerald-700';
+                                if ($action === 'completed_wbs_item') $actionDesc = 'completed task';
+                                elseif ($action === 'updated_wbs_item') $actionDesc = 'updated task';
+                                elseif ($action === 'moved_wbs_item') $actionDesc = 'reordered task';
+                                elseif ($action === 'cascade_schedule_update') $actionDesc = 'rescheduled task';
+                                else $actionDesc = 'updated task';
+                            } elseif (str_contains($action, 'approval') || $module === 'approvals') {
+                                $iconSvg = $approvalIcon;
+                                $iconBg = 'bg-purple-50 text-purple-600 border border-purple-200/60';
+                                $accentColor = 'text-purple-700';
+                                if ($action === 'submitted_approval') $actionDesc = 'submitted approval';
+                                elseif ($action === 'approved_approval_request') $actionDesc = 'approved request';
+                                elseif ($action === 'rejected_approval_request') $actionDesc = 'rejected request';
+                                else $actionDesc = 'approval action';
+                            } elseif (str_contains($action, 'risk') || str_contains($action, 'blocker') || $module === 'risks') {
+                                $iconSvg = $alertIcon;
+                                $iconBg = 'bg-amber-50 text-amber-600 border border-amber-200/60';
+                                $accentColor = 'text-amber-700';
+                                if ($action === 'created_risk') $actionDesc = 'logged risk';
+                                elseif ($action === 'resolved_blocker') $actionDesc = 'resolved blocker';
+                                else $actionDesc = 'risk update';
+                            } elseif (str_contains($action, 'role') || str_contains($action, 'user') || $module === 'roles_permissions') {
+                                $iconSvg = $userIcon;
+                                $iconBg = 'bg-sky-50 text-sky-600 border border-sky-200/60';
+                                $accentColor = 'text-sky-700';
+                                if ($action === 'created_role') $actionDesc = 'created role';
+                                elseif ($action === 'deleted_role') $actionDesc = 'deleted role';
+                                elseif ($action === 'updated_role') $actionDesc = 'updated role';
+                                elseif ($action === 'created_user') $actionDesc = 'added user';
+                                else $actionDesc = 'security update';
+                                if (empty($targetName) && !empty($prevVals['name'])) $targetName = $prevVals['name'];
+                            }
+
+                            if (empty($targetName)) {
+                                if ($act->record_type === \App\Models\Project::class && isset($projectNamesMap[$act->record_id])) {
+                                    $pCode = $projectCodesMap[$act->record_id] ?? '';
+                                    $targetName = $projectNamesMap[$act->record_id] . ($pCode ? ' (' . $pCode . ')' : '');
+                                } elseif ($act->record_type === \App\Models\WbsItem::class && isset($wbsTitlesMap[$act->record_id])) {
+                                    $targetName = $wbsTitlesMap[$act->record_id];
+                                } elseif (!empty($newVals['summary'])) {
+                                    $targetName = \Illuminate\Support\Str::limit($newVals['summary'], 35);
+                                } else {
+                                    $targetName = ucwords(str_replace('_', ' ', $action));
+                                }
+                            }
+                        @endphp
+                        <div class="flex items-start gap-2.5 group py-1.5 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 rounded-xl px-1.5 transition-colors">
+                            {{-- Action Icon Badge --}}
+                            <div class="w-7 h-7 rounded-lg {{ $iconBg }} flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                {!! $iconSvg !!}
+                            </div>
+
+                            {{-- Content --}}
+                            <div class="min-w-0 flex-1">
+                                <div class="text-xs text-slate-800 leading-snug">
+                                    <span class="font-bold text-slate-900 group-hover:text-[#c3122e] transition-colors">{{ $act->user?->name ?? 'System' }}</span>
+                                    <span class="font-medium text-slate-500">{{ $actionDesc }}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-1 mt-0.5">
+                                    <span class="text-[11px] font-semibold {{ $accentColor }} truncate max-w-[130px] sm:max-w-[150px] block" title="{{ $targetName }}">
+                                        {{ $targetName }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 shrink-0 font-medium whitespace-nowrap">
+                                        {{ $act->created_at ? $act->created_at->diffForHumans(null, true) : 'recent' }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                    </template>
+                    @empty
+                        <div class="py-10 text-center space-y-2">
+                            <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-500">No recent activities recorded</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
-
-            {{-- 2. Inspiration Quote Card (With Aesthetic Warm Styling) --}}
-            <div class="relative overflow-hidden rounded-2xl border border-amber-200/60 shadow-2xs min-h-[130px] flex flex-col justify-center p-5 group bg-cover bg-center"
-                 style="background-image: url('{{ asset('images/dashboard_quote_leaf_bg.jpg') }}'); background-color: #fffbf5;">
-                
-                {{-- Soft Warm Overlay for clean text readability --}}
-                <div class="absolute inset-0 bg-gradient-to-r from-[#fffbf5]/95 via-[#fffbf5]/85 to-[#fffbf5]/60 pointer-events-none"></div>
-
-                <div class="relative z-10 space-y-1">
-                    {{-- Big Quote Mark --}}
-                    <div class="text-amber-600 font-serif text-3xl font-black leading-none select-none">
-                        “
-                    </div>
-                    <div class="text-slate-800 font-serif font-bold text-base sm:text-lg leading-snug">
-                        Progress<br>not perfection.
-                    </div>
-                    {{-- Gold Divider Line --}}
-                    <div class="w-10 h-0.5 bg-amber-500/80 rounded-full mt-2"></div>
-                </div>
-            </div>
-
         </div>
 
     </div>
@@ -457,50 +517,62 @@
         {{-- ────────────────────────────────────────────────────────── --}}
         <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
-                {{-- Header & Legend --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                {{-- Header & Real Metric Badges --}}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
                     <div>
-                        <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Task Progress</h2>
-                        <span class="text-[11px] font-medium text-slate-400">Current Week Performance</span>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Task Progress</h2>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                {{ $totalProjectTasksCount }} Total Tasks
+                            </span>
+                        </div>
+                        <span class="text-[11px] font-medium text-slate-400">Current Week Performance & Status Breakdown</span>
                     </div>
-                    <div class="flex items-center gap-3.5 text-xs font-semibold text-slate-500">
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#14b8a6]"></span>
-                            <span>Completed</span>
+
+                    {{-- Accurate Status Badges --}}
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 font-bold" title="Completed Tasks">
+                            <span class="w-2 h-2 rounded-full bg-[#14b8a6]"></span>
+                            <span>Completed: {{ $completedTasksCount }}</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
-                            <span>In Progress</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200/60 font-bold" title="In Progress Tasks">
+                            <span class="w-2 h-2 rounded-full bg-[#0284c7]"></span>
+                            <span>In Progress: {{ $inProgressTasksCount }}</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#cbd5e1]"></span>
-                            <span>Pending</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 font-bold" title="Pending Tasks">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            <span>Pending: {{ $pendingTasksCount }}</span>
                         </span>
                     </div>
                 </div>
 
-                {{-- Grouped Bar Chart Area (Real Current September Data) --}}
+                {{-- Segmented Visual Progress Track across all tasks --}}
+                <div class="mb-5">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1.5">
+                        <span>Overall Project Task Completion</span>
+                        <span class="text-slate-900 font-extrabold">{{ $completedTasksPct }}% completed</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex items-center p-0.5 gap-0.5">
+                        @if($completedTasksCount > 0)
+                            <div class="h-full bg-[#14b8a6] rounded-full transition-all duration-500" style="width: {{ max(2, $completedTasksPct) }}%" title="Completed: {{ $completedTasksCount }} ({{ $completedTasksPct }}%)"></div>
+                        @endif
+                        @if($inProgressTasksCount > 0)
+                            <div class="h-full bg-[#0284c7] rounded-full transition-all duration-500" style="width: {{ max(2, $inProgressTasksPct) }}%" title="In Progress: {{ $inProgressTasksCount }} ({{ $inProgressTasksPct }}%)"></div>
+                        @endif
+                        <div class="h-full bg-slate-300 rounded-full transition-all duration-500 flex-1" title="Pending: {{ $pendingTasksCount }} ({{ $pendingTasksPct }}%)"></div>
+                    </div>
+                </div>
+
+                {{-- 7-Day Performance Bar Chart Area (Real System Data) --}}
                 @php
-                    $startOfWeek = now()->startOfWeek();
-                    $chartDays = [];
+                    $chartDays = $chartPoints;
                     $maxRecorded = 5;
 
-                    for ($d = 0; $d < 7; $d++) {
-                        $dayDate = $startOfWeek->copy()->addDays($d);
-                        $comp = $chartPoints[$d]['completed'] ?? 0;
-                        $inProg = $chartPoints[$d]['in_progress'] ?? 0;
-                        $pend = $chartPoints[$d]['pending'] ?? 0;
-
+                    foreach ($chartDays as $pt) {
+                        $comp = $pt['completed'] ?? 0;
+                        $inProg = $pt['in_progress'] ?? 0;
+                        $pend = $pt['pending'] ?? 0;
                         $maxRecorded = max($maxRecorded, $comp, $inProg, $pend);
-
-                        $chartDays[] = [
-                            'label' => $dayDate->isToday() ? 'Today' : $dayDate->format('D'),
-                            'sub' => $dayDate->format('M j'),
-                            'isToday' => $dayDate->isToday(),
-                            'completed' => $comp,
-                            'in_progress' => $inProg,
-                            'pending' => $pend,
-                        ];
                     }
 
                     $yMaxVal = max(5, (int)(ceil($maxRecorded / 5) * 5));
@@ -531,30 +603,33 @@
                     <div class="h-44 pl-8 pr-2 flex items-end justify-between gap-2 sm:gap-4 relative z-10 pb-6">
                         @foreach($chartDays as $dayBar)
                             @php
-                                $compHeight = min(100, round(($dayBar['completed'] / $yMaxVal) * 100));
-                                $inProgHeight = min(100, round(($dayBar['in_progress'] / $yMaxVal) * 100));
-                                $pendHeight = min(100, round(($dayBar['pending'] / $yMaxVal) * 100));
+                                $compVal = $dayBar['completed'] ?? 0;
+                                $inProgVal = $dayBar['in_progress'] ?? 0;
+                                $pendVal = $dayBar['pending'] ?? 0;
+                                $isFuture = $dayBar['isFuture'] ?? false;
+
+                                $compHeight = $compVal > 0 ? max(6, min(100, round(($compVal / $yMaxVal) * 100))) : 0;
+                                $inProgHeight = $inProgVal > 0 ? max(6, min(100, round(($inProgVal / $yMaxVal) * 100))) : 0;
+                                $pendHeight = $pendVal > 0 ? max(6, min(100, round(($pendVal / $yMaxVal) * 100))) : 0;
                             @endphp
-                            <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                            <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer relative"
+                                 title="{{ $dayBar['label'] }} ({{ $dayBar['sub'] }}): Completed: {{ $compVal }} | In Progress: {{ $inProgVal }} | {{ $isFuture ? 'Scheduled: ' : 'Pending/Due: ' }}{{ $pendVal }}">
                                 {{-- 3 Bars Side-by-Side --}}
                                 <div class="flex items-end gap-1 w-full justify-center h-full">
                                     {{-- Completed (Teal) --}}
-                                    <div class="w-2.5 sm:w-3.5 bg-[#14b8a6] rounded-t-sm transition-all duration-300 hover:brightness-110" 
-                                         style="height: {{ max(4, $compHeight) }}%;"
-                                         title="Completed: {{ $dayBar['completed'] }}"></div>
+                                    <div class="w-2.5 sm:w-3.5 bg-[#14b8a6] rounded-t-sm transition-all duration-300 group-hover:brightness-110" 
+                                         style="height: {{ $compHeight }}%;"></div>
                                     
                                     {{-- In Progress (Sky Blue) --}}
-                                    <div class="w-2.5 sm:w-3.5 bg-[#0284c7] rounded-t-sm transition-all duration-300 hover:brightness-110" 
-                                         style="height: {{ max(4, $inProgHeight) }}%;"
-                                         title="In Progress: {{ $dayBar['in_progress'] }}"></div>
+                                    <div class="w-2.5 sm:w-3.5 bg-[#0284c7] rounded-t-sm transition-all duration-300 group-hover:brightness-110" 
+                                         style="height: {{ $inProgHeight }}%;"></div>
                                     
-                                    {{-- Pending (Light Gray) --}}
-                                    <div class="w-2.5 sm:w-3.5 bg-[#cbd5e1] rounded-t-sm transition-all duration-300 hover:brightness-95" 
-                                         style="height: {{ max(4, $pendHeight) }}%;"
-                                         title="Pending: {{ $dayBar['pending'] }}"></div>
+                                    {{-- Pending / Scheduled (Slate) --}}
+                                    <div class="w-2.5 sm:w-3.5 {{ $isFuture ? 'bg-slate-200 border border-dashed border-slate-300' : 'bg-slate-300' }} rounded-t-sm transition-all duration-300 group-hover:brightness-95" 
+                                         style="height: {{ $pendHeight }}%;"></div>
                                 </div>
                                 {{-- Day Label below baseline --}}
-                                <span class="text-[10.5px] font-semibold {{ $dayBar['isToday'] ? 'text-[#c3122e] font-bold' : 'text-slate-500' }} mt-2 whitespace-nowrap block text-center">
+                                <span class="text-[10.5px] font-semibold {{ $dayBar['isToday'] ? 'text-[#c3122e] font-black' : 'text-slate-500' }} mt-2 whitespace-nowrap block text-center">
                                     {{ $dayBar['label'] }}
                                 </span>
                             </div>
