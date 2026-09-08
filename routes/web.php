@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportExportController;
+use App\Livewire\AllTasksViewer;
 use App\Livewire\ApprovalManager;
 use App\Livewire\AuditLogViewer;
 use App\Livewire\CalendarView;
@@ -78,6 +79,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Super Admin / PMO Admin Only Governance Routes
     Route::middleware(['role:super_admin|pmo_admin'])->group(function () {
+        // All Tasks (Admin-only organisation-wide task view)
+        Route::get('/all-tasks', AllTasksViewer::class)->name('all-tasks.index');
+
         // PMO Project Monitoring & Tracking (Redirected to Manage All Projects)
         Route::get('/project-monitor', function (\Illuminate\Http\Request $request) {
             return redirect()->route('projects.index', $request->query());

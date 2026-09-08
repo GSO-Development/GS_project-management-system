@@ -32,6 +32,7 @@ class MyTasks extends Component
     public string $kanbanMode = 'time';         // 'time' (Overdue, Today, Tomorrow, Next Week, Later, Completed) or 'status'
     public int $perPage = 10;
     public string $saView = 'mine';             // 'mine' or 'team' (super admin only)
+    public bool $showAllTasks = false;          // true = show ALL tasks across ALL projects (admin only)
     public array $collapsedProjectIds = [];
     public array $selectedTaskIds = [];
     public bool $selectAll = false;
@@ -98,6 +99,18 @@ class MyTasks extends Component
         if (auth()->check() && auth()->user()->isPmoAdmin()) {
             $this->redirect(route('dashboard'), navigate: true);
             return;
+        }
+
+        // Pre-filter by status when redirected from dashboard
+        $statusParam = request()->query('status');
+        if ($statusParam && in_array($statusParam, ['completed', 'in_progress', 'on_hold', 'not_started', 'all'])) {
+            $this->statusFilter = $statusParam;
+        }
+
+        // Show ALL tasks across all projects (admin only)
+        if (request()->query('all') === 'true' && auth()->check() && auth()->user()->isSuperAdmin()) {
+            $this->showAllTasks = true;
+            $this->groupBy = 'project'; // default to project grouping for clarity
         }
     }
 
@@ -650,9 +663,13 @@ class MyTasks extends Component
             $myProjects = Project::with('subsidiary')->orderBy('name')->get();
         }
 
-        // 2. Base Query for User Tasks - Strictly only tasks assigned to the logged-in user
-        $baseQuery = WbsItem::where('assigned_user_id', $user->id)
-            ->whereHas('project');
+        // 2. Base Query — All tasks (admin mode) or only tasks assigned to logged-in user
+        if ($this->showAllTasks && $user->isSuperAdmin()) {
+            $baseQuery = WbsItem::whereHas('project');
+        } else {
+            $baseQuery = WbsItem::where('assigned_user_id', $user->id)
+                ->whereHas('project');
+        }
 
         // 3. KPI Cockpit Counts across all assigned tasks
         $allAssigned = (clone $baseQuery)->get();

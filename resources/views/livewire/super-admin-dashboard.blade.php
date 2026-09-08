@@ -364,61 +364,82 @@
          ══════════════════════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
 
-        <!-- ── Col 1: Upcoming Milestones ── -->
-        <div class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between space-y-4">
-            
-            <div>
-                <!-- Card Header -->
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <!-- ── Col 1: Risk Summary ── -->
+        <div class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs p-5 sm:p-6 flex flex-col space-y-4">
+
+            <!-- Card Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                    </div>
                     <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Upcoming Milestones
+                        Risk Summary
                     </h3>
-                    <a href="{{ route('calendar.index') }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors no-underline flex items-center gap-1">
-                        <span>View All</span>
-                        <span>→</span>
-                    </a>
                 </div>
+                <a href="{{ route('risks.index') }}" class="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors no-underline flex items-center gap-1">
+                    <span>View All</span>
+                    <span>→</span>
+                </a>
+            </div>
 
-                <!-- Milestone List -->
-                <div class="space-y-3.5 pt-3">
-                    @forelse($upcomingMilestones as $ms)
-                        @php
-                            $daysLeft = $ms->end_date ? (int) now()->today()->diffInDays($ms->end_date, false) : 0;
-                            $leftLabel = $daysLeft < 0 ? abs($daysLeft) . 'd overdue' : ($daysLeft === 0 ? 'Due today' : ($daysLeft === 1 ? '1 day left' : $daysLeft . ' days left'));
-                            $isOverdue = $daysLeft < 0;
-                        @endphp
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <!-- Calendar Date Box -->
-                                <div class="w-10 h-11 rounded-xl bg-rose-50/80 border border-rose-100 flex flex-col items-center justify-center shrink-0">
-                                    <span class="text-[9px] font-black uppercase text-rose-500 leading-none">
-                                        {{ $ms->end_date ? $ms->end_date->format('M') : 'SEP' }}
-                                    </span>
-                                    <span class="text-sm font-black text-slate-900 leading-none mt-0.5">
-                                        {{ $ms->end_date ? $ms->end_date->format('d') : '01' }}
-                                    </span>
-                                </div>
+            <!-- Top Stats Row -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="flex flex-col items-center justify-center bg-rose-50/70 border border-rose-100 rounded-xl py-2.5 px-1">
+                    <span class="text-lg font-black text-rose-600 leading-none">{{ $openRisksCount }}</span>
+                    <span class="text-[9.5px] font-bold text-rose-400 uppercase tracking-wide mt-0.5">Open</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-amber-50/70 border border-amber-100 rounded-xl py-2.5 px-1">
+                    <span class="text-lg font-black text-amber-600 leading-none">{{ $highRisksCount }}</span>
+                    <span class="text-[9.5px] font-bold text-amber-400 uppercase tracking-wide mt-0.5">High</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-orange-50/70 border border-orange-100 rounded-xl py-2.5 px-1">
+                    <span class="text-lg font-black text-orange-600 leading-none">{{ $activeBlockersCount }}</span>
+                    <span class="text-[9.5px] font-bold text-orange-400 uppercase tracking-wide mt-0.5">Blockers</span>
+                </div>
+            </div>
 
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-bold text-slate-900 truncate" title="{{ $ms->title }}">
-                                        {{ $ms->title }}
-                                    </h4>
-                                    <p class="text-[10.5px] font-medium text-slate-400 truncate mt-0.5">
-                                        {{ $ms->project->name ?? 'Project' }}
-                                    </p>
-                                </div>
+            <!-- Risk List -->
+            <div class="space-y-2 flex-1">
+                @forelse($allRisks->where('status', 'open')->sortByDesc('risk_score')->take(5) as $risk)
+                    @php
+                        $score  = $risk->risk_score;
+                        $level  = $score >= 9 ? 'Critical' : ($score >= 6 ? 'High' : ($score >= 3 ? 'Medium' : 'Low'));
+                        $dotCls = $score >= 9 ? 'bg-rose-500' : ($score >= 6 ? 'bg-amber-500' : ($score >= 3 ? 'bg-yellow-400' : 'bg-emerald-400'));
+                        $badgeCls = $score >= 9
+                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                            : ($score >= 6
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : ($score >= 3
+                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'));
+                    @endphp
+                    <div class="flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-2 h-2 rounded-full {{ $dotCls }} shrink-0"></span>
+                            <div class="min-w-0">
+                                <h4 class="text-xs font-bold text-slate-900 truncate leading-tight" title="{{ $risk->title }}">
+                                    {{ $risk->title }}
+                                </h4>
+                                <p class="text-[10px] font-medium text-slate-400 truncate mt-0.5">
+                                    {{ $risk->project->name ?? 'Project' }}
+                                </p>
                             </div>
-
-                            <span class="text-xs font-bold shrink-0 {{ $isOverdue ? 'text-rose-600' : 'text-blue-600' }}">
-                                {{ $leftLabel }}
-                            </span>
                         </div>
-                    @empty
-                        <div class="py-8 text-center text-xs text-slate-400 font-medium">
-                            No upcoming milestones.
-                        </div>
-                    @endforelse
-                </div>
+                        <span class="text-[9.5px] font-black px-2 py-0.5 rounded-lg border shrink-0 {{ $badgeCls }}">
+                            {{ $level }}
+                        </span>
+                    </div>
+                @empty
+                    <div class="py-8 text-center text-xs text-slate-400 font-medium flex flex-col items-center gap-2">
+                        <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        No open risks at this time.
+                    </div>
+                @endforelse
             </div>
 
         </div>
@@ -465,37 +486,37 @@
 
             <!-- Breakdown Legend Rows -->
             <div class="space-y-2 pt-1 border-t border-slate-100 text-xs">
-                <div class="flex items-center justify-between font-semibold">
-                    <span class="flex items-center gap-2 text-slate-700">
+                <a href="{{ route('all-tasks.index', ['status' => 'completed']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-emerald-50/60 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-emerald-700 transition-colors">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                         <span>Completed</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono">{{ $completedTasksCount }}</span>
-                </div>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-emerald-700 transition-colors">{{ $completedTasksCount }}</span>
+                </a>
 
-                <div class="flex items-center justify-between font-semibold">
-                    <span class="flex items-center gap-2 text-slate-700">
+                <a href="{{ route('all-tasks.index', ['status' => 'in_progress']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-blue-50/60 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-blue-700 transition-colors">
                         <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                         <span>In Progress</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono">{{ $inProgressTasksCount }}</span>
-                </div>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-blue-700 transition-colors">{{ $inProgressTasksCount }}</span>
+                </a>
 
-                <div class="flex items-center justify-between font-semibold">
-                    <span class="flex items-center gap-2 text-slate-700">
+                <a href="{{ route('all-tasks.index', ['status' => 'on_hold']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-amber-50/60 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-amber-700 transition-colors">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                         <span>On Hold</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono">{{ $onHoldTasksCount }}</span>
-                </div>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-amber-700 transition-colors">{{ $onHoldTasksCount }}</span>
+                </a>
 
-                <div class="flex items-center justify-between font-semibold">
-                    <span class="flex items-center gap-2 text-slate-700">
+                <a href="{{ route('all-tasks.index', ['status' => 'not_started']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-slate-100/70 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-slate-600 transition-colors">
                         <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                         <span>Not Started</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono">{{ $notStartedTasksCount }}</span>
-                </div>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-slate-600 transition-colors">{{ $notStartedTasksCount }}</span>
+                </a>
             </div>
 
         </div>

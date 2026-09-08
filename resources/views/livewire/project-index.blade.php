@@ -98,6 +98,14 @@
                 </button>
             </div>
 
+            <!-- All Tasks Button (Super Admin only) -->
+            @if(auth()->user()?->isSuperAdmin())
+                <a href="{{ route('all-tasks.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer no-underline active:scale-95 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    <span>All Tasks</span>
+                </a>
+            @endif
+
             <!-- Primary New Project CTA -->
             @if(auth()->user()?->canCreateProject())
                 <a href="{{ route('projects.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer no-underline active:scale-95 flex-shrink-0" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
