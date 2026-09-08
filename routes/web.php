@@ -73,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/export-pdf', [ReportExportController::class, 'exportPdf'])->name('reports.export-pdf');
     Route::get('/reports/export-csv', [ReportExportController::class, 'exportCsv'])->name('reports.export-csv');
 
-    Route::middleware(['role:super_admin|project_manager'])->group(function () {
+    Route::middleware(['role:super_admin'])->group(function () {
         Route::get('/team-members', PmTeamMembers::class)->name('team-members.index');
     });
 

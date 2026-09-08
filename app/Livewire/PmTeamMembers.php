@@ -16,6 +16,13 @@ class PmTeamMembers extends Component
     public string $projectFilter = 'all';
     public string $statusFilter  = 'all';
 
+    public function mount(): void
+    {
+        if (!auth()->user()?->isSuperAdmin()) {
+            $this->redirect(route('dashboard'), navigate: true);
+        }
+    }
+
     /* ─── modal ─── */
     public bool   $showDetailModal = false;
     public ?int   $detailUserId    = null;
