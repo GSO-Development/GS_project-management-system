@@ -40,7 +40,7 @@
 
         <!-- Right Side: Publish Button -->
         <div class="flex items-center gap-3 flex-shrink-0">
-            @if(!$this->isSuperAdminUser(auth()->user()))
+            @if(!$isSuperAdmin)
                 <button
                     wire:click="openStatusUpdateModal()"
                     type="button"
@@ -321,7 +321,7 @@
                             <!-- Actions -->
                             <td class="py-4 pl-4 pr-6 align-middle text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-2">
-                                    @if(!$this->isSuperAdminUser(auth()->user()))
+                                    @if(!$isSuperAdmin)
                                         <button
                                             wire:click="openStatusUpdateModal({{ $project->id }})"
                                             type="button"

@@ -77,7 +77,7 @@
         </a>
 
         <!-- 3. At Risk -->
-        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" 
+        <a href="{{ route('projects.index', ['viewMode' => 'stuck']) }}" 
            class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs hover:shadow-md p-4 sm:p-5 flex items-center justify-between transition-all duration-200 group no-underline">
             <div class="flex items-center gap-3.5 min-w-0">
                 <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -103,7 +103,7 @@
         </a>
 
         <!-- 4. Delayed -->
-        <a href="{{ route('project-monitor.index') }}?viewMode=stuck" 
+        <a href="{{ route('projects.index', ['viewMode' => 'stuck']) }}" 
            class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs hover:shadow-md p-4 sm:p-5 flex items-center justify-between transition-all duration-200 group no-underline">
             <div class="flex items-center gap-3.5 min-w-0">
                 <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -167,7 +167,7 @@
                         class="px-3.5 py-1.5 rounded-lg transition-all cursor-pointer {{ $timelineScale === 'month' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
                     Month
                 </button>
-                <a href="{{ route('project-monitor.index') }}?viewMode=gantt" 
+                <a href="{{ route('projects.index', ['viewMode' => 'gantt']) }}" 
                    class="px-3 py-1.5 text-[#c3122e] hover:underline font-black text-xs no-underline flex items-center gap-0.5">
                     Full →
                 </a>

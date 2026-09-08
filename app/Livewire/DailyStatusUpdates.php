@@ -97,7 +97,7 @@ class DailyStatusUpdates extends Component
         }
     }
 
-    protected function isSuperAdminUser(?User $user = null): bool
+    public function isSuperAdminUser(?User $user = null): bool
     {
         $user = $user ?? auth()->user();
         if (!$user) return false;
@@ -483,6 +483,7 @@ class DailyStatusUpdates extends Component
             'updatedTodayCount' => $updatedTodayCount,
             'myUpdatesCount' => $myUpdatesCount,
             'uncommentedUpdatesCount' => $uncommentedUpdatesCount,
+            'isSuperAdmin' => $isSuperAdmin,
         ])->layout('layouts.app', ['title' => 'Daily Status Updates']);
     }
 }

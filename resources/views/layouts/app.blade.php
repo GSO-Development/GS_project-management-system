@@ -188,23 +188,6 @@
 
             <!-- 2. Projects Area -->
             @if($isSuperAdmin)
-                <!-- PMO Admin: Project Monitor Direct Link -->
-                <a href="{{ route('project-monitor.index') }}" 
-                   wire:navigate.hover
-                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('project-monitor.*')) }}" 
-                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('project-monitor.*')) }}" 
-                   title="Project Monitor (PMO)">
-                    <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                        <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('project-monitor.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('project-monitor.*') ? '2.5' : '2' }}">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                        <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Project Monitor</span>
-                    </div>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider {{ request()->routeIs('project-monitor.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">PMO</span>
-                </a>
-
                 <!-- PMO Admin: Projects Directory Accordion -->
                 <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
                     <button @click="open = !open" 
