@@ -22,6 +22,8 @@ class MyTasks extends Component
     use WithPagination;
 
     // Filter and display state
+    public string $taskScope = 'assigned';      // 'assigned' (Assigned to Me) or 'pm_projects' (All Tasks in My Managed Projects)
+    public string $assigneeFilter = 'all';     // 'all', 'unassigned', or specific user ID when in pm_projects
     public string $search = '';
     public string $projectFilter = 'all';
     public string $priorityFilter = 'all';
@@ -101,6 +103,12 @@ class MyTasks extends Component
             return;
         }
 
+        // Pre-filter by scope (e.g. from dashboard PM tasks shortcut)
+        $scopeParam = request()->query('scope');
+        if ($scopeParam && in_array($scopeParam, ['assigned', 'pm_projects'])) {
+            $this->taskScope = $scopeParam;
+        }
+
         // Pre-filter by status when redirected from dashboard
         $statusParam = request()->query('status');
         if ($statusParam && in_array($statusParam, ['completed', 'in_progress', 'on_hold', 'not_started', 'all'])) {
@@ -119,12 +127,22 @@ class MyTasks extends Component
     public function updatedPriorityFilter() { $this->resetPage(); }
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedDueDateFilter() { $this->resetPage(); }
+    public function updatedAssigneeFilter() { $this->resetPage(); }
+    public function updatedTaskScope() { $this->resetPage(); }
     public function updatedGroupBy() { $this->resetPage(); }
     public function updatedPerPage() { $this->resetPage(); }
 
+    public function setTaskScope(string $scope): void
+    {
+        $this->taskScope = in_array($scope, ['assigned', 'pm_projects']) ? $scope : 'assigned';
+        $this->projectFilter = 'all';
+        $this->assigneeFilter = 'all';
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
-        $this->reset(['search', 'projectFilter', 'priorityFilter', 'statusFilter', 'dueDateFilter']);
+        $this->reset(['search', 'projectFilter', 'priorityFilter', 'statusFilter', 'dueDateFilter', 'assigneeFilter']);
         $this->resetPage();
     }
 
@@ -301,7 +319,7 @@ class MyTasks extends Component
     {
         return $user->hasRole('super_admin')
             || $task->assigned_user_id === $user->id
-            || $task->project->project_manager_id === $user->id;
+            || ($task->project && $task->project->project_manager_id === $user->id);
     }
 
     protected function notifyTaskCompletion(WbsItem $task): void
@@ -654,24 +672,55 @@ class MyTasks extends Component
         // Transition tasks whose start_date has arrived
         WbsItem::autoStartDueTasks();
 
-        // 1. Projects available for filter dropdown (projects with tasks assigned to this user)
-        $myProjects = Project::whereHas('wbsItems', fn($q) => $q->where('assigned_user_id', $user->id))
-            ->with('subsidiary')
-            ->orderBy('name')
-            ->get();
-        if ($myProjects->isEmpty()) {
-            $myProjects = Project::with('subsidiary')->orderBy('name')->get();
+        // 1. Project Manager Status & Scope Counts
+        $managedProjectsCount = Project::where('project_manager_id', $user->id)->count();
+        $isProjectManager = $managedProjectsCount > 0;
+
+        $myAssignedCount = WbsItem::where('assigned_user_id', $user->id)->whereHas('project')->count();
+        $pmProjectsTasksCount = $isProjectManager 
+            ? WbsItem::whereHas('project', fn($q) => $q->where('project_manager_id', $user->id))->count() 
+            : 0;
+
+        // If user is not PM on any project, enforce 'assigned'
+        if (!$isProjectManager && $this->taskScope === 'pm_projects') {
+            $this->taskScope = 'assigned';
         }
 
-        // 2. Base Query — All tasks (admin mode) or only tasks assigned to logged-in user
-        if ($this->showAllTasks && $user->isSuperAdmin()) {
+        // 2. Base Query & Available Filter Projects & Assignees
+        if ($this->taskScope === 'pm_projects' && $isProjectManager) {
+            $baseQuery = WbsItem::whereHas('project', fn($q) => $q->where('project_manager_id', $user->id));
+            $myProjects = Project::where('project_manager_id', $user->id)
+                ->with('subsidiary')
+                ->orderBy('name')
+                ->get();
+
+            $assigneeIds = (clone $baseQuery)->whereNotNull('assigned_user_id')->pluck('assigned_user_id')->unique();
+            $availableAssignees = User::whereIn('id', $assigneeIds)->orderBy('name')->get();
+        } elseif ($this->showAllTasks && $user->isSuperAdmin()) {
             $baseQuery = WbsItem::whereHas('project');
+            $myProjects = Project::with('subsidiary')->orderBy('name')->get();
+            $assigneeIds = (clone $baseQuery)->whereNotNull('assigned_user_id')->pluck('assigned_user_id')->unique();
+            $availableAssignees = User::whereIn('id', $assigneeIds)->orderBy('name')->get();
         } else {
             $baseQuery = WbsItem::where('assigned_user_id', $user->id)
                 ->whereHas('project');
+            $myProjects = Project::whereHas('wbsItems', fn($q) => $q->where('assigned_user_id', $user->id))
+                ->with('subsidiary')
+                ->orderBy('name')
+                ->get();
+            if ($myProjects->isEmpty()) {
+                $myProjects = Project::where(function($q) use ($user) {
+                    $q->where('project_manager_id', $user->id)
+                      ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                })->with('subsidiary')->orderBy('name')->get();
+            }
+            if ($myProjects->isEmpty()) {
+                $myProjects = Project::with('subsidiary')->orderBy('name')->get();
+            }
+            $availableAssignees = collect();
         }
 
-        // 3. KPI Cockpit Counts across all assigned tasks
+        // 3. KPI Cockpit Counts across active scope
         $allAssigned = (clone $baseQuery)->get();
         $totalCount       = $allAssigned->count();
         $inProgressCount  = $allAssigned->where('status', WbsStatus::IN_PROGRESS)->count();
@@ -704,6 +753,14 @@ class MyTasks extends Component
             'parent',
             'risks'
         ]);
+
+        if ($this->taskScope === 'pm_projects' && $this->assigneeFilter !== 'all') {
+            if ($this->assigneeFilter === 'unassigned') {
+                $filteredQuery->whereNull('assigned_user_id');
+            } else {
+                $filteredQuery->where('assigned_user_id', $this->assigneeFilter);
+            }
+        }
 
         if ($this->search) {
             $filteredQuery->where(function($q) {
@@ -926,6 +983,11 @@ class MyTasks extends Component
 
         return view('livewire.my-tasks', compact(
             'myProjects',
+            'isProjectManager',
+            'managedProjectsCount',
+            'myAssignedCount',
+            'pmProjectsTasksCount',
+            'availableAssignees',
             'totalCount',
             'inProgressCount',
             'dueTodayCount',
@@ -949,6 +1011,8 @@ class MyTasks extends Component
             'weekSchedule',
             'detailTask'
         ))->with([
+            'taskScope'           => $this->taskScope,
+            'assigneeFilter'      => $this->assigneeFilter,
             'viewMode'            => $this->viewMode,
             'kanbanMode'          => $this->kanbanMode,
             'groupBy'             => $this->groupBy,

@@ -109,7 +109,7 @@
 
             @php
                 $user = auth()->user();
-                $isSuperAdmin = $user ? ($user->hasRole('super_admin') || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
+                $isSuperAdmin = $user ? ($user->isPmoAdmin() || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
                 $isPM = $user ? $user->hasRole('project_manager') : false;
 
                 // Pending Approvals Count
@@ -457,7 +457,7 @@
         <!-- Bottom: User Profile Card & Collapse Toggle -->
         <div class="p-3 flex-shrink-0 space-y-2 border-t border-slate-200/80 bg-white">
             @php
-                $isPmoAdminUser = $user && ($user->isSuperAdmin() || $user->hasRole('pmo_admin') || $user->hasRole('super_admin') || $user->id === 1 || $user->email === 'admin@nexuspm.local');
+                $isPmoAdminUser = $user && ($user->isPmoAdmin() || $user->id === 1 || $user->email === 'admin@nexuspm.local');
                 $userRoleLabel = $isPmoAdminUser ? 'PMO Admin' : 'User';
                 $userRoleBadgeClass = $isPmoAdminUser 
                     ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' 
@@ -563,7 +563,7 @@
                     @if(request()->routeIs('dashboard*'))
                         <span class="font-bold text-[#c3122e]">Workspace</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">Executive Dashboard</span>
+                        <span class="text-slate-900 font-black">{{ auth()->user()?->isPmoAdmin() ? 'Executive Dashboard' : 'Project Dashboard' }}</span>
                     @elseif(request()->routeIs('approvals*'))
                         <span class="font-bold text-[#c3122e]">Governance</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

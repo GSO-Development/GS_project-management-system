@@ -32,15 +32,20 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & MULTI-PROJECT CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
             <div class="flex items-center gap-2.5 flex-wrap">
                 <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    My Tasks
+                    {{ $taskScope === 'pm_projects' ? 'Managed Projects’ Tasks' : 'My Tasks' }}
                 </h1>
                 <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-[#c3122e] bg-rose-50 border border-rose-200/70 flex items-center gap-1.5">
                     <span>{{ $activeProjectsCount }} {{ Str::plural('Project', $activeProjectsCount) }}</span>
                 </span>
+                @if($taskScope === 'pm_projects')
+                    <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 flex items-center gap-1">
+                        <span>👑 Project Manager Scope</span>
+                    </span>
+                @endif
                 @if(($dueTodayCount + $overdueCount) > 0)
                     <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-amber-700 bg-amber-50 border border-amber-200/70 flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
@@ -48,10 +53,44 @@
                     </span>
                 @endif
             </div>
+            @if($taskScope === 'pm_projects')
+                <p class="text-xs text-slate-500 font-medium mt-1">
+                    Showing all {{ $totalCount }} tasks across the {{ $managedProjectsCount }} {{ Str::plural('project', $managedProjectsCount) }} where you are assigned as Project Manager.
+                </p>
+            @endif
         </div>
 
-        <!-- Right: View Mode Switcher -->
-        <div class="flex items-center gap-3 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+        <!-- Right: Scope Switcher + View Mode Switcher -->
+        <div class="flex items-center gap-2.5 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+            @if($isProjectManager)
+                <!-- Project Manager Scope Segmented Control Button -->
+                <div class="inline-flex p-1 rounded-xl border border-slate-200/90 bg-slate-100/90 shadow-2xs">
+                    <button 
+                        wire:click="setTaskScope('assigned')" 
+                        type="button" 
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $taskScope === 'assigned' ? 'bg-white text-slate-900 shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                        title="View tasks directly assigned to me"
+                    >
+                        <span>👤 Assigned to Me</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {{ $taskScope === 'assigned' ? 'bg-slate-100 text-slate-700' : 'bg-slate-200/80 text-slate-600' }}">
+                            {{ $myAssignedCount }}
+                        </span>
+                    </button>
+                    <button 
+                        wire:click="setTaskScope('pm_projects')" 
+                        type="button" 
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer {{ $taskScope === 'pm_projects' ? 'bg-[#c3122e] text-white shadow-xs scale-[1.02]' : 'text-slate-600 hover:text-[#c3122e] hover:bg-white/60' }}"
+                        title="View all tasks across all projects where I am the Project Manager"
+                    >
+                        <span>👑 Managed Projects' Tasks</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {{ $taskScope === 'pm_projects' ? 'bg-white/20 text-white font-bold' : 'bg-slate-200/80 text-slate-600' }}">
+                            {{ $pmProjectsTasksCount }}
+                        </span>
+                    </button>
+                </div>
+            @endif
+
+            <!-- View Mode Switcher -->
             <div class="inline-flex p-1 rounded-xl border border-slate-200 bg-slate-100/80 shadow-2xs">
                 <button 
                     wire:click="setViewMode('table')" 
@@ -190,6 +229,21 @@
                     <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">▼</div>
                 </div>
 
+                @if($taskScope === 'pm_projects' && $availableAssignees->isNotEmpty())
+                    <!-- Assignee ▾ -->
+                    <div class="relative min-w-[145px] max-w-[200px]">
+                        <select wire:model.live="assigneeFilter"
+                                class="w-full appearance-none bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
+                            <option value="all">Assignee: All Team</option>
+                            <option value="unassigned">Unassigned</option>
+                            @foreach($availableAssignees as $member)
+                                <option value="{{ $member->id }}">{{ $member->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">▼</div>
+                    </div>
+                @endif
+
                 <!-- Due ▾ -->
                 <div class="relative min-w-[125px]">
                     <select wire:model.live="dueDateFilter"
@@ -226,6 +280,9 @@
                         <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                             <th class="py-3.5 pl-6 pr-4 min-w-[240px]">Task</th>
                             <th class="py-3.5 px-4 min-w-[180px]">Project</th>
+                            @if($taskScope === 'pm_projects')
+                                <th class="py-3.5 px-4 min-w-[140px]">Assignee</th>
+                            @endif
                             <th class="py-3.5 px-4 min-w-[110px]">Priority</th>
                             <th class="py-3.5 px-4 min-w-[120px]">Start Date</th>
                             <th class="py-3.5 px-4 min-w-[140px]">Deadline</th>
@@ -302,6 +359,26 @@
                                         <span class="truncate">{{ $task->project->subsidiary->name ?? 'George Steuart Health' }}</span>
                                     </div>
                                 </td>
+
+                                @if($taskScope === 'pm_projects')
+                                    <!-- Assignee -->
+                                    <td class="py-4 px-4 align-middle whitespace-nowrap">
+                                        @if($task->assignedUser)
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6.5 h-6.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-2xs">
+                                                    {{ strtoupper(substr($task->assignedUser->name, 0, 1)) }}
+                                                </div>
+                                                <span class="text-xs font-bold text-slate-800 truncate max-w-[130px]" title="{{ $task->assignedUser->name }}">
+                                                    {{ $task->assignedUser->name }}
+                                                </span>
+                                            </div>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200/60">
+                                                Unassigned
+                                            </span>
+                                        @endif
+                                    </td>
+                                @endif
 
                                 <!-- Priority -->
                                 <td class="py-4 px-4 align-middle whitespace-nowrap">
@@ -423,7 +500,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-16 text-center text-slate-400 font-medium">
+                                <td colspan="{{ $taskScope === 'pm_projects' ? 9 : 8 }}" class="py-16 text-center text-slate-400 font-medium">
                                     <div class="flex flex-col items-center gap-2.5">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-xl">
                                             📋
@@ -555,6 +632,22 @@
                                             <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{{ $kTask->progress }}%</span>
                                         @endif
                                     </div>
+
+                                    @if($taskScope === 'pm_projects')
+                                        <!-- Assignee Badge in Kanban -->
+                                        <div class="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+                                            @if($kTask->assignedUser)
+                                                <div class="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
+                                                    {{ strtoupper(substr($kTask->assignedUser->name, 0, 1)) }}
+                                                </div>
+                                                <span class="truncate font-semibold text-slate-700 max-w-[150px]" title="{{ $kTask->assignedUser->name }}">
+                                                    {{ $kTask->assignedUser->name }}
+                                                </span>
+                                            @else
+                                                <span class="text-[10px] text-slate-400 font-medium italic">Unassigned</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             @empty
                                 <div class="p-8 text-center text-slate-400 text-xs font-semibold border-2 border-dashed border-slate-200 rounded-2xl bg-white/50">

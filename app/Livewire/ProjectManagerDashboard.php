@@ -122,6 +122,34 @@ class ProjectManagerDashboard extends Component
         $this->dispatch('toast', message: 'Request rejected.', type: 'info');
     }
 
+    public function toggleTaskComplete(int $taskId): void
+    {
+        $task = WbsItem::findOrFail($taskId);
+        $user = auth()->user();
+
+        // Authorization: assigned user or PM of the project or admin
+        if ($task->assigned_user_id !== $user->id && $task->project?->project_manager_id !== $user->id && !$user->isPmoAdmin()) {
+            $this->dispatch('toast', message: 'You are not authorized to update this task.', type: 'error');
+            return;
+        }
+
+        $isCompleted = ($task->status === \App\Enums\WbsStatus::COMPLETED || $task->status?->value === 'completed');
+
+        if ($isCompleted) {
+            $task->status = \App\Enums\WbsStatus::IN_PROGRESS;
+            $task->progress = 50;
+        } else {
+            $task->status = \App\Enums\WbsStatus::COMPLETED;
+            $task->progress = 100;
+        }
+
+        $task->save();
+        (new \App\Services\ProgressCalculationService())->updateItemProgress($task);
+
+        $msg = $isCompleted ? "Task '{$task->title}' marked In Progress." : "🎉 Task '{$task->title}' marked Completed!";
+        $this->dispatch('toast', message: $msg, type: 'success');
+    }
+
     public function openResolveBlockerModal(int $blockerId): void
     {
         $this->selectedBlockerId = $blockerId;
@@ -464,22 +492,43 @@ class ProjectManagerDashboard extends Component
 
         // User tasks (100% Real)
         $myProjectIds = $myProjects->pluck('id')->toArray();
-        $myTasks = WbsItem::where(function($q) use ($user, $myProjectIds) {
-                $q->where('assigned_user_id', $user->id)
-                  ->orWhereIn('project_id', $myProjectIds);
-            })
+        
+        // Tasks assigned specifically to this logged-in user
+        $myAssignedTasks = WbsItem::where('assigned_user_id', $user->id)
+            ->whereHas('project')
             ->with('project')
             ->get();
+        $myAssignedTasksCount = $myAssignedTasks->count();
+        $completedTodayCount = $myAssignedTasks->where('status', \App\Enums\WbsStatus::COMPLETED)
+            ->filter(fn($t) => $t->updated_at && $t->updated_at->isToday())->count();
 
+        // All tasks across involved projects (for team metrics)
+        $allProjectTasks = WbsItem::whereIn('project_id', $myProjectIds)
+            ->with('project')
+            ->get();
+        $teamTasksCount = $allProjectTasks->count();
+
+        // Tasks pool for dashboard cards:
+        $myTasks = $myAssignedTasksCount > 0 ? $myAssignedTasks : $allProjectTasks;
         $myTasksCount = $myTasks->count();
-        $completedTasksCount = $myTasks->where('status', 'completed')->count();
-        $inProgressTasksCount = $myTasks->where('status', 'in_progress')->count();
-        $pendingTasksCount = $myTasks->whereIn('status', ['not_started', 'draft'])->count();
+        $completedTasksCount = $myTasks->where('status', \App\Enums\WbsStatus::COMPLETED)->count();
+        $inProgressTasksCount = $myTasks->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
+        $pendingTasksCount = $myTasks->whereIn('status', [\App\Enums\WbsStatus::NOT_STARTED, \App\Enums\WbsStatus::BACKLOG])->count();
         
         $tasksDueSoon = $myTasks->filter(function($t) {
-            return $t->end_date && $t->end_date->isFuture() && $t->end_date->diffInDays(now()->today()) <= 7 && !in_array($t->status->value, ['completed', 'cancelled']);
+            return $t->end_date && $t->end_date->isFuture() && $t->end_date->diffInDays(now()->today()) <= 7 && !in_array($t->status?->value, ['completed', 'cancelled']);
         });
         $tasksDueSoonCount = $tasksDueSoon->count();
+
+        // Overdue tasks
+        $overdueTasksCount = $myTasks->filter(function($t) {
+            return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
+        })->count();
+
+        // New projects this week count
+        $newProjectsThisWeekCount = $myProjects->filter(function($p) {
+            return $p->created_at && $p->created_at->gte(now()->startOfWeek());
+        })->count();
 
         // Approvals (100% Real)
         $pendingApprovalsCount = ApprovalRequest::whereIn('project_id', $myProjectIds)
@@ -508,22 +557,32 @@ class ProjectManagerDashboard extends Component
             ->whereIn('project_id', $myProjectIds)
             ->where('is_milestone', true)
             ->whereNotNull('end_date')
-            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
             ->orderBy('end_date', 'asc')
             ->take(5)
             ->get();
 
-        // Tasks Due Soon List (100% Real - Due and Overdue prioritized)
-        $myTasksDueSoonList = WbsItem::with(['project', 'assignedUser'])
-            ->where(function($q) use ($user, $myProjectIds) {
-                $q->where('assigned_user_id', $user->id)
-                  ->orWhereIn('project_id', $myProjectIds);
-            })
+        // Tasks Due Soon List: prioritize tasks assigned to this user first!
+        $directUpcoming = WbsItem::with(['project', 'assignedUser'])
+            ->where('assigned_user_id', $user->id)
             ->whereNotNull('end_date')
-            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
             ->orderBy('end_date', 'asc')
-            ->take(6)
             ->get();
+
+        if ($directUpcoming->count() < 6 && count($myProjectIds) > 0) {
+            $otherUpcoming = WbsItem::with(['project', 'assignedUser'])
+                ->whereIn('project_id', $myProjectIds)
+                ->where('assigned_user_id', '!=', $user->id)
+                ->whereNotNull('end_date')
+                ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
+                ->orderBy('end_date', 'asc')
+                ->take(6 - $directUpcoming->count())
+                ->get();
+            $myTasksDueSoonList = $directUpcoming->concat($otherUpcoming);
+        } else {
+            $myTasksDueSoonList = $directUpcoming->take(6);
+        }
 
         // Recent Activity (100% Real)
         $recentActivities = \App\Models\ActivityLog::with('user')
@@ -594,6 +653,10 @@ class ProjectManagerDashboard extends Component
             'onHoldPct',
             'completedPct',
             'myTasksCount',
+            'myAssignedTasksCount',
+            'teamTasksCount',
+            'completedTodayCount',
+            'newProjectsThisWeekCount',
             'completedTasksCount',
             'inProgressTasksCount',
             'pendingTasksCount',

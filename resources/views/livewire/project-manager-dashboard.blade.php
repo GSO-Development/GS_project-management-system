@@ -35,9 +35,17 @@
         <div class="flex items-center gap-2">
             @if(auth()->user()?->canCreateProject())
                 <a href="{{ route('projects.create') }}" 
+                   wire:navigate.hover
                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm hover:shadow transition-all duration-150 cursor-pointer no-underline active:scale-98">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>New Project</span>
+                </a>
+            @else
+                <a href="{{ route('daily-updates.index') }}" 
+                   wire:navigate.hover
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm hover:shadow transition-all duration-150 cursor-pointer no-underline active:scale-98">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Daily Update</span>
                 </a>
             @endif
         </div>
@@ -66,7 +74,7 @@
     @endif
 
     {{-- ══════════════════════════════════════════════════════════ --}}
-    {{-- 2. TOP METRICS RIBBON (4 PASTEL CARDS MATCHING MOCKUP)      --}}
+    {{-- 2. TOP METRICS RIBBON (4 PASTEL CARDS)                     --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
@@ -75,11 +83,15 @@
             <div class="space-y-1">
                 <span class="text-xs font-semibold text-slate-500 block">Total Projects</span>
                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $myProjectsCount > 0 ? $myProjectsCount : 5 }}
+                    {{ $myProjectsCount }}
                 </div>
-                <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1 pt-0.5">
-                    <span>+1 new this week</span>
-                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                <div class="text-xs font-semibold {{ $newProjectsThisWeekCount > 0 ? 'text-emerald-600' : 'text-slate-500' }} flex items-center gap-1 pt-0.5">
+                    @if($newProjectsThisWeekCount > 0)
+                        <span>+{{ $newProjectsThisWeekCount }} new this week</span>
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    @else
+                        <span>{{ $inProgressProjectsCount }} in progress</span>
+                    @endif
                 </div>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-700 shrink-0">
@@ -90,17 +102,30 @@
         {{-- 2. My Tasks (Soft Emerald Tint) --}}
         <div class="rounded-2xl border border-emerald-100/80 bg-[#f8fdfa] p-4.5 sm:p-5 shadow-2xs flex items-start justify-between hover:shadow-xs transition-shadow">
             <div class="space-y-1">
-                <span class="text-xs font-semibold text-slate-500 block">My Tasks</span>
+                <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-500 hover:text-slate-900 block transition-colors">
+                    My Tasks
+                </a>
                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $myTasksCount > 0 ? $myTasksCount : 12 }}
+                    <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="hover:text-[#c3122e] transition-colors">
+                        {{ $myAssignedTasksCount > 0 ? $myAssignedTasksCount : $myTasksCount }}
+                    </a>
                 </div>
                 <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1 pt-0.5">
-                    <span>+ {{ $completedTasksCount > 0 ? $completedTasksCount : 3 }} completed today</span>
+                    @if($completedTodayCount > 0)
+                        <span>+ {{ $completedTodayCount }} completed today</span>
+                    @elseif($teamTasksCount > $myAssignedTasksCount && $myAssignedTasksCount > 0)
+                        <a href="{{ route('my-tasks.index', ['scope' => 'pm_projects']) }}" wire:navigate.hover class="hover:underline flex items-center gap-1 font-bold">
+                            <span>{{ $teamTasksCount }} total in projects</span>
+                            <span>→</span>
+                        </a>
+                    @else
+                        <span>Assigned to you</span>
+                    @endif
                 </div>
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0">
+            <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0 hover:scale-105 transition-transform" title="Go to My Tasks">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            </div>
+            </a>
         </div>
 
         {{-- 3. In Progress (Soft Sky Blue Tint) --}}
@@ -108,10 +133,10 @@
             <div class="space-y-1">
                 <span class="text-xs font-semibold text-slate-500 block">In Progress</span>
                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $inProgressTasksCount > 0 ? $inProgressTasksCount : 6 }}
+                    {{ $inProgressTasksCount }}
                 </div>
-                <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1 pt-0.5">
-                    <span>+ 2 on track</span>
+                <div class="text-xs font-semibold text-sky-600 flex items-center gap-1 pt-0.5">
+                    <span>{{ $onTrackProjectsCount }} on track</span>
                 </div>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200/60 flex items-center justify-center text-sky-600 shrink-0">
@@ -124,11 +149,17 @@
             <div class="space-y-1">
                 <span class="text-xs font-semibold text-slate-500 block">Overdue</span>
                 <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $overdueTasksCount > 0 ? $overdueTasksCount : 2 }}
+                    {{ $overdueTasksCount }}
                 </div>
-                <div class="text-xs font-bold text-rose-600 flex items-center gap-1 pt-0.5">
-                    <span>• Needs attention</span>
-                </div>
+                @if($overdueTasksCount > 0)
+                    <div class="text-xs font-bold text-rose-600 flex items-center gap-1 pt-0.5">
+                        <span>• Needs attention</span>
+                    </div>
+                @else
+                    <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1 pt-0.5">
+                        <span>✓ All on schedule</span>
+                    </div>
+                @endif
             </div>
             <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 shrink-0">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -148,152 +179,88 @@
         <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Card Header --}}
-                <div class="flex items-center justify-between mb-4 pb-1">
+                <div class="flex items-center justify-between mb-4 pb-1 border-b border-slate-100">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">My Projects</h2>
-                    <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors no-underline">
+                    <a href="{{ route('projects.my-leads') }}" wire:navigate.hover class="text-xs font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors no-underline">
                         <span>View all</span>
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
 
-                {{-- Projects List --}}
-                <div class="space-y-4">
-                    @php
-                        // Fallback sample data matching the exact mockup if DB has fewer projects
-                        $mockProjects = [
-                            [
-                                'name' => 'GS Careers Website',
-                                'category' => 'Web Development',
-                                'status' => 'On Track',
-                                'status_class' => 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
-                                'progress' => 75,
-                                'bar_color' => 'bg-emerald-500',
-                                'due' => 'Aug 20, 2026',
-                                'url' => route('projects.index')
-                            ],
-                            [
-                                'name' => 'Project Management System',
-                                'category' => 'Web Application',
-                                'status' => 'In Progress',
-                                'status_class' => 'bg-blue-50 text-blue-700 border-blue-200/70',
-                                'progress' => 45,
-                                'bar_color' => 'bg-blue-500',
-                                'due' => 'Aug 30, 2026',
-                                'url' => route('projects.index')
-                            ],
-                            [
-                                'name' => 'AcciGuard IoT System',
-                                'category' => 'Research & Development',
-                                'status' => 'Planning',
-                                'status_class' => 'bg-purple-50 text-purple-700 border-purple-200/70',
-                                'progress' => 20,
-                                'bar_color' => 'bg-purple-500',
-                                'due' => 'Sep 15, 2026',
-                                'url' => route('projects.index')
-                            ],
-                            [
-                                'name' => 'AI CV Analysis',
-                                'category' => 'AI Integration',
-                                'status' => 'On Track',
-                                'status_class' => 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
-                                'progress' => 60,
-                                'bar_color' => 'bg-emerald-500',
-                                'due' => 'Sep 30, 2026',
-                                'url' => route('projects.index')
-                            ],
-                            [
-                                'name' => 'Office Automation',
-                                'category' => 'Internal Tool',
-                                'status' => 'Not Started',
-                                'status_class' => 'bg-slate-100 text-slate-600 border-slate-200',
-                                'progress' => 0,
-                                'bar_color' => 'bg-slate-300',
-                                'due' => 'Oct 15, 2026',
-                                'url' => route('projects.index')
-                            ],
-                        ];
+                {{-- Projects List: 100% Real User Projects --}}
+                <div class="space-y-3">
+                    @forelse($myProjects->take(5) as $p)
+                        @php
+                            $pct = (int) ($p->overall_progress ?? 0);
+                            $pStatus = $p->status instanceof \BackedEnum ? $p->status->value : (string) ($p->status ?? 'in_progress');
+                            $pHealth = $p->health instanceof \BackedEnum ? $p->health->value : (string) ($p->health ?? 'on_track');
 
-                        // If user has real projects in DB, use them first, then fill with mockups to match the UI perfectly
-                        $itemsToRender = [];
-                        $realCount = $myProjects->count();
+                            $statLabel = 'In Progress';
+                            $statClass = 'bg-blue-50 text-blue-700 border-blue-200/70';
+                            $barColor = 'bg-blue-500';
 
-                        if ($realCount > 0) {
-                            foreach($myProjects->take(5) as $idx => $p) {
-                                $pct = (int) ($p->overall_progress ?? 0);
-                                $pStatus = $p->status instanceof \BackedEnum ? $p->status->value : (string) ($p->status ?? 'in_progress');
-                                $pHealth = $p->health instanceof \BackedEnum ? $p->health->value : (string) ($p->health ?? 'on_track');
-
-                                $statLabel = 'In Progress';
-                                $statClass = 'bg-blue-50 text-blue-700 border-blue-200/70';
-                                $barColor = 'bg-blue-500';
-
-                                if ($pHealth === 'on_track' || $pStatus === 'completed') {
-                                    $statLabel = $pStatus === 'completed' ? 'Completed' : 'On Track';
-                                    $statClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
-                                    $barColor = 'bg-emerald-500';
-                                } elseif ($pStatus === 'planning') {
-                                    $statLabel = 'Planning';
-                                    $statClass = 'bg-purple-50 text-purple-700 border-purple-200/70';
-                                    $barColor = 'bg-purple-500';
-                                } elseif ($pStatus === 'draft') {
-                                    $statLabel = 'Not Started';
-                                    $statClass = 'bg-slate-100 text-slate-600 border-slate-200';
-                                    $barColor = 'bg-slate-300';
-                                }
-
-                                $itemsToRender[] = [
-                                    'name' => $p->name,
-                                    'category' => $p->subsidiary?->name ?? ($p->category ?? 'General Project'),
-                                    'status' => $statLabel,
-                                    'status_class' => $statClass,
-                                    'progress' => $pct,
-                                    'bar_color' => $barColor,
-                                    'due' => $p->deadline ? \Carbon\Carbon::parse($p->deadline)->format('M j, Y') : 'Ongoing',
-                                    'url' => route('projects.show', $p->id)
-                                ];
+                            if ($pStatus === 'completed') {
+                                $statLabel = 'Completed';
+                                $statClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
+                                $barColor = 'bg-emerald-500';
+                            } elseif ($pHealth === 'on_track' || $pStatus === 'in_progress') {
+                                $statLabel = 'On Track';
+                                $statClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
+                                $barColor = 'bg-emerald-500';
+                            } elseif ($pStatus === 'planning') {
+                                $statLabel = 'Planning';
+                                $statClass = 'bg-purple-50 text-purple-700 border-purple-200/70';
+                                $barColor = 'bg-purple-500';
+                            } elseif ($pStatus === 'on_hold') {
+                                $statLabel = 'On Hold';
+                                $statClass = 'bg-amber-50 text-amber-700 border-amber-200/70';
+                                $barColor = 'bg-amber-500';
+                            } elseif ($pStatus === 'draft') {
+                                $statLabel = 'Not Started';
+                                $statClass = 'bg-slate-100 text-slate-600 border-slate-200';
+                                $barColor = 'bg-slate-300';
                             }
-                        }
-
-                        // Fill remaining rows up to 5 with mock items if needed
-                        for ($i = count($itemsToRender); $i < 5; $i++) {
-                            if (isset($mockProjects[$i])) {
-                                $itemsToRender[] = $mockProjects[$i];
-                            }
-                        }
-                    @endphp
-
-                    @foreach($itemsToRender as $pItem)
-                        <div class="flex items-center justify-between gap-3 group">
+                        @endphp
+                        <div class="flex items-center justify-between gap-3 group py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 rounded-xl px-2 transition-colors">
                             {{-- Project Info --}}
                             <div class="min-w-0 flex-1">
-                                <a href="{{ $pItem['url'] }}" class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors block no-underline">
-                                    {{ $pItem['name'] }}
+                                <a href="{{ route('projects.show', $p->id) }}" wire:navigate.hover class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors block no-underline">
+                                    {{ $p->name }}
                                 </a>
                                 <span class="text-[11px] text-slate-400 truncate block font-medium mt-0.5">
-                                    {{ $pItem['category'] }}
+                                    {{ $p->subsidiary?->name ?? 'George Steuart Group' }}
                                 </span>
                             </div>
 
                             {{-- Status Badge & Progress Bar --}}
-                            <div class="flex flex-col items-center shrink-0 w-28 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold border {{ $pItem['status_class'] }} whitespace-nowrap">
-                                    {{ $pItem['status'] }}
+                            <div class="flex flex-col items-center shrink-0 w-24 sm:w-28 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statClass }} whitespace-nowrap">
+                                    {{ $statLabel }}
                                 </span>
                                 <div class="flex items-center gap-1.5 w-full mt-1.5">
                                     <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full {{ $pItem['bar_color'] }}" style="width: {{ $pItem['progress'] }}%"></div>
+                                        <div class="h-full rounded-full {{ $barColor }}" style="width: {{ max(2, $pct) }}%"></div>
                                     </div>
-                                    <span class="text-[10px] font-bold text-slate-500 w-6 text-right">{{ $pItem['progress'] }}%</span>
+                                    <span class="text-[10px] font-bold text-slate-500 w-6 text-right">{{ $pct }}%</span>
                                 </div>
                             </div>
 
                             {{-- Due Date --}}
                             <div class="text-right shrink-0 w-20">
                                 <span class="text-[10px] font-medium text-slate-400 block">Due</span>
-                                <span class="text-[11.5px] font-bold text-slate-700 whitespace-nowrap block">{{ $pItem['due'] }}</span>
+                                <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap block">
+                                    {{ $p->deadline ? \Carbon\Carbon::parse($p->deadline)->format('M j, Y') : 'Ongoing' }}
+                                </span>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <div class="py-10 text-center space-y-2">
+                            <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-500">No active projects assigned yet</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -304,134 +271,83 @@
         <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Card Header --}}
-                <div class="flex items-center justify-between mb-4 pb-1">
+                <div class="flex items-center justify-between mb-4 pb-1 border-b border-slate-100">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Upcoming Tasks</h2>
-                    <a href="{{ route('my-tasks.index') }}" class="text-xs font-semibold text-amber-600/90 hover:text-amber-700 flex items-center gap-1 transition-colors no-underline">
+                    <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-xs font-semibold text-amber-600/90 hover:text-amber-700 flex items-center gap-1 transition-colors no-underline">
                         <span>View all</span>
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
 
-                {{-- Tasks List --}}
-                <div class="space-y-4">
-                    @php
-                        // Fallback sample tasks matching the exact mockup
-                        $mockTasks = [
-                            [
-                                'title' => 'Finish UI design for dashboard',
-                                'project' => 'GS Careers Website',
-                                'due' => 'Today',
-                                'due_color' => 'text-rose-600',
-                                'priority' => 'High',
-                                'priority_class' => 'bg-rose-50 text-rose-700 border-rose-200/70',
-                            ],
-                            [
-                                'title' => 'Prepare project report draft',
-                                'project' => 'Project Management System',
-                                'due' => 'Tomorrow',
-                                'due_color' => 'text-amber-600',
-                                'priority' => 'Medium',
-                                'priority_class' => 'bg-amber-50 text-amber-700 border-amber-200/70',
-                            ],
-                            [
-                                'title' => 'Hardware setup for ESP32',
-                                'project' => 'AcciGuard IoT System',
-                                'due' => 'Aug 8',
-                                'due_color' => 'text-rose-600',
-                                'priority' => 'High',
-                                'priority_class' => 'bg-rose-50 text-rose-700 border-rose-200/70',
-                            ],
-                            [
-                                'title' => 'Update skills data in database',
-                                'project' => 'AI CV Analysis',
-                                'due' => 'Aug 10',
-                                'due_color' => 'text-amber-600',
-                                'priority' => 'Medium',
-                                'priority_class' => 'bg-amber-50 text-amber-700 border-amber-200/70',
-                            ],
-                            [
-                                'title' => 'Team meeting with supervisor',
-                                'project' => 'All Projects',
-                                'due' => 'Aug 12',
-                                'due_color' => 'text-emerald-600',
-                                'priority' => 'Low',
-                                'priority_class' => 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
-                            ],
-                        ];
+                {{-- Tasks List: 100% Real User Tasks with Interactive Checkbox --}}
+                <div class="space-y-3">
+                    @forelse($myTasksDueSoonList as $task)
+                        @php
+                            $isCompleted = ($task->status === \App\Enums\WbsStatus::COMPLETED || $task->status?->value === 'completed');
+                            $isToday = $task->end_date && $task->end_date->isToday();
+                            $isTmrw = $task->end_date && $task->end_date->isTomorrow();
+                            $isPast = $task->end_date && $task->end_date->isPast() && !$isToday;
 
-                        $tasksToRender = [];
-                        if ($myTasksDueSoonList->count() > 0) {
-                            foreach($myTasksDueSoonList->take(5) as $task) {
-                                $isToday = $task->end_date && $task->end_date->isToday();
-                                $isTmrw = $task->end_date && $task->end_date->isTomorrow();
-                                $isPast = $task->end_date && $task->end_date->isPast() && !$isToday;
+                            $dueStr = $isToday ? 'Today' : ($isTmrw ? 'Tomorrow' : ($task->end_date ? $task->end_date->format('M j') : 'Soon'));
+                            $dueColor = ($isToday || $isPast) ? 'text-rose-600' : ($isTmrw ? 'text-amber-600' : 'text-slate-600');
 
-                                $dueStr = $isToday ? 'Today' : ($isTmrw ? 'Tomorrow' : ($task->end_date ? $task->end_date->format('M j') : 'Soon'));
-                                $dueColor = ($isToday || $isPast) ? 'text-rose-600' : ($isTmrw ? 'text-amber-600' : 'text-slate-600');
+                            $rawPrio = $task->priority instanceof \BackedEnum 
+                                ? $task->priority->value 
+                                : (is_string($task->priority) ? $task->priority : ($task->priority?->name ?? 'medium'));
+                            $prioVal = strtolower((string)$rawPrio);
+                            $prio = ucfirst($prioVal);
+                            $prioClass = 'bg-amber-50 text-amber-700 border-amber-200/70';
 
-                                $rawPrio = $task->priority instanceof \BackedEnum 
-                                    ? $task->priority->value 
-                                    : (is_string($task->priority) ? $task->priority : ($task->priority?->name ?? 'medium'));
-                                $prioVal = strtolower((string)$rawPrio);
-                                $prio = ucfirst($prioVal);
-                                $prioClass = 'bg-amber-50 text-amber-700 border-amber-200/70';
-
-                                if (in_array($prioVal, ['critical', 'high'])) {
-                                    $prioClass = 'bg-rose-50 text-rose-700 border-rose-200/70';
-                                    $prio = 'High';
-                                } elseif ($prioVal === 'low') {
-                                    $prioClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
-                                    $prio = 'Low';
-                                } else {
-                                    $prio = 'Medium';
-                                }
-
-                                $tasksToRender[] = [
-                                    'title' => $task->title,
-                                    'project' => $task->project?->name ?? 'George Steuart Workspace',
-                                    'due' => $dueStr,
-                                    'due_color' => $dueColor,
-                                    'priority' => $prio,
-                                    'priority_class' => $prioClass,
-                                ];
+                            if (in_array($prioVal, ['critical', 'high'])) {
+                                $prioClass = 'bg-rose-50 text-rose-700 border-rose-200/70';
+                                $prio = 'High';
+                            } elseif ($prioVal === 'low') {
+                                $prioClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
+                                $prio = 'Low';
+                            } else {
+                                $prio = 'Medium';
                             }
-                        }
-
-                        // Fill with mock items if fewer than 5
-                        for ($j = count($tasksToRender); $j < 5; $j++) {
-                            if (isset($mockTasks[$j])) {
-                                $tasksToRender[] = $mockTasks[$j];
-                            }
-                        }
-                    @endphp
-
-                    @foreach($tasksToRender as $tItem)
-                        <div class="flex items-start justify-between gap-3 group">
+                        @endphp
+                        <div class="flex items-start justify-between gap-2.5 group py-1.5 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 rounded-xl px-2 transition-colors">
                             {{-- Circular Checkbox & Title --}}
                             <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                                <div class="w-4.5 h-4.5 rounded-full border-2 border-slate-300 group-hover:border-emerald-500 transition-colors mt-0.5 shrink-0 cursor-pointer flex items-center justify-center"></div>
+                                <button type="button" 
+                                        wire:click="toggleTaskComplete({{ $task->id }})" 
+                                        title="{{ $isCompleted ? 'Mark Incomplete' : 'Mark Completed' }}"
+                                        class="w-5 h-5 rounded-full border-2 {{ $isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-emerald-500 bg-white text-transparent' }} transition-colors mt-0.5 shrink-0 cursor-pointer flex items-center justify-center">
+                                    <svg class="w-3 h-3 {{ $isCompleted ? 'block' : 'hidden group-hover:block text-slate-300' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
                                 <div class="min-w-0 flex-1">
-                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 truncate group-hover:text-[#c3122e] transition-colors">
-                                        {{ $tItem['title'] }}
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 truncate group-hover:text-[#c3122e] transition-colors {{ $isCompleted ? 'line-through text-slate-400' : '' }}">
+                                        {{ $task->title }}
                                     </h4>
                                     <span class="text-[11px] text-slate-400 truncate block font-medium mt-0.5">
-                                        {{ $tItem['project'] }}
+                                        {{ $task->project?->name ?? 'George Steuart Workspace' }}
                                     </span>
                                 </div>
                             </div>
 
                             {{-- Due Date & Priority Pill --}}
                             <div class="flex flex-col items-end shrink-0 space-y-1">
-                                <span class="text-[11px] font-bold {{ $tItem['due_color'] }} flex items-center gap-1">
+                                <span class="text-[11px] font-bold {{ $dueColor }} flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    <span>{{ $tItem['due'] }}</span>
+                                    <span>{{ $dueStr }}</span>
                                 </span>
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $tItem['priority_class'] }}">
-                                    {{ $tItem['priority'] }}
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $prioClass }}">
+                                    {{ $prio }}
                                 </span>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <div class="py-10 text-center space-y-2">
+                            <div class="w-10 h-10 mx-auto rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-500">All caught up! No upcoming tasks.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -441,23 +357,25 @@
         {{-- ────────────────────────────────────────────────────────── --}}
         <div class="lg:col-span-3 flex flex-col justify-between gap-4">
 
-            {{-- 1. Mini Interactive Calendar Widget --}}
+            {{-- 1. Mini Interactive Calendar Widget with 100% Reliable 7-Column Grid --}}
             <div x-data="{
-                    currentDate: new Date(),
                     monthOffset: 0,
                     get displayMonth() {
                         const d = new Date();
+                        d.setDate(1);
                         d.setMonth(d.getMonth() + this.monthOffset);
                         return d.toLocaleString('default', { month: 'long', year: 'numeric' });
                     },
                     get daysInMonth() {
                         const d = new Date();
+                        d.setDate(1);
                         d.setMonth(d.getMonth() + this.monthOffset + 1, 0);
                         return d.getDate();
                     },
                     get firstDayIndex() {
                         const d = new Date();
-                        d.setMonth(d.getMonth() + this.monthOffset, 1);
+                        d.setDate(1);
+                        d.setMonth(d.getMonth() + this.monthOffset);
                         return d.getDay();
                     },
                     isCurrentDay(day) {
@@ -469,58 +387,59 @@
                  class="bg-white rounded-2xl border border-slate-200/80 p-4.5 shadow-2xs">
                 
                 {{-- Calendar Header with Prev/Next Navigation --}}
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-sm font-bold text-slate-900" x-text="displayMonth"></span>
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight" x-text="displayMonth"></span>
                     <div class="flex items-center gap-1">
-                        <button type="button" @click="monthOffset--" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer">
+                        <button type="button" @click="monthOffset--" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer" title="Previous Month">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                         </button>
-                        <button type="button" @click="monthOffset++" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer">
+                        <button type="button" @click="monthOffset++" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer" title="Next Month">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
                 </div>
 
                 {{-- Week Days Labels --}}
-                <div class="grid grid-cols-7 text-center text-[10px] font-semibold text-slate-400 mb-2">
-                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center;" class="text-[10px] font-bold text-slate-400 mb-2 select-none">
+                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
                 </div>
 
                 {{-- Calendar Dates Grid --}}
-                <div class="grid grid-cols-7 text-center text-xs font-semibold gap-y-1">
+                <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center;" class="text-xs font-semibold select-none">
                     {{-- Blank spaces for first day --}}
-                    <template x-for="blank in firstDayIndex" :key="'b-' + blank">
-                        <span class="h-7"></span>
+                    <template x-for="blank in firstDayIndex" :key="'blank-' + blank">
+                        <div class="h-7"></div>
                     </template>
                     {{-- Days of Month --}}
-                    <template x-for="day in daysInMonth" :key="'d-' + day">
+                    <template x-for="day in daysInMonth" :key="'day-' + day">
                         <div class="flex items-center justify-center">
-                            <span :class="isCurrentDay(day) ? 'bg-[#5a0c18] text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
-                                  class="w-6.5 h-6.5 rounded-full flex items-center justify-center text-[11px] cursor-pointer transition-colors"
-                                  x-text="day">
-                            </span>
+                            <button type="button"
+                                    :class="isCurrentDay(day) ? 'bg-[#c3122e] text-white font-black shadow-xs ring-2 ring-rose-200' : 'text-slate-700 hover:bg-rose-50 hover:text-[#c3122e]'"
+                                    class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] cursor-pointer transition-colors"
+                                    x-text="day">
+                            </button>
                         </div>
                     </template>
                 </div>
             </div>
 
-            {{-- 2. Inspiration Quote Card (With Aesthetic Leaf Background) --}}
-            <div class="relative overflow-hidden rounded-2xl border border-amber-100/60 shadow-2xs min-h-[140px] flex flex-col justify-center p-5 group bg-cover bg-center"
-                 style="background-image: url('{{ asset('images/dashboard_quote_leaf_bg.jpg') }}');">
+            {{-- 2. Inspiration Quote Card (With Aesthetic Warm Styling) --}}
+            <div class="relative overflow-hidden rounded-2xl border border-amber-200/60 shadow-2xs min-h-[130px] flex flex-col justify-center p-5 group bg-cover bg-center"
+                 style="background-image: url('{{ asset('images/dashboard_quote_leaf_bg.jpg') }}'); background-color: #fffbf5;">
                 
                 {{-- Soft Warm Overlay for clean text readability --}}
-                <div class="absolute inset-0 bg-gradient-to-r from-[#fefbf7]/90 via-[#fefbf7]/75 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-[#fffbf5]/95 via-[#fffbf5]/85 to-[#fffbf5]/60 pointer-events-none"></div>
 
                 <div class="relative z-10 space-y-1">
                     {{-- Big Quote Mark --}}
                     <div class="text-amber-600 font-serif text-3xl font-black leading-none select-none">
                         “
                     </div>
-                    <div class="text-slate-800 font-serif font-bold text-sm sm:text-base leading-snug">
+                    <div class="text-slate-800 font-serif font-bold text-base sm:text-lg leading-snug">
                         Progress<br>not perfection.
                     </div>
                     {{-- Gold Divider Line --}}
-                    <div class="w-10 h-0.5 bg-amber-600/80 rounded-full mt-2"></div>
+                    <div class="w-10 h-0.5 bg-amber-500/80 rounded-full mt-2"></div>
                 </div>
             </div>
 
@@ -540,7 +459,10 @@
             <div>
                 {{-- Header & Legend --}}
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-                    <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Task Progress</h2>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Task Progress</h2>
+                        <span class="text-[11px] font-medium text-slate-400">Current Week Performance</span>
+                    </div>
                     <div class="flex items-center gap-3.5 text-xs font-semibold text-slate-500">
                         <span class="inline-flex items-center gap-1.5">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#14b8a6]"></span>
@@ -557,47 +479,46 @@
                     </div>
                 </div>
 
-                {{-- Grouped Bar Chart Area --}}
+                {{-- Grouped Bar Chart Area (Real Current September Data) --}}
                 @php
-                    // Grouped bars data for 7 intervals (matches mockup visually and links to trend data)
-                    $chartDays = [
-                        ['label' => 'Aug 1', 'completed' => 9, 'in_progress' => 6, 'pending' => 4],
-                        ['label' => 'Aug 2', 'completed' => 11, 'in_progress' => 8, 'pending' => 3],
-                        ['label' => 'Aug 3', 'completed' => 0, 'in_progress' => 9, 'pending' => 6],
-                        ['label' => 'Aug 4', 'completed' => 8, 'in_progress' => 5, 'pending' => 7],
-                        ['label' => 'Aug 5', 'completed' => 8, 'in_progress' => 6, 'pending' => 7],
-                        ['label' => 'Aug 6', 'completed' => 8, 'in_progress' => 5, 'pending' => 9],
-                        ['label' => 'Aug 7', 'completed' => 0, 'in_progress' => 5, 'pending' => 8],
-                    ];
+                    $startOfWeek = now()->startOfWeek();
+                    $chartDays = [];
+                    $maxRecorded = 5;
 
-                    // If backend trend data exists and has 7 days, incorporate real numbers gracefully
-                    if (!empty($chartPoints) && count($chartPoints) >= 7) {
-                        foreach (array_slice($chartPoints, 0, 7) as $k => $pt) {
-                            $chartDays[$k]['label'] = $pt['sub'] ?? $chartDays[$k]['label'];
-                            if ($pt['completed'] > 0 || $pt['in_progress'] > 0) {
-                                $chartDays[$k]['completed'] = $pt['completed'];
-                                $chartDays[$k]['in_progress'] = $pt['in_progress'];
-                                $chartDays[$k]['pending'] = $pt['pending'];
-                            }
-                        }
+                    for ($d = 0; $d < 7; $d++) {
+                        $dayDate = $startOfWeek->copy()->addDays($d);
+                        $comp = $chartPoints[$d]['completed'] ?? 0;
+                        $inProg = $chartPoints[$d]['in_progress'] ?? 0;
+                        $pend = $chartPoints[$d]['pending'] ?? 0;
+
+                        $maxRecorded = max($maxRecorded, $comp, $inProg, $pend);
+
+                        $chartDays[] = [
+                            'label' => $dayDate->isToday() ? 'Today' : $dayDate->format('D'),
+                            'sub' => $dayDate->format('M j'),
+                            'isToday' => $dayDate->isToday(),
+                            'completed' => $comp,
+                            'in_progress' => $inProg,
+                            'pending' => $pend,
+                        ];
                     }
 
-                    $yMaxVal = 15;
+                    $yMaxVal = max(5, (int)(ceil($maxRecorded / 5) * 5));
                 @endphp
 
                 <div class="relative pt-2">
                     {{-- Y-Axis Grid Lines & Markers --}}
                     <div class="absolute inset-0 flex flex-col justify-between pointer-events-none text-[10px] font-semibold text-slate-400 pb-6 pr-2">
                         <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">15</span>
+                            <span class="w-4 text-right">{{ $yMaxVal }}</span>
                             <div class="flex-1 border-b border-slate-100"></div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">10</span>
+                            <span class="w-4 text-right">{{ (int) round($yMaxVal * 0.66) }}</span>
                             <div class="flex-1 border-b border-slate-100"></div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">5</span>
+                            <span class="w-4 text-right">{{ (int) round($yMaxVal * 0.33) }}</span>
                             <div class="flex-1 border-b border-slate-100"></div>
                         </div>
                         <div class="flex items-center gap-3">
@@ -633,7 +554,7 @@
                                          title="Pending: {{ $dayBar['pending'] }}"></div>
                                 </div>
                                 {{-- Day Label below baseline --}}
-                                <span class="text-[10.5px] font-semibold text-slate-500 mt-2 whitespace-nowrap block text-center">
+                                <span class="text-[10.5px] font-semibold {{ $dayBar['isToday'] ? 'text-[#c3122e] font-bold' : 'text-slate-500' }} mt-2 whitespace-nowrap block text-center">
                                     {{ $dayBar['label'] }}
                                 </span>
                             </div>
@@ -649,47 +570,68 @@
         <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Header --}}
-                <div class="flex items-center justify-between mb-4 pb-1">
+                <div class="flex items-center justify-between mb-4 pb-1 border-b border-slate-100">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Quick Access</h2>
+                    <span class="text-[11px] font-medium text-slate-400">Essential Tools</span>
                 </div>
 
-                {{-- 4 Action Tiles Side-by-Side --}}
+                {{-- 4 Action Tiles Side-by-Side Tailored for System Role --}}
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
                     
-                    {{-- 1. Create New Project (Soft Rose) --}}
-                    <a href="{{ route('projects.create') }}" 
-                       class="rounded-2xl border border-rose-100/90 bg-[#fef7f7] hover:bg-rose-100/60 p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
-                        <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center font-black text-lg mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
-                            +
-                        </div>
-                        <span class="text-xs font-bold text-slate-800 leading-tight">Create New Project</span>
-                    </a>
+                    {{-- 1. Daily Update OR Create Project (Based on Permissions) --}}
+                    @if(auth()->user()?->canCreateProject())
+                        <a href="{{ route('projects.create') }}" 
+                           wire:navigate.hover
+                           class="rounded-2xl border border-rose-100/90 bg-[#fef7f7] hover:bg-rose-100/60 p-3.5 sm:p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
+                            <div class="w-10 h-10 rounded-full bg-[#c3122e] text-white flex items-center justify-center font-black text-lg mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-800 leading-tight">Create Project</span>
+                            <span class="text-[10px] text-slate-400 font-medium mt-0.5 hidden sm:block">New initiative</span>
+                        </a>
+                    @else
+                        <a href="{{ route('daily-updates.index') }}" 
+                           wire:navigate.hover
+                           class="rounded-2xl border border-rose-100/90 bg-[#fef7f7] hover:bg-rose-100/60 p-3.5 sm:p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
+                            <div class="w-10 h-10 rounded-full bg-[#c3122e] text-white flex items-center justify-center mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-800 leading-tight">Daily Update</span>
+                            <span class="text-[10px] text-slate-400 font-medium mt-0.5 hidden sm:block">Status report</span>
+                        </a>
+                    @endif
 
-                    {{-- 2. Add Task (Soft Emerald) --}}
+                    {{-- 2. My Tasks (Soft Emerald) --}}
                     <a href="{{ route('my-tasks.index') }}" 
-                       class="rounded-2xl border border-emerald-100/90 bg-[#f6fbf8] hover:bg-emerald-100/60 p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
-                        <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-sm mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
-                            ✓
+                       wire:navigate.hover
+                       class="rounded-2xl border border-emerald-100/90 bg-[#f6fbf8] hover:bg-emerald-100/60 p-3.5 sm:p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
+                        <div class="w-10 h-10 rounded-full bg-[#10b981] text-white flex items-center justify-center font-black text-sm mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                         </div>
-                        <span class="text-xs font-bold text-slate-800 leading-tight">Add Task</span>
+                        <span class="text-xs font-bold text-slate-800 leading-tight">My Tasks</span>
+                        <span class="text-[10px] text-slate-400 font-medium mt-0.5 hidden sm:block">Task board</span>
                     </a>
 
                     {{-- 3. View Calendar (Soft Purple) --}}
                     <a href="{{ route('calendar.index') }}" 
-                       class="rounded-2xl border border-purple-100/90 bg-[#faf6fc] hover:bg-purple-100/60 p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
-                        <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-sm mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
-                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                       wire:navigate.hover
+                       class="rounded-2xl border border-purple-100/90 bg-[#faf6fc] hover:bg-purple-100/60 p-3.5 sm:p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
+                        <div class="w-10 h-10 rounded-full bg-[#8b5cf6] text-white flex items-center justify-center mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <span class="text-xs font-bold text-slate-800 leading-tight">View Calendar</span>
+                        <span class="text-[10px] text-slate-400 font-medium mt-0.5 hidden sm:block">Schedule</span>
                     </a>
 
-                    {{-- 4. Time Tracker / Risks (Soft Blue) --}}
+                    {{-- 4. Risks & Blockers (Soft Blue - Correct System Feature) --}}
                     <a href="{{ route('risks.index') }}" 
-                       class="rounded-2xl border border-sky-100/90 bg-[#f5f9fc] hover:bg-sky-100/60 p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
-                        <div class="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center font-black text-sm mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
-                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                       wire:navigate.hover
+                       class="rounded-2xl border border-sky-100/90 bg-[#f5f9fc] hover:bg-sky-100/60 p-3.5 sm:p-4 flex flex-col items-center justify-center text-center group transition-all duration-200 no-underline shadow-2xs hover:shadow-xs active:scale-98">
+                        <div class="w-10 h-10 rounded-full bg-[#0284c7] text-white flex items-center justify-center mb-2.5 shadow-xs group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
-                        <span class="text-xs font-bold text-slate-800 leading-tight">Time Tracker</span>
+                        <span class="text-xs font-bold text-slate-800 leading-tight">Risks &amp; Blockers</span>
+                        <span class="text-[10px] text-slate-400 font-medium mt-0.5 hidden sm:block">Issue tracking</span>
                     </a>
 
                 </div>
