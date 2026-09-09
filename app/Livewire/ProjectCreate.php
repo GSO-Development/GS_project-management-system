@@ -544,14 +544,14 @@ class ProjectCreate extends Component
                 foreach ($assignedUsers as $assignedUser) {
                     $memberRole = $syncData[$assignedUser->id]['role'] ?? 'member';
                     $assignedUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, $memberRole));
-                    Mail::to($assignedUser->email)->send(new ProjectAssignedMail($project, $assignedUser, $memberRole));
+                    Mail::to($assignedUser->email)->queue(new ProjectAssignedMail($project, $assignedUser, $memberRole));
                 }
             } else {
                 // If created by PMO Admin for a designated PM, ONLY notify the PM to review & accept first
                 $pmUser = User::find($project->project_manager_id);
                 if ($pmUser) {
                     $pmUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, 'lead'));
-                    Mail::to($pmUser->email)->send(new ProjectAssignedMail($project, $pmUser, 'lead'));
+                    Mail::to($pmUser->email)->queue(new ProjectAssignedMail($project, $pmUser, 'lead'));
                 }
             }
         } catch (\Throwable $e) {
@@ -565,22 +565,24 @@ class ProjectCreate extends Component
 
     private function createWbsFromTemplate(Project $project, int $templateId, \Carbon\Carbon $projectStartDate)
     {
-        $template = \App\Models\ProjectTemplate::findOrFail($templateId);
-        $templateTasks = $template->tasks;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($project, $templateId, $projectStartDate) {
+            $template = \App\Models\ProjectTemplate::findOrFail($templateId);
+            $templateTasks = $template->tasks;
 
-        // Group tasks by parent_id
-        $tasksByParent = $templateTasks->groupBy(function($task) {
-            return $task->parent_id ?: 'root';
+            // Group tasks by parent_id
+            $tasksByParent = $templateTasks->groupBy(function($task) {
+                return $task->parent_id ?: 'root';
+            });
+
+            $this->scheduleAndCreateTasks($project, $tasksByParent, 'root', $projectStartDate, null);
+
+            // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
+            \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
+
+            // Recalculate WBS numbering and progress
+            (new \App\Services\WbsNumberingService())->recalculateProjectWbsCodes($project->id);
+            (new \App\Services\ProgressCalculationService())->updateProjectOverallProgress($project->id);
         });
-
-        $this->scheduleAndCreateTasks($project, $tasksByParent, 'root', $projectStartDate, null);
-
-        // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
-        \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
-
-        // Recalculate WBS numbering and progress
-        (new \App\Services\WbsNumberingService())->recalculateProjectWbsCodes($project->id);
-        (new \App\Services\ProgressCalculationService())->updateProjectOverallProgress($project->id);
     }
 
     private function scheduleAndCreateTasks(Project $project, $tasksByParent, $parentIdKey, \Carbon\Carbon $currentStartDate, $parentWbsItemId = null)

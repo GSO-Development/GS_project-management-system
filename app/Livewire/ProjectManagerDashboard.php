@@ -668,7 +668,7 @@ class ProjectManagerDashboard extends Component
         $completedTasksCount = $allProjectTasks->where('status', \App\Enums\WbsStatus::COMPLETED)->count();
         $inProgressTasksCount = $allProjectTasks->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
         $pendingTasksCount = $allProjectTasks->whereIn('status', [\App\Enums\WbsStatus::NOT_STARTED, \App\Enums\WbsStatus::BACKLOG])->count();
-        $myTasksCount = $totalProjectTasksCount;
+        $myTasksCount = $myAssignedTasksCount;
 
         // Accurate completion percentages
         $completedTasksPct = $totalProjectTasksCount > 0 ? (int) round(($completedTasksCount / $totalProjectTasksCount) * 100) : 0;
@@ -680,10 +680,17 @@ class ProjectManagerDashboard extends Component
         });
         $tasksDueSoonCount = $tasksDueSoon->count();
 
-        // Overdue tasks across user's projects
-        $overdueTasksCount = $allProjectTasks->filter(function($t) {
-            return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
-        })->count();
+        // Overdue tasks: for PMs leading projects, across project tasks; for regular users, strictly tasks assigned to them
+        $isLeadingProjects = Project::where('project_manager_id', $user->id)->exists();
+        if ($isLeadingProjects) {
+            $overdueTasksCount = $allProjectTasks->filter(function($t) {
+                return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
+            })->count();
+        } else {
+            $overdueTasksCount = $myAssignedTasks->filter(function($t) {
+                return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
+            })->count();
+        }
 
         // New projects this week count
         $newProjectsThisWeekCount = $myProjects->filter(function($p) {
@@ -730,60 +737,64 @@ class ProjectManagerDashboard extends Component
             ->orderBy('end_date', 'asc')
             ->get();
 
-        if ($directUpcoming->count() < 6 && count($myProjectIds) > 0) {
-            $otherUpcoming = WbsItem::with(['project', 'assignedUser'])
-                ->whereIn('project_id', $myProjectIds)
-                ->where('assigned_user_id', '!=', $user->id)
-                ->whereNotNull('end_date')
-                ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
-                ->orderBy('end_date', 'asc')
-                ->take(6 - $directUpcoming->count())
-                ->get();
-            $myTasksDueSoonList = $directUpcoming->concat($otherUpcoming);
-        } else {
-            $myTasksDueSoonList = $directUpcoming->take(6);
-        }
+        // Tasks Due Soon List: Strictly tasks assigned to this user only
+        $myTasksDueSoonList = $directUpcoming->take(6);
 
-        // Recent Activity: Strictly User Personal & Involved Projects Updates (100% Real)
-        $wbsIds = $allProjectTasks->pluck('id')->toArray();
-        $approvalIds = ApprovalRequest::whereIn('project_id', $myProjectIds)->orWhere('requested_by', $user->id)->pluck('id')->toArray();
-        $riskIds = ProjectRisk::whereIn('project_id', $myProjectIds)->pluck('id')->toArray();
+        // Recent Activity: Strictly actions performed by this user OR related to this user's projects
+        $projectTaskIds = !empty($myProjectIds) ? WbsItem::whereIn('project_id', $myProjectIds)->pluck('id')->toArray() : [];
+        $projectApprovalIds = !empty($myProjectIds) 
+            ? ApprovalRequest::where(function($q) use ($user, $myProjectIds) {
+                $q->where('requested_by', $user->id)
+                  ->orWhereIn('project_id', $myProjectIds);
+            })->pluck('id')->toArray() 
+            : ApprovalRequest::where('requested_by', $user->id)->pluck('id')->toArray();
+        $projectRiskIds = !empty($myProjectIds) ? ProjectRisk::whereIn('project_id', $myProjectIds)->pluck('id')->toArray() : [];
 
         $recentActivities = \App\Models\ActivityLog::with('user')
-            ->where(function($q) use ($user, $myProjectIds, $wbsIds, $approvalIds, $riskIds) {
-                $q->where('user_id', $user->id)
-                   ->orWhere(function($sq) use ($myProjectIds) {
-                       $sq->where('record_type', \App\Models\Project::class)
-                          ->whereIn('record_id', $myProjectIds);
-                   })
-                   ->orWhere(function($sq) use ($wbsIds) {
-                       $sq->where('record_type', \App\Models\WbsItem::class)
-                          ->whereIn('record_id', $wbsIds);
-                   })
-                   ->orWhere(function($sq) use ($approvalIds) {
-                       $sq->where('record_type', \App\Models\ApprovalRequest::class)
-                          ->whereIn('record_id', $approvalIds);
-                   })
-                   ->orWhere(function($sq) use ($riskIds) {
-                       $sq->where('record_type', \App\Models\ProjectRisk::class)
-                          ->whereIn('record_id', $riskIds);
-                   });
+            ->where(function($q) use ($user, $myProjectIds, $projectTaskIds, $projectApprovalIds, $projectRiskIds) {
+                // 1. Actions performed by this user (thaman karapuwa)
+                $q->where('user_id', $user->id);
+
+                // 2. Project updates for projects the user is directly involved in (thamange project ekata adala ewa)
+                if (!empty($myProjectIds)) {
+                    $q->orWhere(function($sq) use ($myProjectIds) {
+                        $sq->where('record_type', \App\Models\Project::class)
+                           ->whereIn('record_id', $myProjectIds);
+                    });
+                }
+
+                // 3. WBS tasks relevant to the user's projects
+                if (!empty($projectTaskIds)) {
+                    $q->orWhere(function($sq) use ($projectTaskIds) {
+                        $sq->where('record_type', \App\Models\WbsItem::class)
+                           ->whereIn('record_id', $projectTaskIds);
+                    });
+                }
+
+                // 4. Relevant approval requests in user's projects or requested by user
+                if (!empty($projectApprovalIds)) {
+                    $q->orWhere(function($sq) use ($projectApprovalIds) {
+                        $sq->where('record_type', \App\Models\ApprovalRequest::class)
+                           ->whereIn('record_id', $projectApprovalIds);
+                    });
+                }
+
+                // 5. Relevant project risks in user's projects
+                if (!empty($projectRiskIds)) {
+                    $q->orWhere(function($sq) use ($projectRiskIds) {
+                        $sq->where('record_type', \App\Models\ProjectRisk::class)
+                           ->whereIn('record_id', $projectRiskIds);
+                    });
+                }
             })
             ->latest()
             ->take(6)
             ->get();
 
-        if ($recentActivities->isEmpty()) {
-            $recentActivities = \App\Models\ActivityLog::with('user')
-                ->whereIn('module', ['projects', 'wbs', 'tasks', 'approvals', 'risks'])
-                ->latest()
-                ->take(6)
-                ->get();
-        }
-
         $projectNamesMap = Project::pluck('name', 'id')->toArray();
         $projectCodesMap = Project::pluck('code', 'id')->toArray();
-        $wbsTitlesMap = WbsItem::whereIn('id', $wbsIds)->pluck('title', 'id')->toArray();
+        $actWbsIds = $recentActivities->where('record_type', \App\Models\WbsItem::class)->pluck('record_id')->filter()->unique()->toArray();
+        $wbsTitlesMap = !empty($actWbsIds) ? WbsItem::whereIn('id', $actWbsIds)->pluck('title', 'id')->toArray() : [];
 
         // My Approvals List (100% Real)
         $myApprovalsList = ApprovalRequest::with(['project', 'requester'])

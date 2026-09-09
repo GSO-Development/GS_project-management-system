@@ -96,7 +96,7 @@ class ProjectScheduleNotificationService
             // 2. Send Executive Branded Email
             try {
                 if (!empty($admin->email)) {
-                    Mail::to($admin->email)->send(new ProjectScheduleChangedMail(
+                    Mail::to($admin->email)->queue(new ProjectScheduleChangedMail(
                         project: $project,
                         editor: $editor,
                         oldStartDate: $oldStartDate,

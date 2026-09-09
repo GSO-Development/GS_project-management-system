@@ -105,6 +105,63 @@
     }
 
     /* ============================================================
+       MICRO-ANIMATIONS & LUXURY UI UTILITIES
+    ============================================================ */
+    @keyframes shimmerSweep {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+    }
+    .animate-shimmer {
+        animation: shimmerSweep 3s infinite;
+    }
+
+    @keyframes pulseSlow {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(1.03); }
+    }
+    .animate-pulse-slow {
+        animation: pulseSlow 3.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes floatMini {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+    }
+    .animate-float-mini {
+        animation: floatMini 2.5s ease-in-out infinite;
+    }
+
+    @keyframes glowAuraPulse {
+        0%, 100% { opacity: 0.35; transform: scale(1); }
+        50% { opacity: 0.75; transform: scale(1.12); }
+    }
+    .animate-glow-aura {
+        animation: glowAuraPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes buttonBreath {
+        0%, 100% {
+            box-shadow: 0 4px 16px -2px rgba(195, 18, 46, 0.45), 0 0 0 0 rgba(195, 18, 46, 0.25);
+        }
+        50% {
+            box-shadow: 0 6px 24px 2px rgba(195, 18, 46, 0.65), 0 0 0 4px rgba(195, 18, 46, 0.15);
+        }
+    }
+    .animate-button-breath {
+        animation: buttonBreath 2.8s ease-in-out infinite;
+    }
+
+    @keyframes iridescentShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .animate-iridescent {
+        background-size: 200% 200%;
+        animation: iridescentShift 6s ease infinite;
+    }
+
+    /* ============================================================
        CARDS
     ============================================================ */
     .card {

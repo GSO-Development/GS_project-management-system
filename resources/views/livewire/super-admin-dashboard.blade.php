@@ -11,13 +11,24 @@
                 $userName = auth()->user()->name ?? 'Super Admin';
             @endphp
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                {{ $greeting }}, {{ $userName }}!
+                {{ $greeting }}, {{ $userName }}! <span class="inline-block hover:scale-110 transition-transform cursor-default select-none">👋</span>
             </h1>
             <p class="text-xs font-medium text-slate-400 mt-0.5">Here's a quick overview of your projects.</p>
         </div>
 
-        <div class="text-xs font-semibold text-slate-500 self-start sm:self-auto">
-            {{ now()->format('D, M j, Y') }}
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+            <div class="text-xs font-semibold text-slate-500">
+                {{ now()->format('D, M j, Y') }}
+            </div>
+
+            <a href="{{ route('projects.create') }}" 
+               wire:navigate.hover
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm hover:shadow transition-all duration-150 cursor-pointer no-underline active:scale-98">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Create Project</span>
+            </a>
         </div>
     </div>
 
@@ -168,8 +179,13 @@
                     Month
                 </button>
                 <a href="{{ route('projects.index', ['viewMode' => 'gantt']) }}" 
-                   class="px-3 py-1.5 text-[#c3122e] hover:underline font-black text-xs no-underline flex items-center gap-0.5">
-                    Full →
+                   wire:navigate.hover
+                   class="px-3 py-1.5 text-[#c3122e] hover:bg-rose-50/80 rounded-lg font-black text-xs no-underline flex items-center gap-1 transition-all"
+                   title="View All Projects Timeline">
+                    <span>View All</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                    </svg>
                 </a>
             </div>
         </div>
@@ -340,20 +356,32 @@
             </div>
         </div>
 
-        <!-- Footer: Status Legend Indicators -->
-        <div style="display: flex; align-items: center; gap: 20px; font-size: 12px; font-weight: 600; color: #475569; padding-top: 14px; border-top: 1px solid #f1f5f9;">
-            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                <span style="width: 10px; height: 10px; border-radius: 9999px; background: #059669; display: inline-block;"></span>
-                <span>On Track</span>
-            </span>
-            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                <span style="width: 10px; height: 10px; border-radius: 9999px; background: #d97706; display: inline-block;"></span>
-                <span>At Risk</span>
-            </span>
-            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                <span style="width: 10px; height: 10px; border-radius: 9999px; background: #dc2626; display: inline-block;"></span>
-                <span>Delayed</span>
-            </span>
+        <!-- Footer: Status Legend Indicators & View All Link -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 12px; font-weight: 600; color: #475569; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+            <div style="display: flex; align-items: center; gap: 18px;">
+                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 10px; height: 10px; border-radius: 9999px; background: #059669; display: inline-block;"></span>
+                    <span>On Track</span>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 10px; height: 10px; border-radius: 9999px; background: #d97706; display: inline-block;"></span>
+                    <span>At Risk</span>
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="width: 10px; height: 10px; border-radius: 9999px; background: #dc2626; display: inline-block;"></span>
+                    <span>Delayed</span>
+                </span>
+            </div>
+
+            <a href="{{ route('projects.index', ['viewMode' => 'gantt']) }}"
+               wire:navigate.hover
+               class="inline-flex items-center gap-1.5 text-xs font-bold text-[#c3122e] hover:text-[#9e0f26] transition-colors group no-underline"
+               title="View full timeline with all projects">
+                <span>View All Projects Timeline</span>
+                <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                </svg>
+            </a>
         </div>
 
     </div>

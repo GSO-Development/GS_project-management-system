@@ -400,10 +400,10 @@
                 </div>
                 @if($unreadNotificationsCount > 0)
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('notifications.*') ? 'bg-white text-amber-800' : 'bg-slate-100 text-slate-700 border border-slate-200/80' }}">
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('notifications.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">
                         {{ $unreadNotificationsCount }}
                     </span>
-                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white"></span>
+                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#c3122e] ring-2 ring-white"></span>
                 @endif
             </a>
 
@@ -456,14 +456,6 @@
 
         <!-- Bottom: User Profile Card & Collapse Toggle -->
         <div class="p-3 flex-shrink-0 space-y-2 border-t border-slate-200/80 bg-white">
-            @php
-                $isPmoAdminUser = $user && ($user->isPmoAdmin() || $user->id === 1 || $user->email === 'admin@nexuspm.local');
-                $userRoleLabel = $isPmoAdminUser ? 'PMO Admin' : 'User';
-                $userRoleBadgeClass = $isPmoAdminUser 
-                    ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' 
-                    : 'bg-slate-100 text-slate-600 border border-slate-200';
-            @endphp
-
             <!-- User Profile Card -->
             <div class="transition-all rounded-2xl"
                  :class="{
@@ -483,22 +475,18 @@
                         </div>
                     </a>
 
-                    <!-- User Name, Role & Email -->
-                    <div class="min-w-0 flex-1 space-y-0.5" x-show="!sidebarCollapsed || mobileSidebarOpen">
-                        <div class="flex items-center gap-1.5">
-                            <a href="{{ route('profile.edit') }}" 
-                               wire:navigate.hover 
-                               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                               class="text-xs font-bold text-slate-900 truncate leading-tight hover:text-[#c3122e] transition-colors" 
-                               title="{{ auth()->user()->name }}">
-                                {{ auth()->user()->name }}
-                            </a>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded inline-block leading-tight {{ $userRoleBadgeClass }}">
-                                {{ $userRoleLabel }}
-                            </span>
-                        </div>
+                    <!-- User Name & Email -->
+                    <div class="min-w-0 flex-1" x-show="!sidebarCollapsed || mobileSidebarOpen">
+                        <a href="{{ route('profile.edit') }}" 
+                           wire:navigate.hover 
+                           @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+                           class="text-xs font-bold text-slate-900 truncate leading-snug hover:text-[#c3122e] transition-colors block" 
+                           title="{{ auth()->user()->name }}">
+                            {{ auth()->user()->name }}
+                        </a>
+                        <span class="text-[11px] text-slate-400 truncate block leading-tight font-medium mt-0.5" title="{{ auth()->user()->email }}">
+                            {{ auth()->user()->email }}
+                        </span>
                     </div>
 
                     <!-- Quick Logout Action Button -->
@@ -708,7 +696,7 @@
                     <a href="{{ route('notifications.index') }}" wire:navigate.hover class="relative p-2 rounded-xl transition-colors block" style="color: #706565;" onmouseover="this.style.background='#f9e8eb'; this.style.color='#c3122e';" onmouseout="this.style.background='transparent'; this.style.color='#706565';" title="Notifications">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                         @if($unreadNotificationsCount > 0)
-                        <span class="absolute top-1 right-1 px-1 min-w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center text-white shadow-xs" style="background: #c3122e;">{{ $unreadNotificationsCount }}</span>
+                        <span class="absolute -top-0.5 -right-0.5 px-1.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-extrabold flex items-center justify-center text-white bg-[#c3122e] ring-2 ring-white shadow-xs">{{ $unreadNotificationsCount }}</span>
                         @endif
                     </a>
                 </div>

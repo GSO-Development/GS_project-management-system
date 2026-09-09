@@ -211,35 +211,83 @@
         </span>
     </div>
 
-    <!-- 2. Single Unified Executive Project Card (Ultra-Clean Modern Executive Layout - No Image) -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs relative mb-3.5 p-4 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all" x-data="{ fav: false, menuOpen: false }">
+    <!-- 2. Single Unified Executive Project Card (Modern Animated Luxury SaaS UI) -->
+    <div class="relative overflow-hidden bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xs hover:shadow-2xl hover:border-rose-300/80 mb-4 p-4 sm:px-6 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition-all duration-500 group"
+         x-data="{ 
+             fav: false, 
+             menuOpen: false, 
+             mouseX: 0, 
+             mouseY: 0, 
+             isHovered: false,
+             currentProgress: 0,
+             targetProgress: {{ (int) $project->overall_progress }},
+             init() {
+                 let target = this.targetProgress;
+                 if (target > 0) {
+                     let duration = 1200;
+                     let startTime = null;
+                     const step = (timestamp) => {
+                         if (!startTime) startTime = timestamp;
+                         const elapsed = timestamp - startTime;
+                         const progress = Math.min(elapsed / duration, 1);
+                         const ease = 1 - Math.pow(1 - progress, 3);
+                         this.currentProgress = Math.round(ease * target);
+                         if (progress < 1) {
+                             window.requestAnimationFrame(step);
+                         }
+                     };
+                     window.requestAnimationFrame(step);
+                 } else {
+                     this.currentProgress = 0;
+                 }
+             }
+         }"
+         @mousemove="let rect = $el.getBoundingClientRect(); mouseX = $event.clientX - rect.left; mouseY = $event.clientY - rect.top; isHovered = true"
+         @mouseleave="isHovered = false">
         
+        <!-- Interactive Mouse Spotlight (Dynamic Radial Glow Follower) -->
+        <div class="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
+             :style="'background: radial-gradient(400px circle at ' + mouseX + 'px ' + mouseY + 'px, rgba(195, 18, 46, 0.07), transparent 70%);'"></div>
+
+        <!-- Interactive Border Light Tracer (Illuminates border along cursor) -->
+        <div class="pointer-events-none absolute -inset-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-1 border border-[#c3122e]/40"
+             :style="'-webkit-mask-image: radial-gradient(180px circle at ' + mouseX + 'px ' + mouseY + 'px, black 30%, transparent 70%); mask-image: radial-gradient(180px circle at ' + mouseX + 'px ' + mouseY + 'px, black 30%, transparent 70%);'"></div>
+
+        <!-- Ambient Top Accent Gradient Line with Shimmer Flow -->
+        <div class="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[#c3122e] via-amber-400/80 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden z-1">
+            <div class="w-full h-full bg-gradient-to-r from-transparent via-white/80 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+        </div>
+
+        <!-- Atmospheric Radial Background Glows with slow breathing aura -->
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-rose-200/35 via-amber-100/20 to-transparent rounded-full blur-3xl pointer-events-none animate-glow-aura z-0"></div>
+        <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-gradient-to-tr from-rose-100/25 via-slate-100/30 to-transparent rounded-full blur-2xl pointer-events-none z-0"></div>
+
         <!-- LEFT SECTION: Identity & Metadata -->
-        <div class="flex-1 min-w-0 flex flex-col justify-center gap-2">
-            <!-- Row 1: Title & Badges in snug alignment -->
-            <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight" style="font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;">
+        <div class="flex-1 min-w-0 flex flex-col justify-center gap-2.5 relative z-10">
+            <!-- Row 1: Title & Badges in snug animated alignment -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-[#1a0a0d] transition-colors" style="font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;">
                     {{ $project->name }}
                 </h1>
 
-                <!-- Status Badge with Live Pulse Dot -->
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} {{ $statusStyle['border'] }} border shadow-2xs">
-                    <span class="relative flex h-1.5 w-1.5">
+                <!-- Status Badge with Live Double-Pulse Beacon -->
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} {{ $statusStyle['border'] }} border shadow-2xs hover:scale-105 hover:shadow-xs transition-all duration-200 cursor-default select-none">
+                    <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $statusStyle['dot'] }} opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 {{ $statusStyle['dot'] }}"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 {{ $statusStyle['dot'] }} shadow-xs"></span>
                     </span>
                     <span>{{ $project->status->label() }}</span>
                 </span>
 
-                <!-- Health Badge -->
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} {{ $healthStyle['border'] }} border shadow-2xs">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $healthStyle['dot'] }}"></span>
+                <!-- Health Badge with Subtle Micro-Lift -->
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} {{ $healthStyle['border'] }} border shadow-2xs hover:scale-105 hover:shadow-xs transition-all duration-200 cursor-default select-none">
+                    <span class="w-2 h-2 rounded-full {{ $healthStyle['dot'] }} shadow-xs"></span>
                     <span>{{ $project->health->label() }}</span>
                 </span>
 
                 <!-- Role Badge -->
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $myRoleBadgeClass }} border shadow-2xs" title="{{ $myRoleDesc }}">
-                    <svg class="w-2.5 h-2.5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-extrabold {{ $myRoleBadgeClass }} border shadow-2xs hover:scale-105 hover:shadow-xs transition-all duration-200 cursor-default select-none" title="{{ $myRoleDesc }}">
+                    <svg class="w-3 h-3 text-amber-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                     <span>{{ $myRoleLabel }}</span>
@@ -249,17 +297,17 @@
             @if($project->description)
                 <!-- Optional Subtitle if present -->
                 <div>
-                    <p class="text-xs text-slate-500 font-medium truncate max-w-xl leading-relaxed">
+                    <p class="text-xs text-slate-500 font-medium truncate max-w-2xl leading-relaxed">
                         {{ $project->description }}
                     </p>
                 </div>
             @endif
 
-            <!-- Row 2: Ultra-Clean Micro Metadata Strip -->
-            <div class="flex items-center gap-2 sm:gap-4 flex-wrap text-xs pt-1.5 border-t border-slate-100">
+            <!-- Row 2: Micro Metadata Strip with Micro-Interactions -->
+            <div class="flex items-center gap-2 sm:gap-4 flex-wrap text-xs pt-2 border-t border-slate-100/90">
                 <!-- Created Date -->
-                <div class="flex items-center gap-1 text-slate-600">
-                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="flex items-center gap-1.5 text-slate-600 group/created hover:text-slate-900 transition-colors">
+                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover/created:text-[#c3122e] transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Created:</span>
@@ -269,8 +317,8 @@
                 <span class="text-slate-300 hidden sm:inline">•</span>
 
                 <!-- Lead -->
-                <div class="flex items-center gap-1.5 text-slate-600">
-                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-black text-slate-700 shrink-0">
+                <div class="flex items-center gap-1.5 text-slate-600 group/lead hover:text-slate-900 transition-colors">
+                    <span class="w-5 h-5 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300/80 flex items-center justify-center text-[9.5px] font-black text-slate-700 shrink-0 shadow-2xs group-hover/lead:scale-110 group-hover/lead:border-[#c3122e]/40 transition-all duration-200">
                         {{ strtoupper(substr($project->projectManager->name ?? 'U', 0, 1)) }}
                     </span>
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Lead:</span>
@@ -280,8 +328,8 @@
                 <span class="text-slate-300 hidden sm:inline">•</span>
 
                 <!-- Due Date -->
-                <div class="flex items-center gap-1.5 text-slate-600">
-                    <svg class="w-3.5 h-3.5 text-[#c3122e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="flex items-center gap-1.5 text-slate-600 group/due hover:text-slate-900 transition-colors">
+                    <svg class="w-3.5 h-3.5 text-[#c3122e] group-hover/due:scale-110 transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Due:</span>
@@ -289,16 +337,28 @@
                     @if($project->deadline)
                         @php $daysLeft = (int) now()->startOfDay()->diffInDays($project->deadline->startOfDay(), false); @endphp
                         @if($daysLeft > 0)
-                            <span class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                {{ $daysLeft }}d left
+                            <span class="ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs animate-pulse-slow hover:scale-105 transition-all cursor-default">
+                                <span class="relative flex h-1.5 w-1.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                </span>
+                                <span>{{ $daysLeft }}d left</span>
                             </span>
                         @elseif($daysLeft === 0)
-                            <span class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">
-                                Due today
+                            <span class="ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-200/80 shadow-2xs animate-pulse-slow hover:scale-105 transition-all cursor-default">
+                                <span class="relative flex h-1.5 w-1.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                                </span>
+                                <span>Due today</span>
                             </span>
                         @else
-                            <span class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">
-                                {{ abs($daysLeft) }}d overdue
+                            <span class="ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-rose-50 to-rose-100 text-rose-700 border border-rose-200/80 shadow-2xs hover:scale-105 transition-all cursor-default">
+                                <span class="relative flex h-1.5 w-1.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
+                                </span>
+                                <span>{{ abs($daysLeft) }}d overdue</span>
                             </span>
                         @endif
                     @endif
@@ -307,101 +367,123 @@
         </div>
 
         <!-- RIGHT SECTION: Executive Actions & Companion Progress Sub-Card -->
-        <div class="flex flex-col gap-2.5 shrink-0 w-full sm:w-auto">
+        <div class="flex flex-col gap-3 shrink-0 w-full sm:w-auto relative z-10">
             <!-- Top Actions Row -->
-            <div class="flex items-center justify-end gap-2">
-                <!-- Star / Favorite Toggle -->
+            <div class="flex items-center justify-end gap-2.5">
+                <!-- Star / Favorite Toggle with Spring Micro-interaction -->
                 <button type="button" @click="fav = !fav" 
-                        class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-amber-500 transition-all cursor-pointer shadow-2xs"
-                        :class="fav ? 'text-amber-500 border-amber-300 bg-amber-50/70 shadow-xs' : ''"
+                        class="w-9 h-9 rounded-full border border-slate-200/90 bg-white/90 backdrop-blur-xs hover:border-amber-300 hover:bg-amber-50/70 hover:text-amber-500 transition-all duration-200 active:scale-75 hover:scale-110 shadow-2xs hover:shadow-xs flex items-center justify-center text-slate-400 cursor-pointer"
+                        :class="fav ? 'text-amber-500 border-amber-300 bg-amber-50/80 shadow-xs scale-105 rotate-12' : ''"
                         title="Bookmark / Favorite Project">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" x-show="fav"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" x-show="!fav"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    <svg class="w-4 h-4 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24" x-show="fav"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <svg class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" x-show="!fav"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                 </button>
 
-                <!-- 3-Dots Quick Actions Menu -->
+                <!-- 3-Dots Quick Actions Menu with Rotation Animation -->
                 <div class="relative">
                     <button type="button" @click="menuOpen = !menuOpen" 
-                            class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all cursor-pointer shadow-2xs"
+                            class="w-9 h-9 rounded-full border border-slate-200/90 bg-white/90 backdrop-blur-xs hover:bg-slate-100/80 hover:border-slate-300 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-all duration-200 active:scale-90 hover:scale-105 shadow-2xs group/dots cursor-pointer"
                             title="More Options">
-                        <svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M6 12a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <svg class="w-4 h-4 text-slate-600 group-hover/dots:rotate-90 transition-transform duration-300 ease-out" fill="currentColor" viewBox="0 0 24 24"><path d="M6 12a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </button>
                     <div x-show="menuOpen" @click.away="menuOpen = false" x-cloak
-                         class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
-                        <button type="button" wire:click="openEditProjectModal" @click="menuOpen = false" class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#c3122e] flex items-center gap-2 transition-colors">
+                         class="absolute right-0 mt-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100/90 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+                        <button type="button" wire:click="openEditProjectModal" @click="menuOpen = false" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-rose-50/60 hover:text-[#c3122e] flex items-center gap-2.5 transition-colors cursor-pointer">
                             <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             <span>Edit Project Scope</span>
                         </button>
-                        <button type="button" wire:click="openProjectDetailsModal" @click="menuOpen = false" class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#c3122e] flex items-center gap-2 transition-colors">
+                        <button type="button" wire:click="openProjectDetailsModal" @click="menuOpen = false" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-rose-50/60 hover:text-[#c3122e] flex items-center gap-2.5 transition-colors cursor-pointer">
                             <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>Full Brief</span>
+                            <span>Full Brief & Specs</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Project Details Maroon Pill Button -->
+                <!-- Project Details Maroon Pill Button with Luxury Shimmer Beam & Continuous Breathing Glow -->
                 <button
                     wire:click="openProjectDetailsModal"
                     type="button"
-                    class="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-xs hover:shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-                    style="background: linear-gradient(135deg, #8b0d1f 0%, #6d0816 100%);"
+                    class="group/btn relative overflow-hidden inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black text-white cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-95 shadow-md hover:shadow-xl animate-button-breath"
+                    style="background: linear-gradient(135deg, #c3122e 0%, #9e0f25 50%, #700615 100%);"
                     title="View full project details, specifications, budget and governance"
                 >
-                    <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <!-- Continuous Ambient Light Shimmer Sweep -->
+                    <div class="absolute inset-0 -translate-x-full animate-shimmer pointer-events-none bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+
+                    <!-- Instant On-Hover Fast Sweep Beam -->
+                    <div class="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 ease-out pointer-events-none"></div>
+
+                    <svg class="w-3.5 h-3.5 text-white/95 group-hover/btn:rotate-90 transition-transform duration-500 ease-out relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
                         <circle cx="12" cy="12" r="9"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    <span>Project Details</span>
-                    <svg class="w-3 h-3 text-white/90 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <span class="tracking-wide relative z-10">Project Details</span>
+                    <svg class="w-3.5 h-3.5 text-white/95 group-hover/btn:translate-x-1 transition-transform duration-200 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Bottom Progress Sub-Card -->
-            <div class="bg-rose-50/40 hover:bg-rose-50/60 border border-rose-100/70 rounded-xl px-3.5 py-2 flex items-center justify-between gap-3.5 shadow-2xs transition-colors">
-                <!-- Circular Progress Ring (44px) -->
-                <div class="relative w-11 h-11 flex items-center justify-center shrink-0">
-                    <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
-                        <!-- Soft Rose Track -->
-                        <path class="text-rose-200/50" stroke-width="3" stroke="currentColor" fill="none"
+            <!-- Bottom Progress Sub-Card with Ambient Glow & Animated Circular Progress Ring -->
+            <div class="relative overflow-hidden bg-gradient-to-br from-white via-rose-50/35 to-rose-50/60 border border-rose-100/90 hover:border-rose-300/90 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-4 shadow-2xs hover:shadow-md hover:shadow-rose-900/5 transition-all duration-300 group/prog cursor-default">
+                <!-- Ambient Bottom Right Glow in Sub-Card -->
+                <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-rose-200/30 rounded-full blur-xl pointer-events-none group-hover/prog:scale-150 transition-transform duration-500"></div>
+
+                <!-- Circular Progress Ring (48px) with Dynamic Alpine.js Stroke Draw -->
+                <div class="relative w-12 h-12 flex items-center justify-center shrink-0">
+                    <svg class="w-12 h-12 transform -rotate-90 group-hover/prog:scale-105 transition-transform duration-300" viewBox="0 0 36 36">
+                        <defs>
+                            <linearGradient id="progGrad-{{ $project->id }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#c3122e"/>
+                                <stop offset="60%" stop-color="#9e0f25"/>
+                                <stop offset="100%" stop-color="#700615"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Soft Rose Background Track -->
+                        <path class="text-rose-200/60" stroke-width="3" stroke="currentColor" fill="none"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <!-- Active Crimson Arc -->
-                        <path class="text-[#8b0d1f] transition-all duration-700 ease-out" 
-                              stroke-width="3.2" 
+                        <!-- Active Crimson Arc with Smooth Alpine Animation -->
+                        <path class="transition-all duration-300 ease-out" 
+                              stroke="url(#progGrad-{{ $project->id }})"
+                              stroke-width="3.4" 
+                              :stroke-dasharray="Math.max(1, currentProgress) + ', 100'"
                               stroke-dasharray="{{ max(1, $project->overall_progress) }}, 100" 
                               stroke-linecap="round" 
-                              stroke="currentColor" 
                               fill="none"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     </svg>
-                    <!-- Centered Percentage & Complete Label -->
+                    <!-- Centered Percentage & Complete Label with Count-Up -->
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span class="text-xs font-black text-slate-900 font-mono leading-none">
+                        <span class="text-xs sm:text-[13px] font-black text-slate-900 font-mono leading-none group-hover/prog:scale-110 transition-transform duration-200"
+                              x-text="currentProgress + '%'">
                             {{ $project->overall_progress }}%
                         </span>
-                        <span class="text-[7.5px] font-semibold text-slate-400 leading-none mt-0.5">
+                        <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400 leading-none mt-0.5">
                             Complete
                         </span>
                     </div>
                 </div>
 
-                <!-- Divider -->
-                <div class="h-8 w-px bg-rose-200/60"></div>
+                <!-- Sleek Vertical Gradient Divider -->
+                <div class="h-9 w-px bg-gradient-to-b from-transparent via-rose-200 to-transparent"></div>
 
                 <!-- Progress Details Text -->
                 <div class="flex flex-col justify-center min-w-0 pr-1">
-                    <span class="text-[8.5px] font-black uppercase tracking-wider text-slate-400 leading-none mb-0.5">
+                    <span class="text-[8.5px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1 flex items-center gap-1.5">
+                        <svg class="w-2.5 h-2.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                         PROGRESS
                     </span>
-                    <div class="text-xs font-black text-slate-900 leading-tight">
-                        <span class="font-bold text-slate-900">{{ $completedWbsCount }}</span>
+                    <div class="text-xs sm:text-sm font-black text-slate-900 leading-tight font-mono">
+                        <span class="font-extrabold text-slate-900">{{ $completedWbsCount }}</span>
                         <span class="text-slate-400 font-normal"> / </span>
                         <span class="text-slate-600 font-bold">{{ $totalWbsCount }}</span>
                         <span class="text-[10px] font-semibold text-slate-500 ml-0.5">Done</span>
                     </div>
-                    <div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold leading-none mt-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                    <div class="flex items-center gap-1.5 text-[10px] text-slate-600 font-bold leading-none mt-1">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c3122e] opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-[#c3122e] shadow-xs"></span>
+                        </span>
                         <span>{{ $inProgressWbsCount }} in progress</span>
                     </div>
                 </div>

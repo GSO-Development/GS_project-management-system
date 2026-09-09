@@ -459,17 +459,11 @@ class SuperAdminDashboard extends Component
         $monthName = $selectedTimelineMonth->format('M Y');
         $isCurrentMonth = $this->timelineMonthOffset === 0;
 
-        // 5 Projects for the Timeline Widget
+        // Latest maximum 4 Projects for the Timeline Widget
         $timelineProjects = Project::with(['subsidiary', 'projectManager'])
             ->whereNotIn('status', ['cancelled'])
-            ->orderByRaw("CASE 
-                WHEN status = 'in_progress' THEN 1 
-                WHEN status = 'planning' THEN 2 
-                WHEN status = 'on_hold' THEN 3 
-                WHEN status = 'completed' THEN 4 
-                ELSE 5 END")
-            ->latest('updated_at')
-            ->take(5)
+            ->latest('id')
+            ->take(4)
             ->get();
 
         // Upcoming Deadlines / Milestones (5 items)
