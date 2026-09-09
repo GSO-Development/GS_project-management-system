@@ -148,19 +148,19 @@
                 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500'
             ],
             \App\Enums\ProjectStatus::IN_PROGRESS => [
-                'bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200/80', 'dot' => 'bg-blue-500'
+                'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
             ],
             \App\Enums\ProjectStatus::PLANNING => [
                 'bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200/80', 'dot' => 'bg-indigo-500'
             ],
             \App\Enums\ProjectStatus::ON_HOLD => [
-                'bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
+                'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
             ],
             \App\Enums\ProjectStatus::DELAYED, \App\Enums\ProjectStatus::CANCELLED => [
                 'bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-200/80', 'dot' => 'bg-rose-500'
             ],
             default => [
-                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-500'
+                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-400'
             ],
         };
 
@@ -169,16 +169,13 @@
                 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500'
             ],
             \App\Enums\ProjectHealth::AT_RISK => [
-                'bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
+                'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
             ],
-            \App\Enums\ProjectHealth::DELAYED => [
-                'bg' => 'bg-orange-50', 'text' => 'text-orange-700', 'border' => 'border-orange-200/80', 'dot' => 'bg-orange-500'
-            ],
-            \App\Enums\ProjectHealth::CRITICAL => [
+            \App\Enums\ProjectHealth::DELAYED, \App\Enums\ProjectHealth::CRITICAL => [
                 'bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-200/80', 'dot' => 'bg-rose-500'
             ],
             default => [
-                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-500'
+                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-400'
             ],
         };
 
@@ -187,131 +184,190 @@
         $inProgressWbsCount = $project->wbsItems->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
     @endphp
 
-    <!-- Project Workspace Header Card -->
-    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 mb-5 shadow-xs transition-all">
-        <!-- 1. Top Bar: Breadcrumbs & Executive Actions -->
-        <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-100/90">
-            <!-- Breadcrumbs -->
-            <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500">
-                <a href="{{ route('projects.index') }}" wire:navigate.hover class="inline-flex items-center gap-1.5 font-semibold text-slate-600 hover:text-[#c3122e] transition-colors no-underline">
-                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                    </svg>
-                    <span>Projects</span>
-                </a>
-                <span class="text-slate-300">/</span>
-                <span class="inline-flex items-center gap-1.5 text-slate-700 font-semibold max-w-[200px] sm:max-w-xs truncate">
-                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                    <span class="truncate">{{ $project->subsidiary->name ?? 'George Steuart Group' }}</span>
+    <!-- 1. Top Bar: Clean Minimalist Breadcrumbs -->
+    <div class="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-500 font-medium mb-2.5">
+        <a href="{{ route('dashboard') }}" wire:navigate.hover class="text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center p-1 rounded-lg hover:bg-slate-100" title="Dashboard">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+        </a>
+        <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+        <a href="{{ route('projects.index') }}" wire:navigate.hover class="text-slate-600 hover:text-[#c3122e] font-semibold transition-colors no-underline">
+            Projects
+        </a>
+        <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-slate-700 font-semibold truncate max-w-[200px] sm:max-w-xs">
+            {{ $project->subsidiary->name ?? 'George Steuart Teas' }}
+        </span>
+        <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-100 shadow-2xs">
+            {{ $project->code }}
+        </span>
+    </div>
+
+    <!-- 2. Single Unified Executive Project Card (Ultra-Clean Modern Executive Layout - No Image) -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs relative mb-3.5 p-4 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all" x-data="{ fav: false, menuOpen: false }">
+        
+        <!-- LEFT SECTION: Identity & Metadata -->
+        <div class="flex-1 min-w-0 flex flex-col justify-center gap-2">
+            <!-- Row 1: Title & Badges in snug alignment -->
+            <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight" style="font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    {{ $project->name }}
+                </h1>
+
+                <!-- Status Badge with Live Pulse Dot -->
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} {{ $statusStyle['border'] }} border shadow-2xs">
+                    <span class="relative flex h-1.5 w-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $statusStyle['dot'] }} opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 {{ $statusStyle['dot'] }}"></span>
+                    </span>
+                    <span>{{ $project->status->label() }}</span>
                 </span>
-                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                    {{ $project->code }}
+
+                <!-- Health Badge -->
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} {{ $healthStyle['border'] }} border shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full {{ $healthStyle['dot'] }}"></span>
+                    <span>{{ $project->health->label() }}</span>
+                </span>
+
+                <!-- Role Badge -->
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $myRoleBadgeClass }} border shadow-2xs" title="{{ $myRoleDesc }}">
+                    <svg class="w-2.5 h-2.5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span>{{ $myRoleLabel }}</span>
                 </span>
             </div>
 
-            <!-- Right Actions: Favorite & Details Button -->
-            <div class="flex items-center gap-2" x-data="{ fav: false }">
+            @if($project->description)
+                <!-- Optional Subtitle if present -->
+                <div>
+                    <p class="text-xs text-slate-500 font-medium truncate max-w-xl leading-relaxed">
+                        {{ $project->description }}
+                    </p>
+                </div>
+            @endif
+
+            <!-- Row 2: Ultra-Clean Micro Metadata Strip -->
+            <div class="flex items-center gap-2 sm:gap-4 flex-wrap text-xs pt-1.5 border-t border-slate-100">
+                <!-- Created Date -->
+                <div class="flex items-center gap-1 text-slate-600">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Created:</span>
+                    <span class="text-xs font-bold text-slate-800">{{ $project->created_at->format('M d, Y') }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Lead -->
+                <div class="flex items-center gap-1.5 text-slate-600">
+                    <span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-black text-slate-700 shrink-0">
+                        {{ strtoupper(substr($project->projectManager->name ?? 'U', 0, 1)) }}
+                    </span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Lead:</span>
+                    <span class="text-xs font-bold text-slate-800 truncate max-w-[140px] sm:max-w-none">{{ $project->projectManager->name ?? 'Unassigned' }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Due Date -->
+                <div class="flex items-center gap-1.5 text-slate-600">
+                    <svg class="w-3.5 h-3.5 text-[#c3122e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Due:</span>
+                    <span class="text-xs font-black text-slate-900">{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Sep 21, 2026' }}</span>
+                    @if($project->deadline)
+                        @php $daysLeft = (int) now()->startOfDay()->diffInDays($project->deadline->startOfDay(), false); @endphp
+                        @if($daysLeft > 0)
+                            <span class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                {{ $daysLeft }}d left
+                            </span>
+                        @elseif($daysLeft === 0)
+                            <span class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">
+                                Due today
+                            </span>
+                        @else
+                            <span class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">
+                                {{ abs($daysLeft) }}d overdue
+                            </span>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SECTION: Executive Actions & Companion Progress Sub-Card -->
+        <div class="flex flex-col gap-2.5 shrink-0 w-full sm:w-auto">
+            <!-- Top Actions Row -->
+            <div class="flex items-center justify-end gap-2">
+                <!-- Star / Favorite Toggle -->
                 <button type="button" @click="fav = !fav" 
-                        class="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 transition-all cursor-pointer shadow-2xs"
-                        :class="fav ? 'text-amber-500 border-amber-200 bg-amber-50/50' : ''"
-                        title="Toggle Favorite">
+                        class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-amber-500 transition-all cursor-pointer shadow-2xs"
+                        :class="fav ? 'text-amber-500 border-amber-300 bg-amber-50/70 shadow-xs' : ''"
+                        title="Bookmark / Favorite Project">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" x-show="fav"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" x-show="!fav"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                 </button>
 
+                <!-- 3-Dots Quick Actions Menu -->
+                <div class="relative">
+                    <button type="button" @click="menuOpen = !menuOpen" 
+                            class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all cursor-pointer shadow-2xs"
+                            title="More Options">
+                        <svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M6 12a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </button>
+                    <div x-show="menuOpen" @click.away="menuOpen = false" x-cloak
+                         class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+                        <button type="button" wire:click="openEditProjectModal" @click="menuOpen = false" class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#c3122e] flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            <span>Edit Project Scope</span>
+                        </button>
+                        <button type="button" wire:click="openProjectDetailsModal" @click="menuOpen = false" class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#c3122e] flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Full Brief</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Project Details Maroon Pill Button -->
                 <button
                     wire:click="openProjectDetailsModal"
                     type="button"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-rose-50/60 hover:text-[#c3122e] border border-slate-200 hover:border-rose-200/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
-                    title="View comprehensive project details, budget, team, and delivery specs"
+                    class="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-xs hover:shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                    style="background: linear-gradient(135deg, #8b0d1f 0%, #6d0816 100%);"
+                    title="View full project details, specifications, budget and governance"
                 >
-                    <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="9"/>
+                        <circle cx="12" cy="12" r="3"/>
                     </svg>
                     <span>Project Details</span>
+                    <svg class="w-3 h-3 text-white/90 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
                 </button>
             </div>
-        </div>
 
-        <!-- 2. Main Body: Project Title, Badges, Clean Metadata & Progress -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
-            <!-- Left Side: Title, Badges, Metadata -->
-            <div class="space-y-2 min-w-0 flex-1">
-                <!-- Title & Status Badges -->
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        {{ $project->name }}
-                    </h1>
-
-                    <!-- Status Badge -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} {{ $statusStyle['border'] }} border">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
-                        <span>{{ $project->status->label() }}</span>
-                    </span>
-
-                    <!-- Health Badge -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} {{ $healthStyle['border'] }} border">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $healthStyle['dot'] }}"></span>
-                        <span>{{ $project->health->label() }}</span>
-                    </span>
-
-                    <!-- Project Role Badge (Clean, elegant, no harsh black boxes or tacky emojis) -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $myRoleBadgeClass }} border" title="{{ $myRoleDesc }}">
-                        <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        <span>{{ $myRoleLabel }}</span>
-                    </span>
-                </div>
-
-                <!-- Clean Metadata Row -->
-                <div class="flex items-center gap-x-3.5 gap-y-1.5 flex-wrap text-xs text-slate-500 font-medium pt-0.5">
-                    <!-- Category -->
-                    @if($project->category)
-                        <span class="text-slate-700 font-semibold">
-                            {{ $project->category }}
-                        </span>
-                        <span class="text-slate-300">•</span>
-                    @endif
-
-                    <!-- Created Date -->
-                    <span>Created {{ $project->created_at->format('M d, Y') }}</span>
-
-                    <span class="text-slate-300">•</span>
-
-                    <!-- Project Leader -->
-                    <div class="inline-flex items-center gap-1.5 text-slate-700">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <span>Lead: <strong class="text-slate-900 font-semibold">{{ $project->projectManager->name ?? 'Unassigned' }}</strong></span>
-                    </div>
-
-                    @if($project->deadline)
-                        <span class="text-slate-300">•</span>
-
-                        <!-- Deadline -->
-                        <div class="inline-flex items-center gap-1.5 {{ $project->deadline->isPast() ? 'text-rose-600 font-semibold' : 'text-slate-700' }}">
-                            <svg class="w-3.5 h-3.5 {{ $project->deadline->isPast() ? 'text-rose-500' : 'text-slate-400' }} shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>Due {{ $project->deadline->format('M d, Y') }}</span>
-                            @if($project->deadline->isPast())
-                                <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">Overdue</span>
-                            @endif
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Right Side: Clean Mini Progress Widget -->
-            <div class="shrink-0 flex items-center gap-3.5 bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 min-w-[210px] shadow-2xs transition-colors">
-                <!-- Circular Progress Ring -->
+            <!-- Bottom Progress Sub-Card -->
+            <div class="bg-rose-50/40 hover:bg-rose-50/60 border border-rose-100/70 rounded-xl px-3.5 py-2 flex items-center justify-between gap-3.5 shadow-2xs transition-colors">
+                <!-- Circular Progress Ring (44px) -->
                 <div class="relative w-11 h-11 flex items-center justify-center shrink-0">
                     <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
-                        <path class="text-slate-200" stroke-width="3" stroke="currentColor" fill="none"
+                        <!-- Soft Rose Track -->
+                        <path class="text-rose-200/50" stroke-width="3" stroke="currentColor" fill="none"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path class="text-[#c3122e] transition-all duration-700 ease-out" 
+                        <!-- Active Crimson Arc -->
+                        <path class="text-[#8b0d1f] transition-all duration-700 ease-out" 
                               stroke-width="3.2" 
                               stroke-dasharray="{{ max(1, $project->overall_progress) }}, 100" 
                               stroke-linecap="round" 
@@ -319,26 +375,39 @@
                               fill="none"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <span class="text-[11px] font-bold text-slate-900 font-mono">{{ $project->overall_progress }}%</span>
+                    <!-- Centered Percentage & Complete Label -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span class="text-xs font-black text-slate-900 font-mono leading-none">
+                            {{ $project->overall_progress }}%
+                        </span>
+                        <span class="text-[7.5px] font-semibold text-slate-400 leading-none mt-0.5">
+                            Complete
+                        </span>
                     </div>
                 </div>
 
-                <!-- Progress Details -->
-                <div class="flex flex-col justify-center min-w-[110px]">
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none">PROGRESS</span>
-                    <div class="text-xs font-black text-slate-900 leading-tight mt-1">
-                        <span class="font-mono text-slate-900 font-bold">{{ $completedWbsCount }}</span><span class="text-slate-400 font-normal"> / </span><span class="font-mono text-slate-600 font-medium">{{ $totalWbsCount }}</span>
-                        <span class="text-[10px] font-medium text-slate-500 ml-0.5">Done</span>
+                <!-- Divider -->
+                <div class="h-8 w-px bg-rose-200/60"></div>
+
+                <!-- Progress Details Text -->
+                <div class="flex flex-col justify-center min-w-0 pr-1">
+                    <span class="text-[8.5px] font-black uppercase tracking-wider text-slate-400 leading-none mb-0.5">
+                        PROGRESS
+                    </span>
+                    <div class="text-xs font-black text-slate-900 leading-tight">
+                        <span class="font-bold text-slate-900">{{ $completedWbsCount }}</span>
+                        <span class="text-slate-400 font-normal"> / </span>
+                        <span class="text-slate-600 font-bold">{{ $totalWbsCount }}</span>
+                        <span class="text-[10px] font-semibold text-slate-500 ml-0.5">Done</span>
                     </div>
-                    <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    <div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold leading-none mt-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
                         <span>{{ $inProgressWbsCount }} in progress</span>
                     </div>
                 </div>
             </div>
-
         </div>
+
     </div>
 
     <!-- ===== LEADERSHIP GATEWAY (IF PENDING ACCEPTANCE) ===== -->
@@ -631,7 +700,7 @@
         </div>
     @else
         <!-- ===== 2. HERO GANTT SCHEDULE COMPONENT (ALWAYS DISPLAYED AT TOP) ===== -->
-        <div class="mb-4">
+        <div class="mb-3">
             <livewire:gantt-chart :project="$project" />
         </div>
 
@@ -649,7 +718,7 @@
                     <button
                         wire:click="$set('activeTab', '{{ $tabKey }}')"
                         type="button"
-                        class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer flex-shrink-0 {{ $activeTab === $tabKey ? 'text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90 bg-transparent' }}"
+                        class="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer flex-shrink-0 {{ $activeTab === $tabKey ? 'text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90 bg-transparent' }}"
                         @if($activeTab === $tabKey) style="background: linear-gradient(135deg, #c3122e 0%, #9e0f26 100%);" @endif
                     >
                         <svg class="w-4 h-4 flex-shrink-0 {{ $activeTab === $tabKey ? 'text-rose-100' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -2312,38 +2381,43 @@
     </div>
     @endif
 
-    <!-- ===== COMPREHENSIVE PROJECT DETAILS EXECUTIVE MODAL (ULTRA-CLEAN MODERN BENTO) ===== -->
+    <!-- ===== COMPREHENSIVE PROJECT DETAILS EXECUTIVE MODAL (ULTRA-CLEAN MODERN SAAS) ===== -->
     @if($showProjectDetailsModal)
-    <div style="position: fixed; inset: 0; z-index: 9999999; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 16px; margin: 0; box-sizing: border-box;" class="animate-in fade-in duration-150">
-        
+    <div 
+        x-data 
+        @keydown.escape.window="$wire.closeProjectDetailsModal()" 
+        class="fixed inset-0 z-[999999] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
+    >
         <!-- Modal Card Container -->
-        <div style="position: relative; z-index: 10; width: 100%; max-width: 860px; max-height: calc(100vh - 40px); margin: auto; display: flex; flex-direction: column; background: #ffffff; border-radius: 24px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1px solid #cbd5e1; overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-            
-            <!-- 1. Executive Top Hero Header -->
-            <div style="padding: 18px 24px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; border-bottom: 3px solid #c3122e;">
-                <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
-                    <div style="width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 6px 14px rgba(195, 18, 46, 0.35); border: 1px solid rgba(255,255,255,0.2);">
-                        <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <div 
+            @click.outside="$wire.closeProjectDetailsModal()" 
+            class="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+            style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;"
+        >
+            <!-- 1. Header (Clean & Minimal with Modern SaaS Identity) -->
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4 flex-shrink-0 bg-white">
+                <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                    <!-- Project Icon Badge -->
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#8b0d1f] to-[#b3142c] text-white flex items-center justify-center shadow-sm shadow-[#8b0d1f]/20 shrink-0">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
                     </div>
-                    <div style="min-width: 0;">
-                        <!-- Top Metadata Pills -->
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                            <span style="padding: 2px 7px; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: 800; background: rgba(195, 18, 46, 0.25); color: #fca5a5; border: 1px solid rgba(195, 18, 46, 0.4);">
+
+                    <div class="min-w-0 flex-1">
+                        <!-- Top Breadcrumb Strip -->
+                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1 flex-wrap">
+                            <span class="px-2 py-0.5 rounded-md font-mono text-[10.5px] font-bold bg-rose-50 text-[#8b0d1f] border border-rose-100">
                                 {{ $project->code }}
                             </span>
-                            <span style="color: #64748b; font-size: 12px;">•</span>
-                            <span style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 13px; height: 13px; color: #fbbf24;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                <span>{{ $project->subsidiary->name ?? 'George Steuart Group' }}</span>
-                            </span>
-                            <span style="color: #64748b; font-size: 12px;">•</span>
-                            <span style="font-size: 11px; font-weight: 600; color: #94a3b8;">
-                                {{ $project->category ?? 'Corporate Strategy' }}
-                            </span>
+                            <span>•</span>
+                            <span class="text-slate-600 font-medium">{{ $project->subsidiary->name ?? 'George Steuart Teas' }}</span>
+                            <span>•</span>
+                            <span class="text-slate-400">{{ $project->category ?? 'Corporate Strategy' }}</span>
                         </div>
 
-                        <!-- Project Name Title -->
-                        <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #ffffff; letter-spacing: -0.02em; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <!-- Project Title -->
+                        <h2 class="text-2xl font-black text-slate-900 tracking-tight leading-tight truncate" style="font-family: 'Outfit', sans-serif;">
                             {{ $project->name }}
                         </h2>
                     </div>
@@ -2353,319 +2427,294 @@
                 <button 
                     wire:click="closeProjectDetailsModal" 
                     type="button" 
-                    style="width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.color='#ffffff'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#cbd5e1'"
-                    title="Close"
+                    class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+                    title="Close (Esc)"
                 >
-                    <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
 
-            <!-- 2. Scrollable Body Content -->
-            <div style="padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; flex: 1; background: #f8fafc;">
-                
-                @php
-                    $canEditProject = $project->userCan(auth()->user(), 'project.edit') || $project->userCan(auth()->user(), 'project_details.edit') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
-                    $canManageTeam = $project->userCan(auth()->user(), 'team.add') || $project->userCan(auth()->user(), 'team.assign_role') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
-                @endphp
-
-                <!-- Section 1: Executive KPI & Control Bar (4 Streamlined Cards) -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    
-                    <!-- 1. Execution Status -->
-                    <div style="padding: 12px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between;">
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
-                            Execution Status
-                        </span>
-                        @if($canEditProject)
+            <!-- 2. Streamlined Property Bar (Status, Health, Priority, Deadline) -->
+            @php
+                $canEditProject = $project->userCan(auth()->user(), 'project.edit') || $project->userCan(auth()->user(), 'project_details.edit') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
+                $canManageTeam = $project->userCan(auth()->user(), 'team.add') || $project->userCan(auth()->user(), 'team.assign_role') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
+                $prio = $project->priority->value ?? 'medium';
+                $prioStyle = match($prio) {
+                    'critical' => 'bg-rose-50 text-rose-700 border-rose-200',
+                    'high'     => 'bg-orange-50 text-orange-700 border-orange-200',
+                    'low'      => 'bg-slate-50 text-slate-600 border-slate-200',
+                    default    => 'bg-amber-50 text-amber-800 border-amber-200',
+                };
+            @endphp
+            <div class="px-6 py-2.5 bg-slate-50/80 border-b border-slate-100 flex items-center gap-3 sm:gap-5 flex-wrap text-xs">
+                <!-- Status Dropdown / Pill -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status:</span>
+                    @if($canEditProject)
+                        <div class="relative inline-flex items-center">
                             <select
                                 wire:change="updateProjectStatus($event.target.value)"
-                                style="width: 100%; height: 34px; padding: 0 8px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; outline: none; cursor: pointer;"
+                                class="h-7 pl-2.5 pr-6 rounded-lg text-xs font-bold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} border {{ $statusStyle['border'] }} outline-none cursor-pointer appearance-none shadow-2xs"
                             >
                                 @foreach(\App\Enums\ProjectStatus::cases() as $st)
-                                    <option value="{{ $st->value }}" @selected($project->status->value === $st->value)>
+                                    <option value="{{ $st->value }}" @selected($project->status->value === $st->value) class="bg-white text-slate-900">
                                         {{ $st->label() }}
                                     </option>
                                 @endforeach
                             </select>
-                        @else
-                            <div style="height: 34px; padding: 0 10px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #2563eb;"></span>
-                                <span>{{ $project->status->label() }}</span>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- 2. Delivery Health -->
-                    <div style="padding: 12px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between;">
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
-                            Delivery Health
+                            <svg class="w-3 h-3 {{ $statusStyle['text'] }} absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} border {{ $statusStyle['border'] }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
+                            {{ $project->status->label() }}
                         </span>
-                        @if($canEditProject)
+                    @endif
+                </div>
+
+                <span class="text-slate-200 hidden sm:inline">•</span>
+
+                <!-- Health Dropdown / Pill -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Health:</span>
+                    @if($canEditProject)
+                        <div class="relative inline-flex items-center">
                             <select
                                 wire:change="updateProjectHealth($event.target.value)"
-                                style="width: 100%; height: 34px; padding: 0 8px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; outline: none; cursor: pointer;"
+                                class="h-7 pl-2.5 pr-6 rounded-lg text-xs font-bold {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} border {{ $healthStyle['border'] }} outline-none cursor-pointer appearance-none shadow-2xs"
                             >
                                 @foreach(\App\Enums\ProjectHealth::cases() as $hl)
-                                    <option value="{{ $hl->value }}" @selected($project->health->value === $hl->value)>
+                                    <option value="{{ $hl->value }}" @selected($project->health->value === $hl->value) class="bg-white text-slate-900">
                                         {{ $hl->label() }}
                                     </option>
                                 @endforeach
                             </select>
-                        @else
-                            <div style="height: 34px; padding: 0 10px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
-                                <span>{{ $project->health->label() }}</span>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- 3. Priority Tier -->
-                    <div style="padding: 12px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between;">
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
-                            Priority Tier
-                        </span>
-                        @php
-                            $prio = $project->priority->value ?? 'medium';
-                            $prioBg = match($prio) {
-                                'critical' => 'background: #fff1f2; color: #be123c; border: 1px solid #fecdd3;',
-                                'high'     => 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;',
-                                'low'      => 'background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;',
-                                default    => 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;',
-                            };
-                        @endphp
-                        <div style="height: 34px; padding: 0 10px; border-radius: 10px; font-size: 11.5px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; {{ $prioBg }}">
-                            <span style="display: flex; align-items: center; gap: 5px;">
-                                <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span>{{ ucfirst($prio) }}</span>
-                            </span>
-                            <span style="font-size: 9px; font-weight: 700; text-transform: uppercase; opacity: 0.8;">Active</span>
+                            <svg class="w-3 h-3 {{ $healthStyle['text'] }} absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                         </div>
-                    </div>
-
-                    <!-- 4. Target Deadline -->
-                    <div style="padding: 12px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between;">
-                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
-                            Target Deadline
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} border {{ $healthStyle['border'] }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $healthStyle['dot'] }}"></span>
+                            {{ $project->health->label() }}
                         </span>
-                        <div style="height: 34px; padding: 0 10px; border-radius: 10px; font-size: 11.5px; font-weight: 800; background: #f8fafc; color: #0f172a; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; font-family: monospace;">
-                            <span>{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Not Set' }}</span>
-                            @if($project->deadline)
-                                @if($project->deadline->isPast())
-                                    <span style="font-size: 9px; font-weight: 800; background: #e11d48; color: #ffffff; padding: 2px 6px; border-radius: 4px;">OVERDUE</span>
-                                @else
-                                    <span style="font-size: 9px; font-weight: 800; background: #059669; color: #ffffff; padding: 2px 6px; border-radius: 4px;">{{ (int) now()->diffInDays($project->deadline, false) }}d left</span>
-                                @endif
-                            @endif
-                        </div>
-                    </div>
-
+                    @endif
                 </div>
 
-                <!-- Section 2: 2-Column Bento (Budget Governance & WBS Architecture) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    
-                    <!-- 💰 Financial Budget & Spend Card -->
-                    <div style="background: #ffffff; padding: 18px; border-radius: 18px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; gap: 14px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center;">
-                                    <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-slate-200 hidden sm:inline">•</span>
+
+                <!-- Priority -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Priority:</span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold border {{ $prioStyle }}">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span>{{ ucfirst($prio) }}</span>
+                    </span>
+                </div>
+
+                <span class="text-slate-200 hidden sm:inline">•</span>
+
+                <!-- Deadline -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Due:</span>
+                    <span class="font-bold text-slate-800">{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Not set' }}</span>
+                    @if($project->deadline)
+                        @if($project->deadline->isPast())
+                            <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Overdue</span>
+                        @else
+                            <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{{ (int) now()->diffInDays($project->deadline, false) }}d left</span>
+                        @endif
+                    @endif
+                </div>
+            </div>
+
+            <!-- 3. Scrollable Clean Body -->
+            <div class="p-6 overflow-y-auto space-y-4 flex-1 bg-white">
+                
+                <!-- Row 1: Execution Progress & Blueprint -->
+                @php
+                    $tpl = $project->template;
+                    $workStart = $tpl?->work_start_time ? \Carbon\Carbon::parse($tpl->work_start_time)->format('g:i A') : '08:30 AM';
+                    $workEnd = $tpl?->work_end_time ? \Carbon\Carbon::parse($tpl->work_end_time)->format('g:i A') : '05:30 PM';
+                    $days = $tpl?->work_days ? implode(', ', array_map('ucfirst', $tpl->work_days)) : 'Mon, Tue, Wed, Thu, Fri';
+                    $granularity = ($tpl?->divide_by_hours ?? true) ? 'Hourly Breakdown' : 'Daily Breakdown';
+                @endphp
+                <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3.5">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="w-2 h-2 rounded-full bg-[#8b0d1f]"></span>
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">Execution Progress &amp; Blueprint</h3>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-sm font-black text-slate-900 font-mono">{{ $project->overall_progress }}%</span>
+                            <span class="text-xs font-semibold text-slate-400">Complete</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full h-2.5 bg-slate-200/70 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-emerald-500 via-rose-600 to-[#8b0d1f] rounded-full transition-all duration-500" style="width: {{ max(3, $project->overall_progress) }}%;"></div>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-200/60 text-xs">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Deliverables</span>
+                            <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $project->wbsItems->count() }} Total</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Completed</span>
+                            <span class="text-xs font-bold text-emerald-600 mt-0.5 block">{{ $completedWbsCount }} Done</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Kick-off Date</span>
+                            <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Deadline</span>
+                            <span class="text-xs font-bold text-[#8b0d1f] mt-0.5 block">{{ $project->deadline ? $project->deadline->format('M d, Y') : '—' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Chosen Template Details (Clean SaaS Inner Card) -->
+                    @if($tpl)
+                        <div class="pt-3 border-t border-slate-200/60 flex items-center justify-between gap-3 flex-wrap bg-white rounded-xl p-3 border border-slate-200/70 text-xs">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-lg bg-rose-50 text-[#8b0d1f] flex items-center justify-center border border-rose-100 shrink-0">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
                                 </div>
-                                <div>
-                                    <h4 style="margin: 0; font-size: 12.5px; font-weight: 800; color: #0f172a;">Budget &amp; Spend Governance</h4>
-                                    <p style="margin: 2px 0 0 0; font-size: 10.5px; color: #64748b;">Fiscal Allocation Breakdown</p>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Template:</span>
+                                        <span class="font-bold text-slate-900 truncate">{{ $tpl->name }}</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-rose-50 text-[#8b0d1f] border border-rose-100">{{ $tpl->tasks->count() }} Standard Tasks</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5 flex-wrap">
+                                        <span title="Daily Working Schedule">🕒 {{ $workStart }} – {{ $workEnd }}</span>
+                                        <span class="text-slate-300">•</span>
+                                        <span title="Working Days">📅 {{ $days }}</span>
+                                        <span class="text-slate-300">•</span>
+                                        <span class="text-indigo-600 font-semibold" title="Task Granularity">{{ $granularity }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            @php
-                                $bPct = ($project->estimated_budget ?? 0) > 0 ? min(100, round(($project->actual_cost / $project->estimated_budget) * 100)) : 0;
-                            @endphp
-                            <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; font-family: monospace; {{ $bPct > 90 ? 'background: #fff1f2; color: #be123c; border: 1px solid #fecdd3;' : 'background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;' }}">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                Active Blueprint
+                            </span>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Row 2: Two Columns: Budget & Financials (Left) + Leadership & Team (Right) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Left: Budget & Spend -->
+                    @php
+                        $bPct = ($project->estimated_budget ?? 0) > 0 ? min(100, round(($project->actual_cost / $project->estimated_budget) * 100)) : 0;
+                    @endphp
+                    <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                <span>Budget &amp; Spend</span>
+                            </h3>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $bPct > 90 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800' }}">
                                 {{ $bPct }}% Burn
                             </span>
                         </div>
 
-                        <!-- Numbers Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <div style="padding: 10px 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                                <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">Actual Spend</span>
-                                <div style="font-size: 16px; font-weight: 900; color: #c3122e; font-family: monospace; margin-top: 3px;">
-                                    <span style="font-size: 11px; font-weight: 700; color: #94a3b8;">Rs.</span> {{ number_format($project->actual_cost ?? 0, 0) }}
-                                </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Actual Spend</span>
+                                <span class="text-sm font-black text-rose-600 font-mono mt-0.5 block">Rs. {{ number_format($project->actual_cost ?? 0, 0) }}</span>
                             </div>
-
-                            <div style="padding: 10px 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                                <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">Total Budget</span>
-                                <div style="font-size: 16px; font-weight: 900; color: #0f172a; font-family: monospace; margin-top: 3px;">
-                                    <span style="font-size: 11px; font-weight: 700; color: #94a3b8;">Rs.</span> {{ number_format($project->estimated_budget ?? 0, 0) }}
-                                </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Budget</span>
+                                <span class="text-sm font-black text-slate-800 font-mono mt-0.5 block">Rs. {{ number_format($project->estimated_budget ?? 0, 0) }}</span>
                             </div>
                         </div>
 
-                        <!-- Progress Bar -->
-                        <div>
-                            <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: #64748b; margin-bottom: 5px;">
-                                <span>Expenditure Burn</span>
-                                <span>Variance: Rs. {{ number_format(max(0, ($project->estimated_budget ?? 0) - ($project->actual_cost ?? 0)), 0) }}</span>
-                            </div>
-                            <div style="width: 100%; height: 7px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
-                                <div style="height: 100%; width: {{ max(4, $bPct) }}%; background: linear-gradient(90deg, #10b981 0%, #c3122e 100%); border-radius: 9999px;"></div>
-                            </div>
+                        <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                            <span>Variance</span>
+                            <span class="font-mono font-bold text-slate-700">Rs. {{ number_format(max(0, ($project->estimated_budget ?? 0) - ($project->actual_cost ?? 0)), 0) }}</span>
                         </div>
                     </div>
 
-                    <!-- 🏗️ Breakdown & Timeline Architecture Card -->
-                    <div style="background: #ffffff; padding: 18px; border-radius: 18px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; gap: 14px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #fdf4f4; color: #c3122e; border: 1px solid #faeaea; display: flex; align-items: center; justify-content: center;">
-                                    <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    <!-- Right: Leadership & Team -->
+                    @php
+                        $otherMembers = $project->members->where('id', '!=', $project->project_manager_id);
+                    @endphp
+                    <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">
+                                Team &amp; Governance
+                            </h3>
+                            @if($canManageTeam)
+                                <button 
+                                    wire:click="openCollaboratorsModal" 
+                                    type="button" 
+                                    class="text-[11px] font-bold text-[#8b0d1f] hover:underline cursor-pointer"
+                                >
+                                    Manage &rarr;
+                                </button>
+                            @endif
+                        </div>
+
+                        <!-- Project Manager (Single prominent entry) -->
+                        <div class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200/70">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b0d1f] to-[#c3122e] text-white font-black text-xs flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($project->projectManager->name ?? 'U', 0, 1)) }}
                                 </div>
-                                <div>
-                                    <h4 style="margin: 0; font-size: 12.5px; font-weight: 800; color: #0f172a;">WBS &amp; Execution Blueprint</h4>
-                                    <p style="margin: 2px 0 0 0; font-size: 10.5px; color: #64748b;">Timeline Execution Blueprint</p>
+                                <div class="min-w-0">
+                                    <span class="text-xs font-bold text-slate-900 block truncate">{{ $project->projectManager->name ?? 'Unassigned' }}</span>
+                                    <span class="text-[10px] text-slate-400 block truncate">{{ $project->projectManager->email ?? 'Lead PM' }}</span>
                                 </div>
                             </div>
-                            <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; font-family: monospace; background: #fdf4f4; color: #c3122e; border: 1px solid #faeaea;">
-                                {{ $project->wbsItems->count() }} Deliverables
+                            <span class="px-2 py-0.5 rounded text-[9.5px] font-bold bg-rose-50 text-[#8b0d1f] border border-rose-200 shrink-0">
+                                Lead PM
                             </span>
                         </div>
 
-                        <!-- Architecture Info Box -->
-                        <div style="padding: 10px 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                            <div>
-                                <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">Methodology Blueprint</span>
-                                <span style="font-size: 11.5px; font-weight: 800; color: #0f172a; display: block; margin-top: 2px;">
-                                    {{ $project->template->name ?? ($project->wbs_breakdown_type === 'template' ? 'Standard Blueprint Template' : 'Custom Agile WBS Canvas') }}
-                                </span>
+                        <!-- Other Members (Without duplicating Lead PM) -->
+                        @if($otherMembers->count() > 0)
+                            <div class="flex items-center gap-2 flex-wrap pt-0.5">
+                                @foreach($otherMembers as $member)
+                                    @php
+                                        $role = $member->pivot->role ?? 'member';
+                                        $roleLabel = match($role) {
+                                            'sponsor' => 'Sponsor',
+                                            'owner' => 'Owner',
+                                            'steering_committee' => 'Committee',
+                                            default => 'Member'
+                                        };
+                                        $roleBadge = match($role) {
+                                            'sponsor' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                            'owner' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                                            'steering_committee' => 'bg-purple-50 text-purple-800 border-purple-200',
+                                            default => 'bg-slate-100 text-slate-700 border-slate-200'
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-white border border-slate-200/70" title="{{ $member->email }}">
+                                        <span class="w-4 h-4 rounded-full bg-slate-100 text-slate-600 font-bold text-[9px] flex items-center justify-center">
+                                            {{ strtoupper(substr($member->name, 0, 1)) }}
+                                        </span>
+                                        <span class="font-bold text-slate-800 text-[11px]">{{ $member->name }}</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border {{ $roleBadge }}">{{ $roleLabel }}</span>
+                                    </span>
+                                @endforeach
                             </div>
-                            <div style="text-align: right;">
-                                <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">Completion</span>
-                                <span style="font-size: 14px; font-weight: 900; color: #059669; font-family: monospace; display: block; margin-top: 2px;">
-                                    {{ $project->overall_progress }}%
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Date Strips -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div style="padding: 8px 10px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center;">
-                                <span style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">Kick-off Date</span>
-                                <span style="font-size: 11px; font-weight: 800; color: #0f172a; font-family: monospace; display: block; margin-top: 2px;">
-                                    {{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}
-                                </span>
-                            </div>
-                            <div style="padding: 8px 10px; background: #fdf4f4; border-radius: 10px; border: 1px solid #faeaea; text-align: center;">
-                                <span style="font-size: 9px; font-weight: 700; color: #be123c; text-transform: uppercase; display: block;">Target Deadline</span>
-                                <span style="font-size: 11px; font-weight: 800; color: #c3122e; font-family: monospace; display: block; margin-top: 2px;">
-                                    {{ $project->deadline ? $project->deadline->format('M d, Y') : '—' }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Section 3: Leadership & Assigned Team Members -->
-                <div style="background: #ffffff; padding: 18px; border-radius: 18px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 10px; background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; display: flex; align-items: center; justify-content: center;">
-                                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </div>
-                            <div>
-                                <h4 style="margin: 0; font-size: 12.5px; font-weight: 800; color: #0f172a;">Project Leadership &amp; Team Roster</h4>
-                                <p style="margin: 2px 0 0 0; font-size: 10.5px; color: #64748b;">Designated Lead PM and Active Collaborators</p>
-                            </div>
-                        </div>
-                        @if($canManageTeam)
-                            <button 
-                                wire:click="openCollaboratorsModal" 
-                                type="button" 
-                                style="padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; color: #c3122e; background: #fdf4f4; border: 1px solid #faeaea; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.15s;"
-                                onmouseover="this.style.background='#faeaea'"
-                                onmouseout="this.style.background='#fdf4f4'"
-                            >
-                                <span>Manage Team</span>
-                                <span>&rarr;</span>
-                            </button>
                         @endif
                     </div>
 
-                    <!-- Project Manager Hero Strip -->
-                    <div style="padding: 12px 14px; border-radius: 14px; background: linear-gradient(135deg, #fff1f2 0%, #ffffff 100%); border: 1px solid #fecdd3; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                            <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%); color: #ffffff; font-weight: 900; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(195,18,46,0.25);">
-                                {{ strtoupper(substr($project->projectManager->name ?? 'U', 0, 1)) }}
-                            </div>
-                            <div style="min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                    <span style="font-size: 12.5px; font-weight: 800; color: #0f172a;">{{ $project->projectManager->name ?? 'Unassigned' }}</span>
-                                    <span style="padding: 2px 6px; border-radius: 6px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; background: #c3122e; color: #ffffff; letter-spacing: 0.05em;">
-                                        PROJECT MANAGER
-                                    </span>
-                                </div>
-                                <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 1px;">{{ $project->projectManager->email ?? 'No email' }}</span>
-                            </div>
-                        </div>
-                        <span style="font-size: 10px; font-weight: 700; color: #be123c; background: #ffffff; padding: 3px 8px; border-radius: 6px; border: 1px solid #fecdd3; font-family: monospace; flex-shrink: 0;">
-                            {{ $project->projectManager->subsidiary->code ?? 'GS' }} Corp
-                        </span>
-                    </div>
-
-                    <!-- Collaborators List -->
-                    @if($project->members->count() > 0)
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
-                            @foreach($project->members as $member)
-                                @php
-                                    $isPm = ($member->id === $project->project_manager_id);
-                                    $role = $isPm ? 'lead' : ($member->pivot->role ?? 'member');
-                                    $roleLabel = match($role) {
-                                        'sponsor' => 'Sponsor',
-                                        'owner' => 'Owner',
-                                        'steering_committee' => 'Committee',
-                                        'lead' => 'PM',
-                                        default => 'Member'
-                                    };
-                                    $roleBadgeClass = match($role) {
-                                        'sponsor' => 'background: #fffbeb; color: #92400e; border: 1px solid #fde68a;',
-                                        'owner' => 'background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;',
-                                        'steering_committee' => 'background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe;',
-                                        'lead' => 'background: #fff1f2; color: #be123c; border: 1px solid #fecdd3;',
-                                        default => 'background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;'
-                                    };
-                                @endphp
-                                <div style="padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                    <div style="display: flex; align-items: center; gap: 7px; min-width: 0;">
-                                        <div style="width: 26px; height: 26px; border-radius: 7px; background: #cbd5e1; color: #1e293b; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                            {{ strtoupper(substr($member->name, 0, 1)) }}
-                                        </div>
-                                        <div style="min-width: 0;">
-                                            <span style="font-size: 11px; font-weight: 800; color: #0f172a; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $member->name }}</span>
-                                            <span style="font-size: 9.5px; color: #64748b; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $member->email }}</span>
-                                        </div>
-                                    </div>
-                                    <span style="padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 700; flex-shrink: 0; {{ $roleBadgeClass }}">
-                                        {{ $roleLabel }}
-                                    </span>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p style="margin: 0; font-size: 11px; color: #94a3b8; font-style: italic; padding: 10px; border-radius: 10px; background: #f8fafc; text-align: center; border: 1px dashed #cbd5e1;">
-                            No additional team members assigned yet.
-                        </p>
-                    @endif
                 </div>
 
-                <!-- Section 4: Project Description (If provided) -->
+                <!-- Row 3: Project Description / Scope (if present) -->
                 @if($project->description)
-                    <div style="background: #ffffff; padding: 16px; border-radius: 18px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                        <h4 style="margin: 0 0 6px 0; font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-                            <span>Executive Scope &amp; Deliverable Goals</span>
-                        </h4>
-                        <p style="margin: 0; font-size: 11.5px; font-weight: 500; color: #334155; line-height: 1.5; background: #f8fafc; padding: 12px 14px; border-radius: 10px; border-left: 3px solid #c3122e; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                    <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Project Scope &amp; Deliverables</span>
+                        <p class="text-xs text-slate-700 leading-relaxed font-medium">
                             {{ $project->description }}
                         </p>
                     </div>
@@ -2673,30 +2722,26 @@
 
             </div>
 
-            <!-- 3. Modal Footer -->
-            <div style="padding: 14px 24px; border-top: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0;">
-                <div style="font-size: 11px; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #c3122e;"></span>
-                    <span>GS NexusPM &bull; Executive Briefing</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- 4. Footer -->
+            <div class="px-6 py-3.5 border-t border-slate-100 bg-white flex items-center justify-between gap-4 flex-shrink-0">
+                <span class="text-xs text-slate-400 font-medium">
+                    Created on {{ $project->created_at->format('M d, Y') }}
+                </span>
+                <div class="flex items-center gap-2">
                     @if($canEditProject)
                         <button 
                             wire:click="openEditProjectModal" 
                             type="button" 
-                            style="padding: 7px 14px; border-radius: 10px; font-size: 11.5px; font-weight: 800; color: #c3122e; background: #fdf4f4; border: 1px solid #faeaea; cursor: pointer; transition: all 0.15s;"
-                            onmouseover="this.style.background='#faeaea'"
-                            onmouseout="this.style.background='#fdf4f4'"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
-                            Edit Project
+                            Edit Details
                         </button>
                     @endif
                     <button 
                         wire:click="closeProjectDetailsModal" 
                         type="button" 
-                        style="padding: 7px 20px; border-radius: 10px; font-size: 11.5px; font-weight: 800; color: #ffffff; background: #c3122e; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(195, 18, 46, 0.25); transition: all 0.15s;"
-                        onmouseover="this.style.background='#a00e24'"
-                        onmouseout="this.style.background='#c3122e'"
+                        class="px-5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                        style="background: linear-gradient(135deg, #8b0d1f 0%, #6d0816 100%);"
                     >
                         Done
                     </button>

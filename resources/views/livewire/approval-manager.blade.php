@@ -532,9 +532,9 @@
                                 </div>
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">{{ $wbsItems->count() }} Items</span>
-                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">{{ $phases->count() }} Phases</span>
+                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-sky-50 text-sky-700 border border-sky-200">{{ $phases->count() }} Phases</span>
                                     @if($milestonesCount > 0)
-                                        <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">🎯 {{ $milestonesCount }} Milestones</span>
+                                        <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">🎯 {{ $milestonesCount }} Milestones</span>
                                     @endif
                                 </div>
                             </div>

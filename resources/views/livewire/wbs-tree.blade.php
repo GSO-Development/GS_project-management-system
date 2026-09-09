@@ -1,6 +1,6 @@
 <div class="w-full" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
     <!-- 🌟 UNIFIED EXECUTIVE TASKS CONTAINER (Clean, Modern, All-in-One Card) -->
-    <div class="w-full bg-white rounded-3xl shadow-2xs border border-slate-200/90 overflow-hidden">
+    <div class="w-full bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden">
         
         <!-- ── UNIFIED SIMPLE EXECUTIVE TOOLBAR ── -->
         <div class="px-5 py-3.5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-white">
@@ -333,9 +333,9 @@
                     </div>
 
                     <!-- 5. Milestone Toggle -->
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fffbeb; border-radius: 8px; border: 1px solid #fef3c7;">
-                        <input type="checkbox" wire:model="is_milestone" id="is_milestone_check" style="width: 15px; height: 15px; accent-color: #d97706; cursor: pointer;">
-                        <label for="is_milestone_check" style="font-size: 11px; font-weight: 700; color: #92400e; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #faf5ff; border-radius: 8px; border: 1px solid #f3e8ff;">
+                        <input type="checkbox" wire:model="is_milestone" id="is_milestone_check" style="width: 15px; height: 15px; accent-color: #7e22ce; cursor: pointer;">
+                        <label for="is_milestone_check" style="font-size: 11px; font-weight: 700; color: #6b21a8; cursor: pointer;">
                             Mark as Key Project Milestone 🏁
                         </label>
                     </div>

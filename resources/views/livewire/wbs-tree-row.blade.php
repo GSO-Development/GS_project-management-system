@@ -140,7 +140,7 @@
 
             {{-- Milestone Tag --}}
             @if($item->is_milestone)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs shrink-0">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-purple-50 text-purple-800 border border-purple-200/90 shadow-2xs shrink-0">
                     <span>🏁</span>
                     <span class="hidden sm:inline">Milestone</span>
                 </span>
@@ -270,7 +270,7 @@
                 class="text-xs font-bold rounded-xl pl-3 pr-7 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all shadow-2xs w-full appearance-none whitespace-nowrap
                     {{ match($currentStatus) {
                         'completed'    => 'bg-emerald-50 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/70',
-                        'in_progress'  => 'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/70',
+                        'in_progress'  => 'bg-amber-50 text-amber-800 border-amber-200/90 hover:bg-amber-100/70',
                         'under_review' => 'bg-purple-50 text-purple-700 border-purple-200/90 hover:bg-purple-100/70',
                         'blocked'      => 'bg-rose-50 text-rose-700 border-rose-200/90 hover:bg-rose-100/70',
                         'on_hold'      => 'bg-amber-50 text-amber-800 border-amber-200/90 hover:bg-amber-100/70',

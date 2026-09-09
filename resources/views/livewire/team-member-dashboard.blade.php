@@ -83,7 +83,7 @@
                 {{ now()->hour < 12 ? '🌅 Good Morning' : (now()->hour < 17 ? '☀️ Good Afternoon' : '🌙 Good Evening') }}
                 &nbsp;·&nbsp; {{ now()->format('l, F j, Y') }}
             </p>
-            <h1 style="font-size:clamp(22px,4vw,30px);font-weight:900;color:#0f172a;letter-spacing:-.02em;line-height:1.15;margin-bottom:14px;">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; margin-bottom: 14px;">
                 {{ auth()->user()->name }}
                 <span class="ud-grad" style="font-size:.65em;">👋</span>
             </h1>

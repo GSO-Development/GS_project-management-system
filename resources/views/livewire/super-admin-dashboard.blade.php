@@ -10,7 +10,7 @@
                 $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
                 $userName = auth()->user()->name ?? 'Super Admin';
             @endphp
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 {{ $greeting }}, {{ $userName }}!
             </h1>
             <p class="text-xs font-medium text-slate-400 mt-0.5">Here's a quick overview of your projects.</p>
@@ -494,12 +494,12 @@
                     <span class="font-bold text-slate-900 font-mono group-hover:text-emerald-700 transition-colors">{{ $completedTasksCount }}</span>
                 </a>
 
-                <a href="{{ route('all-tasks.index', ['status' => 'in_progress']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-blue-50/60 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-blue-700 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                <a href="{{ route('all-tasks.index', ['status' => 'in_progress']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-amber-50/60 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-amber-800 transition-colors">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                         <span>In Progress</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-blue-700 transition-colors">{{ $inProgressTasksCount }}</span>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-amber-800 transition-colors">{{ $inProgressTasksCount }}</span>
                 </a>
 
                 <a href="{{ route('all-tasks.index', ['status' => 'on_hold']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-amber-50/60 transition-colors">

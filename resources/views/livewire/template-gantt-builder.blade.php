@@ -14,7 +14,7 @@
 
             <div>
                 <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">{{ $template->name }}</h1>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">{{ $template->name }}</h1>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea]">
                         WBS Builder
                     </span>

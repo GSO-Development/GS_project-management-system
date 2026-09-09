@@ -35,7 +35,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
             <div class="flex items-center gap-2.5 flex-wrap">
-                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                     Tasks
                 </h1>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200/80">
@@ -174,7 +174,7 @@
                 <button wire:click="$set('statusFilter', 'in_progress'); $set('dueDateFilter', 'all')" type="button"
                         class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'in_progress' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
                     <span>In Progress</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $inProgressCount > 0 ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-400' }}">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $inProgressCount > 0 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-400' }}">
                         {{ $inProgressCount }}
                     </span>
                 </button>
@@ -183,7 +183,7 @@
                 <button wire:click="$set('statusFilter', 'blocked'); $set('dueDateFilter', 'all')" type="button"
                         class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'blocked' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
                     <span>Blocked</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $blockedCount > 0 ? 'bg-purple-50 text-purple-700' : 'bg-slate-100 text-slate-400' }}">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $blockedCount > 0 ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-400' }}">
                         {{ $blockedCount }}
                     </span>
                 </button>
@@ -310,13 +310,13 @@
                                 
                                 // Progress bar color
                                 if ($isOverdue || $isBlocked) {
-                                    $barColor = '#e11d48';
+                                    $barColor = '#ef4444';
                                 } elseif ($isCompleted) {
                                     $barColor = '#10b981';
-                                } elseif ($task->progress > 50) {
-                                    $barColor = '#2563eb';
-                                } else {
+                                } elseif ($isInProgress || $task->progress > 0) {
                                     $barColor = '#f59e0b';
+                                } else {
+                                    $barColor = '#94a3b8';
                                 }
                             @endphp
                             <tr class="hover:bg-slate-50/70 transition-colors group">

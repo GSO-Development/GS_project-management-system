@@ -138,7 +138,12 @@ class CalendarEvent extends Model
 
         $location = $this->location ?: ($this->meeting_link ? 'Microsoft Teams' : 'GS NexusPM');
 
-        $query = http_build_query([
+        $attendeeEmails = [];
+        if (!empty($this->attendees)) {
+            $attendeeEmails = User::whereIn('id', $this->attendees)->pluck('email')->filter()->all();
+        }
+
+        $params = [
             'path'     => '/calendar/action/compose',
             'rru'      => 'addevent',
             'subject'  => $subject,
@@ -147,7 +152,13 @@ class CalendarEvent extends Model
             'enddt'    => $endIso,
             'location' => $location,
             'allday'   => $this->is_all_day ? 'true' : 'false',
-        ]);
+        ];
+
+        if (!empty($attendeeEmails)) {
+            $params['to'] = implode(';', $attendeeEmails);
+        }
+
+        $query = http_build_query($params);
 
         return "https://outlook.office.com/calendar/0/deeplink/compose?" . $query;
     }
@@ -163,10 +174,14 @@ class CalendarEvent extends Model
         if (!$user) return false;
         if ($user->isPmoAdmin()) return true;
 
-        if ($this->project && $this->project->project_manager_id === $user->id) {
-            return true;
+        if ($this->project_id) {
+            $project = $this->project ?: Project::find($this->project_id);
+            if ($project && (int)$project->project_manager_id === (int)$user->id) {
+                return true;
+            }
+            return false;
         }
 
-        return $this->created_by === $user->id;
+        return (int)$this->created_by === (int)$user->id;
     }
 }

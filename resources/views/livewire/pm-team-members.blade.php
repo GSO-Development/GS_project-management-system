@@ -10,7 +10,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#c3122e,#8b0d1f)">
                     <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Project Participants</h1>
+                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Project Participants</h1>
             </div>
             <p class="text-xs text-slate-500 font-medium">Members across your assigned projects &amp; their task workloads</p>
         </div>
@@ -258,12 +258,14 @@
                                 @foreach($memberTasks as $task)
                                     @php
                                         $tStatus = $task->status ?? 'not_started';
-                                        $tColor  = match($tStatus) {
-                                            'completed'   => 'text-emerald-600 bg-emerald-50 border-emerald-200',
-                                            'in_progress' => 'text-blue-600 bg-blue-50 border-blue-200',
-                                            'on_hold'     => 'text-amber-600 bg-amber-50 border-amber-200',
-                                            'cancelled'   => 'text-slate-400 bg-slate-50 border-slate-200',
-                                            default       => 'text-slate-500 bg-slate-50 border-slate-200',
+                                        $tColor = match($tStatus) {
+                                            'completed'   => 'text-emerald-700 bg-emerald-50 border-emerald-200',
+                                            'in_progress' => 'text-amber-800 bg-amber-50 border-amber-200',
+                                            'blocked'     => 'text-rose-700 bg-rose-50 border-rose-200',
+                                            'delayed'     => 'text-rose-700 bg-rose-50 border-rose-200',
+                                            'on_hold'     => 'text-amber-800 bg-amber-50 border-amber-200',
+                                            'cancelled'   => 'text-rose-700 bg-rose-50 border-rose-200',
+                                            default       => 'text-slate-700 bg-slate-50 border-slate-200',
                                         };
                                     @endphp
                                     <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-100 hover:border-slate-200 transition-colors">

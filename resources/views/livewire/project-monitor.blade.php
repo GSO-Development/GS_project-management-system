@@ -584,7 +584,7 @@
                             <span>Delayed</span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2.5 h-2.5 bg-amber-500 rotate-45 shrink-0 rounded-xs"></span>
+                            <span class="w-2.5 h-2.5 bg-purple-600 rotate-45 shrink-0 rounded-xs"></span>
                             <span>Milestone</span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -889,17 +889,17 @@
                                         @php
                                             $tStatus = $task['status'];
                                             $tStatusBadge = match($tStatus) {
-                                                'completed'   => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                                'in_progress' => 'bg-rose-50 text-[#c3122e] border-rose-200',
-                                                'blocked'     => 'bg-rose-100 text-rose-900 border-rose-300 font-black',
-                                                'delayed'     => 'bg-amber-50 text-amber-800 border-amber-200',
-                                                default       => 'bg-slate-100 text-slate-600 border-slate-200',
+                                                'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                'in_progress' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                                'blocked'     => 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
+                                                'delayed'     => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                default       => 'bg-slate-50 text-slate-700 border-slate-200',
                                             };
                                             $tBarBg = match($tStatus) {
                                                 'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-600 shadow-xs shadow-emerald-950/20',
-                                                'in_progress' => 'bg-gradient-to-r from-[#c3122e] to-[#990e24] border-[#800a1c] shadow-xs shadow-rose-950/20',
+                                                'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 shadow-xs shadow-amber-950/20',
                                                 'blocked'     => 'bg-gradient-to-r from-rose-600 to-rose-700 border-rose-800 shadow-xs shadow-rose-950/20',
-                                                'delayed'     => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-600 shadow-xs shadow-amber-950/20',
+                                                'delayed'     => 'bg-gradient-to-r from-rose-500 to-rose-600 border-rose-700 shadow-xs shadow-rose-950/20',
                                                 default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-500 shadow-xs shadow-slate-950/20',
                                             };
                                         @endphp
@@ -913,7 +913,7 @@
 
                                                     <!-- Item Type Icon -->
                                                     @if($task['is_milestone'])
-                                                        <span class="w-4.5 h-4.5 rounded bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-[10px] shrink-0" title="Milestone">💎</span>
+                                                        <span class="w-4.5 h-4.5 rounded bg-purple-100 border border-purple-300 text-purple-800 flex items-center justify-center text-[10px] shrink-0" title="Milestone">💎</span>
                                                     @elseif($task['item_type'] === 'phase')
                                                         <span class="w-4.5 h-4.5 rounded bg-indigo-100 border border-indigo-300 text-indigo-800 flex items-center justify-center text-[10px] shrink-0" title="Phase">📦</span>
                                                     @else
@@ -967,8 +967,8 @@
                                                     @if($task['is_milestone'])
                                                         <!-- Milestone Diamond -->
                                                         <div class="absolute z-10 flex items-center gap-1.5 pointer-events-none" style="left: {{ $task['left_pct'] }}%;">
-                                                            <div class="w-4 h-4 bg-gradient-to-br from-amber-400 to-amber-600 border-2 border-white rounded-xs rotate-45 shadow-xs -ml-2 shrink-0"></div>
-                                                            <span class="text-[9.5px] font-mono font-bold text-amber-900 bg-amber-50/95 px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs whitespace-nowrap ml-1.5">
+                                                            <div class="w-4 h-4 bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700 border-2 border-white rounded-xs rotate-45 shadow-md -ml-2 shrink-0 ring-2 ring-purple-300"></div>
+                                                            <span class="text-[9.5px] font-mono font-bold text-purple-900 bg-purple-50/95 px-2 py-0.5 rounded-md border border-purple-200 shadow-2xs whitespace-nowrap ml-1.5">
                                                                 {{ $task['title'] }} ({{ $task['end_date']->format('M d') }})
                                                             </span>
                                                         </div>

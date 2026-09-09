@@ -42,7 +42,7 @@
          ═══════════════════════════════════════════════════════════════ -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 @if($viewMode === 'gantt')
                     Portfolio Gantt Radar
                 @elseif($viewMode === 'stuck')
@@ -135,10 +135,10 @@
             <button 
                 type="button" 
                 wire:click="$set('statusFilter', 'in_progress'); $set('healthFilter', 'all')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'in_progress' ? 'border-blue-500 ring-2 ring-blue-500/15 shadow-xs bg-blue-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'in_progress' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs bg-amber-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
             >
                 <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <div class="min-w-0">
@@ -370,7 +370,7 @@
                                         $hlthConfig = match($project->health->value) {
                                             'on_track' => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500'],
                                             'at_risk' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200/80', 'dot' => 'bg-amber-500'],
-                                            'delayed' => ['bg' => 'bg-orange-50 text-orange-700 border-orange-200/80', 'dot' => 'bg-orange-500'],
+                                            'delayed' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/80', 'dot' => 'bg-rose-500'],
                                             'critical' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/80', 'dot' => 'bg-rose-500 animate-pulse'],
                                             default => ['bg' => 'bg-slate-100 text-slate-600 border-slate-200', 'dot' => 'bg-slate-400'],
                                         };
@@ -552,7 +552,7 @@
                             <span>Delayed</span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2.5 h-2.5 bg-amber-500 rotate-45 shrink-0 rounded-xs"></span>
+                            <span class="w-2.5 h-2.5 bg-purple-600 rotate-45 shrink-0 rounded-xs"></span>
                             <span>Milestone</span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -656,15 +656,15 @@
                                     $rawHealth = $proj->health->value ?? 'good';
                                     
                                     $hBadge = match($rawHealth) {
-                                        'critical'  => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
-                                        'at_risk'   => 'bg-amber-50 text-amber-800 border-amber-200/80',
-                                        default     => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                                        'critical', 'delayed' => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
+                                        'at_risk'             => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                                        default               => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
                                     };
                                     
                                     $barBgColor = match($rawHealth) {
-                                        'critical'  => 'bg-gradient-to-r from-[#c3122e] via-[#b01029] to-[#940c21] border-[#800a1c] shadow-xs shadow-rose-950/20',
-                                        'at_risk'   => 'bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 border-amber-700 shadow-xs shadow-amber-950/20',
-                                        default     => 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
+                                        'critical', 'delayed' => 'bg-gradient-to-r from-[#c3122e] via-[#b01029] to-[#940c21] border-[#800a1c] shadow-xs shadow-rose-950/20',
+                                        'at_risk'             => 'bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 border-amber-700 shadow-xs shadow-amber-950/20',
+                                        default               => 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
                                     };
 
                                     $barWidthPct = max(3.5, $gp['width_pct']);
@@ -800,17 +800,17 @@
                                         @php
                                             $tStatus = $task['status'];
                                             $tStatusBadge = match($tStatus) {
-                                                'completed'   => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                                'in_progress' => 'bg-rose-50 text-[#c3122e] border-rose-200',
-                                                'blocked'     => 'bg-rose-100 text-rose-900 border-rose-300 font-black',
-                                                'delayed'     => 'bg-amber-50 text-amber-800 border-amber-200',
-                                                default       => 'bg-slate-100 text-slate-600 border-slate-200',
+                                                'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                'in_progress' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                                'blocked'     => 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
+                                                'delayed'     => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                default       => 'bg-slate-50 text-slate-700 border-slate-200',
                                             };
                                             $tBarBg = match($tStatus) {
                                                 'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-600 shadow-xs shadow-emerald-950/20',
-                                                'in_progress' => 'bg-gradient-to-r from-[#c3122e] to-[#990e24] border-[#800a1c] shadow-xs shadow-rose-950/20',
+                                                'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 shadow-xs shadow-amber-950/20',
                                                 'blocked'     => 'bg-gradient-to-r from-rose-600 to-rose-700 border-rose-800 shadow-xs shadow-rose-950/20',
-                                                'delayed'     => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-600 shadow-xs shadow-amber-950/20',
+                                                'delayed'     => 'bg-gradient-to-r from-rose-500 to-rose-600 border-rose-700 shadow-xs shadow-rose-950/20',
                                                 default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-500 shadow-xs shadow-slate-950/20',
                                             };
                                         @endphp
@@ -819,7 +819,7 @@
                                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                                     <span class="text-slate-300 font-mono text-xs select-none">└─</span>
                                                     @if($task['is_milestone'])
-                                                        <span class="w-4.5 h-4.5 rounded bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-[10px] shrink-0">💎</span>
+                                                        <span class="w-4.5 h-4.5 rounded bg-purple-100 border border-purple-300 text-purple-800 flex items-center justify-center text-[10px] shrink-0">💎</span>
                                                     @elseif($task['item_type'] === 'phase')
                                                         <span class="w-4.5 h-4.5 rounded bg-indigo-100 border border-indigo-300 text-indigo-800 flex items-center justify-center text-[10px] shrink-0">📦</span>
                                                     @else
@@ -1122,7 +1122,12 @@
                                     {{ $selectedDrawerProject->code }}
                                 </span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border 
-                                    {{ $selectedDrawerProject->status->value === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($selectedDrawerProject->status->value === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200') }}">
+                                    {{ match($selectedDrawerProject->status->value) {
+                                        'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'in_progress' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                        'delayed'     => 'bg-rose-50 text-rose-700 border-rose-200',
+                                        default       => 'bg-slate-100 text-slate-700 border-slate-200',
+                                    } }}">
                                     {{ $selectedDrawerProject->status->label() }}
                                 </span>
                                 <span class="text-xs text-slate-400">•</span>
@@ -1257,11 +1262,11 @@
                                 $isExpanded = $selectedInspectorTaskId === $item->id;
                                 
                                 $statusBadge = match($itemStatus) {
-                                    'completed'   => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                    'in_progress' => 'bg-rose-50 text-[#c3122e] border-rose-200',
-                                    'blocked'     => 'bg-rose-100 text-rose-900 border-rose-300 font-bold',
+                                    'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                    'in_progress' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                    'blocked'     => 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
                                     'on_hold'     => 'bg-amber-50 text-amber-800 border-amber-200',
-                                    default       => 'bg-slate-100 text-slate-600 border-slate-200',
+                                    default       => 'bg-slate-50 text-slate-700 border-slate-200',
                                 };
                             @endphp
 
@@ -1282,7 +1287,7 @@
                                         <!-- WBS Code & Type Icon -->
                                         <div class="flex items-center gap-1.5 flex-shrink-0">
                                             @if($item->is_milestone)
-                                                <span class="w-5 h-5 rounded-md bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-[10px]" title="Milestone">💎</span>
+                                                <span class="w-5 h-5 rounded-md bg-purple-100 border border-purple-300 text-purple-800 flex items-center justify-center text-[10px]" title="Milestone">💎</span>
                                             @elseif($itemType === 'phase')
                                                 <span class="w-5 h-5 rounded-md bg-indigo-100 border border-indigo-300 text-indigo-800 flex items-center justify-center text-[10px]" title="Phase">📦</span>
                                             @else

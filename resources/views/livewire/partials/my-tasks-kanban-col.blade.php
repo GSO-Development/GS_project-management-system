@@ -79,7 +79,7 @@
                                     {{ $t->wbs_code ?? 'TASK' }}
                                 </span>
                                 @if($t->is_milestone)
-                                    <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;">
+                                    <span style="background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;">
                                         🏁 Milestone
                                     </span>
                                 @endif

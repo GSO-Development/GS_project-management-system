@@ -52,10 +52,10 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
     </style>
 
     <!-- ===== GANTT HERO CARD CONTAINER ===== -->
-    <div class="bg-white border border-slate-200/80 shadow-2xs rounded-3xl overflow-hidden mb-5">
+    <div class="bg-white border border-slate-200/80 shadow-2xs rounded-2xl overflow-hidden">
         
         <!-- ── Clean Minimalist Toolbar ── -->
-        <div class="p-4 sm:px-5 bg-white border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-3.5">
+        <div class="px-4 py-3 sm:px-5 sm:py-3.5 bg-white border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
             
             <!-- Left: Title, Code, Period Navigator & Zoom Scale -->
             <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
@@ -120,9 +120,10 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                 <!-- Status Legend Dots -->
                 <div class="flex items-center gap-3 text-xs font-semibold text-slate-600 overflow-x-auto scrollbar-none py-0.5 shrink-0">
                     <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span> Done</span>
-                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shadow-xs"></span> In Progress</span>
-                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-xs"></span> Planned</span>
-                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-amber-500 rotate-45 rounded-xs"></span> Milestone</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></span> In Progress</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs"></span> Delayed</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-xs"></span> Planned</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-purple-600 rotate-45 rounded-xs shadow-xs"></span> Milestone</span>
                 </div>
 
                 <div class="h-3.5 w-px bg-slate-200 hidden sm:block"></div>
@@ -249,8 +250,9 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                             $taskStyle = match($item->status->value) {
                                 'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-700 text-white shadow-xs shadow-emerald-950/20',
-                                'in_progress' => 'bg-gradient-to-r from-[#c3122e] to-[#990e24] border-[#800a1c] text-white shadow-xs shadow-rose-950/20',
-                                default       => 'bg-gradient-to-r from-indigo-500 to-indigo-600 border-indigo-700 text-white shadow-xs shadow-indigo-950/20',
+                                'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 text-white shadow-xs shadow-amber-950/20',
+                                'blocked'     => 'bg-gradient-to-r from-rose-500 to-rose-600 border-rose-700 text-white shadow-xs shadow-rose-950/20',
+                                default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-600 text-white shadow-xs shadow-slate-950/20',
                             };
 
                             /* ── Detect hour/time-slot items ── */
@@ -368,15 +370,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                          @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                          <div class="relative">
-                                            <div class="w-5 h-5 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-amber-200"></div>
+                                            <div class="w-5 h-5 bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-700 rotate-45 border-2 border-white shadow-md flex-shrink-0 ring-2 ring-purple-300"></div>
                                             @if($risksCount > 0)
-                                                <span class="absolute -top-2 -right-2 text-[10px] bg-amber-400 text-slate-950 rounded-full w-4 h-4 flex items-center justify-center font-black ring-1 ring-white shadow-xs">⚠️</span>
+                                                <span class="absolute -top-2 -right-2 text-[10px] bg-rose-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-black ring-1 ring-white shadow-xs">⚠️</span>
                                             @endif
                                          </div>
-                                        <span class="text-[10.5px] font-bold text-amber-900 whitespace-nowrap bg-amber-50/95 px-2.5 py-0.5 rounded-lg shadow-2xs border border-amber-200 flex items-center gap-1.5">
+                                        <span class="text-[10.5px] font-bold text-purple-900 whitespace-nowrap bg-purple-50/95 px-2.5 py-0.5 rounded-lg shadow-2xs border border-purple-200 flex items-center gap-1.5">
                                             <span>◆ {{ $item->title }}</span>
                                             @if($risksCount > 0)
-                                                <span class="text-amber-700 font-black text-[9px] bg-amber-100 px-1 py-0.2 rounded border border-amber-200">⚠️ {{ $risksCount }}</span>
+                                                <span class="text-rose-700 font-black text-[9px] bg-rose-100 px-1 py-0.2 rounded border border-rose-200">⚠️ {{ $risksCount }}</span>
                                             @endif
                                         </span>
                                     </div>
@@ -391,7 +393,8 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                         $hourBg = match($item->status->value) {
                                             'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-700 shadow-xs shadow-emerald-950/20',
                                             'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 shadow-xs shadow-amber-950/20',
-                                            default       => 'bg-gradient-to-r from-violet-600 to-purple-600 border-purple-700 shadow-xs shadow-purple-950/20',
+                                            'blocked'     => 'bg-gradient-to-r from-rose-500 to-rose-600 border-rose-700 shadow-xs shadow-rose-950/20',
+                                            default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-600 shadow-xs shadow-slate-950/20',
                                         };
                                         $slotWidth = max(24, $barWidth - 2);
                                     @endphp

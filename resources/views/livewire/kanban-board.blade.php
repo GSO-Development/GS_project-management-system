@@ -3,12 +3,13 @@
         @foreach($columns as $statusKey => $col)
             @php
                 $statusDotColor = match($statusKey) {
-                    'not_started' => 'bg-slate-400',
-                    'in_progress' => 'bg-blue-500',
-                    'under_review' => 'bg-amber-500',
-                    'completed' => 'bg-emerald-500',
-                    'blocked' => 'bg-rose-500',
-                    default => 'bg-slate-400',
+                    'not_started', 'backlog' => 'bg-slate-400',
+                    'in_progress'            => 'bg-amber-500',
+                    'under_review'           => 'bg-purple-500',
+                    'completed'              => 'bg-emerald-500',
+                    'blocked'                => 'bg-rose-500',
+                    'on_hold'                => 'bg-amber-500',
+                    default                  => 'bg-slate-400',
                 };
             @endphp
             <div class="w-80 flex-shrink-0 bg-slate-50/70 border border-slate-200/80 rounded-2xl p-3.5 space-y-3" data-status="{{ $statusKey }}">
@@ -63,8 +64,17 @@
                                         <span class="text-slate-400 font-semibold">Progress</span>
                                         <span class="font-bold text-slate-800">{{ $item->progress }}%</span>
                                     </div>
+                                    @php
+                                        $itemIsOverdue = $item->end_date && $item->end_date->isPast() && $item->status?->value !== 'completed';
+                                        $progressBarClass = match(true) {
+                                            $item->progress == 100 || $item->status?->value === 'completed' => 'bg-emerald-500',
+                                            $item->status?->value === 'blocked' || $itemIsOverdue => 'bg-rose-500',
+                                            $item->progress > 0 || $item->status?->value === 'in_progress' => 'bg-amber-500',
+                                            default => 'bg-slate-300',
+                                        };
+                                    @endphp
                                     <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full transition-all {{ $item->progress == 100 ? 'bg-emerald-500' : 'bg-[#c3122e]' }}" style="width: {{ $item->progress }}%"></div>
+                                        <div class="h-full rounded-full transition-all {{ $progressBarClass }}" style="width: {{ $item->progress }}%"></div>
                                     </div>
                                 </div>
 

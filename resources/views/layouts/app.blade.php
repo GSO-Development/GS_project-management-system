@@ -596,6 +596,58 @@
                         <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         <span class="text-slate-900 font-black">Collaborator Projects</span>
+                    @elseif(request()->routeIs('projects.show'))
+                        <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Project Workspace</span>
+                    @elseif(request()->routeIs('subsidiaries*'))
+                        <span class="font-bold text-[#c3122e]">Organisation</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Subsidiary Companies</span>
+                    @elseif(request()->routeIs('documents*'))
+                        <span class="font-bold text-[#c3122e]">Repository</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Document Management</span>
+                    @elseif(request()->routeIs('notifications*'))
+                        <span class="font-bold text-[#c3122e]">Workspace</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Notification Center</span>
+                    @elseif(request()->routeIs('reports*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Reports &amp; Analytics</span>
+                    @elseif(request()->routeIs('all-tasks*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">All Tasks Directory</span>
+                    @elseif(request()->routeIs('templates*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Project Templates</span>
+                    @elseif(request()->routeIs('team-monitor*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Team Workload Radar</span>
+                    @elseif(request()->routeIs('team-members*'))
+                        <span class="font-bold text-[#c3122e]">Governance</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Project Participants</span>
+                    @elseif(request()->routeIs('users*'))
+                        <span class="font-bold text-[#c3122e]">System</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">User Directory</span>
+                    @elseif(request()->routeIs('roles-permissions*'))
+                        <span class="font-bold text-[#c3122e]">System</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Roles &amp; Permissions</span>
+                    @elseif(request()->routeIs('audit-logs*'))
+                        <span class="font-bold text-[#c3122e]">System</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">System Audit Logs</span>
+                    @elseif(request()->routeIs('settings*'))
+                        <span class="font-bold text-[#c3122e]">System</span>
+                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-slate-900 font-black">Settings &amp; Configuration</span>
                     @elseif(request()->routeIs('profile*'))
                         <span class="font-bold text-[#c3122e]">Account</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

@@ -32,12 +32,12 @@ enum WbsStatus: string
         return match($this) {
             self::BACKLOG => 'slate',
             self::NOT_STARTED => 'slate',
-            self::IN_PROGRESS => 'indigo',
+            self::IN_PROGRESS => 'amber',
             self::BLOCKED => 'rose',
-            self::UNDER_REVIEW => 'cyan',
+            self::UNDER_REVIEW => 'purple',
             self::COMPLETED => 'emerald',
             self::ON_HOLD => 'amber',
-            self::CANCELLED => 'red',
+            self::CANCELLED => 'rose',
         };
     }
 
@@ -46,12 +46,24 @@ enum WbsStatus: string
         return match($this) {
             self::BACKLOG => 'bg-slate-50 text-slate-700 border-slate-200',
             self::NOT_STARTED => 'bg-slate-50 text-slate-700 border-slate-200',
-            self::IN_PROGRESS => 'bg-blue-50 text-blue-700 border-blue-200',
+            self::IN_PROGRESS => 'bg-amber-50 text-amber-800 border-amber-200',
             self::BLOCKED => 'bg-rose-50 text-rose-700 border-rose-200',
             self::UNDER_REVIEW => 'bg-purple-50 text-purple-700 border-purple-200',
             self::COMPLETED => 'bg-emerald-50 text-emerald-700 border-emerald-200',
             self::ON_HOLD => 'bg-amber-50 text-amber-800 border-amber-200',
-            self::CANCELLED => 'bg-red-50 text-red-700 border-red-200',
+            self::CANCELLED => 'bg-rose-50 text-rose-700 border-rose-200',
+        };
+    }
+
+    public function badgeDotClass(): string
+    {
+        return match($this) {
+            self::COMPLETED => 'bg-emerald-500',
+            self::IN_PROGRESS => 'bg-amber-500',
+            self::BLOCKED, self::CANCELLED => 'bg-rose-500',
+            self::ON_HOLD => 'bg-amber-500',
+            self::UNDER_REVIEW => 'bg-purple-500',
+            self::BACKLOG, self::NOT_STARTED => 'bg-slate-400',
         };
     }
 }

@@ -25,7 +25,7 @@
         @php
             $metricTiles = [
                 ['label' => 'Total Projects', 'count' => $totalCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', 'iconBg' => 'bg-slate-100 text-slate-700', 'border' => 'hover:border-slate-400', 'active' => $statusFilter === 'all', 'action' => '$set("statusFilter", "all")'],
-                ['label' => 'In Progress', 'count' => $activeCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', 'iconBg' => 'bg-blue-50 text-blue-600', 'border' => 'hover:border-blue-400', 'active' => $statusFilter === 'in_progress', 'action' => '$set("statusFilter", "in_progress")'],
+                ['label' => 'In Progress', 'count' => $activeCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', 'iconBg' => 'bg-amber-50 text-amber-600', 'border' => 'hover:border-amber-400', 'active' => $statusFilter === 'in_progress', 'action' => '$set("statusFilter", "in_progress")'],
                 ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => false, 'action' => ''],
                 ['label' => 'Completed', 'count' => $completedCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', 'iconBg' => 'bg-emerald-50 text-emerald-600', 'border' => 'hover:border-emerald-400', 'active' => $statusFilter === 'completed', 'action' => '$set("statusFilter", "completed")'],
             ];
@@ -182,11 +182,12 @@
                             $userRole  = $userRoles[$p->id] ?? 'member';
 
                             $statusConfig = match($p->status->value) {
-                                'in_progress' => ['dot' => 'bg-blue-500',    'text' => 'text-blue-700',    'bg' => 'bg-blue-50',    'border' => 'border-blue-200',    'label' => 'In Progress'],
+                                'in_progress' => ['dot' => 'bg-amber-500',   'text' => 'text-amber-800',   'bg' => 'bg-amber-50',   'border' => 'border-amber-200',   'label' => 'In Progress'],
                                 'completed'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'label' => 'Completed'],
-                                'on_hold'     => ['dot' => 'bg-amber-500',   'text' => 'text-amber-700',   'bg' => 'bg-amber-50',   'border' => 'border-amber-200',   'label' => 'On Hold'],
-                                'cancelled'   => ['dot' => 'bg-slate-400',   'text' => 'text-slate-500',   'bg' => 'bg-slate-100',  'border' => 'border-slate-200',   'label' => 'Cancelled'],
-                                default       => ['dot' => 'bg-indigo-500',  'text' => 'text-indigo-700',  'bg' => 'bg-indigo-50',  'border' => 'border-indigo-200',  'label' => 'Planning'],
+                                'delayed'     => ['dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50',    'border' => 'border-rose-200',    'label' => 'Delayed'],
+                                'on_hold'     => ['dot' => 'bg-amber-500',   'text' => 'text-amber-800',   'bg' => 'bg-amber-50',   'border' => 'border-amber-200',   'label' => 'On Hold'],
+                                'cancelled'   => ['dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50',    'border' => 'border-rose-200',    'label' => 'Cancelled'],
+                                default       => ['dot' => 'bg-slate-400',   'text' => 'text-slate-700',   'bg' => 'bg-slate-50',   'border' => 'border-slate-200',   'label' => $p->status->label()],
                             };
 
                             $roleConfig = match($userRole) {
@@ -429,11 +430,11 @@
                                     <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
                                         {{ $wbsItems->count() }} Total Items
                                     </span>
-                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">
+                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-sky-50 text-sky-700 border border-sky-200">
                                         {{ $phases->count() }} Phases
                                     </span>
                                     @if($milestonesCount > 0)
-                                        <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">
                                             🎯 {{ $milestonesCount }} Milestones
                                         </span>
                                     @endif
@@ -459,7 +460,7 @@
                                                     <span class="text-slate-400 font-mono">{{ $item->duration }}d</span>
                                                 @endif
                                                 @if($item->is_milestone)
-                                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-100 text-emerald-800">Milestone</span>
+                                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-purple-50 text-purple-800 border border-purple-200">Milestone</span>
                                                 @endif
                                             </div>
                                         </div>
