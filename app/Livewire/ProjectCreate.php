@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\Priority;
-use App\Enums\ProjectHealth;
 use App\Enums\ProjectStatus;
 use App\Mail\ProjectAssignedMail;
 use App\Models\ActivityLog;
@@ -447,7 +446,6 @@ class ProjectCreate extends Component
             'estimated_budget' => 0,
             'wbs_breakdown_type' => $this->creation_option,
             'template_id' => ($this->creation_option === 'template') ? $this->selected_template_id : null,
-            'health' => ProjectHealth::ON_TRACK,
         ]);
 
         // Sync all Governance roles (Sponsors, Owners, Steering Committee, Project Leader, Core Team)

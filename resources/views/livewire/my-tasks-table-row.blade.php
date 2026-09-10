@@ -1,7 +1,6 @@
 @props(['task', 'showProject' => false])
 
 @php
-    $health = $task->traffic_light;
     $isDone = $task->status === \App\Enums\WbsStatus::COMPLETED;
     $isOverdue = $task->isOverdue();
     $subtasksCount = $task->children ? $task->children->count() : 0;

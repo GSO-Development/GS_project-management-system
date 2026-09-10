@@ -237,41 +237,34 @@
                         @php
                             $pct = (int) ($p->overall_progress ?? 0);
                             $pStatus = $p->status instanceof \BackedEnum ? $p->status->value : (string) ($p->status ?? 'in_progress');
-                            $pHealth = $p->health instanceof \BackedEnum ? $p->health->value : (string) ($p->health ?? 'on_track');
 
-                            $statLabel = 'In Progress';
-                            $statClass = 'bg-amber-50 text-amber-800 border-amber-200/70';
-                            $barColor  = 'bg-amber-500';
-
-                            if ($pStatus === 'completed') {
-                                $statLabel = 'Completed';
-                                $statClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
-                                $barColor  = 'bg-emerald-500';
-                            } elseif ($pStatus === 'delayed' || $pHealth === 'delayed' || $pHealth === 'critical') {
-                                $statLabel = 'Delayed';
-                                $statClass = 'bg-rose-50 text-rose-700 border-rose-200/70';
-                                $barColor  = 'bg-rose-500';
-                            } elseif ($pStatus === 'in_progress') {
-                                $statLabel = 'In Progress';
-                                $statClass = 'bg-amber-50 text-amber-800 border-amber-200/70';
-                                $barColor  = 'bg-amber-500';
-                            } elseif ($pHealth === 'on_track') {
-                                $statLabel = 'On Track';
-                                $statClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
-                                $barColor  = 'bg-emerald-500';
-                            } elseif ($pStatus === 'planning') {
-                                $statLabel = 'Planning';
-                                $statClass = 'bg-blue-50 text-blue-700 border-blue-200/70';
-                                $barColor  = 'bg-blue-500';
-                            } elseif ($pStatus === 'on_hold') {
-                                $statLabel = 'On Hold';
-                                $statClass = 'bg-amber-50 text-amber-800 border-amber-200/70';
-                                $barColor  = 'bg-amber-500';
-                            } elseif ($pStatus === 'draft' || $pStatus === 'not_started') {
-                                $statLabel = 'Not Started';
-                                $statClass = 'bg-slate-100 text-slate-600 border-slate-200';
-                                $barColor  = 'bg-slate-300';
-                            }
+                            $statLabel = match($pStatus) {
+                                'completed'              => 'Completed',
+                                'delayed'                => 'Delayed',
+                                'at_risk'                => 'At Risk',
+                                'planning'               => 'Planning',
+                                'on_hold'                => 'On Hold',
+                                'draft', 'not_started'   => 'Not Started',
+                                default                  => 'In Progress',
+                            };
+                            $statClass = match($pStatus) {
+                                'completed'              => 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
+                                'delayed'                => 'bg-rose-50 text-rose-700 border-rose-200/70',
+                                'at_risk'                => 'bg-amber-50 text-amber-800 border-amber-200/70',
+                                'planning'               => 'bg-sky-50 text-sky-700 border-sky-200/70',
+                                'on_hold'                => 'bg-amber-50 text-amber-800 border-amber-200/70',
+                                'draft', 'not_started'   => 'bg-slate-100 text-slate-600 border-slate-200',
+                                default                  => 'bg-blue-50 text-blue-700 border-blue-200/70',
+                            };
+                            $barColor = match($pStatus) {
+                                'completed'              => 'bg-emerald-500',
+                                'delayed'                => 'bg-rose-500',
+                                'at_risk'                => 'bg-amber-500',
+                                'planning'               => 'bg-sky-500',
+                                'on_hold'                => 'bg-amber-500',
+                                'draft', 'not_started'   => 'bg-slate-300',
+                                default                  => 'bg-blue-500',
+                            };
                         @endphp
                         <div class="flex items-center justify-between gap-3 group py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 rounded-xl px-2 transition-colors">
                             {{-- Project Info --}}
@@ -552,134 +545,114 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
-    {{-- 4. BOTTOM SECTION (TASK PROGRESS CHART & QUICK ACCESS)     --}}
+    {{-- 4. BOTTOM SECTION (PROJECT RISKS & QUICK ACCESS)           --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
 
         {{-- ────────────────────────────────────────────────────────── --}}
-        {{-- CARD 1: TASK PROGRESS 7-DAY BAR CHART (lg:col-span-7)      --}}
+        {{-- CARD 1: PROJECT RISKS (lg:col-span-7)                      --}}
         {{-- ────────────────────────────────────────────────────────── --}}
         <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
-                {{-- Header & Real Metric Badges --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Task Progress</h2>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                {{ $totalProjectTasksCount }} Total Tasks
+                {{-- Clean Card Header --}}
+                <div class="flex items-center justify-between mb-4 pb-1 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Project Risks</h2>
+                        @if($openRisks->count() > 0)
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                                {{ $openRisks->count() }} {{ Str::plural('Risk', $openRisks->count()) }}
                             </span>
-                        </div>
-                        <span class="text-[11px] font-medium text-slate-400">Current Week Performance & Status Breakdown</span>
+                        @endif
                     </div>
-
-                    {{-- Accurate Status Badges --}}
-                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 font-bold" title="Completed Tasks">
-                            <span class="w-2 h-2 rounded-full bg-[#14b8a6]"></span>
-                            <span>Completed: {{ $completedTasksCount }}</span>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200/60 font-bold" title="In Progress Tasks">
-                            <span class="w-2 h-2 rounded-full bg-[#0284c7]"></span>
-                            <span>In Progress: {{ $inProgressTasksCount }}</span>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 font-bold" title="Pending Tasks">
-                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                            <span>Pending: {{ $pendingTasksCount }}</span>
-                        </span>
-                    </div>
+                    <a href="{{ route('projects.index') }}" wire:navigate.hover class="text-xs font-semibold text-amber-600/90 hover:text-amber-700 flex items-center gap-1 transition-colors no-underline">
+                        <span>View all</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                 </div>
 
-                {{-- Segmented Visual Progress Track across all tasks --}}
-                <div class="mb-5">
-                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1.5">
-                        <span>Overall Project Task Completion</span>
-                        <span class="text-slate-900 font-extrabold">{{ $completedTasksPct }}% completed</span>
-                    </div>
-                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex items-center p-0.5 gap-0.5">
-                        @if($completedTasksCount > 0)
-                            <div class="h-full bg-[#14b8a6] rounded-full transition-all duration-500" style="width: {{ max(2, $completedTasksPct) }}%" title="Completed: {{ $completedTasksCount }} ({{ $completedTasksPct }}%)"></div>
-                        @endif
-                        @if($inProgressTasksCount > 0)
-                            <div class="h-full bg-[#0284c7] rounded-full transition-all duration-500" style="width: {{ max(2, $inProgressTasksPct) }}%" title="In Progress: {{ $inProgressTasksCount }} ({{ $inProgressTasksPct }}%)"></div>
-                        @endif
-                        <div class="h-full bg-slate-300 rounded-full transition-all duration-500 flex-1" title="Pending: {{ $pendingTasksCount }} ({{ $pendingTasksPct }}%)"></div>
-                    </div>
-                </div>
+                {{-- Clean Risks List --}}
+                <div class="space-y-3">
+                    @forelse($openRisks->sortByDesc('risk_score')->take(4) as $risk)
+                        @php
+                            $score = (int) $risk->risk_score;
+                            $level = $score >= 9 ? 'Critical' : ($score >= 6 ? 'High' : ($score >= 3 ? 'Medium' : 'Low'));
+                            $dotColor = $score >= 9 ? 'bg-rose-500' : ($score >= 6 ? 'bg-orange-500' : ($score >= 3 ? 'bg-amber-500' : 'bg-emerald-500'));
+                            $levelBadge = match($level) {
+                                'Critical' => 'bg-rose-50 text-rose-700 border-rose-200/80',
+                                'High'     => 'bg-orange-50 text-orange-700 border-orange-200/80',
+                                'Medium'   => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                                'Low'      => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+                            };
+                        @endphp
+                        <div class="p-3.5 rounded-xl bg-slate-50/60 border border-slate-100 hover:border-slate-200 hover:bg-white transition-all">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex items-start gap-2.5 min-w-0">
+                                    <span class="w-2 h-2 rounded-full {{ $dotColor }} mt-1.5 shrink-0"></span>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+                                                {{ $risk->title }}
+                                            </h4>
+                                            @if($risk->category)
+                                                <span class="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 border border-slate-200/60">
+                                                    {{ $risk->category }}
+                                                </span>
+                                            @endif
+                                        </div>
 
-                {{-- 7-Day Performance Bar Chart Area (Real System Data) --}}
-                @php
-                    $chartDays = $chartPoints;
-                    $maxRecorded = 5;
-
-                    foreach ($chartDays as $pt) {
-                        $comp = $pt['completed'] ?? 0;
-                        $inProg = $pt['in_progress'] ?? 0;
-                        $pend = $pt['pending'] ?? 0;
-                        $maxRecorded = max($maxRecorded, $comp, $inProg, $pend);
-                    }
-
-                    $yMaxVal = max(5, (int)(ceil($maxRecorded / 5) * 5));
-                @endphp
-
-                <div class="relative pt-2">
-                    {{-- Y-Axis Grid Lines & Markers --}}
-                    <div class="absolute inset-0 flex flex-col justify-between pointer-events-none text-[10px] font-semibold text-slate-400 pb-6 pr-2">
-                        <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">{{ $yMaxVal }}</span>
-                            <div class="flex-1 border-b border-slate-100"></div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">{{ (int) round($yMaxVal * 0.66) }}</span>
-                            <div class="flex-1 border-b border-slate-100"></div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">{{ (int) round($yMaxVal * 0.33) }}</span>
-                            <div class="flex-1 border-b border-slate-100"></div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="w-4 text-right">0</span>
-                            <div class="flex-1 border-b border-slate-200"></div>
-                        </div>
-                    </div>
-
-                    {{-- Bars Grouped Columns --}}
-                    <div class="h-44 pl-8 pr-2 flex items-end justify-between gap-2 sm:gap-4 relative z-10 pb-6">
-                        @foreach($chartDays as $dayBar)
-                            @php
-                                $compVal = $dayBar['completed'] ?? 0;
-                                $inProgVal = $dayBar['in_progress'] ?? 0;
-                                $pendVal = $dayBar['pending'] ?? 0;
-                                $isFuture = $dayBar['isFuture'] ?? false;
-
-                                $compHeight = $compVal > 0 ? max(6, min(100, round(($compVal / $yMaxVal) * 100))) : 0;
-                                $inProgHeight = $inProgVal > 0 ? max(6, min(100, round(($inProgVal / $yMaxVal) * 100))) : 0;
-                                $pendHeight = $pendVal > 0 ? max(6, min(100, round(($pendVal / $yMaxVal) * 100))) : 0;
-                            @endphp
-                            <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer relative"
-                                 title="{{ $dayBar['label'] }} ({{ $dayBar['sub'] }}): Completed: {{ $compVal }} | In Progress: {{ $inProgVal }} | {{ $isFuture ? 'Scheduled: ' : 'Pending/Due: ' }}{{ $pendVal }}">
-                                {{-- 3 Bars Side-by-Side --}}
-                                <div class="flex items-end gap-1 w-full justify-center h-full">
-                                    {{-- Completed (Teal) --}}
-                                    <div class="w-2.5 sm:w-3.5 bg-[#14b8a6] rounded-t-sm transition-all duration-300 group-hover:brightness-110" 
-                                         style="height: {{ $compHeight }}%;"></div>
-                                    
-                                    {{-- In Progress (Sky Blue) --}}
-                                    <div class="w-2.5 sm:w-3.5 bg-[#0284c7] rounded-t-sm transition-all duration-300 group-hover:brightness-110" 
-                                         style="height: {{ $inProgHeight }}%;"></div>
-                                    
-                                    {{-- Pending / Scheduled (Slate) --}}
-                                    <div class="w-2.5 sm:w-3.5 {{ $isFuture ? 'bg-slate-200 border border-dashed border-slate-300' : 'bg-slate-300' }} rounded-t-sm transition-all duration-300 group-hover:brightness-95" 
-                                         style="height: {{ $pendHeight }}%;"></div>
+                                        <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                                            @if($risk->project)
+                                                <a href="{{ route('projects.show', $risk->project_id) }}" wire:navigate.hover class="font-semibold text-slate-700 hover:text-[#c3122e] transition-colors">
+                                                    {{ $risk->project->name }}
+                                                </a>
+                                            @endif
+                                            @if($risk->wbsItem)
+                                                <span class="text-slate-300">•</span>
+                                                <span>Task: <strong class="font-medium text-slate-600">{{ $risk->wbsItem->title }}</strong></span>
+                                            @endif
+                                            @if($risk->owner)
+                                                <span class="text-slate-300">•</span>
+                                                <span>Owner: <strong class="font-medium text-slate-600">{{ $risk->owner->name }}</strong></span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                                {{-- Day Label below baseline --}}
-                                <span class="text-[10.5px] font-semibold {{ $dayBar['isToday'] ? 'text-[#c3122e] font-black' : 'text-slate-500' }} mt-2 whitespace-nowrap block text-center">
-                                    {{ $dayBar['label'] }}
-                                </span>
+
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border {{ $levelBadge }}">
+                                        {{ $level }}
+                                    </span>
+                                </div>
                             </div>
-                        @endforeach
-                    </div>
+
+                            @if(!empty($risk->mitigation_plan))
+                                <div class="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-1.5">
+                                    <span class="font-semibold text-slate-600 shrink-0">Mitigation:</span>
+                                    <span class="italic truncate text-slate-600">{{ $risk->mitigation_plan }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="py-10 text-center text-xs text-slate-400 font-medium flex flex-col items-center justify-center gap-2">
+                            <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            <span>No open risks across your assigned projects</span>
+                        </div>
+                    @endforelse
                 </div>
+            </div>
+
+            {{-- Footer Action Link --}}
+            <div class="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span class="text-slate-400 font-medium flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Live risk synchronization across assigned projects</span>
+                </span>
+                <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#8b0d1f] hover:text-[#c3122e] hover:underline flex items-center gap-1 transition-colors">
+                    <span>View Projects</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
         </div>
 

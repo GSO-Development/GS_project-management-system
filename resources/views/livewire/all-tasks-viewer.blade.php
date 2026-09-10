@@ -89,10 +89,10 @@
             </button>
             {{-- In Progress --}}
             <button wire:click="$set('statusFilter','in_progress')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='in_progress' ? 'active border-amber-500' : 'bg-white border-slate-200 hover:border-amber-200' }}"
-                style="{{ $statusFilter==='in_progress' ? 'background:linear-gradient(135deg,#f59e0b,#d97706);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='in_progress' ? 'text-white' : 'text-amber-600' }}">{{ $kpi['in_progress'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='in_progress' ? 'text-amber-100' : 'text-slate-400' }}">Progress</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='in_progress' ? 'active border-blue-600' : 'bg-white border-slate-200 hover:border-blue-300' }}"
+                style="{{ $statusFilter==='in_progress' ? 'background:linear-gradient(135deg,#2563eb,#1d4ed8);' : '' }}">
+                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='in_progress' ? 'text-white' : 'text-blue-600' }}">{{ $kpi['in_progress'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='in_progress' ? 'text-blue-100' : 'text-slate-400' }}">Progress</div>
             </button>
             {{-- Not Started --}}
             <button wire:click="$set('statusFilter','not_started')" type="button"
@@ -205,7 +205,7 @@
                             $statusLabel = $task->status->label();
 
                             $dotColor = match($task->status->value) {
-                                'in_progress'  => '#f59e0b',
+                                'in_progress'  => '#2563eb',
                                 'completed'    => '#10b981',
                                 'on_hold'      => '#d97706',
                                 'blocked'      => '#ef4444',

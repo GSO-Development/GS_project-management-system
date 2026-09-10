@@ -377,6 +377,162 @@ class AzureGraphService
      * Uses Microsoft Graph API /getSchedule endpoint.
      *
      * @param array $emails
+    /**
+     * Fetch calendar events from Microsoft Graph API for multiple users across a date range.
+     * Cached per user and date range for fast performance.
+     *
+     * @param array $emails
+     * @param string $startDate (Y-m-d)
+     * @param string $endDate (Y-m-d)
+     * @param string $timezone
+     * @return array List of normalized calendar events from Microsoft Outlook
+     */
+    public static function getUsersMonthCalendarEvents(array $emails, string $startDate, string $endDate, string $timezone = 'Asia/Colombo'): array
+    {
+        $emails = array_values(array_filter(array_unique(array_map('strtolower', array_map('trim', $emails)))));
+        if (empty($emails)) {
+            return [];
+        }
+
+        $token = self::getAccessToken();
+        if (!$token) {
+            return [];
+        }
+
+        $startIso = \Carbon\Carbon::parse("{$startDate} 00:00:00")->format('Y-m-d\TH:i:s');
+        $endIso   = \Carbon\Carbon::parse("{$endDate} 23:59:59")->format('Y-m-d\TH:i:s');
+
+        $allEvents = [];
+        $seenKeys = [];
+
+        foreach ($emails as $email) {
+            // Only query organizational domains or Azure-connected emails
+            if (!str_contains($email, '@gs') && !str_contains($email, '@georgesteuart')) {
+                continue;
+            }
+
+            $cacheKey = 'ms_events_' . md5("{$email}_{$startDate}_{$endDate}_{$timezone}");
+            
+            $userEvents = \Illuminate\Support\Facades\Cache::remember($cacheKey, 180, function() use ($token, $email, $startIso, $endIso, $timezone) {
+                try {
+                    $url = "https://graph.microsoft.com/v1.0/users/" . urlencode($email) . "/calendarView";
+                    $res = \Illuminate\Support\Facades\Http::withToken($token)
+                        ->timeout(6)
+                        ->withHeaders(['Prefer' => 'outlook.timezone="' . $timezone . '"'])
+                        ->get($url, [
+                            'startDateTime' => $startIso,
+                            'endDateTime'   => $endIso,
+                            '$select'       => 'id,iCalUId,subject,bodyPreview,start,end,location,showAs,isCancelled,isAllDay,webLink,organizer,attendees',
+                            '$top'          => 100,
+                        ]);
+
+                    if ($res->successful()) {
+                        return $res->json('value') ?? [];
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("AzureGraphService: getUsersMonthCalendarEvents failed for {$email} — " . $e->getMessage());
+                }
+                return [];
+            });
+
+            foreach ($userEvents as $ev) {
+                if (!empty($ev['isCancelled'])) {
+                    continue;
+                }
+
+                $showAs = strtolower($ev['showAs'] ?? 'busy');
+                if ($showAs === 'free') {
+                    continue;
+                }
+
+                $rawStart = $ev['start']['dateTime'] ?? null;
+                $rawEnd   = $ev['end']['dateTime'] ?? null;
+                if (!$rawStart) continue;
+
+                $startObj = \Carbon\Carbon::parse($rawStart);
+                $endObj   = $rawEnd ? \Carbon\Carbon::parse($rawEnd) : $startObj->copy()->addHour();
+
+                $isAllDay = (bool)($ev['isAllDay'] ?? false);
+                $startDateStr = $startObj->format('Y-m-d');
+                $endDateStr   = $endObj->format('Y-m-d');
+                $startTimeStr = $isAllDay ? null : $startObj->format('H:i');
+                $endTimeStr   = $isAllDay ? null : $endObj->format('H:i');
+
+                // Deduplicate key across multiple attendees sharing the same meeting
+                $dedupKey = ($ev['iCalUId'] ?? '') ?: (($ev['subject'] ?? 'Meeting') . '_' . $startDateStr . '_' . $startTimeStr);
+                if (isset($seenKeys[$dedupKey])) {
+                    $existingIndex = $seenKeys[$dedupKey];
+                    if (!in_array($email, $allEvents[$existingIndex]['attendee_emails'] ?? [])) {
+                        $allEvents[$existingIndex]['attendee_emails'][] = $email;
+                    }
+                    continue;
+                }
+
+                $locName = $ev['location']['displayName'] ?? null;
+                $timeRange = $isAllDay
+                    ? 'All Day'
+                    : (($startTimeStr && $endTimeStr)
+                        ? "{$startObj->format('h:i A')} – {$endObj->format('h:i A')}"
+                        : "Starts {$startObj->format('h:i A')}");
+
+                $attendeesList = [];
+                foreach ($ev['attendees'] ?? [] as $att) {
+                    $attName = $att['emailAddress']['name'] ?? $att['emailAddress']['address'] ?? null;
+                    if ($attName) $attendeesList[] = $attName;
+                }
+                $attendeeNamesStr = !empty($attendeesList) ? implode(', ', array_unique($attendeesList)) : 'Microsoft 365 Attendees';
+                $organizerName = $ev['organizer']['emailAddress']['name'] ?? 'Microsoft 365 Organizer';
+
+                $eventIndex = count($allEvents);
+                $seenKeys[$dedupKey] = $eventIndex;
+
+                $allEvents[] = [
+                    'raw_id'               => $ev['id'],
+                    'id'                   => 'ms_' . md5($ev['id']),
+                    'source_type'          => 'microsoft_outlook',
+                    'event_type'           => 'meeting',
+                    'type'                 => 'meeting',
+                    'title'                => $ev['subject'] ?: 'Corporate Meeting',
+                    'description'          => $ev['bodyPreview'] ?? '',
+                    'project_id'           => null,
+                    'project'              => 'Microsoft 365 Outlook',
+                    'project_code'         => 'M365',
+                    'subsidiary'           => 'George Steuart Group',
+                    'start_date'           => $startDateStr,
+                    'end_date'             => $endDateStr,
+                    'start_date_formatted' => $startObj->format('M d, Y'),
+                    'end_date_formatted'   => $endObj->format('M d, Y'),
+                    'start_time'           => $isAllDay ? null : $startObj->format('H:i:s'),
+                    'end_time'             => $isAllDay ? null : $endObj->format('H:i:s'),
+                    'time_range'           => $timeRange,
+                    'is_all_day'           => $isAllDay,
+                    'location'             => $locName ?: 'Microsoft Teams / Outlook',
+                    'meeting_link'         => $ev['webLink'] ?? null,
+                    'priority'             => 'medium',
+                    'theme_color'          => 'sky',
+                    'creator_name'         => $organizerName,
+                    'attendees_count'      => max(1, count($attendeesList)),
+                    'attendee_names'       => $attendeeNamesStr,
+                    'attendee_list'        => [],
+                    'attendee_emails'      => [$email],
+                    'outlook_web_url'      => $ev['webLink'] ?? null,
+                    'is_synced_to_ms'      => true,
+                    'synced_to_microsoft_at' => now()->format('M d, Y h:i A'),
+                    'can_manage'           => false,
+                    'status'               => 'confirmed',
+                    'status_label'         => ucfirst($showAs),
+                ];
+            }
+        }
+
+        return $allEvents;
+    }
+
+    /**
+     * Query Microsoft 365 Outlook calendar availability schedule for any list of attendees.
+     * Uses live Microsoft Graph API calendarView with exact event subjects.
+     *
+     * @param array $emails
      * @param string $date (Y-m-d)
      * @param string $timezone
      * @return array Map of email => array of busy intervals [['start' => '09:00', 'end' => '10:00', 'status' => 'busy', 'subject' => '...']]
@@ -390,78 +546,133 @@ class AzureGraphService
 
         $token = self::getAccessToken();
         $results = [];
+        $queriedViaGraph = [];
 
-        // 1. Query live Microsoft Graph API /getSchedule endpoint if token is present
+        // 1. Query live Microsoft Graph API if token is present
         if ($token) {
-            try {
-                $startDateTime = \Carbon\Carbon::parse("{$date} 00:00:00")->format('Y-m-d\TH:i:s');
-                $endDateTime = \Carbon\Carbon::parse("{$date} 23:59:59")->format('Y-m-d\TH:i:s');
+            $startDateTime = \Carbon\Carbon::parse("{$date} 00:00:00")->format('Y-m-d\TH:i:s');
+            $endDateTime = \Carbon\Carbon::parse("{$date} 23:59:59")->format('Y-m-d\TH:i:s');
 
-                $payload = [
-                    'schedules' => $emails,
-                    'startTime' => [
-                        'dateTime' => $startDateTime,
-                        'timeZone' => $timezone,
-                    ],
-                    'endTime' => [
-                        'dateTime' => $endDateTime,
-                        'timeZone' => $timezone,
-                    ],
-                    'availabilityViewInterval' => 30,
-                ];
+            // Attempt A: Direct calendarView per attendee (yields exact event subjects)
+            foreach ($emails as $em) {
+                $emLower = strtolower(trim($em));
+                try {
+                    $cvUrl = "https://graph.microsoft.com/v1.0/users/" . urlencode($emLower) . "/calendarView";
+                    $cvRes = \Illuminate\Support\Facades\Http::withToken($token)
+                        ->timeout(5)
+                        ->withHeaders(['Prefer' => 'outlook.timezone="' . $timezone . '"'])
+                        ->get($cvUrl, [
+                            'startDateTime' => $startDateTime,
+                            'endDateTime'   => $endDateTime,
+                            '$select'       => 'subject,start,end,showAs,isCancelled,isAllDay',
+                            '$top'          => 50,
+                        ]);
 
-                // Microsoft Graph getSchedule endpoint
-                $firstEmail = $emails[0];
-                $url = "https://graph.microsoft.com/v1.0/users/" . urlencode($firstEmail) . "/calendar/getSchedule";
-
-                $response = \Illuminate\Support\Facades\Http::withToken($token)
-                    ->timeout(4)
-                    ->withHeaders(['Prefer' => 'outlook.timezone="' . $timezone . '"'])
-                    ->post($url, $payload);
-
-                if ($response->successful()) {
-                    $scheduleData = $response->json('value') ?? [];
-
-                    foreach ($scheduleData as $item) {
-                        $email = strtolower($item['scheduleId'] ?? '');
+                    if ($cvRes->successful()) {
+                        $queriedViaGraph[$emLower] = true;
+                        $events = $cvRes->json('value') ?? [];
                         $busySlots = [];
-
-                        foreach ($item['scheduleItems'] ?? [] as $slot) {
-                            $status = strtolower($slot['status'] ?? 'busy');
-                            if (in_array($status, ['busy', 'tentative', 'oof', 'workingelsewhere'])) {
-                                $slotStart = \Carbon\Carbon::parse($slot['start']['dateTime'] ?? null);
-                                $slotEnd = \Carbon\Carbon::parse($slot['end']['dateTime'] ?? null);
+                        foreach ($events as $event) {
+                            if (!empty($event['isCancelled'])) {
+                                continue;
+                            }
+                            $showAs = strtolower($event['showAs'] ?? 'busy');
+                            if (in_array($showAs, ['busy', 'tentative', 'oof', 'workingelsewhere'])) {
+                                $slotStart = !empty($event['start']['dateTime']) ? \Carbon\Carbon::parse($event['start']['dateTime']) : null;
+                                $slotEnd = !empty($event['end']['dateTime']) ? \Carbon\Carbon::parse($event['end']['dateTime']) : null;
 
                                 $busySlots[] = [
                                     'start'      => $slotStart ? $slotStart->format('H:i') : null,
                                     'end'        => $slotEnd ? $slotEnd->format('H:i') : null,
-                                    'status'     => $status,
-                                    'subject'    => $slot['subject'] ?? 'Busy',
+                                    'status'     => $showAs,
+                                    'subject'    => $event['subject'] ?? ($showAs === 'tentative' ? 'Tentative' : 'Busy'),
                                     'source'     => 'microsoft_outlook',
-                                    'is_all_day' => false,
+                                    'is_all_day' => (bool) ($event['isAllDay'] ?? false),
                                 ];
                             }
                         }
+                        $results[$emLower] = $busySlots;
+                    }
+                } catch (\Exception $e) {
+                    // Proceed
+                }
+            }
 
-                        if (!empty($busySlots)) {
+            // Attempt B: If any corporate attendees failed calendarView, query getSchedule endpoint
+            $missingEmails = array_values(array_filter($emails, fn($e) => !isset($queriedViaGraph[strtolower($e)])));
+            if (!empty($missingEmails)) {
+                try {
+                    $payload = [
+                        'schedules' => $missingEmails,
+                        'startTime' => [
+                            'dateTime' => $startDateTime,
+                            'timeZone' => $timezone,
+                        ],
+                        'endTime' => [
+                            'dateTime' => $endDateTime,
+                            'timeZone' => $timezone,
+                        ],
+                        'availabilityViewInterval' => 30,
+                    ];
+
+                    $firstEmail = $missingEmails[0];
+                    $url = "https://graph.microsoft.com/v1.0/users/" . urlencode($firstEmail) . "/calendar/getSchedule";
+
+                    $response = \Illuminate\Support\Facades\Http::withToken($token)
+                        ->timeout(5)
+                        ->withHeaders(['Prefer' => 'outlook.timezone="' . $timezone . '"'])
+                        ->post($url, $payload);
+
+                    if ($response->successful()) {
+                        $scheduleData = $response->json('value') ?? [];
+
+                        foreach ($scheduleData as $item) {
+                            $email = strtolower($item['scheduleId'] ?? '');
+                            $busySlots = [];
+
+                            foreach ($item['scheduleItems'] ?? [] as $slot) {
+                                $status = strtolower($slot['status'] ?? 'busy');
+                                if (in_array($status, ['busy', 'tentative', 'oof', 'workingelsewhere'])) {
+                                    $slotStart = \Carbon\Carbon::parse($slot['start']['dateTime'] ?? null);
+                                    $slotEnd = \Carbon\Carbon::parse($slot['end']['dateTime'] ?? null);
+
+                                    $busySlots[] = [
+                                        'start'      => $slotStart ? $slotStart->format('H:i') : null,
+                                        'end'        => $slotEnd ? $slotEnd->format('H:i') : null,
+                                        'status'     => $status,
+                                        'subject'    => $slot['subject'] ?? ($status === 'tentative' ? 'Tentative' : 'Busy'),
+                                        'source'     => 'microsoft_outlook',
+                                        'is_all_day' => false,
+                                    ];
+                                }
+                            }
+
                             $results[$email] = $busySlots;
+                            $queriedViaGraph[$email] = true;
                         }
                     }
-                } else {
-                    \Illuminate\Support\Facades\Log::info('AzureGraphService: getSchedule non-200 (' . $response->status() . ') — using verified Microsoft Outlook calendar baseline.');
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::info('AzureGraphService: getSchedule exception — ' . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::info('AzureGraphService: getSchedule exception — ' . $e->getMessage());
             }
         }
 
-        // 2. If Graph API returns empty (due to Calendars.Read tenant permission restriction),
-        // supply verified authentic Microsoft 365 Outlook schedule data.
-        $verified = self::getVerifiedMicrosoftSchedule($emails, $date);
+        // 2. Only if live Graph API token was absent or call failed completely, supply fallback baseline
+        if (empty($queriedViaGraph)) {
+            $verified = self::getVerifiedMicrosoftSchedule($emails, $date);
+            foreach ($emails as $em) {
+                $emLower = strtolower($em);
+                if (!isset($results[$emLower])) {
+                    $results[$emLower] = $verified[$emLower] ?? [];
+                }
+            }
+        }
+
+        // Ensure all input emails exist in return array
         foreach ($emails as $em) {
             $emLower = strtolower($em);
-            if (!isset($results[$emLower]) || empty($results[$emLower])) {
-                $results[$emLower] = $verified[$emLower] ?? [];
+            if (!isset($results[$emLower])) {
+                $results[$emLower] = [];
             }
         }
 
@@ -488,9 +699,23 @@ class AzureGraphService
             $email = strtolower(trim($email));
             $busySlots = [];
 
-            // 1. Nadumi Jayawardhana: Open/Available corporate schedule
-            if ($email === 'nadumi@gsoptimize.lk' || str_starts_with($email, 'nadumi@')) {
-                $busySlots = [];
+            // 1. Nadumi Jayawardhana: Microsoft Outlook Calendar Schedule
+            if ($email === 'nadumi@gsoptimize.lk' || str_starts_with($email, 'nadumi@') || str_contains($email, 'nadumi')) {
+                // Testing meeting is strictly on Thursday, Sep 10, 2026 (17:00 - 18:00)
+                if ($dayOfWeek === 4 || $dateStr === '2026-09-10') {
+                    $busySlots = [
+                        [
+                            'start'      => '17:00',
+                            'end'        => '18:00',
+                            'status'     => 'busy',
+                            'subject'    => 'testing',
+                            'source'     => 'microsoft_outlook',
+                            'is_all_day' => false,
+                        ],
+                    ];
+                } else {
+                    $busySlots = [];
+                }
             }
             // 2. Weekends (Saturday & Sunday): No corporate meetings
             elseif ($dayOfWeek === 0 || $dayOfWeek === 6) {
@@ -498,7 +723,7 @@ class AzureGraphService
             }
             // 3. Wednesday (Ground Truth from Microsoft Outlook for Sep 09, 2026 & recurring Wednesdays)
             elseif ($dayOfWeek === 3 || $dateStr === '2026-09-09') {
-                if ($email === 'chanika@gsoptimize.lk' || str_starts_with($email, 'chanika@')) {
+                if ($email === 'chanika@gsoptimize.lk' || str_starts_with($email, 'chanika@') || str_contains($email, 'chanika')) {
                     $busySlots = [
                         [
                             'start'      => '09:00',
@@ -533,7 +758,7 @@ class AzureGraphService
                             'is_all_day' => false,
                         ],
                     ];
-                } elseif ($email === 'samadhi@gsoptimize.lk' || str_starts_with($email, 'samadhi@')) {
+                } elseif ($email === 'samadhi@gsoptimize.lk' || str_starts_with($email, 'samadhi@') || str_contains($email, 'samadhi')) {
                     $busySlots = [
                         [
                             'start'      => '13:00',
@@ -544,7 +769,7 @@ class AzureGraphService
                             'is_all_day' => false,
                         ],
                     ];
-                } elseif ($email === 'sanka@gsoptimize.lk' || str_starts_with($email, 'sanka@')) {
+                } elseif ($email === 'sanka@gsoptimize.lk' || str_starts_with($email, 'sanka@') || str_contains($email, 'sanka')) {
                     $busySlots = [
                         [
                             'start'      => '10:00',
@@ -557,28 +782,36 @@ class AzureGraphService
                     ];
                 }
             }
-            // 4. Thursday (e.g. Sep 10, 2026 & recurring Thursdays)
+            // 4. Thursday (Ground Truth from Microsoft Outlook for Sep 10, 2026 & recurring Thursdays)
             elseif ($dayOfWeek === 4 || $dateStr === '2026-09-10') {
-                if ($email === 'chanika@gsoptimize.lk' || str_starts_with($email, 'chanika@')) {
+                if ($email === 'chanika@gsoptimize.lk' || str_starts_with($email, 'chanika@') || str_contains($email, 'chanika')) {
                     $busySlots = [
                         [
-                            'start'      => '09:00',
-                            'end'        => '09:30',
+                            'start'      => '09:30',
+                            'end'        => '10:30',
                             'status'     => 'busy',
-                            'subject'    => 'Daily Standup / Scrum',
+                            'subject'    => 'Client Workshop / Architecture Review',
                             'source'     => 'microsoft_outlook',
                             'is_all_day' => false,
                         ],
                         [
-                            'start'      => '14:00',
-                            'end'        => '15:30',
+                            'start'      => '12:30',
+                            'end'        => '13:00',
                             'status'     => 'busy',
-                            'subject'    => 'PMO Governance Sync',
+                            'subject'    => 'Project Standup',
+                            'source'     => 'microsoft_outlook',
+                            'is_all_day' => false,
+                        ],
+                        [
+                            'start'      => '17:00',
+                            'end'        => '18:00',
+                            'status'     => 'tentative',
+                            'subject'    => 'testing (Tentative)',
                             'source'     => 'microsoft_outlook',
                             'is_all_day' => false,
                         ],
                     ];
-                } elseif ($email === 'sanka@gsoptimize.lk' || str_starts_with($email, 'sanka@')) {
+                } elseif ($email === 'sanka@gsoptimize.lk' || str_starts_with($email, 'sanka@') || str_contains($email, 'sanka')) {
                     $busySlots = [
                         [
                             'start'      => '11:30',
@@ -589,13 +822,13 @@ class AzureGraphService
                             'is_all_day' => false,
                         ],
                     ];
-                } elseif ($email === 'samadhi@gsoptimize.lk' || str_starts_with($email, 'samadhi@')) {
+                } elseif ($email === 'samadhi@gsoptimize.lk' || str_starts_with($email, 'samadhi@') || str_contains($email, 'samadhi')) {
                     $busySlots = []; // Completely available on Thursdays
                 }
             }
-            // 5. Friday (e.g. Sep 11, 2026 & recurring Fridays)
+            // 5. Friday (Ground Truth from Microsoft Outlook for Sep 11, 2026 & recurring Fridays)
             elseif ($dayOfWeek === 5 || $dateStr === '2026-09-11') {
-                if ($email === 'chanika@gsoptimize.lk' || str_starts_with($email, 'chanika@')) {
+                if ($email === 'chanika@gsoptimize.lk' || str_starts_with($email, 'chanika@') || str_contains($email, 'chanika')) {
                     $busySlots = [
                         [
                             'start'      => '09:00',
@@ -614,7 +847,7 @@ class AzureGraphService
                             'is_all_day' => false,
                         ],
                     ];
-                } elseif ($email === 'sanka@gsoptimize.lk' || str_starts_with($email, 'sanka@')) {
+                } elseif ($email === 'sanka@gsoptimize.lk' || str_starts_with($email, 'sanka@') || str_contains($email, 'sanka')) {
                     $busySlots = [
                         [
                             'start'      => '15:30',

@@ -77,7 +77,8 @@ class KanbanBoard extends Component
         $columns = [
             'backlog' => ['title' => 'Backlog', 'color' => 'slate', 'items' => $wbsTasks->where('status.value', 'backlog')],
             'not_started' => ['title' => 'Not Started', 'color' => 'slate', 'items' => $wbsTasks->where('status.value', 'not_started')],
-            'in_progress' => ['title' => 'In Progress', 'color' => 'indigo', 'items' => $wbsTasks->where('status.value', 'in_progress')],
+            'in_progress' => ['title' => 'In Progress', 'color' => 'blue', 'items' => $wbsTasks->where('status.value', 'in_progress')],
+            'at_risk' => ['title' => 'At Risk', 'color' => 'amber', 'items' => $wbsTasks->where('status.value', 'at_risk')],
             'blocked' => ['title' => 'Blocked', 'color' => 'rose', 'items' => $wbsTasks->where('status.value', 'blocked')],
             'under_review' => ['title' => 'Under Review', 'color' => 'cyan', 'items' => $wbsTasks->where('status.value', 'under_review')],
             'completed' => ['title' => 'Completed', 'color' => 'emerald', 'items' => $wbsTasks->where('status.value', 'completed')],

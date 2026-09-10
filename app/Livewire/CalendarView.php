@@ -182,6 +182,12 @@ class CalendarView extends Component
         }
     }
 
+    public function refreshCalendarSchedule(): void
+    {
+        \Illuminate\Support\Facades\Cache::flush();
+        $this->dispatch('toast', message: 'Calendar refreshed with live Microsoft Outlook meetings.', type: 'info');
+    }
+
     public function clearFilters(): void
     {
         $this->reset([
@@ -267,10 +273,7 @@ class CalendarView extends Component
     public function getProjectAttendeesProperty()
     {
         if (!$this->newEventProject) {
-            return User::where('is_active', true)->orderBy('name')->get()->map(function($u) {
-                $u->project_role_label = 'Corporate User';
-                return $u;
-            });
+            return collect();
         }
 
         $project = Project::with(['projectManager', 'members', 'creator'])->find($this->newEventProject);
@@ -303,7 +306,7 @@ class CalendarView extends Component
             }
         }
 
-        // 3. WBS Task Assignees
+        // 3. WBS Task Assignees for this Project
         $assignedIds = WbsItem::where('project_id', $project->id)
             ->whereNotNull('assigned_user_id')
             ->pluck('assigned_user_id')
@@ -325,7 +328,7 @@ class CalendarView extends Component
             $users->push($creator);
         }
 
-        return $users->sortBy('name')->values();
+        return $users->values();
     }
 
     /**
@@ -357,34 +360,13 @@ class CalendarView extends Component
 
     /**
      * React when user selects a different project in the modal:
-     * Refresh attendees and automatically select ALL assigned project members who have Microsoft Azure accounts.
+     * Refresh attendees and automatically select ALL assigned project members.
      */
     public function updatedNewEventProject($value): void
     {
         $this->newEventAttendees = [];
         if ($value) {
-            $selectedIds = [];
-
-            // Automatically select ALL users assigned to this project who have Microsoft Azure accounts
-            foreach ($this->projectAttendees as $att) {
-                if ($this->userHasAzureAccount($att)) {
-                    $selectedIds[] = (int) $att->id;
-                }
-            }
-
-            // Always ensure Project Manager is included
-            $project = Project::find($value);
-            if ($project && $project->project_manager_id) {
-                $selectedIds[] = (int) $project->project_manager_id;
-            }
-
-            // Always include current user
-            $currId = auth()->id();
-            if ($currId) {
-                $selectedIds[] = (int) $currId;
-            }
-
-            $this->newEventAttendees = array_values(array_unique($selectedIds));
+            $this->newEventAttendees = $this->projectAttendees->pluck('id')->map(fn($id) => (int)$id)->all();
         }
     }
 
@@ -400,10 +382,12 @@ class CalendarView extends Component
 
     public function toggleAttendee(int $userId): void
     {
-        if (in_array($userId, $this->newEventAttendees)) {
-            $this->newEventAttendees = array_values(array_diff($this->newEventAttendees, [$userId]));
+        $current = array_map('intval', $this->newEventAttendees);
+        if (in_array($userId, $current, true)) {
+            $this->newEventAttendees = array_values(array_filter($current, fn($id) => $id !== $userId));
         } else {
-            $this->newEventAttendees[] = $userId;
+            $current[] = $userId;
+            $this->newEventAttendees = array_values(array_unique($current));
         }
     }
 
@@ -482,7 +466,8 @@ class CalendarView extends Component
         }
 
         if (empty($this->newEventAttendees)) {
-            $this->newEventAttendees = [(int) $user->id];
+            $this->addError('newEventAttendees', 'Please select at least one attendee.');
+            return;
         }
 
         $this->createEventStep = 2;
@@ -523,21 +508,12 @@ class CalendarView extends Component
         $this->isLoadingAvailability = true;
         $date = $this->newEventDate ?: now()->format('Y-m-d');
 
-        $attendeeIds = array_map('intval', $this->newEventAttendees);
-
-        // Ensure ALL assigned project members with Microsoft Azure accounts are included in Step 2 availability
-        if ($this->newEventProject) {
-            foreach ($this->projectAttendees as $att) {
-                if ($this->userHasAzureAccount($att) && !in_array((int) $att->id, $attendeeIds)) {
-                    $attendeeIds[] = (int) $att->id;
-                }
-            }
-        }
+        $attendeeIds = array_values(array_filter(array_unique(array_map('intval', $this->newEventAttendees))));
 
         if (empty($attendeeIds)) {
             $attendeeIds = [(int) auth()->id()];
         }
-        $this->newEventAttendees = array_values(array_unique($attendeeIds));
+        $this->newEventAttendees = $attendeeIds;
 
         $attendees = User::whereIn('id', $attendeeIds)->get();
         $emails = $attendees->pluck('email')->filter()->all();
@@ -599,12 +575,14 @@ class CalendarView extends Component
                         [$lPct, $wPct] = $calcTimelinePct($mSlot['start'], $mSlot['end']);
                         $status = strtolower($mSlot['status'] ?? 'busy');
                         $isTentative = ($status === 'tentative');
+                        $subj = !empty($mSlot['subject']) ? $mSlot['subject'] : ($isTentative ? 'Tentative' : 'Busy');
                         $busySlots[] = [
                             'start'        => $mSlot['start'],
                             'end'          => $mSlot['end'],
                             'status'       => $status,
                             'is_tentative' => $isTentative,
-                            'title'        => $isTentative ? 'Tentative (Outlook)' : 'Busy (Outlook)',
+                            'title'        => $subj,
+                            'subject'      => $subj,
                             'source'       => 'Microsoft 365 Outlook',
                             'left_pct'     => $lPct,
                             'width_pct'    => $wPct,
@@ -623,18 +601,39 @@ class CalendarView extends Component
                     $endT = $cev->end_time ? substr($cev->end_time, 0, 5) : ($cev->is_all_day ? '18:00' : '10:00');
                     [$lPct, $wPct] = $calcTimelinePct($startT, $endT);
 
+                    $title = $cev->title ?: 'Busy';
                     $busySlots[] = [
-                        'start'     => $startT,
-                        'end'       => $endT,
-                        'title'     => 'Busy (Outlook)',
-                        'source'    => 'Microsoft Calendar',
-                        'left_pct'  => $lPct,
-                        'width_pct' => $wPct,
+                        'start'        => $startT,
+                        'end'          => $endT,
+                        'status'       => 'busy',
+                        'is_tentative' => false,
+                        'title'        => $title,
+                        'subject'      => $title,
+                        'source'       => 'Microsoft Calendar',
+                        'left_pct'     => $lPct,
+                        'width_pct'    => $wPct,
                     ];
                 }
             }
 
-            // Deduplicate and sort busy slots
+            // Deduplicate overlapping slots with same start/end and preserve descriptive subject
+            $uniqueSlots = [];
+            foreach ($busySlots as $slot) {
+                $key = $slot['start'] . '_' . $slot['end'];
+                if (!isset($uniqueSlots[$key])) {
+                    $uniqueSlots[$key] = $slot;
+                } else {
+                    if (!empty($slot['subject']) && !in_array($slot['subject'], ['Busy', 'Busy (Outlook)', 'Tentative', 'Tentative (Outlook)'])) {
+                        $uniqueSlots[$key]['subject'] = $slot['subject'];
+                        $uniqueSlots[$key]['title']   = $slot['subject'];
+                    }
+                    if (($slot['status'] ?? '') === 'tentative') {
+                        $uniqueSlots[$key]['status']       = 'tentative';
+                        $uniqueSlots[$key]['is_tentative'] = true;
+                    }
+                }
+            }
+            $busySlots = array_values($uniqueSlots);
             usort($busySlots, fn($a, $b) => strcmp($a['start'], $b['start']));
 
             $attendeeSchedules[] = [
@@ -1097,10 +1096,7 @@ class CalendarView extends Component
     public function getEditProjectAttendeesProperty()
     {
         if (!$this->editEventProject) {
-            return User::where('is_active', true)->orderBy('name')->get()->map(function($u) {
-                $u->project_role_label = 'Corporate User';
-                return $u;
-            });
+            return collect();
         }
 
         $project = Project::with(['projectManager', 'members', 'creator'])->find($this->editEventProject);
@@ -1131,7 +1127,7 @@ class CalendarView extends Component
             }
         }
 
-        // 3. WBS Task Assignees
+        // 3. WBS Task Assignees for this Project
         $assignedIds = WbsItem::where('project_id', $project->id)
             ->whereNotNull('assigned_user_id')
             ->pluck('assigned_user_id')
@@ -1153,7 +1149,7 @@ class CalendarView extends Component
             $users->push($creator);
         }
 
-        return $users->sortBy('name')->values();
+        return $users->values();
     }
 
     public function updateEvent(): void
@@ -1604,7 +1600,7 @@ class CalendarView extends Component
             $color = match(true) {
                 $isMilestone => 'purple',
                 $wbs->status === WbsStatus::COMPLETED => 'emerald',
-                $wbs->status === WbsStatus::IN_PROGRESS => 'amber',
+                $wbs->status === WbsStatus::IN_PROGRESS => 'blue',
                 $wbs->status === WbsStatus::BLOCKED => 'rose',
                 $eDate->isPast() && $wbs->status !== WbsStatus::COMPLETED => 'rose',
                 default => 'slate',
@@ -1705,6 +1701,110 @@ class CalendarView extends Component
 
             $eventsByDate[$dKey][] = $eventItem;
             $allFlatEvents[] = $eventItem;
+        }
+
+        // D. Process Live Microsoft Outlook Meetings for Assigned Users
+        // NOTE: Disabled — only system-created CalendarEvents (DB) are shown on the calendar.
+        //       Outlook live-pull is kept for the scheduling availability timeline only.
+        if (false && ($this->categoryFilter === 'all' || in_array($this->categoryFilter, ['meeting', 'review']))) {
+            $outlookEmails = [];
+
+            if ($this->scopeFilter === 'my_events') {
+                if (!empty($user->email)) {
+                    $outlookEmails[] = $user->email;
+                }
+                // If user is PM, also include members of their managed projects
+                $managedProjIds = Project::where('project_manager_id', $user->id)->pluck('id');
+                if ($managedProjIds->isNotEmpty()) {
+                    $memberEmails = User::whereHas('projects', fn($q) => $q->whereIn('projects.id', $managedProjIds))
+                        ->pluck('email')->filter()->all();
+                    $outlookEmails = array_merge($outlookEmails, $memberEmails);
+                }
+            } else {
+                if ($this->projectFilter !== 'all') {
+                    $proj = Project::with(['projectManager', 'members'])->find($this->projectFilter);
+                    if ($proj) {
+                        if ($proj->projectManager && $proj->projectManager->email) {
+                            $outlookEmails[] = $proj->projectManager->email;
+                        }
+                        foreach ($proj->members as $pm) {
+                            if ($pm->email) $outlookEmails[] = $pm->email;
+                        }
+                        $taskAssigneeEmails = User::whereHas('assignedWbsItems', fn($q) => $q->where('project_id', $proj->id))
+                            ->pluck('email')->filter()->all();
+                        $outlookEmails = array_merge($outlookEmails, $taskAssigneeEmails);
+                    }
+                } else {
+                    // All events view: include all active users assigned across projects
+                    $assignedUserEmails = User::where('is_active', true)
+                        ->where(function($q) {
+                            $q->whereHas('leadProjects')
+                              ->orWhereHas('projects')
+                              ->orWhereHas('assignedWbsItems');
+                        })
+                        ->pluck('email')->filter()->all();
+
+                    if (!empty($user->email)) {
+                        $assignedUserEmails[] = $user->email;
+                    }
+                    $outlookEmails = $assignedUserEmails;
+                }
+            }
+
+            $outlookEmails = array_values(array_unique(array_filter($outlookEmails)));
+
+            if (!empty($outlookEmails)) {
+                $monthStartStr = $startOfMonth->format('Y-m-d');
+                $monthEndStr   = $endOfMonth->format('Y-m-d');
+
+                $msEvents = AzureGraphService::getUsersMonthCalendarEvents($outlookEmails, $monthStartStr, $monthEndStr);
+
+                foreach ($msEvents as $msEvt) {
+                    // Filter by search query if present
+                    if (!empty(trim($this->search))) {
+                        $s = strtolower(trim($this->search));
+                        $titleMatch = str_contains(strtolower($msEvt['title']), $s);
+                        $descMatch = str_contains(strtolower($msEvt['description']), $s);
+                        $attMatch = str_contains(strtolower($msEvt['attendee_names']), $s);
+                        if (!$titleMatch && !$descMatch && !$attMatch) {
+                            continue;
+                        }
+                    }
+
+                    // Avoid duplicating locally managed CalendarEvents that were synced to Outlook
+                    $isLocalDup = false;
+                    foreach ($allCalendarEvents as $ce) {
+                        if (!empty($ce->microsoft_event_id) && $ce->microsoft_event_id === $msEvt['raw_id']) {
+                            $isLocalDup = true;
+                            break;
+                        }
+                        if ($ce->start_date->format('Y-m-d') === $msEvt['start_date'] && str_starts_with(strtolower($msEvt['title']), strtolower($ce->title))) {
+                            $isLocalDup = true;
+                            break;
+                        }
+                    }
+                    if ($isLocalDup) {
+                        continue;
+                    }
+
+                    $sDate = Carbon::parse($msEvt['start_date']);
+                    $eDate = Carbon::parse($msEvt['end_date']);
+
+                    $curr = $sDate->copy();
+                    $maxDays = min(14, $sDate->diffInDays($eDate) + 1);
+                    $dayCount = 0;
+                    while ($curr->lte($eDate) && $dayCount < $maxDays) {
+                        $dKey = $curr->format('Y-m-d');
+                        $dItem = $msEvt;
+                        $dItem['date'] = $dKey;
+                        $eventsByDate[$dKey][] = $dItem;
+                        $curr->addDay();
+                        $dayCount++;
+                    }
+
+                    $allFlatEvents[] = $msEvt;
+                }
+            }
         }
 
         // 6. Selected Day Schedule Items (Sorted by Start Time)

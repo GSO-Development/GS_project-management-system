@@ -324,7 +324,7 @@
                 $isTd = $dl2 === 0 && !in_array($task->status->value,['completed','cancelled']);
 
                 $sc = match($task->status->value) {
-                    'in_progress'  => ['dot'=>'#f59e0b','bar'=>'#fbbf24','sbg'=>'#fffbeb','sbr'=>'#fde68a','sc'=>'#78350f'],
+                    'in_progress'  => ['dot'=>'#2563eb','bar'=>'#3b82f6','sbg'=>'#eff6ff','sbr'=>'#bfdbfe','sc'=>'#1d4ed8'],
                     'completed'    => ['dot'=>'#10b981','bar'=>'#34d399','sbg'=>'#f0fdf4','sbr'=>'#a7f3d0','sc'=>'#064e3b'],
                     'blocked'      => ['dot'=>'#ef4444','bar'=>'#f87171','sbg'=>'#fef2f2','sbr'=>'#fecaca','sc'=>'#7f1d1d'],
                     'under_review' => ['dot'=>'#8b5cf6','bar'=>'#a78bfa','sbg'=>'#f5f3ff','sbr'=>'#ddd6fe','sc'=>'#4c1d95'],

@@ -342,7 +342,7 @@
                         <span style="font-size: 9px; font-weight: 700; color: #78716c;">Done</span>
                     </div>
                     <div>
-                        <span style="font-size: 14px; font-weight: 900; color: #d97706; display: block;">{{ $stat['in_progress'] }}</span>
+                        <span style="font-size: 14px; font-weight: 900; color: #2563eb; display: block;">{{ $stat['in_progress'] }}</span>
                         <span style="font-size: 9px; font-weight: 700; color: #78716c;">In Prog</span>
                     </div>
                     <div>
@@ -362,8 +362,8 @@
                     @foreach($stat['tasks'] as $t)
                     <div style="background: {{ !empty($t->delay_reason) || $t->status->value === 'blocked' ? '#fff1f2' : '#faf8f5' }}; border: 1px solid {{ !empty($t->delay_reason) || $t->status->value === 'blocked' ? '#fecdd3' : '#e7e5e4' }}; border-radius: 12px; padding: 10px 12px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
-                            <div style="min-width: 0; flex: 1; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: {{ $t->status->value === 'completed' ? '#10b981' : ($t->status->value === 'in_progress' ? '#f59e0b' : ($t->status->value === 'blocked' ? '#c3122e' : '#a8a29e')) }};"></span>
+                            <div style="min-w-0 flex: 1; display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: {{ $t->status->value === 'completed' ? '#10b981' : ($t->status->value === 'in_progress' ? '#2563eb' : ($t->status->value === 'blocked' ? '#c3122e' : '#a8a29e')) }};"></span>
                                 <span style="font-weight: 800; color: #1c1917; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $t->title }}</span>
                             </div>
 

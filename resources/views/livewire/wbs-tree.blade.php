@@ -15,7 +15,7 @@
                     </div>
                     <h3 class="font-black text-slate-900 text-sm tracking-tight whitespace-nowrap">Project Tasks</h3>
                     <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">
-                        {{ $healthStats['total'] }}
+                        {{ $statusStats['total'] }}
                     </span>
                 </div>
 
@@ -25,115 +25,103 @@
                 <div class="inline-flex p-1 bg-slate-100/90 rounded-2xl border border-slate-200/70 gap-0.5 text-xs">
                     <!-- All -->
                     <button 
-                        wire:click="setHealthFilter('all')" 
+                        wire:click="setStatusFilter('all')" 
                         type="button" 
-                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap {{ $healthFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap {{ $statusFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
                     >
                         <span>All</span>
-                        <span class="font-mono text-[11px] opacity-75 ml-0.5">({{ $healthStats['total'] }})</span>
+                        <span class="font-mono text-[11px] opacity-75 ml-0.5">({{ $statusStats['total'] }})</span>
                     </button>
 
-                    <!-- Delayed -->
+                    <!-- In Progress -->
                     <button 
-                        wire:click="setHealthFilter('red')" 
+                        wire:click="setStatusFilter('in_progress')" 
                         type="button" 
-                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'red' ? 'bg-white text-rose-700 shadow-xs border border-rose-200 font-black' : 'text-slate-500 hover:text-rose-700' }}"
-                        title="Delayed Deliverables"
+                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'in_progress' ? 'bg-white text-blue-700 shadow-xs border border-blue-200 font-black' : 'text-slate-500 hover:text-blue-700' }}"
+                        title="In Progress Tasks"
                     >
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                        <span>Delayed</span>
-                        <span class="font-mono text-[11px] font-extrabold text-rose-600">({{ $healthStats['red'] }})</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        <span>In Progress</span>
+                        <span class="font-mono text-[11px] font-extrabold text-blue-600">({{ $statusStats['in_progress'] }})</span>
                     </button>
 
                     <!-- At Risk -->
                     <button 
-                        wire:click="setHealthFilter('amber')" 
+                        wire:click="setStatusFilter('at_risk')" 
                         type="button" 
-                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'amber' ? 'bg-white text-amber-800 shadow-xs border border-amber-200 font-black' : 'text-slate-500 hover:text-amber-800' }}"
-                        title="At Risk Deliverables"
+                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'at_risk' ? 'bg-white text-amber-800 shadow-xs border border-amber-200 font-black' : 'text-slate-500 hover:text-amber-800' }}"
+                        title="At Risk Tasks"
                     >
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                         <span>At Risk</span>
-                        <span class="font-mono text-[11px] font-extrabold text-amber-700">({{ $healthStats['amber'] }})</span>
+                        <span class="font-mono text-[11px] font-extrabold text-amber-700">({{ $statusStats['at_risk'] }})</span>
                     </button>
 
-                    <!-- On Track -->
+                    <!-- Blocked -->
                     <button 
-                        wire:click="setHealthFilter('green')" 
+                        wire:click="setStatusFilter('blocked')" 
                         type="button" 
-                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $healthFilter === 'green' ? 'bg-white text-emerald-800 shadow-xs border border-emerald-200 font-black' : 'text-slate-500 hover:text-emerald-800' }}"
-                        title="On Track Deliverables"
+                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'blocked' ? 'bg-white text-rose-700 shadow-xs border border-rose-200 font-black' : 'text-slate-500 hover:text-rose-700' }}"
+                        title="Blocked Tasks"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        <span>Blocked</span>
+                        <span class="font-mono text-[11px] font-extrabold text-rose-600">({{ $statusStats['blocked'] }})</span>
+                    </button>
+
+                    <!-- Completed -->
+                    <button 
+                        wire:click="setStatusFilter('completed')" 
+                        type="button" 
+                        class="px-3 py-1 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'completed' ? 'bg-white text-emerald-800 shadow-xs border border-emerald-200 font-black' : 'text-slate-500 hover:text-emerald-800' }}"
+                        title="Completed Tasks"
                     >
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>On Track</span>
-                        <span class="font-mono text-[11px] font-extrabold text-emerald-700">({{ $healthStats['green'] }})</span>
+                        <span>Done</span>
+                        <span class="font-mono text-[11px] font-extrabold text-emerald-700">({{ $statusStats['completed'] }})</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Right Controls: Expand/Collapse + Add Task -->
+            <!-- Right Controls: Add Task -->
             <div class="flex items-center gap-2.5 flex-wrap shrink-0">
-                <!-- Expand / Collapse -->
-                <div class="inline-flex p-1 bg-slate-100/90 rounded-2xl border border-slate-200/70 gap-0.5 text-xs font-bold">
-                    <button 
-                        wire:click="expandAll" 
-                        type="button" 
-                        class="px-3 py-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1.5"
-                        title="Expand all"
-                    >
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                        <span class="hidden sm:inline">Expand</span>
-                    </button>
-                    <button 
-                        wire:click="collapseAll" 
-                        type="button" 
-                        class="px-3 py-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer flex items-center gap-1.5"
-                        title="Collapse"
-                    >
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                        <span class="hidden sm:inline">Collapse</span>
-                    </button>
-                </div>
 
                 @if($project->userCan(auth()->user(), 'task.create'))
                     <button 
                         wire:click="openAddItemModal(null, 'task')" 
                         type="button"
-                        class="px-4 py-2 rounded-2xl text-xs font-extrabold text-white shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-                        style="background: linear-gradient(135deg, #c3122e 0%, #9e0f26 100%);"
+                        class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#c3122e] to-[#a50e26] hover:from-[#a50e26] hover:to-[#8a0b20] text-white text-xs font-black shadow-xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                     >
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         <span>Add Task</span>
                     </button>
                 @endif
             </div>
         </div>
 
-        <!-- Responsive Card & Table Container -->
-        <div class="w-full overflow-x-auto">
-            <table class="w-full text-left table-fixed min-w-[1040px]">
+        <!-- ── STREAMLINED RESPONSIVE TREE TABLE ── -->
+        <div class="overflow-x-auto overflow-y-visible">
+            <table class="w-full text-left border-collapse min-w-[1080px]" style="table-layout: fixed;">
                 <colgroup>
-                    <col style="width: 46px;">
-                    <col style="min-width: 320px;">
+                    <col style="width: 54px;">
+                    <col style="min-width: 280px;">
+                    <col style="width: 175px;">
                     <col style="width: 125px;">
-                    <col style="width: 105px;">
-                    <col style="width: 105px;">
-                    <col style="width: 90px;">
-                    <col style="width: 80px;">
                     <col style="width: 130px;">
-                    <col style="width: 44px;">
+                    <col style="width: 105px;">
+                    <col style="width: 140px;">
+                    <col style="width: 58px;">
                 </colgroup>
-                <thead class="bg-slate-50/80 border-b border-slate-200/80 select-none">
-                    <tr class="text-slate-400 text-[10px] font-extrabold uppercase tracking-wider">
-                        <th class="py-3 pl-4 pr-1 text-left" style="width: 46px;">#</th>
-                        <th class="py-3 px-3 text-left" style="min-width: 320px;">Task Deliverable</th>
-                        <th class="py-3 px-2 text-left" style="width: 125px;">Assigned To</th>
-                        <th class="py-3 px-2 text-left" style="width: 105px;">Start Schedule</th>
-                        <th class="py-3 px-2 text-left" style="width: 105px;">Target Deadline</th>
-                        <th class="py-3 px-1 text-center" style="width: 90px;">Health</th>
-                        <th class="py-3 px-2 text-left" style="width: 80px;">Progress</th>
-                        <th class="py-3 px-2 text-left" style="width: 130px;">Status</th>
-                        <th class="py-3 pr-4 pl-1 text-center" style="width: 44px;">Actions</th>
+                <thead class="bg-slate-50/70 border-b border-slate-200/70 select-none">
+                    <tr class="text-slate-400 text-[10.5px] font-extrabold uppercase tracking-wider">
+                        <th class="py-3 pl-4 pr-1 text-left" style="width: 54px;">#</th>
+                        <th class="py-3 px-3 text-left">Task Deliverable</th>
+                        <th class="py-3 px-2.5 text-left" style="width: 175px;">Assigned To</th>
+                        <th class="py-3 px-2.5 text-left" style="width: 125px;">Start Schedule</th>
+                        <th class="py-3 px-2.5 text-left" style="width: 130px;">Target Deadline</th>
+                        <th class="py-3 px-2 text-left" style="width: 105px;">Progress</th>
+                        <th class="py-3 px-2.5 text-left" style="width: 140px;">Status</th>
+                        <th class="py-3 pr-4 pl-1 text-center" style="width: 58px;">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-slate-100">
@@ -142,7 +130,17 @@
                     @endforeach
 
                     @if($wbsItems->isEmpty())
-                        <tr><td colspan="9" class="text-center py-14 text-slate-400 text-xs font-semibold">No tasks found matching current filter.</td></tr>
+                        <tr>
+                            <td colspan="8" class="text-center py-16 text-slate-400">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-2.5 shadow-2xs">
+                                    <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-bold text-slate-700">No tasks found</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Try selecting a different filter or add a new deliverable.</p>
+                            </td>
+                        </tr>
                     @endif
                 </tbody>
             </table>

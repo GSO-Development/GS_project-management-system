@@ -121,7 +121,6 @@ class ProjectDeletionService
                 'deadline'         => $projectModel->deadline?->toDateString(),
                 'status'           => is_object($projectModel->status) ? $projectModel->status->value : (string) $projectModel->status,
                 'priority'         => is_object($projectModel->priority) ? $projectModel->priority->value : (string) $projectModel->priority,
-                'health'           => is_object($projectModel->health) ? $projectModel->health->value : (string) $projectModel->health,
                 'overall_progress' => (int) $projectModel->overall_progress,
                 'estimated_budget' => (float) ($projectModel->estimated_budget ?? 0),
                 'actual_cost'      => (float) ($projectModel->actual_cost ?? 0),

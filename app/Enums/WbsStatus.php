@@ -7,6 +7,7 @@ enum WbsStatus: string
     case BACKLOG = 'backlog';
     case NOT_STARTED = 'not_started';
     case IN_PROGRESS = 'in_progress';
+    case AT_RISK = 'at_risk';
     case BLOCKED = 'blocked';
     case UNDER_REVIEW = 'under_review';
     case COMPLETED = 'completed';
@@ -19,6 +20,7 @@ enum WbsStatus: string
             self::BACKLOG => 'Backlog',
             self::NOT_STARTED => 'Not Started',
             self::IN_PROGRESS => 'In Progress',
+            self::AT_RISK => 'At Risk',
             self::BLOCKED => 'Blocked',
             self::UNDER_REVIEW => 'Under Review',
             self::COMPLETED => 'Completed',
@@ -32,7 +34,8 @@ enum WbsStatus: string
         return match($this) {
             self::BACKLOG => 'slate',
             self::NOT_STARTED => 'slate',
-            self::IN_PROGRESS => 'amber',
+            self::IN_PROGRESS => 'blue',
+            self::AT_RISK => 'amber',
             self::BLOCKED => 'rose',
             self::UNDER_REVIEW => 'purple',
             self::COMPLETED => 'emerald',
@@ -46,7 +49,8 @@ enum WbsStatus: string
         return match($this) {
             self::BACKLOG => 'bg-slate-50 text-slate-700 border-slate-200',
             self::NOT_STARTED => 'bg-slate-50 text-slate-700 border-slate-200',
-            self::IN_PROGRESS => 'bg-amber-50 text-amber-800 border-amber-200',
+            self::IN_PROGRESS => 'bg-blue-50 text-blue-700 border-blue-200',
+            self::AT_RISK => 'bg-amber-50 text-amber-800 border-amber-200',
             self::BLOCKED => 'bg-rose-50 text-rose-700 border-rose-200',
             self::UNDER_REVIEW => 'bg-purple-50 text-purple-700 border-purple-200',
             self::COMPLETED => 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -59,7 +63,8 @@ enum WbsStatus: string
     {
         return match($this) {
             self::COMPLETED => 'bg-emerald-500',
-            self::IN_PROGRESS => 'bg-amber-500',
+            self::IN_PROGRESS => 'bg-blue-600',
+            self::AT_RISK => 'bg-amber-500',
             self::BLOCKED, self::CANCELLED => 'bg-rose-500',
             self::ON_HOLD => 'bg-amber-500',
             self::UNDER_REVIEW => 'bg-purple-500',

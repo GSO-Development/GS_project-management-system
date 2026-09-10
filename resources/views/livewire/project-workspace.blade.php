@@ -148,30 +148,18 @@
                 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500'
             ],
             \App\Enums\ProjectStatus::IN_PROGRESS => [
-                'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
+                'bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200/80', 'dot' => 'bg-blue-600'
             ],
             \App\Enums\ProjectStatus::PLANNING => [
                 'bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200/80', 'dot' => 'bg-indigo-500'
+            ],
+            \App\Enums\ProjectStatus::AT_RISK => [
+                'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
             ],
             \App\Enums\ProjectStatus::ON_HOLD => [
                 'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
             ],
             \App\Enums\ProjectStatus::DELAYED, \App\Enums\ProjectStatus::CANCELLED => [
-                'bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-200/80', 'dot' => 'bg-rose-500'
-            ],
-            default => [
-                'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'border' => 'border-slate-200/80', 'dot' => 'bg-slate-400'
-            ],
-        };
-
-        $healthStyle = match($project->health) {
-            \App\Enums\ProjectHealth::ON_TRACK => [
-                'bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500'
-            ],
-            \App\Enums\ProjectHealth::AT_RISK => [
-                'bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500'
-            ],
-            \App\Enums\ProjectHealth::DELAYED, \App\Enums\ProjectHealth::CRITICAL => [
                 'bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-200/80', 'dot' => 'bg-rose-500'
             ],
             default => [
@@ -277,12 +265,6 @@
                         <span class="relative inline-flex rounded-full h-2 w-2 {{ $statusStyle['dot'] }} shadow-xs"></span>
                     </span>
                     <span>{{ $project->status->label() }}</span>
-                </span>
-
-                <!-- Health Badge with Subtle Micro-Lift -->
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} {{ $healthStyle['border'] }} border shadow-2xs hover:scale-105 hover:shadow-xs transition-all duration-200 cursor-default select-none">
-                    <span class="w-2 h-2 rounded-full {{ $healthStyle['dot'] }} shadow-xs"></span>
-                    <span>{{ $project->health->label() }}</span>
                 </span>
 
                 <!-- Role Badge -->
@@ -2123,14 +2105,14 @@
                     </div>
                 </div>
 
-                {{-- 2. Governance, Health & Priority Section --}}
+                {{-- 2. Governance, Status & Priority Section --}}
                 <div class="bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80 space-y-3.5">
                     <div class="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
                         <span class="text-[#c3122e]">⚙️</span>
                         <span>Governance, Status &amp; Leadership</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div class="form-group">
                             <label class="form-label font-extrabold text-slate-800 text-xs mb-1 block">Execution Status <span class="text-rose-500">*</span></label>
                             <select wire:model="editStatus" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-[#c3122e] outline-none shadow-2xs cursor-pointer" required>
@@ -2139,16 +2121,6 @@
                                 @endforeach
                             </select>
                             @error('editStatus') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label font-extrabold text-slate-800 text-xs mb-1 block">Delivery Health <span class="text-rose-500">*</span></label>
-                            <select wire:model="editHealth" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-[#c3122e] outline-none shadow-2xs cursor-pointer" required>
-                                @foreach(\App\Enums\ProjectHealth::cases() as $hl)
-                                    <option value="{{ $hl->value }}">{{ $hl->label() }}</option>
-                                @endforeach
-                            </select>
-                            @error('editHealth') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="form-group">
@@ -2518,7 +2490,7 @@
                 </button>
             </div>
 
-            <!-- 2. Streamlined Property Bar (Status, Health, Priority, Deadline) -->
+            <!-- 2. Streamlined Property Bar (Status, Priority, Deadline) -->
             @php
                 $canEditProject = $project->userCan(auth()->user(), 'project.edit') || $project->userCan(auth()->user(), 'project_details.edit') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
                 $canManageTeam = $project->userCan(auth()->user(), 'team.add') || $project->userCan(auth()->user(), 'team.assign_role') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
@@ -2552,33 +2524,6 @@
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} border {{ $statusStyle['border'] }}">
                             <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
                             {{ $project->status->label() }}
-                        </span>
-                    @endif
-                </div>
-
-                <span class="text-slate-200 hidden sm:inline">•</span>
-
-                <!-- Health Dropdown / Pill -->
-                <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Health:</span>
-                    @if($canEditProject)
-                        <div class="relative inline-flex items-center">
-                            <select
-                                wire:change="updateProjectHealth($event.target.value)"
-                                class="h-7 pl-2.5 pr-6 rounded-lg text-xs font-bold {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} border {{ $healthStyle['border'] }} outline-none cursor-pointer appearance-none shadow-2xs"
-                            >
-                                @foreach(\App\Enums\ProjectHealth::cases() as $hl)
-                                    <option value="{{ $hl->value }}" @selected($project->health->value === $hl->value) class="bg-white text-slate-900">
-                                        {{ $hl->label() }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <svg class="w-3 h-3 {{ $healthStyle['text'] }} absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    @else
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold {{ $healthStyle['bg'] }} {{ $healthStyle['text'] }} border {{ $healthStyle['border'] }}">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $healthStyle['dot'] }}"></span>
-                            {{ $project->health->label() }}
                         </span>
                     @endif
                 </div>

@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\Priority;
-use App\Enums\ProjectHealth;
 use App\Enums\ProjectStatus;
 use App\Models\ActivityLog;
 use App\Models\Project;
@@ -27,8 +26,7 @@ class ProjectMonitor extends Component
     public string $search = '';
     public string $quickSegment = 'all'; // 'all', 'critical', 'at_risk', 'on_track', 'pending_pm', 'completed'
     public string $subsidiaryFilter = 'all';
-    public string $healthFilter = 'all'; // 'all', 'delayed', 'at_risk', 'on_track', 'completed'
-    public string $statusFilter = 'all'; // 'all', 'in_progress', 'planning', 'on_hold', 'completed'
+    public string $statusFilter = 'all'; // 'all', 'in_progress', 'planning', 'on_hold', 'completed', 'at_risk'
     public string $pmFilter = 'all';
     public string $deadlineFilter = 'all'; // 'all', 'overdue', 'this_week', 'this_month', 'future'
     public string $priorityFilter = 'all';
@@ -46,7 +44,7 @@ class ProjectMonitor extends Component
 
     public function updating($name): void
     {
-        if (in_array($name, ['search', 'quickSegment', 'subsidiaryFilter', 'healthFilter', 'statusFilter', 'pmFilter', 'deadlineFilter', 'priorityFilter', 'sortBy'])) {
+        if (in_array($name, ['search', 'quickSegment', 'subsidiaryFilter', 'statusFilter', 'pmFilter', 'deadlineFilter', 'priorityFilter', 'sortBy'])) {
             $this->resetPage();
         }
     }
@@ -95,7 +93,6 @@ class ProjectMonitor extends Component
         'search' => ['except' => ''],
         'quickSegment' => ['except' => 'all'],
         'subsidiaryFilter' => ['except' => 'all'],
-        'healthFilter' => ['except' => 'all'],
         'statusFilter' => ['except' => 'all'],
         'pmFilter' => ['except' => 'all'],
         'deadlineFilter' => ['except' => 'all'],
@@ -124,7 +121,6 @@ class ProjectMonitor extends Component
 
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingSubsidiaryFilter(): void { $this->resetPage(); }
-    public function updatingHealthFilter(): void { $this->resetPage(); }
     public function updatingStatusFilter(): void { $this->resetPage(); }
     public function updatingPmFilter(): void { $this->resetPage(); }
     public function updatingDeadlineFilter(): void { $this->resetPage(); }
@@ -264,7 +260,6 @@ class ProjectMonitor extends Component
     {
         $this->search = '';
         $this->subsidiaryFilter = 'all';
-        $this->healthFilter = 'all';
         $this->statusFilter = 'all';
         $this->pmFilter = 'all';
         $this->deadlineFilter = 'all';
@@ -563,13 +558,13 @@ class ProjectMonitor extends Component
             // Progress vs Schedule Delta
             $progressDelta = $project->overall_progress - $timeElapsedPct; // Negative means behind schedule!
 
-            // Accurate Dynamic RAG Health Computation
-            $computedHealth = 'on_track'; // 'on_track' (green), 'at_risk' (yellow), 'delayed' (red)
+            // Dynamic Status Computation (delayed, at_risk, on_track, completed)
+            $computedHealth = 'on_track'; // 'on_track', 'at_risk', 'delayed'
             if ($project->status->value === 'completed') {
                 $computedHealth = 'completed';
-            } elseif ($isPastDeadline || $overdueTasks > 0 || $progressDelta <= -25 || $project->health->value === 'critical' || $project->isPmRejected()) {
+            } elseif ($isPastDeadline || $overdueTasks > 0 || $progressDelta <= -25 || $project->status->value === 'delayed' || $project->isPmRejected()) {
                 $computedHealth = 'delayed';
-            } elseif ($progressDelta <= -10 || $blockedTasks > 0 || $criticalRisksCount > 0 || $project->health->value === 'at_risk' || $project->isPendingPmAcceptance()) {
+            } elseif ($progressDelta <= -10 || $blockedTasks > 0 || $criticalRisksCount > 0 || $project->status->value === 'at_risk' || $project->isPendingPmAcceptance()) {
                 $computedHealth = 'at_risk';
             }
 
@@ -649,11 +644,6 @@ class ProjectMonitor extends Component
             // Subsidiary Filter
             if ($this->subsidiaryFilter !== 'all') {
                 if ((string)$p->subsidiary_id !== $this->subsidiaryFilter) return false;
-            }
-
-            // Health Filter
-            if ($this->healthFilter !== 'all') {
-                if ($p->computed_health !== $this->healthFilter) return false;
             }
 
             // Status Filter
@@ -1347,7 +1337,6 @@ class ProjectMonitor extends Component
             'search'                  => $this->search,
             'quickSegment'            => $this->quickSegment,
             'subsidiaryFilter'        => $this->subsidiaryFilter,
-            'healthFilter'            => $this->healthFilter,
             'statusFilter'            => $this->statusFilter,
             'pmFilter'                => $this->pmFilter,
             'priorityFilter'          => $this->priorityFilter,

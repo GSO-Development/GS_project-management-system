@@ -313,28 +313,7 @@
                 @endif
             </a>
 
-            <!-- Risks & Blockers -->
-            <a href="{{ route('risks.index') }}" 
-               wire:navigate.hover
-               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('risks.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('risks.*')) }}" 
-               title="Risks & Blockers Hub">
-                <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('risks.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('risks.*') ? '2.5' : '2' }}">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Risks &amp; Blockers</span>
-                </div>
-                @if($openRisksAndBlockersCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('risks.*') ? 'bg-white text-amber-700' : 'bg-amber-50 text-amber-800 border border-amber-200/70 shadow-2xs' }}">
-                        {{ $openRisksAndBlockersCount }}
-                    </span>
-                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white"></span>
-                @endif
-            </a>
+            {{-- Risks & Blockers removed from sidebar — accessible via dashboard KPI card --}}
 
             <!-- Subsidiaries (Super Admin Only) -->
             @if($isSuperAdmin)

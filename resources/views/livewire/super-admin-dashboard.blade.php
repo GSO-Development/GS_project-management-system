@@ -87,8 +87,8 @@
             </div>
         </a>
 
-        <!-- 3. At Risk -->
-        <a href="{{ route('projects.index', ['viewMode' => 'stuck']) }}" 
+        <!-- 3. At Risk — links to Risks & Blockers Hub -->
+        <a href="{{ route('risks.index') }}" 
            class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs hover:shadow-md p-4 sm:p-5 flex items-center justify-between transition-all duration-200 group no-underline">
             <div class="flex items-center gap-3.5 min-w-0">
                 <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -99,10 +99,10 @@
                 <div class="min-w-0">
                     <span class="text-xs font-semibold text-slate-500 block">At Risk</span>
                     <span class="text-2xl sm:text-[28px] font-black text-slate-900 leading-none mt-1 block tracking-tight">
-                        {{ $healthSummary['at_risk']['count'] }}
+                        {{ $statusSummary['at_risk']['count'] }}
                     </span>
                     <span class="text-[11px] font-bold text-amber-600 block mt-1">
-                        {{ $healthSummary['at_risk']['pct'] }}% of total
+                        {{ $statusSummary['at_risk']['pct'] }}% of total
                     </span>
                 </div>
             </div>
@@ -296,11 +296,13 @@
                                 $leftPct = max(0, 100 - $spanWidthPct);
                             }
 
-                            $computedHealth = $proj->computed_health ?? 'on_track';
-                            $pillBg = match($computedHealth) {
-                                'delayed' => '#dc2626',
-                                'at_risk' => '#d97706',
-                                default   => '#059669',
+                            $projStatusVal = $proj->status?->value ?? 'in_progress';
+                            $pillBg = match($projStatusVal) {
+                                'completed' => '#059669',
+                                'delayed'   => '#dc2626',
+                                'at_risk'   => '#d97706',
+                                'on_hold'   => '#d97706',
+                                default     => '#059669',
                             };
                             
                             $dateRangeLabel = $pStart->format('M d') . ' – ' . $pEnd->format('M d');
@@ -333,7 +335,7 @@
                                 <!-- Full Width Soft Background Track -->
                                 <div style="width: 100%; height: 28px; background: #f0fdf9; border: 1px solid #e2e8f0; border-radius: 9999px; position: relative; overflow: hidden; display: flex; align-items: center;">
                                     
-                                    <!-- Solid Health-Colored Pill with Legible Date Range Text -->
+                                    <!-- Solid Status-Colored Pill with Legible Date Range Text -->
                                     <div style="position: absolute; left: {{ $leftPct }}%; width: {{ $spanWidthPct }}%; height: 100%; border-radius: 9999px; background: {{ $pillBg }}; display: flex; align-items: center; justify-content: center; padding: 0 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); transition: all 0.3s ease;">
                                         <span style="font-size: 11px; font-weight: 700; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.01em;">
                                             {{ $dateRangeLabel }}
@@ -393,24 +395,24 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
 
         <!-- ── Col 1: Risk Summary ── -->
-        <div class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs p-5 sm:p-6 flex flex-col space-y-4">
+        <a href="{{ route('risks.index') }}" class="no-underline block bg-white rounded-2xl border border-slate-100/90 shadow-2xs p-5 sm:p-6 flex flex-col space-y-4 hover:border-rose-200 hover:shadow-md transition-all duration-200 cursor-pointer group">
 
             <!-- Card Header -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
                         <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                         </svg>
                     </div>
-                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight group-hover:text-rose-700 transition-colors" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                         Risk Summary
                     </h3>
                 </div>
-                <a href="{{ route('risks.index') }}" class="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors no-underline flex items-center gap-1">
+                <span class="text-xs font-bold text-rose-600 group-hover:text-rose-800 transition-colors flex items-center gap-1">
                     <span>View All</span>
                     <span>→</span>
-                </a>
+                </span>
             </div>
 
             <!-- Top Stats Row -->
@@ -444,7 +446,7 @@
                                     ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
                                     : 'bg-emerald-50 text-emerald-700 border-emerald-200'));
                     @endphp
-                    <div class="flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                    <div class="flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl hover:bg-rose-50/60 transition-colors border border-transparent hover:border-rose-100">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-2 h-2 rounded-full {{ $dotCls }} shrink-0"></span>
                             <div class="min-w-0">
@@ -470,7 +472,7 @@
                 @endforelse
             </div>
 
-        </div>
+        </a>
 
 
         <!-- ── Col 2: Tasks Progress Donut ── -->
@@ -487,8 +489,9 @@
             @php
                 $circumference = 314.16; // 2 * PI * 50
                 $totTasks = max(1, $totalTasksCount);
-                $pctCompleted = ($completedTasksCount / $totTasks);
+                $pctCompleted = $completedTasksCount / $totTasks;
                 $strokeDash = round($pctCompleted * $circumference, 1);
+                $strokeGap  = $circumference - $strokeDash;
             @endphp
             <div class="flex flex-col items-center justify-center py-2">
                 <div class="relative w-36 h-36 flex items-center justify-center">
@@ -497,7 +500,7 @@
                         <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f5f9" stroke-width="12"/>
                         <!-- Completed stroke -->
                         <circle cx="60" cy="60" r="50" fill="transparent" stroke="#10b981" stroke-width="12"
-                                stroke-dasharray="{{ $strokeDash }} {{ $circumference }}"
+                                stroke-dasharray="{{ $strokeDash }} {{ $strokeGap }}"
                                 stroke-linecap="round"
                                 class="transition-all duration-700 ease-out"/>
                     </svg>
@@ -522,20 +525,20 @@
                     <span class="font-bold text-slate-900 font-mono group-hover:text-emerald-700 transition-colors">{{ $completedTasksCount }}</span>
                 </a>
 
-                <a href="{{ route('all-tasks.index', ['status' => 'in_progress']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-amber-50/60 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-amber-800 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <a href="{{ route('all-tasks.index', ['status' => 'in_progress']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-blue-50/60 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-blue-700 transition-colors">
+                        <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         <span>In Progress</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-amber-800 transition-colors">{{ $inProgressTasksCount }}</span>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-blue-700 transition-colors">{{ $inProgressTasksCount }}</span>
                 </a>
 
-                <a href="{{ route('all-tasks.index', ['status' => 'on_hold']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-amber-50/60 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-amber-700 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <a href="{{ route('all-tasks.index', ['status' => 'on_hold']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-rose-50/60 transition-colors">
+                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-rose-700 transition-colors">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                         <span>On Hold</span>
                     </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-amber-700 transition-colors">{{ $onHoldTasksCount }}</span>
+                    <span class="font-bold text-slate-900 font-mono group-hover:text-rose-700 transition-colors">{{ $onHoldTasksCount }}</span>
                 </a>
 
                 <a href="{{ route('all-tasks.index', ['status' => 'not_started']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-slate-100/70 transition-colors">

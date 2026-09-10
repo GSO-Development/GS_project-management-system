@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\Priority;
-use App\Enums\ProjectHealth;
 use App\Enums\ProjectStatus;
 use App\Models\ActivityLog;
 use App\Models\Project;
@@ -31,7 +30,6 @@ class ProjectIndex extends Component
     public string $managerFilter = 'all';
     public string $statusFilter = 'all';
     public string $priorityFilter = 'all';
-    public string $healthFilter = 'all';
     public int $perPage = 10;
     public bool $showMoreFilters = false;
 
@@ -82,7 +80,6 @@ class ProjectIndex extends Component
         'managerFilter' => ['except' => 'all'],
         'statusFilter' => ['except' => 'all'],
         'priorityFilter' => ['except' => 'all'],
-        'healthFilter' => ['except' => 'all'],
         'stuckTypeFilter' => ['except' => 'all'],
     ];
 
@@ -628,7 +625,7 @@ class ProjectIndex extends Component
         // ═══════════════════════════════════════════════════════════════
         // 📊 QUERY FOR PAGINATED PROJECTS TABLE
         // ═══════════════════════════════════════════════════════════════
-        $query = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'members']);
+        $query = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'members', 'risks', 'wbsItems']);
 
         if ($this->search) {
             $query->where(fn($q) => $q
@@ -656,7 +653,21 @@ class ProjectIndex extends Component
         }
 
         if ($this->healthFilter !== 'all') {
-            $query->where('health', $this->healthFilter);
+            if ($this->healthFilter === 'at_risk') {
+                $query->where(function($q) {
+                    $q->where('health', 'at_risk')
+                      ->orWhereHas('risks', fn($rq) => $rq->where('status', 'open'))
+                      ->orWhereHas('wbsItems', fn($wq) => $wq->where('status', 'blocked')->orWhereHas('blockers', fn($bq) => $bq->where('status', 'open')));
+                });
+            } elseif ($this->healthFilter === 'delayed') {
+                $query->where(function($q) {
+                    $q->where('health', 'delayed')
+                      ->orWhere('health', 'critical')
+                      ->orWhere(fn($sq) => $sq->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled']));
+                });
+            } else {
+                $query->where('health', $this->healthFilter);
+            }
         }
 
         $projects = $query->latest()->paginate($this->perPage);

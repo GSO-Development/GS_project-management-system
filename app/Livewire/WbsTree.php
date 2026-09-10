@@ -47,8 +47,8 @@ class WbsTree extends Component
     public float $weight = 1.0;
     public bool $is_milestone = false;
 
-    // Traffic Light Diagnostic Filter ('all', 'red', 'amber', 'green')
-    public string $healthFilter = 'all';
+    // Task Status Filter ('all', 'in_progress', 'at_risk', 'blocked', 'completed')
+    public string $statusFilter = 'all';
 
     // Cascade Impact Preview Modal
     public bool $showCascadeModal = false;
@@ -648,10 +648,15 @@ class WbsTree extends Component
         }
     }
 
+    public function setStatusFilter(string $filter)
+    {
+        $this->statusFilter = in_array($filter, ['all', 'in_progress', 'at_risk', 'blocked', 'completed', 'not_started']) ? $filter : 'all';
+        $this->resetPage();
+    }
+
     public function setHealthFilter(string $filter)
     {
-        $this->healthFilter = in_array($filter, ['all', 'red', 'amber', 'green', 'gray']) ? $filter : 'all';
-        $this->resetPage();
+        $this->setStatusFilter($filter);
     }
 
     public function updatedPerPage(): void
@@ -677,33 +682,33 @@ class WbsTree extends Component
 
         $allProjectItems = WbsItem::with(['risks', 'children'])->where('project_id', $this->project->id)->get();
         
-        // Calculate Traffic Light RAG statistics across all items in the project
-        $healthStats = [
-            'total' => $allProjectItems->count(),
-            'red'   => 0,
-            'amber' => 0,
-            'green' => 0,
-            'gray'  => 0,
+        // Calculate status statistics across all items in the project
+        $statusStats = [
+            'total'       => $allProjectItems->count(),
+            'in_progress' => 0,
+            'at_risk'     => 0,
+            'blocked'     => 0,
+            'completed'   => 0,
         ];
 
         foreach ($allProjectItems as $item) {
-            $status = $item->traffic_light_status;
-            if (isset($healthStats[$status])) {
-                $healthStats[$status]++;
+            $st = $item->status?->value ?? 'not_started';
+            if (isset($statusStats[$st])) {
+                $statusStats[$st]++;
             }
         }
 
         $wbsItems = $query->orderBy('sort_order')->orderBy('id')->get();
 
-        // Filter items if user selected a specific health filter
-        if ($this->healthFilter !== 'all') {
+        // Filter items if user selected a specific status filter
+        if ($this->statusFilter !== 'all') {
             $wbsItems = $wbsItems->filter(function ($item) {
-                if ($item->traffic_light_status === $this->healthFilter) {
+                if ($item->status?->value === $this->statusFilter) {
                     return true;
                 }
-                // Also show parent if any of its children match the selected health filter
+                // Also show parent if any of its children match the selected status filter
                 return $item->children->contains(function ($child) {
-                    return $child->traffic_light_status === $this->healthFilter;
+                    return $child->status?->value === $this->statusFilter;
                 });
             });
         }
@@ -725,7 +730,8 @@ class WbsTree extends Component
             'wbsItems' => $paginatedWbsItems,
             'projectMembers' => $projectMembers,
             'allWbsItems' => $allWbsItems,
-            'healthStats' => $healthStats,
+            'statusStats' => $statusStats,
+            'healthStats' => $statusStats,
         ]);
     }
 }

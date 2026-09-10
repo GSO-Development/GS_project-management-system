@@ -4,7 +4,8 @@
             @php
                 $statusDotColor = match($statusKey) {
                     'not_started', 'backlog' => 'bg-slate-400',
-                    'in_progress'            => 'bg-amber-500',
+                    'in_progress'            => 'bg-blue-600',
+                    'at_risk'                => 'bg-amber-500',
                     'under_review'           => 'bg-purple-500',
                     'completed'              => 'bg-emerald-500',
                     'blocked'                => 'bg-rose-500',
@@ -69,7 +70,7 @@
                                         $progressBarClass = match(true) {
                                             $item->progress == 100 || $item->status?->value === 'completed' => 'bg-emerald-500',
                                             $item->status?->value === 'blocked' || $itemIsOverdue => 'bg-rose-500',
-                                            $item->progress > 0 || $item->status?->value === 'in_progress' => 'bg-amber-500',
+                                            $item->progress > 0 || $item->status?->value === 'in_progress' => 'bg-blue-600',
                                             default => 'bg-slate-300',
                                         };
                                     @endphp

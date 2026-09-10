@@ -288,49 +288,78 @@ class ProjectManagerDashboard extends Component
      */
     protected function calculateTasksTrend(array $myProjectIds): array
     {
+        $user = auth()->user();
+
+        // Also capture any projects where user has assigned tasks directly
+        $assignedTaskProjectIds = WbsItem::where('assigned_user_id', $user->id)
+            ->pluck('project_id')
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        $targetProjectIds = array_values(array_unique(array_merge($myProjectIds, $assignedTaskProjectIds)));
         $points = [];
         $today = now()->today();
         
         if ($this->chartPeriod === 'month') {
-            // 4 Weeks of Current Month
-            $startOfMonth = now()->startOfMonth();
-            for ($w = 1; $w <= 4; $w++) {
-                $weekStart = $startOfMonth->copy()->addWeeks($w - 1);
-                $weekEnd = $weekStart->copy()->endOfWeek();
-                $label = "Wk {$w}";
-                $isCurrentOrPast = $weekStart->lte($today);
+            // Full calendar weeks of current month
+            $monthStart = now()->startOfMonth();
+            $monthEnd = now()->endOfMonth();
+            $cursor = $monthStart->copy()->startOfWeek();
+            $w = 1;
 
-                if ($isCurrentOrPast) {
-                    $comp = WbsItem::whereIn('project_id', $myProjectIds)
+            while ($cursor->lte($monthEnd)) {
+                $weekStart = $cursor->copy();
+                $weekEnd = $cursor->copy()->endOfWeek();
+                $isCurrentWeek = now()->between($weekStart, $weekEnd);
+                $isFutureWeek = $weekStart->gt($today);
+
+                // Clamp display dates to month bounds
+                $displayStart = $weekStart->lt($monthStart) ? $monthStart : $weekStart;
+                $displayEnd = $weekEnd->gt($monthEnd) ? $monthEnd : $weekEnd;
+
+                $label = "Week {$w}";
+                $sub = $displayStart->format('M d') . ' - ' . $displayEnd->format('d');
+
+                if (!empty($targetProjectIds)) {
+                    $comp = WbsItem::whereIn('project_id', $targetProjectIds)
                         ->where('status', \App\Enums\WbsStatus::COMPLETED)
-                        ->whereDate('updated_at', '<=', $weekEnd)
+                        ->whereBetween('updated_at', [$weekStart->startOfDay(), $weekEnd->endOfDay()])
                         ->count();
 
-                    $inProg = WbsItem::whereIn('project_id', $myProjectIds)
+                    $inProg = WbsItem::whereIn('project_id', $targetProjectIds)
                         ->where('status', \App\Enums\WbsStatus::IN_PROGRESS)
-                        ->whereDate('updated_at', '<=', $weekEnd)
+                        ->where(function($q) use ($weekStart, $weekEnd) {
+                            $q->whereBetween('updated_at', [$weekStart->startOfDay(), $weekEnd->endOfDay()])
+                              ->orWhere(function($sq) use ($weekStart, $weekEnd) {
+                                  $sq->whereDate('start_date', '<=', $weekEnd->toDateString())
+                                     ->whereDate('end_date', '>=', $weekStart->toDateString());
+                              });
+                        })
                         ->count();
 
-                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
+                    $pend = WbsItem::whereIn('project_id', $targetProjectIds)
+                        ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
                         ->whereBetween('end_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
                         ->count();
                 } else {
                     $comp = 0;
                     $inProg = 0;
-                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
-                        ->whereBetween('end_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
-                        ->count();
+                    $pend = 0;
                 }
 
                 $points[] = [
                     'label' => $label,
-                    'sub' => $weekStart->format('M d'),
-                    'isToday' => now()->between($weekStart, $weekEnd),
-                    'isFuture' => $weekStart->gt($today),
+                    'sub' => $sub,
+                    'isToday' => $isCurrentWeek,
+                    'isFuture' => $isFutureWeek,
                     'completed' => $comp,
                     'in_progress' => $inProg,
                     'pending' => $pend,
                 ];
+
+                $cursor->addWeek();
+                $w++;
             }
         } else {
             // 7 Days: Mon, Tue, Wed, Thu, Fri, Sat, Sun
@@ -341,35 +370,43 @@ class ProjectManagerDashboard extends Component
                 $dateStr = $date->format('Y-m-d');
                 $dayLabel = $date->format('D');
                 $isToday = $date->isToday();
-                $isPastOrToday = $date->lte($today);
+                $isFuture = $date->gt($today);
 
-                if ($isPastOrToday) {
-                    $comp = WbsItem::whereIn('project_id', $myProjectIds)
+                if (!empty($targetProjectIds)) {
+                    // Tasks completed on this specific day
+                    $comp = WbsItem::whereIn('project_id', $targetProjectIds)
                         ->where('status', \App\Enums\WbsStatus::COMPLETED)
-                        ->whereDate('updated_at', '<=', $dateStr)
+                        ->whereDate('updated_at', $dateStr)
                         ->count();
 
-                    $inProg = WbsItem::whereIn('project_id', $myProjectIds)
+                    // Tasks in progress on this day
+                    $inProg = WbsItem::whereIn('project_id', $targetProjectIds)
                         ->where('status', \App\Enums\WbsStatus::IN_PROGRESS)
-                        ->whereDate('updated_at', '<=', $dateStr)
+                        ->where(function($q) use ($dateStr) {
+                            $q->whereDate('updated_at', $dateStr)
+                              ->orWhere(function($sq) use ($dateStr) {
+                                  $sq->whereDate('start_date', '<=', $dateStr)
+                                     ->whereDate('end_date', '>=', $dateStr);
+                              });
+                        })
                         ->count();
 
-                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
+                    // Tasks due or pending deadline on this day
+                    $pend = WbsItem::whereIn('project_id', $targetProjectIds)
+                        ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
                         ->whereDate('end_date', $dateStr)
                         ->count();
                 } else {
                     $comp = 0;
                     $inProg = 0;
-                    $pend = WbsItem::whereIn('project_id', $myProjectIds)
-                        ->whereDate('end_date', $dateStr)
-                        ->count();
+                    $pend = 0;
                 }
 
                 $points[] = [
                     'label' => $dayLabel,
                     'sub' => $date->format('M d'),
                     'isToday' => $isToday,
-                    'isFuture' => $date->gt($today),
+                    'isFuture' => $isFuture,
                     'completed' => $comp,
                     'in_progress' => $inProg,
                     'pending' => $pend,
@@ -378,13 +415,13 @@ class ProjectManagerDashboard extends Component
         }
 
         // Dynamic Chart Y-Max and Scale
-        $allVals = [];
+        $allVals = [5];
         foreach ($points as $pt) {
             $allVals[] = $pt['completed'];
             $allVals[] = $pt['in_progress'];
             $allVals[] = $pt['pending'];
         }
-        $maxVal = max(5, max($allVals ?: [5]));
+        $maxVal = max($allVals);
         $chartYMax = max(5, (int)(ceil($maxVal / 5) * 5));
 
         return [
@@ -422,10 +459,7 @@ class ProjectManagerDashboard extends Component
         // Total unique projects user is involved in (as Lead PM, Member, Governance, or Task Assignee)
         $involvedProjectIds = Project::where(function($q) use ($user) {
             $q->where('project_manager_id', $user->id)
-              ->orWhere(function($sub) use ($user) {
-                  $sub->where('pm_accepted', true)
-                      ->whereHas('members', fn($m) => $m->where('users.id', $user->id));
-              })
+              ->orWhereHas('members', fn($m) => $m->where('users.id', $user->id))
               ->orWhereHas('wbsItems', fn($w) => $w->where('assigned_user_id', $user->id));
         })->pluck('id')->toArray();
 

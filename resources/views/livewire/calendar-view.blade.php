@@ -40,6 +40,18 @@
                 </button>
             </div>
 
+            <!-- Live Microsoft 365 Sync Button -->
+            <button
+                wire:click="refreshCalendarSchedule"
+                type="button"
+                class="p-1.5 px-2.5 rounded-xl border border-sky-200 bg-sky-50 text-[#0078d4] hover:bg-sky-100 hover:border-sky-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Sync and Refresh Live Microsoft 365 Outlook Schedules"
+            >
+                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                <span class="hidden sm:inline">Sync Outlook</span>
+                <svg wire:loading.class="animate-spin" class="w-3 h-3 text-[#0078d4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+
             <!-- View Switcher -->
             <div class="inline-flex p-0.5 rounded-xl border border-slate-200 bg-slate-100/90 shadow-2xs text-xs font-bold">
                 <button wire:click="setViewMode('calendar')" type="button" class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900' }}">
@@ -55,17 +67,6 @@
                     Schedule
                 </button>
             </div>
-
-            <!-- Outlook Sync Button -->
-            <button
-                wire:click="openSubscribeModal"
-                type="button"
-                class="cal-btn-outline px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0"
-                title="Sync calendar with Microsoft Outlook"
-            >
-                <svg class="w-3.5 h-3.5 text-[#0078d4]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
-                <span>Outlook Sync</span>
-            </button>
 
             <!-- Schedule Event Button (PMO Admin or PM only) -->
             @if($canCreate)
@@ -900,6 +901,9 @@
                                     <button type="button" wire:click="deselectAllAttendees" class="text-xs font-medium text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">Clear</button>
                                 </div>
                             </div>
+                            @error('newEventAttendees')
+                                <p class="text-xs text-rose-600 font-semibold leading-tight">{{ $message }}</p>
+                            @enderror
 
                             <!-- Search Input -->
                             <div class="relative">
@@ -918,7 +922,7 @@
                                 <div class="h-[320px] overflow-y-auto divide-y divide-slate-100 scrollbar-slim">
                                     @forelse($this->projectAttendees as $attendee)
                                         @php
-                                            $isSelected = in_array((int)$attendee->id, $newEventAttendees);
+                                            $isSelected = in_array((int)$attendee->id, array_map('intval', $newEventAttendees), true);
                                             $initials = $this->getInitials($attendee->name);
                                             $avatarColors = [
                                                 '#0284c7', '#059669', '#7c3aed', '#d97706', '#db2777', '#0d9488', '#4f46e5', '#ea580c'
@@ -1178,18 +1182,21 @@
                                                     @forelse($sched['busy_slots'] as $slot)
                                                         @php
                                                             $isTentative = (($slot['status'] ?? '') === 'tentative' || ($slot['is_tentative'] ?? false));
+                                                            $slotText = !empty($slot['subject']) && !in_array($slot['subject'], ['Busy', 'Busy (Outlook)']) 
+                                                                ? $slot['subject'] 
+                                                                : ($isTentative ? 'Tentative' : 'Busy');
                                                         @endphp
                                                         @if($isTentative)
                                                             <div class="absolute top-1 bottom-1 rounded-md bg-sky-50 border border-sky-300 text-sky-700 flex items-center justify-center overflow-hidden z-15 shadow-2xs"
                                                                  style="left:{{ $slot['left_pct'] }}%;width:{{ max($slot['width_pct'], 4.5) }}%;min-width:18px;background: repeating-linear-gradient(45deg, rgba(0, 120, 212, 0.15), rgba(0, 120, 212, 0.15) 3px, #ffffff 3px, #ffffff 6px);"
-                                                                 title="{{ $sched['name'] }}: Tentative ({{ $slot['start'] }}–{{ $slot['end'] }})">
-                                                                <span class="truncate px-0.5 text-[7.5px] font-bold text-sky-800">Tentative</span>
+                                                                 title="{{ $sched['name'] }}: {{ $slotText }} ({{ $slot['start'] }}–{{ $slot['end'] }}) • Microsoft Outlook">
+                                                                <span class="truncate px-1 text-[7.5px] font-bold text-sky-800">{{ $slotText }}</span>
                                                             </div>
                                                         @else
                                                             <div class="absolute top-1 bottom-1 rounded-md bg-[#0078d4] text-white flex items-center justify-center overflow-hidden z-15 shadow-2xs hover:brightness-110 transition-all"
                                                                  style="left:{{ $slot['left_pct'] }}%;width:{{ max($slot['width_pct'], 4.5) }}%;min-width:18px;"
-                                                                 title="{{ $sched['name'] }}: Busy ({{ $slot['start'] }}–{{ $slot['end'] }})">
-                                                                <span class="truncate px-0.5 text-[8px] font-bold">Busy</span>
+                                                                 title="{{ $sched['name'] }}: {{ $slotText }} ({{ $slot['start'] }}–{{ $slot['end'] }}) • Microsoft Outlook">
+                                                                <span class="truncate px-1 text-[8px] font-bold">{{ $slotText }}</span>
                                                             </div>
                                                         @endif
                                                     @empty

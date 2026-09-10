@@ -179,24 +179,18 @@
                 @php
                     $pct = (int) $prj->overall_progress;
                     $pm = $prj->projectManager;
-                    $hs = match($prj->health->value ?? 'on_track') {
-                        'on_track' => ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500', 'label' => 'ON TRACK'],
-                        'at_risk'  => ['bg' => 'bg-amber-50', 'border' => 'border-amber-200', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500', 'label' => 'AT RISK'],
-                        'delayed'  => ['bg' => 'bg-rose-50', 'border' => 'border-rose-200', 'text' => 'text-rose-700', 'dot' => 'bg-rose-500', 'label' => 'DELAYED'],
-                        default    => ['bg' => 'bg-slate-50', 'border' => 'border-slate-200', 'text' => 'text-slate-600', 'dot' => 'bg-slate-400', 'label' => 'ON TRACK'],
-                    };
                 @endphp
                 <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
                     
-                    {{-- Card Top Row: Code Badge & Health Pill --}}
+                    {{-- Card Top Row: Code Badge & Status Pill --}}
                     <div>
                         <div class="flex items-center justify-between gap-2">
                             <span class="shadow-sm flex-shrink-0" style="background: #fff1f2; color: #c3122e; border: 1px solid #ffe4e6; font-family: monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px;">
                                 {{ $prj->code ?? 'PRJ' }}
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold {{ $hs['bg'] }} {{ $hs['text'] }} border {{ $hs['border'] }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $hs['dot'] }}"></span>
-                                <span>{{ $hs['label'] }}</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold {{ $prj->status->badgeClass() }} border">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $prj->status->badgeDotClass() }}"></span>
+                                <span>{{ $prj->status->label() }}</span>
                             </span>
                         </div>
 

@@ -28,9 +28,9 @@
                 [
                     'label' => 'Active Delivery',
                     'count' => $activeCollabCount,
-                    'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
-                    'iconBg' => 'bg-amber-50 text-amber-600',
-                    'border' => 'hover:border-amber-400',
+                    'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+                    'iconBg' => 'bg-blue-50 text-blue-600',
+                    'border' => 'hover:border-blue-400',
                     'active' => $statusFilter === 'in_progress',
                     'action' => '$set("statusFilter", "in_progress")'
                 ],
@@ -157,7 +157,7 @@
                             $daysLeft = $p->deadline ? (int) now()->today()->diffInDays($p->deadline, false) : null;
                             $isOverdue = $daysLeft !== null && $daysLeft < 0 && !in_array($p->status->value, ['completed','cancelled']);
                             $statusConfig = match($p->status->value) {
-                                'in_progress' => ['dot' => 'bg-amber-500',   'text' => 'text-amber-800',   'bg' => 'bg-amber-50',   'border' => 'border-amber-200',   'label' => 'In Progress'],
+                                'in_progress' => ['dot' => 'bg-blue-600',   'text' => 'text-blue-700',   'bg' => 'bg-blue-50',   'border' => 'border-blue-200',   'label' => 'In Progress'],
                                 'completed'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'label' => 'Completed'],
                                 'delayed'     => ['dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50',    'border' => 'border-rose-200',    'label' => 'Delayed'],
                                 'on_hold'     => ['dot' => 'bg-amber-500',   'text' => 'text-amber-800',   'bg' => 'bg-amber-50',   'border' => 'border-amber-200',   'label' => 'On Hold'],

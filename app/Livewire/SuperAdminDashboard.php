@@ -330,9 +330,14 @@ class SuperAdminDashboard extends Component
         $pendingApprovals = ApprovalRequest::where('status', ApprovalStatus::PENDING)->count();
 
         // Total Tasks & Overdue Tasks
-        $totalTasksCount = WbsItem::count();
-        $completedTasksCount = WbsItem::where('status', 'completed')->count();
+        $completedTasksCount  = WbsItem::where('status', 'completed')->count();
         $inProgressTasksCount = WbsItem::where('status', 'in_progress')->count();
+        $onHoldTasksCount     = WbsItem::whereIn('status', ['blocked', 'on_hold'])->count();
+        $notStartedTasksCount = WbsItem::whereIn('status', ['not_started', 'draft', 'pending'])->count();
+
+        // Total = sum of the four displayed buckets (so percentage matches the legend breakdown)
+        $totalTasksCount = $completedTasksCount + $inProgressTasksCount + $onHoldTasksCount + $notStartedTasksCount;
+
         $overdueTasksCount = WbsItem::where('end_date', '<', now()->today())
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->count();
@@ -341,9 +346,6 @@ class SuperAdminDashboard extends Component
             ->where('end_date', '<=', now()->today()->addDays(7))
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->count();
-        
-        $onHoldTasksCount = WbsItem::whereIn('status', ['blocked', 'on_hold'])->count();
-        $notStartedTasksCount = WbsItem::whereIn('status', ['not_started', 'draft', 'pending'])->count();
         
         // Overall progress / budget utilization rate
         $avgProgress = Project::whereNotIn('status', ['cancelled'])->avg('overall_progress');
@@ -354,14 +356,30 @@ class SuperAdminDashboard extends Component
         $projTrendCount = Project::where('created_at', '>=', now()->subDays(30))->count();
         $tasksTrendCount = WbsItem::where('created_at', '>=', now()->subDays(30))->count();
 
-        // Project Health Summary (100% Real-time database metrics)
-        $delayedHealthCount = Project::where('health', 'delayed')
-            ->orWhere(fn($q) => $q->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled']))
-            ->count();
-        $atRiskHealthCount = Project::where('health', 'at_risk')->count();
-        $onTrackHealthCount = max(0, $totalProjects - ($delayedHealthCount + $atRiskHealthCount + $notStartedProjects));
-        
-        $healthSummary = [
+        // Project Health Summary (100% Real-time database metrics factoring in open risks & blockers)
+        $allActiveProjects = Project::with(['risks', 'wbsItems'])
+            ->whereNotIn('status', ['cancelled'])
+            ->get();
+
+        $delayedHealthCount = 0;
+        $atRiskHealthCount = 0;
+        $onTrackHealthCount = 0;
+
+        foreach ($allActiveProjects as $p) {
+            if (in_array($p->status?->value, ['draft', 'not_started'])) {
+                continue;
+            }
+            $st = $p->status?->value ?? 'in_progress';
+            if ($st === 'delayed') {
+                $delayedHealthCount++;
+            } elseif ($st === 'at_risk') {
+                $atRiskHealthCount++;
+            } else {
+                $onTrackHealthCount++;
+            }
+        }
+
+        $statusSummary = [
             'total' => $totalProjects,
             'on_track' => [
                 'count' => $onTrackHealthCount,
@@ -380,12 +398,15 @@ class SuperAdminDashboard extends Component
                 'pct' => $totalProjects > 0 ? (int) round(($notStartedProjects / $totalProjects) * 100) : 0,
             ],
         ];
+        $healthSummary = $statusSummary;
 
         // Status Chart Data
+        $atRiskProjects = Project::where('status', 'at_risk')->count();
         $statusChartData = [
             'not_started' => $notStartedProjects,
             'planning' => $planningProjects,
             'in_progress' => $inProgressProjects,
+            'at_risk' => $atRiskProjects,
             'on_hold' => $onHoldProjects,
             'completed' => $completedProjects,
         ];
@@ -460,7 +481,7 @@ class SuperAdminDashboard extends Component
         $isCurrentMonth = $this->timelineMonthOffset === 0;
 
         // Latest maximum 4 Projects for the Timeline Widget
-        $timelineProjects = Project::with(['subsidiary', 'projectManager'])
+        $timelineProjects = Project::with(['subsidiary', 'projectManager', 'risks', 'wbsItems'])
             ->whereNotIn('status', ['cancelled'])
             ->latest('id')
             ->take(4)
@@ -671,6 +692,7 @@ class SuperAdminDashboard extends Component
             'subsTrendCount',
             'projTrendCount',
             'tasksTrendCount',
+            'statusSummary',
             'healthSummary',
             'statusChartData',
             'maxStatusVal',

@@ -260,7 +260,7 @@
                                         $tStatus = $task->status ?? 'not_started';
                                         $tColor = match($tStatus) {
                                             'completed'   => 'text-emerald-700 bg-emerald-50 border-emerald-200',
-                                            'in_progress' => 'text-amber-800 bg-amber-50 border-amber-200',
+                                            'in_progress' => 'text-blue-700 bg-blue-50 border-blue-200',
                                             'blocked'     => 'text-rose-700 bg-rose-50 border-rose-200',
                                             'delayed'     => 'text-rose-700 bg-rose-50 border-rose-200',
                                             'on_hold'     => 'text-amber-800 bg-amber-50 border-amber-200',

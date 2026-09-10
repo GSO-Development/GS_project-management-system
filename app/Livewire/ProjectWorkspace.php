@@ -92,7 +92,6 @@ class ProjectWorkspace extends Component
     public ?string $editDescription = null;
     public ?string $editPriority = null;
     public ?string $editStatus = null;
-    public ?string $editHealth = null;
     public ?string $editStartDate = null;
     public ?string $editDeadline = null;
     public ?float $editEstimatedBudget = null;
@@ -277,7 +276,6 @@ class ProjectWorkspace extends Component
         $this->editDescription = $this->project->description ?? '';
         $this->editPriority = $this->project->priority ? $this->project->priority->value : 'medium';
         $this->editStatus = $this->project->status ? $this->project->status->value : 'planning';
-        $this->editHealth = $this->project->health ? $this->project->health->value : 'on_track';
         $this->editStartDate = $this->project->start_date ? $this->project->start_date->format('Y-m-d') : null;
         $this->editDeadline = $this->project->deadline ? $this->project->deadline->format('Y-m-d') : null;
         $this->editEstimatedBudget = (float) ($this->project->estimated_budget ?? 0);
@@ -301,7 +299,6 @@ class ProjectWorkspace extends Component
             'editDescription' => 'nullable|string',
             'editPriority' => 'required|string',
             'editStatus' => 'required|string',
-            'editHealth' => 'required|string',
             'editStartDate' => 'nullable|date',
             'editDeadline' => 'nullable|date',
             'editEstimatedBudget' => 'nullable|numeric|min:0',
@@ -328,7 +325,6 @@ class ProjectWorkspace extends Component
         $this->project->description = $this->editDescription;
         $this->project->priority = $this->editPriority;
         $this->project->status = $this->editStatus;
-        $this->project->health = $this->editHealth;
         $this->project->start_date = $this->editStartDate ?: null;
         $this->project->deadline = $this->editDeadline ?: null;
         $this->project->estimated_budget = $this->editEstimatedBudget ?: 0;
@@ -621,22 +617,6 @@ class ProjectWorkspace extends Component
             }
             $this->project->save();
             $this->dispatch('toast', message: 'Project status updated to ' . $statusEnum->label(), type: 'success');
-        }
-    }
-
-    public function updateProjectHealth(string $newHealth)
-    {
-        $user = auth()->user();
-        if (!$this->project->userCan($user, 'project.edit') && !$this->project->userCan($user, 'project_details.edit') && !$user->isSuperAdmin() && !$user->isPmoAdmin()) {
-            $this->dispatch('toast', message: 'You do not have permission to edit project details.', type: 'error');
-            return;
-        }
-
-        $healthEnum = \App\Enums\ProjectHealth::tryFrom($newHealth);
-        if ($healthEnum) {
-            $this->project->health = $healthEnum;
-            $this->project->save();
-            $this->dispatch('toast', message: 'Project health updated to ' . $healthEnum->label(), type: 'success');
         }
     }
 

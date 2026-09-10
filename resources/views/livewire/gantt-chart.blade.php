@@ -250,7 +250,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                             $taskStyle = match($item->status->value) {
                                 'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-700 text-white shadow-xs shadow-emerald-950/20',
-                                'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 text-white shadow-xs shadow-amber-950/20',
+                                'in_progress' => 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-700 text-white shadow-xs shadow-blue-950/20',
                                 'blocked'     => 'bg-gradient-to-r from-rose-500 to-rose-600 border-rose-700 text-white shadow-xs shadow-rose-950/20',
                                 default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-600 text-white shadow-xs shadow-slate-950/20',
                             };
@@ -392,7 +392,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                                         $hourBg = match($item->status->value) {
                                             'completed'   => 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-700 shadow-xs shadow-emerald-950/20',
-                                            'in_progress' => 'bg-gradient-to-r from-amber-500 to-amber-600 border-amber-700 shadow-xs shadow-amber-950/20',
+                                            'in_progress' => 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-700 shadow-xs shadow-blue-950/20',
                                             'blocked'     => 'bg-gradient-to-r from-rose-500 to-rose-600 border-rose-700 shadow-xs shadow-rose-950/20',
                                             default       => 'bg-gradient-to-r from-slate-400 to-slate-500 border-slate-600 shadow-xs shadow-slate-950/20',
                                         };

@@ -25,6 +25,8 @@ class ProjectRisk extends Model
         'status',
     ];
 
+    protected $touches = ['project'];
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

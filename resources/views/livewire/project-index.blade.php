@@ -117,8 +117,8 @@
             <!-- Metric 1: Total Projects -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'all'); $set('healthFilter', 'all')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ ($statusFilter === 'all' && $healthFilter === 'all') ? 'border-slate-800 ring-2 ring-slate-800/10 shadow-xs bg-slate-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                wire:click="$set('statusFilter', 'all')"
+                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'all' ? 'border-slate-800 ring-2 ring-slate-800/10 shadow-xs bg-slate-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
             >
                 <div class="flex items-center gap-3.5 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 border border-slate-200/70 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
@@ -134,7 +134,7 @@
             <!-- Metric 2: Active in Progress -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'in_progress'); $set('healthFilter', 'all')"
+                wire:click="$set('statusFilter', 'in_progress')"
                 class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'in_progress' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs bg-amber-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
             >
                 <div class="flex items-center gap-3.5 min-w-0">
@@ -151,8 +151,8 @@
             <!-- Metric 3: Past Deadline -->
             <button 
                 type="button" 
-                wire:click="$set('healthFilter', 'delayed'); $set('statusFilter', 'all')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $healthFilter === 'delayed' ? 'border-rose-500 ring-2 ring-rose-500/15 shadow-xs bg-rose-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                wire:click="$set('statusFilter', 'delayed')"
+                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'delayed' ? 'border-rose-500 ring-2 ring-rose-500/15 shadow-xs bg-rose-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
             >
                 <div class="flex items-center gap-3.5 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
@@ -168,7 +168,7 @@
             <!-- Metric 4: On Hold / Standby -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'on_hold'); $set('healthFilter', 'all')"
+                wire:click="$set('statusFilter', 'on_hold')"
                 class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'on_hold' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs bg-amber-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
             >
                 <div class="flex items-center gap-3.5 min-w-0">
@@ -227,21 +227,8 @@
                         </div>
                     </div>
 
-                    <!-- Health Filter -->
-                    <div class="relative">
-                        <select wire:model.live="healthFilter" class="appearance-none bg-slate-50/80 border border-slate-200/90 text-slate-700 text-xs font-semibold py-2 pl-3 pr-8 rounded-xl hover:bg-white hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e]/80 cursor-pointer transition-all">
-                            <option value="all">All Health</option>
-                            @foreach(App\Enums\ProjectHealth::cases() as $hlth)
-                                <option value="{{ $hlth->value }}">{{ $hlth->label() }}</option>
-                            @endforeach
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    </div>
-
                     <!-- Reset Filters Button -->
-                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $healthFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all')
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all')
                         <button 
                             type="button" 
                             wire:click="resetFilters" 
@@ -268,7 +255,7 @@
                     </span>
                 </div>
                 <div class="flex items-center gap-2">
-                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $healthFilter !== 'all')
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all')
                         <span class="text-xs font-medium text-slate-400">Filtered view</span>
                     @endif
                 </div>
@@ -282,7 +269,6 @@
                             <th class="py-3.5 px-4 min-w-[180px]">Subsidiary</th>
                             <th class="py-3.5 px-4 min-w-[170px]">Project Manager</th>
                             <th class="py-3.5 px-4 min-w-[120px]">Status</th>
-                            <th class="py-3.5 px-4 min-w-[120px]">Health</th>
                             <th class="py-3.5 px-4 min-w-[130px]">Progress</th>
                             <th class="py-3.5 px-4 min-w-[120px]">Deadline</th>
                             <th class="py-3.5 pl-4 pr-6 text-right min-w-[140px]">Actions</th>
@@ -350,7 +336,8 @@
                                     @php
                                         $stConfig = match($project->status->value) {
                                             'completed' => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500'],
-                                            'in_progress' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200/80', 'dot' => 'bg-amber-500'],
+                                            'in_progress' => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200/80', 'dot' => 'bg-blue-500'],
+                                            'at_risk' => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90', 'dot' => 'bg-amber-500'],
                                             'planning' => ['bg' => 'bg-sky-50 text-sky-700 border-sky-200/80', 'dot' => 'bg-sky-500'],
                                             'on_hold' => ['bg' => 'bg-slate-100 text-slate-600 border-slate-200', 'dot' => 'bg-slate-400'],
                                             'under_review' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200/80', 'dot' => 'bg-purple-500'],
@@ -364,22 +351,6 @@
                                     </span>
                                 </td>
 
-                                <!-- Health -->
-                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                    @php
-                                        $hlthConfig = match($project->health->value) {
-                                            'on_track' => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500'],
-                                            'at_risk' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200/80', 'dot' => 'bg-amber-500'],
-                                            'delayed' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/80', 'dot' => 'bg-rose-500'],
-                                            'critical' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/80', 'dot' => 'bg-rose-500 animate-pulse'],
-                                            default => ['bg' => 'bg-slate-100 text-slate-600 border-slate-200', 'dot' => 'bg-slate-400'],
-                                        };
-                                    @endphp
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border {{ $hlthConfig['bg'] }}">
-                                        <span class="w-1.5 h-1.5 rounded-full {{ $hlthConfig['dot'] }}"></span>
-                                        <span>{{ $project->health->label() }}</span>
-                                    </span>
-                                </td>
 
                                 <!-- Progress -->
                                 <td class="py-3.5 px-4 align-middle">
@@ -457,7 +428,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-12 text-center text-slate-400 font-medium">
+                                <td colspan="7" class="py-12 text-center text-slate-400 font-medium">
                                     <div class="flex flex-col items-center justify-center">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -583,13 +554,13 @@
                             @endforeach
                         </select>
 
-                        <!-- Health Select -->
-                        <select wire:model.live="healthFilter" 
+                        <!-- Status Select -->
+                        <select wire:model.live="statusFilter" 
                                 class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer shrink-0">
-                            <option value="all">🚦 Health: All</option>
-                            <option value="good">🟢 On Track</option>
-                            <option value="at_risk">🟡 At Risk</option>
-                            <option value="critical">🔴 Delayed</option>
+                            <option value="all">🚦 All Statuses</option>
+                            @foreach(App\Enums\ProjectStatus::cases() as $st)
+                                <option value="{{ $st->value }}">{{ $st->label() }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -653,18 +624,21 @@
                             @forelse($ganttTimeline['projects'] as $gp)
                                 @php
                                     $proj = $gp['project'];
-                                    $rawHealth = $proj->health->value ?? 'good';
+                                    $rawStatus = $proj->status->value ?? 'planning';
                                     
-                                    $hBadge = match($rawHealth) {
-                                        'critical', 'delayed' => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
+                                    $hBadge = match($rawStatus) {
+                                        'delayed'             => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
                                         'at_risk'             => 'bg-amber-50 text-amber-800 border-amber-200/80',
-                                        default               => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                                        'completed'           => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                                        'in_progress'         => 'bg-blue-50 text-blue-800 border-blue-200/80',
+                                        default               => 'bg-slate-50 text-slate-700 border-slate-200/80',
                                     };
                                     
-                                    $barBgColor = match($rawHealth) {
-                                        'critical', 'delayed' => 'bg-gradient-to-r from-[#c3122e] via-[#b01029] to-[#940c21] border-[#800a1c] shadow-xs shadow-rose-950/20',
+                                    $barBgColor = match($rawStatus) {
+                                        'delayed'             => 'bg-gradient-to-r from-[#c3122e] via-[#b01029] to-[#940c21] border-[#800a1c] shadow-xs shadow-rose-950/20',
                                         'at_risk'             => 'bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 border-amber-700 shadow-xs shadow-amber-950/20',
-                                        default               => 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
+                                        'completed'           => 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
+                                        default               => 'bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 border-slate-700 shadow-xs shadow-slate-950/20',
                                     };
 
                                     $barWidthPct = max(3.5, $gp['width_pct']);
@@ -712,7 +686,7 @@
                                             </span>
                                             <span class="text-slate-300">•</span>
                                             <span class="px-2 py-0.5 rounded-full font-black text-[9px] border uppercase {{ $hBadge }} shrink-0">
-                                                {{ $proj->health->label() }} • {{ $gp['progress'] }}%
+                                                {{ $proj->status->label() }} • {{ $gp['progress'] }}%
                                             </span>
                                         </div>
                                     </div>
@@ -1124,7 +1098,8 @@
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border 
                                     {{ match($selectedDrawerProject->status->value) {
                                         'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                        'in_progress' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                        'in_progress' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                        'at_risk'     => 'bg-amber-50 text-amber-800 border-amber-200',
                                         'delayed'     => 'bg-rose-50 text-rose-700 border-rose-200',
                                         default       => 'bg-slate-100 text-slate-700 border-slate-200',
                                     } }}">
@@ -1158,7 +1133,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. Project Executive Health & KPI Summary Strip -->
+                    <!-- 2. Project Executive Status & KPI Summary Strip -->
                     <div class="px-4 sm:px-6 py-3 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
                         <!-- Progress -->
                         <div class="flex items-center gap-3 min-w-[180px]">
