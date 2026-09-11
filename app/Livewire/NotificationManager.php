@@ -15,7 +15,7 @@ class NotificationManager extends Component
 
     public string $search = '';
     public string $categoryTab = 'all'; // 'all', 'updates', 'approvals', 'task_completed'
-    public string $statusFilter = 'all'; // 'all', 'unread', 'read'
+    public string $statusFilter = 'unread'; // 'unread', 'read', 'all'
     public string $projectFilter = 'all'; // 'all' or project name/id
     public array $selectedIds = [];
     public bool $selectAll = false;
@@ -302,6 +302,11 @@ class NotificationManager extends Component
         $updatesCount       = $allNotifs->filter(fn($n) => $categorize($n) === 'updates')->count();
         $approvalsCount     = $allNotifs->filter(fn($n) => $categorize($n) === 'approvals')->count();
         $taskCompletedCount = $allNotifs->filter(fn($n) => $categorize($n) === 'task_completed')->count();
+        $blockersCount      = $allNotifs->filter(function($n) {
+            $cat = $n->data['category'] ?? null;
+            $msg = strtolower(($n->data['message'] ?? '') . ' ' . ($n->data['title'] ?? ''));
+            return $cat === 'blocker' || str_contains($msg, 'blocker') || str_contains($msg, 'overdue') || str_contains($msg, 'delay');
+        })->count();
 
         // Base query
         $query = $user->notifications();
@@ -350,6 +355,7 @@ class NotificationManager extends Component
             'updatesCount'       => $updatesCount,
             'approvalsCount'     => $approvalsCount,
             'taskCompletedCount' => $taskCompletedCount,
+            'blockersCount'      => $blockersCount,
         ]);
     }
 }

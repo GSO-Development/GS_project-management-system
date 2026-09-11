@@ -61,7 +61,7 @@ class RolePermissionManager extends Component
 
     public function mount(): void
     {
-        abort_if(!auth()->check() || (!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin() && auth()->user()->id !== 1), 403, 'Unauthorized access to PMO Admin Role & Permission Management.');
+        abort_if(!auth()->check() || (!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin()), 403, 'Unauthorized access to PMO Admin Role & Permission Management.');
     }
 
     public function openManageModal(string $roleCode): void
@@ -151,7 +151,7 @@ class RolePermissionManager extends Component
 
     public function savePermissions(): void
     {
-        abort_if(!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin() && auth()->user()->id !== 1, 403, 'Unauthorized.');
+        abort_if(!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin(), 403, 'Unauthorized.');
 
         if (!$this->selectedRole) {
             return;
@@ -220,7 +220,7 @@ class RolePermissionManager extends Component
 
     public function resetRoleToDefault(?string $roleCode = null): void
     {
-        abort_if(!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin() && auth()->user()->id !== 1, 403, 'Unauthorized.');
+        abort_if(!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin(), 403, 'Unauthorized.');
 
         $targetRole = $roleCode ?: $this->selectedRole;
         if (!$targetRole) {
@@ -397,7 +397,7 @@ class RolePermissionManager extends Component
 
     public function deleteCustomRole(string $roleCode): void
     {
-        abort_if(!auth()->check() || (!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin() && auth()->user()->id !== 1), 403, 'Unauthorized.');
+        abort_if(!auth()->check() || (!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin()), 403, 'Unauthorized.');
 
         // Prevent deletion of core protected governance roles:
         // Project Manager (lead/project_manager), PMO Admin/Super Admin (pmo_admin, super_admin),

@@ -374,7 +374,7 @@ class RbacService
         }
 
         // PMO Admin / Super Admin always has 100% full system access
-        if ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1) {
+        if ($user->isSuperAdmin() || $user->isPmoAdmin()) {
             return true;
         }
 

@@ -12,6 +12,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $code
+ * @property string $name
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $deadline
+ * @property \Illuminate\Support\Carbon|null $pm_accepted_at
+ * @property \Illuminate\Support\Carbon|null $pm_rejected_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Project extends Model
 {
     use HasFactory, SoftDeletes;

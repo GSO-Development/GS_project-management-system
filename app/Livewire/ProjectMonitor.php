@@ -960,7 +960,7 @@ class ProjectMonitor extends Component
         // 1. Group by Assignee / User
         $tasksByUser = $allMasterTasks->groupBy(function($task) {
             return $task->assigned_user_id ?: 0;
-        })->map(function($tasks, $userId) {
+        })->map(function(\Illuminate\Support\Collection $tasks, $userId) {
             $user = $userId > 0 ? $tasks->first()->assignedUser : null;
             $total = $tasks->count();
             $completed = $tasks->where('status.value', 'completed')->count();
@@ -984,7 +984,7 @@ class ProjectMonitor extends Component
         })->sortByDesc('overdue_count')->values();
 
         // 2. Group by Project
-        $tasksByProject = $allMasterTasks->groupBy('project_id')->map(function($tasks, $projectId) {
+        $tasksByProject = $allMasterTasks->groupBy('project_id')->map(function(\Illuminate\Support\Collection $tasks, $projectId) {
             $project = $tasks->first()->project;
             $total = $tasks->count();
             $completed = $tasks->where('status.value', 'completed')->count();

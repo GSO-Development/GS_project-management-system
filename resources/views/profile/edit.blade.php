@@ -5,7 +5,6 @@
             ? strtoupper(substr($words[0], 0, 1) . substr(end($words), 0, 1))
             : strtoupper(substr($user->name, 0, 2));
         
-        // System-level role: strictly 'PMO Admin' or 'User'
         $isPmoAdmin = $user->isPmoAdmin();
         $systemRole = $isPmoAdmin ? 'PMO Admin' : 'User';
         
@@ -13,128 +12,128 @@
         $assignedTaskCount = \App\Models\WbsItem::where('assigned_user_id', $user->id)->count();
     @endphp
 
-    <div class="space-y-6 pb-12">
-        <!-- ═══════════════════════════════════════════════════════════════
-             1. EXECUTIVE BRAND HERO BANNER
-             ═══════════════════════════════════════════════════════════════ -->
-        <!-- ═══════════════════════════════════════════════════════════════
-             1. CREATIVE EXECUTIVE HERO BANNER (Obsidian & Crimson Glass)
-             ═══════════════════════════════════════════════════════════════ -->
-        <div class="relative overflow-hidden rounded-3xl text-white shadow-2xl border border-white/10" style="background: #0d0a10; box-shadow: 0 20px 40px -12px rgba(10, 5, 12, 0.65), 0 0 35px -5px rgba(195, 18, 46, 0.25);">
-            <!-- High-Resolution AI-Generated Abstract Architecture Glass Backdrop -->
-            <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                <img 
-                    src="{{ asset('images/profile-hero-bg.jpg') }}" 
-                    alt="Corporate Executive Backdrop" 
-                    class="w-full h-full object-cover object-center filter brightness-[0.75] contrast-125 scale-105 transition-transform duration-1000"
-                />
-                <!-- Deep Obsidian & Rich Crimson Vignette Gradient Overlay -->
-                <div class="absolute inset-0 bg-gradient-to-r from-[#0a070c]/95 via-[#110a12]/85 to-[#260a14]/75"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-[#0a070c] via-transparent to-transparent"></div>
-                <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#c3122e]/20 blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-[#c3122e]/15 blur-3xl pointer-events-none"></div>
-            </div>
+    <div class="space-y-6 pb-12" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
 
-            <!-- Foreground Content -->
-            <div class="relative z-10 p-6 sm:p-8 lg:p-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-                <!-- User Profile Identity Block -->
-                <div class="flex items-center gap-5 sm:gap-7 min-w-0">
-                    <!-- Avatar with Glowing Dual-Layer Rim -->
-                    <div class="relative flex-shrink-0 group">
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl p-1 shadow-2xl transition-all duration-300 group-hover:scale-105" style="background: linear-gradient(135deg, #c3122e 0%, #f43f5e 50%, #d97706 100%);">
-                            <div class="w-full h-full rounded-[14px] sm:rounded-[22px] flex items-center justify-center font-black text-2xl sm:text-3xl text-white tracking-wider backdrop-blur-xl shadow-inner" style="background: linear-gradient(145deg, #2a0e19 0%, #10050a 100%);">
-                                <span class="text-white font-black drop-shadow-md">{{ $initials }}</span>
-                            </div>
-                        </div>
-                        <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-3 border-[#0a070c] shadow-lg flex items-center justify-center text-[10px]" title="Active Corporate Session">
-                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        <!-- ── 1. CLEAN PAGE HEADER ── -->
+        <div class="pb-4 border-b border-slate-200/80">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                My Profile &amp; Corporate Identity
+            </h1>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+                Manage your personal account details, corporate profile, and authentication security.
+            </p>
+        </div>
+
+        <!-- ── 2. TOP PROFILE SUMMARY BANNER ── -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            
+            <!-- User Identity & Badges -->
+            <div class="flex items-center gap-4 min-w-0">
+                <!-- Avatar Circle -->
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c3122e] to-[#8b0d1f] text-white flex items-center justify-center font-black text-2xl shadow-md shrink-0">
+                    {{ $initials }}
+                </div>
+
+                <div class="min-w-0 space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug truncate">
+                            {{ $user->name }}
+                        </h2>
+                        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-black {{ $isPmoAdmin ? 'bg-rose-50 text-[#c3122e] border border-rose-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
+                            {{ $systemRole }}
+                        </span>
+                        @if(isset($user->subsidiary))
+                            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                🏢 {{ $user->subsidiary->name }}
+                            </span>
+                        @endif
+                        <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold {{ $user->isAzureUser() ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
+                            {{ $user->isAzureUser() ? 'Azure AD SSO' : 'System Created' }}
                         </span>
                     </div>
 
-                    <!-- Details & Badges -->
-                    <div class="min-w-0 space-y-2">
-                        <!-- Badges Row -->
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10.5px] font-black uppercase tracking-wider backdrop-blur-md shadow-xs {{ $isPmoAdmin ? 'bg-[#c3122e]/30 text-rose-200 border border-[#c3122e]/50' : 'bg-white/10 text-slate-200 border border-white/20' }}">
-                                {{ $isPmoAdmin ? '🛡️ PMO Admin' : '👤 User' }}
-                            </span>
-                            @if(isset($user->subsidiary))
-                                <span class="px-3 py-1 rounded-xl text-[10.5px] font-bold bg-white/10 backdrop-blur-md text-slate-200 border border-white/15 flex items-center gap-1.5 shadow-xs">
-                                    <span>🏢</span>
-                                    <span>{{ $user->subsidiary->name }}</span>
-                                </span>
-                            @endif
-                            <span class="px-2.5 py-1 rounded-xl text-[10px] font-bold backdrop-blur-md {{ $user->isAzureUser() ? 'bg-sky-500/20 text-sky-200 border border-sky-400/30' : 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' }}">
-                                {{ $user->isAzureUser() ? '☁️ Azure AD SSO' : '⚡ System Created' }}
-                            </span>
-                        </div>
-
-                        <!-- Name & Title -->
-                        <div>
-                            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
-                                {{ $user->name }}
-                            </h1>
-                        </div>
-
-                        <!-- Meta Row -->
-                        <div class="flex items-center gap-3 text-xs text-slate-300/90 font-medium flex-wrap">
-                            <span class="flex items-center gap-1.5 hover:text-white transition-colors">
-                                <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                <span>{{ $user->email }}</span>
-                            </span>
-                            <span class="text-slate-600">&bull;</span>
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span>Member since {{ $user->created_at ? $user->created_at->format('M Y') : 'N/A' }}</span>
-                            </span>
-                            <span class="text-slate-600">&bull;</span>
-                            <span class="font-mono text-[10.5px] px-2 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/10">
-                                UID: #{{ $user->id }}
-                            </span>
-                        </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-500 font-medium flex-wrap">
+                        <span class="font-mono text-slate-600">{{ $user->email }}</span>
+                        <span>•</span>
+                        <span>Member since {{ $user->created_at ? $user->created_at->format('M Y') : 'N/A' }}</span>
+                        <span>•</span>
+                        <span class="font-mono text-[11px] font-bold text-slate-400">UID: #{{ $user->id }}</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Modern Frosted Glass KPI Cards -->
-                <div class="grid grid-cols-3 gap-3 sm:gap-4 w-full lg:w-auto flex-shrink-0">
-                    <!-- KPI 1 -->
-                    <div class="p-4 rounded-2xl bg-white/[0.07] hover:bg-white/[0.12] backdrop-blur-xl border border-white/15 hover:border-rose-400/40 transition-all duration-300 text-center shadow-xl group">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-200 block transition-colors">Projects Lead</span>
-                        <div class="text-2xl sm:text-3xl font-black text-white font-mono mt-0.5 drop-shadow-xs">{{ $managedCount }}</div>
-                        <span class="text-[10px] text-slate-500 font-medium mt-0.5 block">Portfolio Owner</span>
-                    </div>
+            <!-- Quick Telemetry Stat Cards -->
+            <div class="flex items-center gap-3 shrink-0 self-stretch lg:self-auto pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                <div class="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center min-w-[100px]">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Projects Lead</span>
+                    <span class="text-lg font-black text-slate-900 font-mono">{{ $managedCount }}</span>
+                </div>
 
-                    <!-- KPI 2 -->
-                    <div class="p-4 rounded-2xl bg-white/[0.07] hover:bg-white/[0.12] backdrop-blur-xl border border-white/15 hover:border-rose-400/40 transition-all duration-300 text-center shadow-xl group">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-200 block transition-colors">Active Tasks</span>
-                        <div class="text-2xl sm:text-3xl font-black text-white font-mono mt-0.5 drop-shadow-xs">{{ $assignedTaskCount }}</div>
-                        <span class="text-[10px] text-slate-500 font-medium mt-0.5 block">Assigned WBS</span>
-                    </div>
+                <div class="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center min-w-[100px]">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Active Tasks</span>
+                    <span class="text-lg font-black text-slate-900 font-mono">{{ $assignedTaskCount }}</span>
+                </div>
 
-                    <!-- KPI 3 -->
-                    <div class="p-4 rounded-2xl bg-white/[0.07] hover:bg-white/[0.12] backdrop-blur-xl border border-white/15 hover:border-rose-400/40 transition-all duration-300 text-center shadow-xl group">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-200 block transition-colors">Security</span>
-                        <div class="text-xs sm:text-sm font-black text-emerald-400 flex items-center justify-center gap-1.5 mt-2 drop-shadow-xs">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Verified
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-medium mt-0.5 block">Compliance OK</span>
-                    </div>
+                <div class="px-4 py-2.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80 text-center min-w-[100px]">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Security</span>
+                    <span class="text-xs font-black text-emerald-600 flex items-center justify-center gap-1 mt-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Verified</span>
+                    </span>
                 </div>
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════════
-             2. TWO-COLUMN RESPONSIVE BENTO GRID
-             ═══════════════════════════════════════════════════════════════ -->
+        <!-- ── 3. TWO-COLUMN RESPONSIVE BENTO GRID ── -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- LEFT COLUMN: Account Metadata & Security Insights (4 cols on desktop) -->
+
+            <!-- ══════════════════════════════════════════════
+                 LEFT COLUMN: EDITABLE FORMS (8 COLS)
+                 ══════════════════════════════════════════════ -->
+            <div class="lg:col-span-8 space-y-6">
+
+                <!-- Section 1: Personal Information Form -->
+                <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-6 sm:p-8">
+                    @include('profile.partials.update-profile-information-form')
+                </div>
+
+                <!-- Section 2: Account Security & Password -->
+                @if($user->isSystemCreated())
+                    <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-6 sm:p-8">
+                        @include('profile.partials.update-password-form')
+                    </div>
+                @else
+                    <div class="bg-white border border-blue-100 rounded-2xl shadow-2xs p-6 sm:p-8 space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                                🔑
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900">Microsoft Azure AD Single Sign-On</h3>
+                                <p class="text-xs text-slate-500 font-medium">Authenticating via corporate Office 365 credentials.</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                            Your password and security settings are centrally managed by your organization's Microsoft Entra ID administrator.
+                        </p>
+                    </div>
+                @endif
+
+
+
+            </div>
+
+
+            <!-- ══════════════════════════════════════════════
+                 RIGHT COLUMN: ACCOUNT METADATA & QUICK LINKS (4 COLS)
+                 ══════════════════════════════════════════════ -->
             <div class="lg:col-span-4 space-y-6">
-                <!-- Card: Account Identity Summary -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-4">
+
+                <!-- Card R1: Account Metadata Overview -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider">Account Overview</h4>
-                        <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-[#c3122e] border border-rose-100 font-mono">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Account Overview</span>
+                        <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-rose-50 text-[#c3122e] border border-rose-100">
                             ID: #{{ $user->id }}
                         </span>
                     </div>
@@ -147,12 +146,12 @@
 
                         <div class="flex items-center justify-between gap-2 py-1 border-b border-slate-50">
                             <span class="text-slate-400 font-medium">Corporate Email</span>
-                            <span class="font-bold text-slate-800 truncate max-w-[170px]" title="{{ $user->email }}">{{ $user->email }}</span>
+                            <span class="font-bold text-slate-800 font-mono truncate max-w-[170px]" title="{{ $user->email }}">{{ $user->email }}</span>
                         </div>
 
                         <div class="flex items-center justify-between gap-2 py-1 border-b border-slate-50">
-                            <span class="text-slate-400 font-medium">Phone Number</span>
-                            <span class="font-bold text-slate-800">{{ $user->phone_number ?? 'Not configured' }}</span>
+                            <span class="text-slate-400 font-medium">Contact Phone</span>
+                            <span class="font-bold text-slate-800">{{ $user->phone_number ?? 'Not set' }}</span>
                         </div>
 
                         <div class="flex items-center justify-between gap-2 py-1 border-b border-slate-50">
@@ -162,153 +161,84 @@
 
                         <div class="flex items-center justify-between gap-2 py-1 border-b border-slate-50">
                             <span class="text-slate-400 font-medium">System Role</span>
-                            <span class="font-black {{ $isPmoAdmin ? 'text-[#c3122e]' : 'text-slate-900' }}">{{ $systemRole }}</span>
+                            <span class="font-bold text-[#c3122e] bg-rose-50 px-2 py-0.5 rounded border border-rose-200 text-[11px]">
+                                {{ $systemRole }}
+                            </span>
                         </div>
 
                         <div class="flex items-center justify-between gap-2 py-1 border-b border-slate-50">
-                            <span class="text-slate-400 font-medium">Account Type</span>
-                            @if($user->isAzureUser())
-                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#e8f4ff] text-[#0078d4] border border-[#b3d4ff]">
-                                    <svg width="10" height="10" viewBox="0 0 21 21" fill="none"><rect x="0" y="0" width="10" height="10" fill="#F25022"/><rect x="11" y="0" width="10" height="10" fill="#7FBA00"/><rect x="0" y="11" width="10" height="10" fill="#00A4EF"/><rect x="11" y="11" width="10" height="10" fill="#FFB900"/></svg>
-                                    Azure AD
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                    System Create
-                                </span>
-                            @endif
-                        </div>
-
-                        <div class="flex items-center justify-between gap-2 py-1 border-b border-slate-50">
-                            <span class="text-slate-400 font-medium">Member Since</span>
-                            <span class="font-bold text-slate-800">{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</span>
+                            <span class="text-slate-400 font-medium">Authentication</span>
+                            <span class="font-bold text-slate-800">
+                                {{ $user->isAzureUser() ? 'Azure AD SSO' : 'Encrypted Password' }}
+                            </span>
                         </div>
 
                         <div class="flex items-center justify-between gap-2 py-1">
-                            <span class="text-slate-400 font-medium">Last Login</span>
-                            <span class="font-bold text-slate-800">{{ $user->last_login_at ? $user->last_login_at->diffForHumans() : 'Active Session' }}</span>
+                            <span class="text-slate-400 font-medium">Member Since</span>
+                            <span class="font-bold text-slate-800">{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card: Enterprise Security Status -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-black text-sm">
-                            🛡️
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider">Security &amp; Compliance</h4>
-                            <p class="text-[11px] text-slate-400 font-medium">George Steuart Information Security</p>
-                        </div>
-                    </div>
+                <!-- Card R2: Security & Governance Compliance -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-3">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block pb-3 border-b border-slate-100">
+                        Security &amp; Compliance
+                    </span>
 
-                    <div class="space-y-2.5 text-xs">
-                        <div class="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-start gap-2.5">
-                            <span class="text-emerald-600 font-black">✓</span>
-                            <div class="min-w-0">
-                                @if($user->isSystemCreated())
-                                    <p class="font-bold text-emerald-900">Corporate Password Active</p>
-                                    <p class="text-[11px] text-emerald-700">Local System Password (Encrypted Bcrypt).</p>
-                                @else
-                                    <p class="font-bold text-[#005a9e]">Microsoft Entra ID Protected</p>
-                                    <p class="text-[11px] text-slate-600">Enterprise Single Sign-On (SSO) Authentication.</p>
-                                @endif
-                            </div>
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">✓</span>
+                            <span class="font-medium text-emerald-900">
+                                Account is active and verified under corporate access policies.
+                            </span>
                         </div>
 
-                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-2.5">
-                            <span class="text-[#c3122e] font-black">&bull;</span>
-                            <div class="min-w-0">
-                                <p class="font-bold text-slate-800">Role-Based Access Control</p>
-                                <p class="text-[11px] text-slate-500">Access limited strictly to assigned projects and deliverables.</p>
-                            </div>
-                        </div>
-
-                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-2.5">
-                            <span class="text-[#c3122e] font-black">&bull;</span>
-                            <div class="min-w-0">
-                                <p class="font-bold text-slate-800">Single Session Governance</p>
-                                <p class="text-[11px] text-slate-500">Active tokens monitored for secure enterprise compliance.</p>
-                            </div>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start gap-2">
+                            <span class="text-[#c3122e] font-bold">•</span>
+                            <span class="font-medium text-slate-700">
+                                Access is governed by role-based permissions ({{ $systemRole }}).
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card: Quick Access Shortcuts -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-3">
-                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">Quick Shortcuts</h4>
-                    
-                    <div class="space-y-1.5">
-                        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="flex items-center justify-between p-2.5 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] text-xs font-bold transition-all group">
+                <!-- Card R3: Quick Workspace Links -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-3">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block pb-2 border-b border-slate-100">
+                        Workspace Shortcuts
+                    </span>
+
+                    <div class="space-y-1">
+                        <a href="{{ route('my-tasks.index') }}" class="flex items-center justify-between p-2 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] text-xs font-bold transition-all group no-underline">
                             <span class="flex items-center gap-2">
                                 <span>📋</span>
                                 <span>My Tasks Workspace</span>
                             </span>
-                            <span class="text-slate-400 group-hover:text-[#c3122e] group-hover:translate-x-0.5 transition-all">→</span>
+                            <span class="text-slate-400 group-hover:text-[#c3122e]">→</span>
                         </a>
 
-                        <a href="{{ route('projects.index') }}" wire:navigate.hover class="flex items-center justify-between p-2.5 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] text-xs font-bold transition-all group">
+                        <a href="{{ route('projects.index') }}" class="flex items-center justify-between p-2 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] text-xs font-bold transition-all group no-underline">
                             <span class="flex items-center gap-2">
                                 <span>📁</span>
                                 <span>Project Portfolio</span>
                             </span>
-                            <span class="text-slate-400 group-hover:text-[#c3122e] group-hover:translate-x-0.5 transition-all">→</span>
+                            <span class="text-slate-400 group-hover:text-[#c3122e]">→</span>
                         </a>
 
-                        <a href="{{ route('calendar.index') }}" wire:navigate.hover class="flex items-center justify-between p-2.5 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] text-xs font-bold transition-all group">
+                        <a href="{{ route('calendar.index') }}" class="flex items-center justify-between p-2 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-[#c3122e] text-xs font-bold transition-all group no-underline">
                             <span class="flex items-center gap-2">
                                 <span>📅</span>
                                 <span>Corporate Calendar</span>
                             </span>
-                            <span class="text-slate-400 group-hover:text-[#c3122e] group-hover:translate-x-0.5 transition-all">→</span>
+                            <span class="text-slate-400 group-hover:text-[#c3122e]">→</span>
                         </a>
                     </div>
                 </div>
+
             </div>
 
-            <!-- RIGHT COLUMN: Interactive Settings Forms (8 cols on desktop) -->
-            <div class="lg:col-span-8 space-y-6">
-                <!-- Section 1: Update Profile Information -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-8">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-
-                <!-- Section 2: Update Password (ONLY for System Create Users) -->
-                @if($user->isSystemCreated())
-                    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 sm:p-8">
-                        @include('profile.partials.update-password-form')
-                    </div>
-                @else
-                    <!-- For Azure AD SSO users, display SSO info notice -->
-                    <div class="bg-white rounded-2xl border border-blue-100 shadow-2xs p-6 sm:p-8 space-y-4">
-                        <div class="flex items-center gap-3.5 pb-4 border-b border-slate-100">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 shadow-2xs bg-[#e8f4ff] border border-[#b3d4ff]">
-                                <svg width="18" height="18" viewBox="0 0 21 21" fill="none"><rect x="0" y="0" width="10" height="10" fill="#F25022"/><rect x="11" y="0" width="10" height="10" fill="#7FBA00"/><rect x="0" y="11" width="10" height="10" fill="#00A4EF"/><rect x="11" y="11" width="10" height="10" fill="#FFB900"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="text-base font-black text-slate-900 tracking-tight">Enterprise SSO Authentication</h3>
-                                <p class="text-xs text-slate-500 font-medium mt-0.5">Managed centrally via Microsoft Entra ID (Azure AD)</p>
-                            </div>
-                        </div>
-
-                        <div class="p-4 rounded-2xl bg-[#f0f7ff] border border-[#d0e5ff] text-xs text-slate-700 leading-relaxed space-y-2">
-                            <p class="font-bold text-[#005a9e] flex items-center gap-2">
-                                <span>🔒</span>
-                                <span>Single Sign-On (SSO) Managed Account</span>
-                            </p>
-                            <p>
-                                Your account is authenticated via your corporate Microsoft Azure AD credentials. Password resets, multi-factor authentication (MFA), and security policies are centrally governed by your organization's Microsoft 365 administrator.
-                            </p>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Section 3: Delete Account (Danger Zone) -->
-                <div class="bg-white rounded-2xl border border-rose-200/80 shadow-2xs p-6 sm:p-8">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
         </div>
+
     </div>
 </x-app-layout>

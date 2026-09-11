@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Models\ActivityLog;
 use App\Models\ApprovalRequest;
 use App\Models\Project;
 use App\Models\ProjectRisk;
 use App\Models\TaskBlocker;
+use App\Models\User;
 use App\Models\WbsItem;
 use App\Services\ApprovalService;
 use Livewire\Component;
@@ -147,11 +149,11 @@ class ProjectManagerDashboard extends Component
         (new \App\Services\ProgressCalculationService())->updateItemProgress($task);
 
         // Record personal & project activity
-        \App\Models\ActivityLog::create([
+        ActivityLog::create([
             'user_id' => $user->id,
             'action' => $isCompleted ? 'updated_wbs_item' : 'completed_wbs_item',
             'module' => 'wbs',
-            'record_type' => \App\Models\WbsItem::class,
+            'record_type' => WbsItem::class,
             'record_id' => $task->id,
             'new_values' => [
                 'project_id' => $task->project_id,
@@ -195,11 +197,11 @@ class ProjectManagerDashboard extends Component
         }
 
         // Record activity log
-        \App\Models\ActivityLog::create([
+        ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'resolved_blocker',
             'module' => 'blockers',
-            'record_type' => \App\Models\TaskBlocker::class,
+            'record_type' => TaskBlocker::class,
             'record_id' => $blocker->id,
             'new_values' => [
                 'project_id' => $blocker->wbsItem?->project_id,
@@ -256,11 +258,11 @@ class ProjectManagerDashboard extends Component
         ]);
 
         // Record activity log
-        \App\Models\ActivityLog::create([
+        ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'created_risk',
             'module' => 'risks',
-            'record_type' => \App\Models\ProjectRisk::class,
+            'record_type' => ProjectRisk::class,
             'record_id' => $risk->id,
             'new_values' => [
                 'project_id' => $this->riskProjectId,
@@ -784,7 +786,7 @@ class ProjectManagerDashboard extends Component
             : ApprovalRequest::where('requested_by', $user->id)->pluck('id')->toArray();
         $projectRiskIds = !empty($myProjectIds) ? ProjectRisk::whereIn('project_id', $myProjectIds)->pluck('id')->toArray() : [];
 
-        $recentActivities = \App\Models\ActivityLog::with('user')
+        $recentActivities = ActivityLog::with('user')
             ->where(function($q) use ($user, $myProjectIds, $projectTaskIds, $projectApprovalIds, $projectRiskIds) {
                 // 1. Actions performed by this user (thaman karapuwa)
                 $q->where('user_id', $user->id);
@@ -792,7 +794,7 @@ class ProjectManagerDashboard extends Component
                 // 2. Project updates for projects the user is directly involved in (thamange project ekata adala ewa)
                 if (!empty($myProjectIds)) {
                     $q->orWhere(function($sq) use ($myProjectIds) {
-                        $sq->where('record_type', \App\Models\Project::class)
+                        $sq->where('record_type', Project::class)
                            ->whereIn('record_id', $myProjectIds);
                     });
                 }
@@ -800,7 +802,7 @@ class ProjectManagerDashboard extends Component
                 // 3. WBS tasks relevant to the user's projects
                 if (!empty($projectTaskIds)) {
                     $q->orWhere(function($sq) use ($projectTaskIds) {
-                        $sq->where('record_type', \App\Models\WbsItem::class)
+                        $sq->where('record_type', WbsItem::class)
                            ->whereIn('record_id', $projectTaskIds);
                     });
                 }
@@ -808,7 +810,7 @@ class ProjectManagerDashboard extends Component
                 // 4. Relevant approval requests in user's projects or requested by user
                 if (!empty($projectApprovalIds)) {
                     $q->orWhere(function($sq) use ($projectApprovalIds) {
-                        $sq->where('record_type', \App\Models\ApprovalRequest::class)
+                        $sq->where('record_type', ApprovalRequest::class)
                            ->whereIn('record_id', $projectApprovalIds);
                     });
                 }
@@ -816,7 +818,7 @@ class ProjectManagerDashboard extends Component
                 // 5. Relevant project risks in user's projects
                 if (!empty($projectRiskIds)) {
                     $q->orWhere(function($sq) use ($projectRiskIds) {
-                        $sq->where('record_type', \App\Models\ProjectRisk::class)
+                        $sq->where('record_type', ProjectRisk::class)
                            ->whereIn('record_id', $projectRiskIds);
                     });
                 }
@@ -827,7 +829,7 @@ class ProjectManagerDashboard extends Component
 
         $projectNamesMap = Project::pluck('name', 'id')->toArray();
         $projectCodesMap = Project::pluck('code', 'id')->toArray();
-        $actWbsIds = $recentActivities->where('record_type', \App\Models\WbsItem::class)->pluck('record_id')->filter()->unique()->toArray();
+        $actWbsIds = $recentActivities->where('record_type', WbsItem::class)->pluck('record_id')->filter()->unique()->toArray();
         $wbsTitlesMap = !empty($actWbsIds) ? WbsItem::whereIn('id', $actWbsIds)->pluck('title', 'id')->toArray() : [];
 
         // My Approvals List (100% Real)
@@ -843,7 +845,7 @@ class ProjectManagerDashboard extends Component
 
 
         // Team Members Overview (for My Team card)
-        $teamMembersRaw = \App\Models\User::whereHas('projects', fn($q) => $q->whereIn('projects.id', $assignedProjectIds))
+        $teamMembersRaw = User::whereHas('projects', fn($q) => $q->whereIn('projects.id', $assignedProjectIds))
             ->with([
                 'projects' => fn($q) => $q->whereIn('projects.id', $assignedProjectIds)->select('projects.id', 'projects.name'),
             ])

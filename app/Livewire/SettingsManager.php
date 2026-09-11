@@ -14,10 +14,10 @@ class SettingsManager extends Component
     // SMTP Mail Configuration
     public string $smtpHost = 'smtp.gmail.com';
     public int $smtpPort = 587;
-    public string $smtpUser = 'prathibhajay098@gmail.com';
-    public string $smtpPass = 'whvcknxyueynxiwk';
+    public string $smtpUser = 'nadumi672@gmail.com';
+    public string $smtpPass = 'myhb tzmx aeok nvxj';
     public string $smtpEncryption = 'tls';
-    public string $mailFromAddress = 'prathibhajay098@gmail.com';
+    public string $mailFromAddress = 'nadumi672@gmail.com';
     public string $mailFromName = 'GS Project Management';
 
     // Security & Password Rules
@@ -30,7 +30,7 @@ class SettingsManager extends Component
     public string $azureClientId = '';
 
     // Test Mail
-    public string $testEmailRecipient = '';
+    public string $testEmailRecipient = 'nadumi672@gmail.com';
     public ?string $testMailStatus = null;
     public ?string $testMailError = null;
 
@@ -40,8 +40,8 @@ class SettingsManager extends Component
     public function mount()
     {
         $this->loadSettings();
-        if (auth()->check() && empty($this->testEmailRecipient)) {
-            $this->testEmailRecipient = auth()->user()->email ?? '';
+        if (empty($this->testEmailRecipient)) {
+            $this->testEmailRecipient = 'nadumi672@gmail.com';
         }
     }
 
@@ -52,20 +52,20 @@ class SettingsManager extends Component
         $this->enableEmailNotifications = filter_var(SystemSetting::where('key', 'enable_email_notifications')->value('value') ?? false, FILTER_VALIDATE_BOOLEAN);
 
         // Mail Server Settings — DB first, then .env fallback
-        $this->smtpHost       = SystemSetting::where('key', 'smtp_host')->value('value')
-                                ?? env('MAIL_HOST', 'smtp.gmail.com');
-        $this->smtpPort       = (int) (SystemSetting::where('key', 'smtp_port')->value('value')
-                                ?? env('MAIL_PORT', 587));
-        $this->smtpUser       = SystemSetting::where('key', 'smtp_user')->value('value')
-                                ?? env('MAIL_USERNAME', 'prathibhajay098@gmail.com');
-        $this->smtpPass       = SystemSetting::where('key', 'smtp_pass')->value('value')
-                                ?? env('MAIL_PASSWORD', 'whvcknxyueynxiwk');
+        $this->smtpHost = SystemSetting::where('key', 'smtp_host')->value('value')
+            ?? env('MAIL_HOST', 'smtp.gmail.com');
+        $this->smtpPort = (int) (SystemSetting::where('key', 'smtp_port')->value('value')
+            ?? env('MAIL_PORT', 587));
+        $this->smtpUser = SystemSetting::where('key', 'smtp_user')->value('value')
+            ?? env('MAIL_USERNAME', 'prathibhajay098@gmail.com');
+        $this->smtpPass = SystemSetting::where('key', 'smtp_pass')->value('value')
+            ?? env('MAIL_PASSWORD', 'whvcknxyueynxiwk');
         $this->smtpEncryption = SystemSetting::where('key', 'smtp_encryption')->value('value')
-                                ?? env('MAIL_SCHEME', 'tls');
+            ?? env('MAIL_SCHEME', 'tls');
         $this->mailFromAddress = SystemSetting::where('key', 'mail_from_address')->value('value')
-                                ?? env('MAIL_FROM_ADDRESS', 'prathibhajay098@gmail.com');
-        $this->mailFromName   = SystemSetting::where('key', 'mail_from_name')->value('value')
-                                ?? env('MAIL_FROM_NAME', 'GS Project Management');
+            ?? env('MAIL_FROM_ADDRESS', 'prathibhajay098@gmail.com');
+        $this->mailFromName = SystemSetting::where('key', 'mail_from_name')->value('value')
+            ?? env('MAIL_FROM_NAME', 'GS Project Management');
 
         // Security Settings
         $this->enforcePasswordComplexity = filter_var(SystemSetting::where('key', 'enforce_password_complexity')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
@@ -191,8 +191,8 @@ class SettingsManager extends Component
                 "Your SMTP relay gateway is operational and ready for production deliverables.",
                 function ($message) use ($recipient, $appName, $fromAddr, $fromName) {
                     $message->to($recipient)
-                            ->from($fromAddr, $fromName)
-                            ->subject("[{$appName}] SMTP Gateway Verification Successful");
+                        ->from($fromAddr, $fromName)
+                        ->subject("[{$appName}] SMTP Gateway Verification Successful");
                 }
             );
 
@@ -207,29 +207,23 @@ class SettingsManager extends Component
     private function updateEnvMailSettings(): void
     {
         $envPath = base_path('.env');
-        if (!file_exists($envPath)) return;
+        if (!file_exists($envPath))
+            return;
 
         $content = file_get_contents($envPath);
 
         $encryption = strtolower($this->smtpEncryption);
-        $port       = ($encryption === 'ssl') ? 465 : 587;
-        $scheme     = ($encryption === 'ssl') ? 'smtps' : 'null';
-
-        // Build DSN URL with SSL verify bypass (needed for Windows local dev)
-        $encodedUser = urlencode($this->smtpUser);
-        $encodedPass = urlencode($this->smtpPass);
-        $urlScheme   = ($encryption === 'ssl') ? 'smtps' : 'smtp';
-        $mailUrl     = "\"{$urlScheme}://{$encodedUser}:{$encodedPass}@{$this->smtpHost}:{$port}?verify_peer=0\"";
+        $port = (int) ($this->smtpPort ?: (($encryption === 'ssl') ? 465 : 587));
 
         $replacements = [
-            'MAIL_MAILER'       => 'smtp',
-            'MAIL_SCHEME'       => $scheme,
-            'MAIL_HOST'         => $this->smtpHost,
-            'MAIL_PORT'         => $port,
-            'MAIL_USERNAME'     => $this->smtpUser,
-            'MAIL_PASSWORD'     => $this->smtpPass,
-            'MAIL_FROM_ADDRESS' => $this->mailFromAddress,
-            'MAIL_FROM_NAME'    => '"' . $this->mailFromName . '"',
+            'MAIL_MAILER' => 'smtp',
+            'MAIL_HOST' => $this->smtpHost,
+            'MAIL_PORT' => $port,
+            'MAIL_USERNAME' => $this->smtpUser,
+            'MAIL_PASSWORD' => '"' . str_replace('"', '\"', $this->smtpPass) . '"',
+            'MAIL_ENCRYPTION' => ($encryption === 'none') ? 'null' : $encryption,
+            'MAIL_FROM_ADDRESS' => '"' . $this->mailFromAddress . '"',
+            'MAIL_FROM_NAME' => '"' . $this->mailFromName . '"',
         ];
 
         foreach ($replacements as $key => $value) {
@@ -240,27 +234,41 @@ class SettingsManager extends Component
             }
         }
 
-        // Update MAIL_URL with new credentials + SSL bypass
+        // Clean up legacy MAIL_SCHEME or MAIL_URL lines that break Symfony Mailer transport parsing
+        $content = preg_replace('/^MAIL_SCHEME=.*/m', 'MAIL_SCHEME=null', $content);
         if (preg_match('/^MAIL_URL=.*/m', $content)) {
-            $content = preg_replace('/^MAIL_URL=.*/m', "MAIL_URL={$mailUrl}", $content);
-        } else {
-            $content .= "\nMAIL_URL={$mailUrl}";
+            $content = preg_replace('/^MAIL_URL=.*/m', '# MAIL_URL=', $content);
         }
 
         file_put_contents($envPath, $content);
 
-        // Apply to current runtime immediately via DSN URL
+        // Apply clean dynamic runtime config to Laravel Mailer Manager & purge cached transport instance
         config([
-            'mail.mailers.smtp.url'      => rtrim($mailUrl, '"'),
-            'mail.mailers.smtp.host'     => $this->smtpHost,
-            'mail.mailers.smtp.port'     => $port,
-            'mail.mailers.smtp.username' => $this->smtpUser,
-            'mail.mailers.smtp.password' => $this->smtpPass,
-            'mail.mailers.smtp.scheme'   => ($scheme === 'null') ? null : $scheme,
-            'mail.mailers.smtp.timeout'  => 10,
-            'mail.from.address'          => $this->mailFromAddress,
-            'mail.from.name'             => $this->mailFromName,
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp' => [
+                'transport' => 'smtp',
+                'host' => $this->smtpHost,
+                'port' => $port,
+                'encryption' => ($encryption === 'none') ? null : $encryption,
+                'username' => $this->smtpUser,
+                'password' => $this->smtpPass,
+                'timeout' => 10,
+                'local_domain' => parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST),
+                'stream' => [
+                    'ssl' => [
+                        'allow_self_signed' => true,
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
+                ],
+            ],
+            'mail.from' => [
+                'address' => $this->mailFromAddress,
+                'name' => $this->mailFromName,
+            ],
         ]);
+
+        \Illuminate\Support\Facades\Mail::purge('smtp');
     }
 
     public function render()

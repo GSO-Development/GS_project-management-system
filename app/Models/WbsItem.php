@@ -12,6 +12,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $project_id
+ * @property int|null $parent_id
+ * @property string $wbs_code
+ * @property string $title
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $end_date
+ * @property \Illuminate\Support\Carbon|null $delay_reason_at
+ * @property \Illuminate\Support\Carbon|null $overdue_notified_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class WbsItem extends Model
 {
     use HasFactory, SoftDeletes;

@@ -13,6 +13,7 @@ use App\Models\WbsItem;
 use App\Services\AzureGraphService;
 use App\Services\ProgressCalculationService;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Livewire\Component;
 
 class CalendarView extends Component
@@ -1031,6 +1032,7 @@ class CalendarView extends Component
             return;
         }
 
+        /** @var CalendarEvent $event */
         $this->editEventId = $event->id;
         $this->editEventProject = $event->project_id;
         $this->editEventTitle = $event->title;
@@ -1190,7 +1192,7 @@ class CalendarView extends Component
 
         // Auto-calculate end time if not all-day and end time is missing
         if (!$this->editEventIsAllDay && $this->editEventStartTime && !$this->editEventEndTime) {
-            $this->editEventEndTime = \Carbon\Carbon::parse($this->editEventStartTime)->addHour()->format('H:i');
+            $this->editEventEndTime = Carbon::parse($this->editEventStartTime)->addHour()->format('H:i');
         }
 
         $event->update([
@@ -1319,11 +1321,12 @@ class CalendarView extends Component
             $targetEmail = $attendeeEmails[0];
         }
 
+        /** @var CalendarEvent $event */
         $eventData = [
             'title'           => $event->title . ($event->project ? ' [' . $event->project->code . ']' : ''),
             'description'     => $event->description,
-            'start_date'      => $event->start_date->format('Y-m-d'),
-            'end_date'        => $event->end_date ? $event->end_date->format('Y-m-d') : $event->start_date->format('Y-m-d'),
+            'start_date'      => $event->start_date ? $event->start_date->format('Y-m-d') : now()->format('Y-m-d'),
+            'end_date'        => $event->end_date ? $event->end_date->format('Y-m-d') : ($event->start_date ? $event->start_date->format('Y-m-d') : now()->format('Y-m-d')),
             'start_time'      => $event->start_time ?: '09:00:00',
             'end_time'        => $event->end_time ?: '10:00:00',
             'is_all_day'      => $event->is_all_day,
@@ -1357,8 +1360,11 @@ class CalendarView extends Component
         return $result;
     }
 
-    // ─── Render View & Data Aggregation ───────────────────────────────
-
+    /**
+     * Render the calendar view.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
     public function render()
     {
         $user = auth()->user();
@@ -1515,7 +1521,8 @@ class CalendarView extends Component
 
         // A. Process CalendarEvents
         foreach ($allCalendarEvents as $ce) {
-            $sDate = $ce->start_date->copy();
+            /** @var CalendarEvent $ce */
+            $sDate = $ce->start_date ? $ce->start_date->copy() : now();
             $eDate = $ce->end_date ? $ce->end_date->copy() : $sDate;
 
             $attUsers = $ce->attendeeUsers;
@@ -1774,11 +1781,12 @@ class CalendarView extends Component
                     // Avoid duplicating locally managed CalendarEvents that were synced to Outlook
                     $isLocalDup = false;
                     foreach ($allCalendarEvents as $ce) {
+                        /** @var CalendarEvent $ce */
                         if (!empty($ce->microsoft_event_id) && $ce->microsoft_event_id === $msEvt['raw_id']) {
                             $isLocalDup = true;
                             break;
                         }
-                        if ($ce->start_date->format('Y-m-d') === $msEvt['start_date'] && str_starts_with(strtolower($msEvt['title']), strtolower($ce->title))) {
+                        if ($ce->start_date && $ce->start_date->format('Y-m-d') === $msEvt['start_date'] && str_starts_with(strtolower($msEvt['title']), strtolower($ce->title))) {
                             $isLocalDup = true;
                             break;
                         }
@@ -1876,7 +1884,7 @@ class CalendarView extends Component
         }
 
         // 8. Week View Schedule (7 days of selected week)
-        $weekStart = $selectedDateObj->copy()->startOfWeek(Carbon::SUNDAY);
+        $weekStart = $selectedDateObj->copy()->startOfWeek(0);
         $weekDays = [];
         for ($i = 0; $i < 7; $i++) {
             $wDay = $weekStart->copy()->addDays($i);
