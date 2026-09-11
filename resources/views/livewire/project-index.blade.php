@@ -112,73 +112,121 @@
          VIEW 1: PROJECTS DIRECTORY TABLE VIEW
          ═══════════════════════════════════════════════════════════════ -->
     @if($viewMode === 'table')
-        <!-- Interactive 4-Metric Portfolio Summary Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <!-- Interactive 5-Metric Portfolio Summary Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5 mb-4 sm:mb-6">
             <!-- Metric 1: Total Projects -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'all')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'all' ? 'border-slate-800 ring-2 ring-slate-800/10 shadow-xs bg-slate-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                wire:click="filterByKpi('all')"
+                class="text-left rounded-2xl p-3.5 sm:p-4 transition-all duration-150 cursor-pointer group flex items-start justify-between border {{ $statusFilter === 'all' && $healthFilter === 'all' ? 'bg-slate-50/70 border-slate-400 ring-2 ring-slate-400/20 shadow-xs' : 'bg-white hover:bg-slate-50/50 border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5' }}"
             >
-                <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 border border-slate-200/70 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <div class="space-y-1 min-w-0 pr-2">
+                    <span class="text-[11px] sm:text-xs font-semibold text-slate-500 block truncate">Total Projects</span>
+                    <div class="text-2xl sm:text-[26px] font-black text-slate-900 font-mono tracking-tight leading-none">
+                        {{ $totalCount }}
                     </div>
-                    <div class="min-w-0">
-                        <span class="text-xl sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $totalCount }}</span>
-                        <span class="text-xs font-bold text-slate-600 block mt-1.5 truncate">Total Projects</span>
+                    <div class="text-[10px] sm:text-[11px] font-medium text-slate-500 flex items-center gap-1 pt-0.5 truncate">
+                        <span>Active portfolio scope</span>
                     </div>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
             </button>
 
-            <!-- Metric 2: Active in Progress -->
+            <!-- Metric 2: In Planning -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'in_progress')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'in_progress' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs bg-amber-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                wire:click="filterByKpi('planning')"
+                class="text-left rounded-2xl p-3.5 sm:p-4 transition-all duration-150 cursor-pointer group flex items-start justify-between border {{ $statusFilter === 'planning' ? 'bg-sky-50/70 border-sky-400 ring-2 ring-sky-400/20 shadow-xs' : 'bg-sky-50/20 hover:bg-sky-50/50 border-sky-200/70 shadow-2xs hover:border-sky-300 hover:shadow-xs hover:-translate-y-0.5' }}"
             >
-                <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <div class="space-y-1 min-w-0 pr-2">
+                    <span class="text-[11px] sm:text-xs font-semibold text-sky-700 block truncate">In Planning</span>
+                    <div class="text-2xl sm:text-[26px] font-black text-slate-900 font-mono tracking-tight leading-none">
+                        {{ $planningCount }}
                     </div>
-                    <div class="min-w-0">
-                        <span class="text-xl sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $activeCount }}</span>
-                        <span class="text-xs font-bold text-slate-600 block mt-1.5 truncate">Active in Progress</span>
+                    <div class="text-[10px] sm:text-[11px] font-medium text-sky-600 flex items-center gap-1 pt-0.5 truncate">
+                        @if($planningCount > 0)
+                            <span>{{ $planningCount }} in planning phase</span>
+                        @else
+                            <span class="text-slate-400">0 in planning</span>
+                        @endif
                     </div>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-200/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </button>
 
-            <!-- Metric 3: Past Deadline -->
+            <!-- Metric 3: In Progress -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'delayed')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'delayed' ? 'border-rose-500 ring-2 ring-rose-500/15 shadow-xs bg-rose-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                wire:click="filterByKpi('in_progress')"
+                class="text-left rounded-2xl p-3.5 sm:p-4 transition-all duration-150 cursor-pointer group flex items-start justify-between border {{ $statusFilter === 'in_progress' ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-400/20 shadow-xs' : 'bg-blue-50/20 hover:bg-blue-50/50 border-blue-200/70 shadow-2xs hover:border-blue-300 hover:shadow-xs hover:-translate-y-0.5' }}"
             >
-                <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="space-y-1 min-w-0 pr-2">
+                    <span class="text-[11px] sm:text-xs font-semibold text-blue-700 block truncate">In Progress</span>
+                    <div class="text-2xl sm:text-[26px] font-black text-slate-900 font-mono tracking-tight leading-none">
+                        {{ $inProgressCount }}
                     </div>
-                    <div class="min-w-0">
-                        <span class="text-xl sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $overdueCount }}</span>
-                        <span class="text-xs font-bold text-slate-600 block mt-1.5 truncate">Past Deadline</span>
+                    <div class="text-[10px] sm:text-[11px] font-medium text-blue-600 flex items-center gap-1 pt-0.5 truncate">
+                        @if($inProgressCount > 0)
+                            <span>{{ $inProgressCount }} actively running</span>
+                        @else
+                            <span class="text-slate-400">0 in progress</span>
+                        @endif
                     </div>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
             </button>
 
-            <!-- Metric 4: On Hold / Standby -->
+            <!-- Metric 4: Past Deadline -->
             <button 
                 type="button" 
-                wire:click="$set('statusFilter', 'on_hold')"
-                class="text-left bg-white border rounded-2xl p-4 sm:p-4.5 transition-all duration-150 hover:shadow-sm cursor-pointer group flex items-center justify-between {{ $statusFilter === 'on_hold' ? 'border-amber-500 ring-2 ring-amber-500/15 shadow-xs bg-amber-50/20' : 'border-slate-200/80 shadow-2xs hover:border-slate-300' }}"
+                wire:click="filterByKpi('overdue')"
+                class="text-left rounded-2xl p-3.5 sm:p-4 transition-all duration-150 cursor-pointer group flex items-start justify-between border {{ $healthFilter === 'delayed' ? 'bg-rose-50/70 border-rose-400 ring-2 ring-rose-400/20 shadow-xs' : 'bg-rose-50/20 hover:bg-rose-50/50 border-rose-200/70 shadow-2xs hover:border-rose-300 hover:shadow-xs hover:-translate-y-0.5' }}"
             >
-                <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="space-y-1 min-w-0 pr-2">
+                    <span class="text-[11px] sm:text-xs font-semibold text-rose-700 block truncate">Past Deadline</span>
+                    <div class="text-2xl sm:text-[26px] font-black text-slate-900 font-mono tracking-tight leading-none">
+                        {{ $overdueCount }}
                     </div>
-                    <div class="min-w-0">
-                        <span class="text-xl sm:text-2xl font-black text-slate-900 leading-none block font-mono tracking-tight">{{ $onHoldCount }}</span>
-                        <span class="text-xs font-bold text-slate-600 block mt-1.5 truncate">On Hold / Paused</span>
+                    <div class="text-[10px] sm:text-[11px] font-medium flex items-center gap-1 pt-0.5 truncate">
+                        @if($overdueCount > 0)
+                            <span class="text-rose-600 font-bold">• {{ $overdueCount }} overdue</span>
+                        @else
+                            <span class="text-emerald-600 font-semibold">✓ On schedule</span>
+                        @endif
                     </div>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </button>
+
+            <!-- Metric 5: On Hold / Paused -->
+            <button 
+                type="button" 
+                wire:click="filterByKpi('on_hold')"
+                class="text-left rounded-2xl p-3.5 sm:p-4 transition-all duration-150 cursor-pointer group flex items-start justify-between border {{ $statusFilter === 'on_hold' ? 'bg-amber-50/70 border-amber-400 ring-2 ring-amber-400/20 shadow-xs' : 'bg-amber-50/20 hover:bg-amber-50/50 border-amber-200/70 shadow-2xs hover:border-amber-300 hover:shadow-xs hover:-translate-y-0.5' }}"
+            >
+                <div class="space-y-1 min-w-0 pr-2">
+                    <span class="text-[11px] sm:text-xs font-semibold text-amber-700 block truncate">On Hold / Paused</span>
+                    <div class="text-2xl sm:text-[26px] font-black text-slate-900 font-mono tracking-tight leading-none">
+                        {{ $onHoldCount }}
+                    </div>
+                    <div class="text-[10px] sm:text-[11px] font-medium flex items-center gap-1 pt-0.5 truncate">
+                        @if($onHoldCount > 0)
+                            <span class="text-amber-700 font-bold">• {{ $onHoldCount }} paused</span>
+                        @else
+                            <span class="text-slate-400">None on standby</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </button>
         </div>
@@ -218,6 +266,7 @@
                     <div class="relative">
                         <select wire:model.live="statusFilter" class="appearance-none bg-slate-50/80 border border-slate-200/90 text-slate-700 text-xs font-semibold py-2 pl-3 pr-8 rounded-xl hover:bg-white hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e]/80 cursor-pointer transition-all">
                             <option value="all">All Statuses</option>
+                            <option value="active">Active (Planning & In Progress)</option>
                             @foreach(App\Enums\ProjectStatus::cases() as $st)
                                 <option value="{{ $st->value }}">{{ $st->label() }}</option>
                             @endforeach

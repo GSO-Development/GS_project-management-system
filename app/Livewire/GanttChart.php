@@ -35,34 +35,18 @@ class GanttChart extends Component
             abort(403, 'This project is pending Project Manager acceptance.');
         }
 
-        // Intelligently select default timeframe based on project span
-        if ($project->start_date && $project->deadline) {
-            $totalDays = (int) $project->start_date->diffInDays($project->deadline);
-            if ($totalDays <= 45) {
-                $this->timeframe = 'day';
-            } elseif ($totalDays <= 120) {
-                $this->timeframe = 'week';
-            } else {
-                $this->timeframe = 'month';
-            }
-        } else {
-            $this->timeframe = 'day';
-        }
-
-        // Collapse every phase row by default
-        $this->collapsedIds = WbsItem::where('project_id', $project->id)
-            ->where('item_type', 'phase')
-            ->pluck('id')
-            ->toArray();
-
+        $this->timeframe = 'week';
+        $this->collapseAll();
         $this->initialised = true;
     }
 
-    /** Collapse all phases with one click */
+    /** Collapse all parent items so only main tasks are visible by default */
     public function collapseAll()
     {
         $this->collapsedIds = WbsItem::where('project_id', $this->project->id)
-            ->where('item_type', 'phase')
+            ->whereIn('id', function ($q) {
+                $q->select('parent_id')->from('wbs_items')->whereNotNull('parent_id');
+            })
             ->pluck('id')
             ->toArray();
     }
@@ -76,7 +60,7 @@ class GanttChart extends Component
     public function toggleCollapse(int $itemId)
     {
         if (in_array($itemId, $this->collapsedIds)) {
-            $this->collapsedIds = array_diff($this->collapsedIds, [$itemId]);
+            $this->collapsedIds = array_values(array_diff($this->collapsedIds, [$itemId]));
         } else {
             $this->collapsedIds[] = $itemId;
         }
@@ -234,22 +218,33 @@ class GanttChart extends Component
         $rollupDates(0);
 
         // ── 4. Filter out items under collapsed parent nodes for display ────
+        $parentIds = array_keys(array_filter($childrenMap, fn($c) => !empty($c)));
+
         $collapsedCodes = [];
         foreach ($allRawItems as $item) {
-            if (in_array($item->id, $this->collapsedIds)) {
+            if (in_array($item->id, $this->collapsedIds) && !empty($item->wbs_code)) {
                 $collapsedCodes[] = $item->wbs_code . '.';
             }
         }
 
-        $wbsItems = $allRawItems;
-        if (!empty($collapsedCodes)) {
-            $wbsItems = $wbsItems->filter(function ($item) use ($collapsedCodes) {
-                foreach ($collapsedCodes as $prefix) {
-                    if (str_starts_with($item->wbs_code, $prefix)) return false;
-                }
-                return true;
-            })->values();
+        $hiddenIds = [];
+        $collectHidden = function ($pId) use (&$collectHidden, &$childrenMap, &$hiddenIds) {
+            foreach ($childrenMap[$pId] ?? [] as $child) {
+                $hiddenIds[$child->id] = true;
+                $collectHidden($child->id);
+            }
+        };
+        foreach ($this->collapsedIds as $cId) {
+            $collectHidden($cId);
         }
+
+        $wbsItems = $allRawItems->filter(function ($item) use ($hiddenIds, $collapsedCodes) {
+            if (isset($hiddenIds[$item->id])) return false;
+            foreach ($collapsedCodes as $prefix) {
+                if (str_starts_with($item->wbs_code ?? '', $prefix)) return false;
+            }
+            return true;
+        })->values();
 
         // ── 5. Project Timeline Bounds with Deadline Anchoring ──────────────
         $minDate = $projectStart->copy();
@@ -265,15 +260,15 @@ class GanttChart extends Component
             // Ensure at least 1 month buffer past max date / deadline
             $timelineEnd   = $maxDate->copy()->addMonth()->endOfMonth();
         } elseif ($this->timeframe === 'week') {
-            $timelineStart = $minDate->copy()->startOfWeek();
-            $timelineEnd   = $maxDate->copy()->addWeek()->endOfWeek();
-            if ($timelineStart->diffInDays($timelineEnd) < 21) {
-                $timelineEnd = $timelineStart->copy()->addDays(42);
+            $timelineStart = $minDate->copy()->subWeeks(1)->startOfWeek();
+            $timelineEnd   = $maxDate->copy()->addWeeks(3)->endOfWeek();
+            if ($timelineStart->diffInDays($timelineEnd) < 42) {
+                $timelineEnd = $timelineStart->copy()->addDays(56);
             }
         } else {
             // Day view: add generous buffer around project start and deadline
             $timelineStart = $minDate->copy()->subDays(2);
-            $timelineEnd   = $maxDate->copy()->addDays(3);
+            $timelineEnd   = $maxDate->copy()->addDays(7);
             if ($timelineStart->diffInDays($timelineEnd) < 14) {
                 $timelineEnd = $timelineStart->copy()->addDays(21);
             }
@@ -285,13 +280,13 @@ class GanttChart extends Component
         $columns = [];
 
         if ($this->timeframe === 'day') {
-            $colPx = 56; // 56px per day for clear dates & clean task pills
+            $colPx = 48; // 48px per day
             $curr = $timelineStart->copy()->startOfDay();
             while ($curr->lte($timelineEnd)) {
                 $columns[] = [
                     'label'     => $curr->format('d'),
                     'sublabel'  => $curr->format('D'),
-                    'monthKey'  => $curr->format('F Y'),
+                    'monthKey'  => $curr->format('M Y'),
                     'isToday'   => $curr->isToday(),
                     'isWeekend' => $curr->isWeekend(),
                     'dateStr'   => $curr->format('M d, Y'),
@@ -307,14 +302,14 @@ class GanttChart extends Component
                 $monthCount++;
                 $currM->addMonth();
             }
-            // Proportional width for month columns
-            $colPx = max(160, min(240, (int) round(900 / max(1, $monthCount))));
+            $colPx = max(130, min(200, (int) round(900 / max(1, $monthCount))));
 
             $currM = $timelineStart->copy()->startOfMonth();
             while ($currM->lte($timelineEnd)) {
                 $columns[] = [
-                    'label'     => $currM->format('F'),
-                    'sublabel'  => $currM->format('Y') . ' (' . $currM->daysInMonth . 'd)',
+                    'label'     => $currM->format('M'),
+                    'sublabel'  => $currM->format('Y'),
+                    'monthKey'  => $currM->format('Y'),
                     'yearKey'   => $currM->format('Y'),
                     'isCurrent' => $currM->isCurrentMonth(),
                     'dateStr'   => $currM->format('F Y'),
@@ -325,16 +320,16 @@ class GanttChart extends Component
             }
         } else {
             // Week (default)
-            $colPx = 140; // 140px per 7 days = 20px/day
+            $colPx = 100; // 100px per week column gives clean proportions
             $curr = $timelineStart->copy()->startOfWeek();
             while ($curr->lte($timelineEnd)) {
                 $weekEnd = $curr->copy()->endOfWeek();
                 $columns[] = [
-                    'label'     => 'Week ' . $curr->weekOfYear,
-                    'sublabel'  => $curr->format('M d') . ' – ' . $weekEnd->format('M d'),
-                    'monthKey'  => $curr->format('F Y'),
+                    'label'     => 'W' . $curr->weekOfYear,
+                    'sublabel'  => $curr->format('M d') . ' - ' . ($curr->month === $weekEnd->month ? $weekEnd->format('d') : $weekEnd->format('M d')),
+                    'monthKey'  => $curr->format('M Y'),
                     'isCurrent' => $curr->isCurrentWeek(),
-                    'dateStr'   => $curr->format('M d') . ' – ' . $weekEnd->format('M d, Y'),
+                    'dateStr'   => $curr->format('M d') . ' - ' . $weekEnd->format('M d, Y'),
                     'days'      => 7,
                     'px'        => $colPx,
                 ];
@@ -441,7 +436,8 @@ class GanttChart extends Component
             'deadlinePx',
             'isPastDeadline',
             'daysToDeadline',
-            'collapsedIds'
+            'collapsedIds',
+            'parentIds'
         ));
     }
 }

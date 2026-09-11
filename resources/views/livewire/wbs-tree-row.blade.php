@@ -69,8 +69,8 @@
 
 <tr class="transition-colors duration-150 group border-b border-slate-100/90 hover:bg-slate-50/60 {{ $levelConfig['rowBg'] }}">
     <!-- 1. TASK NUMBER (#) -->
-    <td class="py-3.5 pl-4 pr-1 text-left whitespace-nowrap align-middle" style="width: 52px;">
-        <span class="font-mono text-xs {{ $isMainTask ? 'font-black text-slate-800' : 'font-bold text-slate-400' }} group-hover:text-slate-900 transition-colors">
+    <td class="py-3.5 pl-4 pr-1 text-left whitespace-nowrap align-middle" style="width: 48px;">
+        <span class="font-mono text-xs font-bold text-slate-400 group-hover:text-slate-800 transition-colors">
             #{{ $wbsCode }}
         </span>
     </td>
@@ -93,45 +93,47 @@
                 </button>
             @elseif($level > 1)
                 <div class="w-5 flex items-center justify-center shrink-0 text-slate-300 text-xs font-mono select-none">└</div>
-            @else
-                <div class="w-5 h-5 shrink-0"></div>
             @endif
 
-            {{-- Level Icons --}}
-            @if($level === 1)
-                <div class="w-6.5 h-6.5 rounded-lg {{ $hasChildren ? 'bg-amber-50 text-amber-600 border border-amber-200/80 shadow-2xs' : 'bg-slate-100 text-slate-600 border border-slate-200/80' }} flex items-center justify-center shrink-0">
-                    @if($hasChildren)
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                        </svg>
-                    @else
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    @endif
+            {{-- Status & Level Icons --}}
+            @if($hasChildren)
+                <div class="w-6.5 h-6.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
                 </div>
-            @elseif($level === 2)
-                <div class="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 border border-blue-200/70 flex items-center justify-center shrink-0">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            @elseif($currentStatus === 'completed' || $progressVal === 100)
+                <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="Completed">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            @elseif($currentStatus === 'in_progress')
+                <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 border border-blue-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="In Progress">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+            @elseif($isOverdue || $currentStatus === 'blocked')
+                <div class="w-6 h-6 rounded-full bg-rose-50 text-rose-600 border border-rose-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="{{ $isOverdue ? 'Overdue' : 'Blocked' }}">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
             @else
-                <div class="w-5 h-5 rounded-md bg-slate-100 text-slate-500 border border-slate-200/70 flex items-center justify-center shrink-0">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                    </svg>
+                <div class="w-6 h-6 rounded-full bg-slate-50 text-slate-400 border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs" title="Not Started">
+                    <div class="w-1.5 h-1.5 rounded-full border border-slate-300"></div>
                 </div>
             @endif
 
             {{-- Title (Display full title nicely) --}}
-            <span class="whitespace-normal break-words {{ $levelConfig['title'] }} hover:text-[#c3122e] transition-colors leading-snug cursor-pointer" title="{{ $cleanTitle }}">
+            <span class="whitespace-normal break-words font-semibold text-slate-900 text-xs hover:text-[#c3122e] transition-colors leading-snug cursor-pointer" title="{{ $cleanTitle }}">
                 {{ $cleanTitle }}
             </span>
 
             {{-- Subtasks Badge --}}
             @if($hasChildren)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200/70 shrink-0 shadow-2xs">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0 shadow-2xs">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                     <span>{{ $item->children->count() }}</span>
                 </span>
@@ -139,15 +141,15 @@
 
             {{-- Milestone Tag --}}
             @if($item->is_milestone)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-purple-50 text-purple-800 border border-purple-200/90 shadow-2xs shrink-0">
-                    <span>🏁</span>
-                    <span class="hidden sm:inline">Milestone</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200/90 shadow-2xs shrink-0">
+                    <span class="w-2 h-2 bg-purple-600 rotate-45 rounded-2xs inline-block"></span>
+                    <span>Milestone</span>
                 </span>
             @endif
 
             {{-- Risks Tag --}}
             @if($item->risks && $item->risks->count() > 0)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-rose-50 text-rose-800 border border-rose-200 shadow-2xs shrink-0" title="{{ $item->risks->count() }} Associated Risk(s)">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs shrink-0" title="{{ $item->risks->count() }} Associated Risk(s)">
                     <span>⚠️</span>
                     <span>{{ $item->risks->count() }}</span>
                 </span>
@@ -166,30 +168,30 @@
     </td>
 
     <!-- 3. ASSIGNED TO (Clean Pill with Generous Width) -->
-    <td class="py-3.5 px-2.5 text-xs align-middle whitespace-nowrap" style="width: 170px;">
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 195px;">
         @if($item->assignedUser)
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-50/90 border border-slate-200/80 shadow-2xs max-w-[160px]" title="{{ $item->assignedUser->name }}">
-                <div class="w-5.5 h-5.5 rounded-full {{ $avatarBg }} text-white text-[9px] font-black flex items-center justify-center shrink-0 shadow-2xs">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50/90 hover:bg-slate-100 border border-slate-200/80 shadow-2xs max-w-[190px] transition-colors" title="{{ $item->assignedUser->name }}">
+                <div class="w-5.5 h-5.5 rounded-full {{ $avatarBg }} text-white text-[9.5px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
                     {{ strtoupper(substr($item->assignedUser->name, 0, 1)) }}
                 </div>
-                <span class="truncate font-bold text-slate-800 text-xs">{{ $item->assignedUser->name }}</span>
+                <span class="truncate font-semibold text-slate-800 text-xs">{{ $item->assignedUser->name }}</span>
             </div>
         @else
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-slate-400 text-xs bg-slate-50/50 border border-dashed border-slate-200 select-none" title="Unassigned">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-slate-400 text-xs bg-slate-50/50 border border-dashed border-slate-200 select-none" title="Unassigned">
                 <svg class="w-3.5 h-3.5 text-slate-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
-                <span class="text-slate-400 text-[11px] font-semibold">Unassigned</span>
+                <span class="text-slate-400 text-[11px] font-medium">Unassigned</span>
             </div>
         @endif
     </td>
 
     <!-- 4. START SCHEDULE (Clean Date & Time) -->
-    <td class="py-3.5 px-2.5 text-xs align-middle whitespace-nowrap" style="width: 125px;">
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 130px;">
         @if($item->start_date)
             <div class="flex flex-col leading-tight">
-                <span class="text-xs font-bold text-slate-800">{{ $item->start_date->format('M d, Y') }}</span>
-                <span class="text-[10.5px] font-mono font-medium text-slate-400 mt-0.5">{{ $item->start_time_formatted ?: '09:00 AM' }}</span>
+                <span class="text-xs font-semibold text-slate-800">{{ $item->start_date->format('M d, Y') }}</span>
+                <span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->start_time_formatted ?: '09:00 AM' }}</span>
             </div>
         @else
             <span class="text-slate-300 font-mono text-xs">—</span>
@@ -197,19 +199,19 @@
     </td>
 
     <!-- 5. TARGET DEADLINE (Clear Date, Time & Overdue Indicator) -->
-    <td class="py-3.5 px-2.5 text-xs align-middle whitespace-nowrap" style="width: 130px;">
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 135px;">
         @if($item->end_date)
             <div class="flex flex-col leading-tight">
-                <span class="text-xs font-bold {{ $isOverdue ? 'text-rose-600' : 'text-slate-800' }}">
+                <span class="text-xs {{ $isOverdue ? 'font-bold text-rose-600' : 'font-semibold text-slate-800' }}">
                     {{ $item->end_date->format('M d, Y') }}
                 </span>
                 @if($isOverdue)
-                    <span class="inline-flex items-center gap-1 text-[9.5px] font-mono font-extrabold text-rose-600 uppercase tracking-tight mt-0.5">
+                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-rose-600 uppercase tracking-tight mt-0.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                         <span>Overdue</span>
                     </span>
                 @else
-                    <span class="text-[10.5px] font-mono font-medium text-slate-400 mt-0.5">{{ $item->end_time_formatted ?: '05:30 PM' }}</span>
+                    <span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->end_time_formatted ?: '05:00 PM' }}</span>
                 @endif
             </div>
         @else
@@ -218,39 +220,39 @@
     </td>
 
     <!-- 6. PROGRESS (Refined Bar + %) -->
-    <td class="py-3.5 px-2 text-xs align-middle whitespace-nowrap" style="width: 110px;">
+    <td class="py-3.5 px-2 text-xs align-middle whitespace-nowrap" style="width: 120px;">
         <div class="flex items-center gap-2">
-            <div class="w-14 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/70 p-[1px] flex items-center shrink-0">
+            <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-[0.5px] flex items-center shrink-0">
                 <div 
                     class="h-full rounded-full transition-all duration-300"
                     style="width: {{ $progressVal }}%; {{ $progressBarColor }}"
                 ></div>
             </div>
-            <span class="text-xs font-black font-mono {{ $progressVal === 100 ? 'text-emerald-600' : 'text-slate-700' }} tabular-nums w-7 text-right">{{ $progressVal }}%</span>
+            <span class="text-xs font-bold font-mono {{ $progressVal === 100 ? 'text-emerald-600' : 'text-slate-600' }} tabular-nums w-8 text-right">{{ $progressVal }}%</span>
         </div>
     </td>
 
     <!-- 7. STATUS (Modern Interactive Dropdown) -->
-    <td class="py-3.5 px-2.5 align-middle whitespace-nowrap" style="width: 140px;">
-        <div class="relative inline-block w-full max-w-[136px]">
+    <td class="py-3.5 px-3 align-middle whitespace-nowrap" style="width: 145px;">
+        <div class="relative inline-block w-full max-w-[140px]">
             @php
                 $stBadge = match($currentStatus) {
-                    'completed'    => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/70', 'dot' => 'bg-emerald-500'],
-                    'in_progress'  => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/70', 'dot' => 'bg-blue-500'],
-                    'at_risk'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90 hover:bg-amber-100/70', 'dot' => 'bg-amber-500'],
-                    'under_review' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200/90 hover:bg-purple-100/70', 'dot' => 'bg-purple-500'],
-                    'blocked'      => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/90 hover:bg-rose-100/70', 'dot' => 'bg-rose-500'],
-                    'on_hold'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90 hover:bg-amber-100/70', 'dot' => 'bg-amber-500'],
+                    'completed'    => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70', 'dot' => 'bg-emerald-500'],
+                    'in_progress'  => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100/70', 'dot' => 'bg-blue-500'],
+                    'at_risk'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70', 'dot' => 'bg-amber-500'],
+                    'under_review' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100/70', 'dot' => 'bg-purple-500'],
+                    'blocked'      => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70', 'dot' => 'bg-rose-500'],
+                    'on_hold'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70', 'dot' => 'bg-amber-500'],
                     default        => ($isOverdue 
-                        ? ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/90 hover:bg-rose-100/70', 'dot' => 'bg-rose-500'] 
-                        : ['bg' => 'bg-slate-50 text-slate-700 border-slate-200/90 hover:bg-slate-100/70', 'dot' => 'bg-slate-400']),
+                        ? ['bg' => 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70', 'dot' => 'bg-rose-500'] 
+                        : ['bg' => 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100/70', 'dot' => 'bg-slate-400']),
                 };
             @endphp
             <div class="relative flex items-center">
-                <span class="pointer-events-none absolute left-2.5 w-1.5 h-1.5 rounded-full {{ $stBadge['dot'] }}"></span>
+                <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full {{ $stBadge['dot'] }}"></span>
                 <select
                     wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
-                    class="text-xs font-bold rounded-xl pl-6 pr-6 py-1.5 border cursor-pointer focus:outline-none focus:ring-1.5 focus:ring-slate-300 transition-all shadow-2xs w-full appearance-none truncate {{ $stBadge['bg'] }}"
+                    class="text-xs font-bold rounded-full pl-6.5 pr-6 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all shadow-2xs w-full appearance-none truncate {{ $stBadge['bg'] }}"
                     title="Update Task Status"
                 >
                     <option value="not_started" @selected($currentStatus === 'not_started' || $currentStatus === 'backlog') class="bg-white text-slate-900 font-semibold">Not Started</option>
@@ -261,15 +263,15 @@
                     <option value="on_hold" @selected($currentStatus === 'on_hold') class="bg-white text-amber-700 font-semibold">On Hold</option>
                     <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">Done</option>
                 </select>
-                <div class="pointer-events-none absolute right-2 text-current opacity-50">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                <div class="pointer-events-none absolute right-2.5 text-current opacity-60">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
         </div>
     </td>
 
     <!-- 8. ACTIONS (Compact Kebab ⋮ Menu) -->
-    <td class="py-3.5 pr-4 pl-1 text-center align-middle whitespace-nowrap" style="width: 52px;">
+    <td class="py-3.5 pr-4 pl-1 text-center align-middle whitespace-nowrap" style="width: 50px;">
         <div x-data="{ open: false }" class="relative inline-block text-left">
             <button 
                 @click="open = !open" 

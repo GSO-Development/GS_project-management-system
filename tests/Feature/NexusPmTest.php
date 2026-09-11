@@ -211,20 +211,43 @@ test('super admin approval updates official project deadline', function () {
     expect($project->fresh()->deadline->toDateString())->toBe('2026-12-01');
 });
 
-test('projects index renders successfully and supports health filtering', function () {
+test('projects index renders successfully and supports health and kpi card filtering', function () {
     $user = User::factory()->create(['is_active' => true]);
     $user->assignRole('super_admin');
 
     \Livewire\Livewire::actingAs($user)
         ->test(\App\Livewire\ProjectIndex::class)
         ->assertStatus(200)
+        ->assertSee('Total Projects')
+        ->assertSee('In Planning')
+        ->assertSee('In Progress')
+        ->assertSee('Past Deadline')
+        ->assertSee('On Hold / Paused')
         ->set('healthFilter', 'at_risk')
         ->assertStatus(200)
         ->set('healthFilter', 'delayed')
         ->assertStatus(200)
         ->call('resetFilters')
         ->assertSet('healthFilter', 'all')
-        ->assertStatus(200);
+        ->assertSet('statusFilter', 'all')
+        ->assertStatus(200)
+        ->call('filterByKpi', 'planning')
+        ->assertSet('statusFilter', 'planning')
+        ->call('filterByKpi', 'planning')
+        ->assertSet('statusFilter', 'all')
+        ->call('filterByKpi', 'in_progress')
+        ->assertSet('statusFilter', 'in_progress')
+        ->call('filterByKpi', 'in_progress')
+        ->assertSet('statusFilter', 'all')
+        ->call('filterByKpi', 'overdue')
+        ->assertSet('healthFilter', 'delayed')
+        ->call('filterByKpi', 'overdue')
+        ->assertSet('healthFilter', 'all')
+        ->call('filterByKpi', 'on_hold')
+        ->assertSet('statusFilter', 'on_hold')
+        ->call('filterByKpi', 'all')
+        ->assertSet('statusFilter', 'all')
+        ->assertSet('healthFilter', 'all');
 });
 
 test('audit log viewer renders successfully and supports filtering and details modal', function () {

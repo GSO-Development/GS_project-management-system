@@ -47,7 +47,7 @@ if ($lastPage <= 7) {
             @endif
 
             {{-- Single Page Box (Updates with Current Page) --}}
-            <span class="w-7 h-7 rounded-lg border border-blue-500 bg-white text-blue-600 font-bold flex items-center justify-center text-xs shadow-2xs select-none" title="Page {{ $currentPage }} of {{ $lastPage }}">
+            <span class="w-7 h-7 rounded-lg border border-[#c3122e] bg-rose-50/60 text-[#c3122e] font-bold flex items-center justify-center text-xs shadow-2xs select-none" title="Page {{ $currentPage }} of {{ $lastPage }}">
                 {{ $currentPage }}
             </span>
 

@@ -246,6 +246,67 @@ class ProjectIndex extends Component
         $this->dispatch('toast', message: "🚨 PMO alert dispatched to " . ($item->assignedUser->name ?? 'the Project Manager') . "!", type: 'success');
     }
 
+    public function filterByKpi(string $type): void
+    {
+        $this->resetPage();
+
+        if ($type === 'all') {
+            $this->statusFilter = 'all';
+            $this->healthFilter = 'all';
+            return;
+        }
+
+        if ($type === 'planning') {
+            if ($this->statusFilter === 'planning') {
+                $this->statusFilter = 'all';
+            } else {
+                $this->statusFilter = 'planning';
+                $this->healthFilter = 'all';
+            }
+            return;
+        }
+
+        if ($type === 'in_progress') {
+            if ($this->statusFilter === 'in_progress') {
+                $this->statusFilter = 'all';
+            } else {
+                $this->statusFilter = 'in_progress';
+                $this->healthFilter = 'all';
+            }
+            return;
+        }
+
+        if ($type === 'active') {
+            if ($this->statusFilter === 'active') {
+                $this->statusFilter = 'all';
+            } else {
+                $this->statusFilter = 'active';
+                $this->healthFilter = 'all';
+            }
+            return;
+        }
+
+        if ($type === 'overdue') {
+            if ($this->healthFilter === 'delayed') {
+                $this->healthFilter = 'all';
+            } else {
+                $this->healthFilter = 'delayed';
+                $this->statusFilter = 'all';
+            }
+            return;
+        }
+
+        if ($type === 'on_hold') {
+            if ($this->statusFilter === 'on_hold') {
+                $this->statusFilter = 'all';
+            } else {
+                $this->statusFilter = 'on_hold';
+                $this->healthFilter = 'all';
+            }
+            return;
+        }
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';
@@ -534,7 +595,9 @@ class ProjectIndex extends Component
 
         // Summary metrics strictly scoped to user's authorized projects
         $totalCount = (clone $baseQuery)->count();
-        $activeCount = (clone $baseQuery)->where('status', 'in_progress')->count();
+        $planningCount = (clone $baseQuery)->where('status', 'planning')->count();
+        $inProgressCount = (clone $baseQuery)->where('status', 'in_progress')->count();
+        $activeCount = (clone $baseQuery)->whereIn('status', ['planning', 'in_progress', 'under_review', 'at_risk'])->count();
         $completedCount = (clone $baseQuery)->where('status', 'completed')->count();
         $overdueCount = (clone $baseQuery)->where('deadline', '<', now())
             ->whereNotIn('status', ['completed', 'cancelled'])
@@ -646,7 +709,9 @@ class ProjectIndex extends Component
             $query->where('project_manager_id', $this->managerFilter);
         }
 
-        if ($this->statusFilter !== 'all') {
+        if ($this->statusFilter === 'active') {
+            $query->whereIn('status', ['planning', 'in_progress', 'under_review', 'at_risk']);
+        } elseif ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
         }
 
@@ -767,7 +832,9 @@ class ProjectIndex extends Component
             $allGanttProjectsQuery->where('project_manager_id', $this->managerFilter);
         }
 
-        if ($this->statusFilter !== 'all') {
+        if ($this->statusFilter === 'active') {
+            $allGanttProjectsQuery->whereIn('status', ['planning', 'in_progress', 'under_review', 'at_risk']);
+        } elseif ($this->statusFilter !== 'all') {
             $allGanttProjectsQuery->where('status', $this->statusFilter);
         }
 
@@ -984,6 +1051,8 @@ class ProjectIndex extends Component
             'drawerWbsStats',
             'selectedInspectorTask',
             'totalCount',
+            'planningCount',
+            'inProgressCount',
             'activeCount',
             'completedCount',
             'overdueCount',
