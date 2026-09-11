@@ -29,7 +29,23 @@ class SettingsManager extends Component
     public string $azureTenantId = 'common';
     public string $azureClientId = '';
 
+    // Test Mail
+    public string $testEmailRecipient = '';
+    public ?string $testMailStatus = null;
+    public ?string $testMailError = null;
+
+    // Toast/Alert state
+    public ?string $successToast = null;
+
     public function mount()
+    {
+        $this->loadSettings();
+        if (auth()->check() && empty($this->testEmailRecipient)) {
+            $this->testEmailRecipient = auth()->user()->email ?? '';
+        }
+    }
+
+    public function loadSettings(): void
     {
         $this->appName = SystemSetting::where('key', 'app_name')->value('value') ?? 'GS NexusPM';
         $this->wbsCalculationMethod = SystemSetting::where('key', 'wbs_calculation_method')->value('value') ?? 'weighted';
@@ -61,8 +77,26 @@ class SettingsManager extends Component
         $this->azureClientId = SystemSetting::where('key', 'azure_client_id')->value('value') ?? '';
     }
 
+    public function resetToSaved(): void
+    {
+        $this->loadSettings();
+        $this->testMailStatus = null;
+        $this->testMailError = null;
+        $this->successToast = 'Reset to saved database settings.';
+    }
+
     public function saveSettings()
     {
+        $this->validate([
+            'appName' => 'required|string|max:100',
+            'wbsCalculationMethod' => 'required|in:weighted,equal',
+            'smtpHost' => 'required|string',
+            'smtpPort' => 'required|integer|min:1|max:65535',
+            'mailFromAddress' => 'required|email',
+            'mailFromName' => 'required|string|max:100',
+            'sessionTimeout' => 'required|integer|min:5|max:1440',
+        ]);
+
         $settings = [
             'app_name' => [$this->appName, 'general'],
             'wbs_calculation_method' => [$this->wbsCalculationMethod, 'wbs'],
@@ -88,10 +122,86 @@ class SettingsManager extends Component
             );
         }
 
+        // Record Audit Log
+        if (auth()->check()) {
+            try {
+                \App\Models\ActivityLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => 'updated_system_settings',
+                    'module' => 'settings',
+                    'record_type' => SystemSetting::class,
+                    'record_id' => null,
+                    'description' => 'Updated system settings & enterprise configurations',
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'new_values' => [
+                        'app_name' => $this->appName,
+                        'wbs_calculation_method' => $this->wbsCalculationMethod,
+                        'enable_email_notifications' => $this->enableEmailNotifications,
+                        'smtp_host' => $this->smtpHost,
+                        'smtp_port' => $this->smtpPort,
+                        'session_timeout' => $this->sessionTimeout,
+                        'enforce_password_complexity' => $this->enforcePasswordComplexity,
+                        'enable_azure_sso' => $this->enableAzureSso,
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                // Ignore audit log write failure
+            }
+        }
+
         // Also update .env file so settings persist across server restarts
         $this->updateEnvMailSettings();
 
+        $this->successToast = 'System settings saved successfully!';
         $this->dispatch('toast', message: 'System settings saved successfully!', type: 'success');
+    }
+
+    public function sendTestEmail(): void
+    {
+        $this->validate([
+            'testEmailRecipient' => 'required|email',
+        ]);
+
+        $this->testMailStatus = null;
+        $this->testMailError = null;
+
+        try {
+            // Apply current runtime configs for test dispatch
+            $this->updateEnvMailSettings();
+
+            $appName = $this->appName;
+            $fromAddr = $this->mailFromAddress;
+            $fromName = $this->mailFromName;
+            $recipient = $this->testEmailRecipient;
+            $host = $this->smtpHost;
+            $port = $this->smtpPort;
+            $encryption = $this->smtpEncryption;
+
+            \Illuminate\Support\Facades\Mail::raw(
+                "Hello,\n\n" .
+                "This is a test notification from the {$appName} configuration manager.\n\n" .
+                "Configuration details verified:\n" .
+                "• Host: {$host}\n" .
+                "• Port: {$port}\n" .
+                "• Encryption: {$encryption}\n" .
+                "• From Address: {$fromAddr}\n" .
+                "• From Name: {$fromName}\n" .
+                "• Dispatched At: " . now()->toRfc2822String() . "\n\n" .
+                "Your SMTP relay gateway is operational and ready for production deliverables.",
+                function ($message) use ($recipient, $appName, $fromAddr, $fromName) {
+                    $message->to($recipient)
+                            ->from($fromAddr, $fromName)
+                            ->subject("[{$appName}] SMTP Gateway Verification Successful");
+                }
+            );
+
+            $this->testMailStatus = "Test email successfully dispatched to {$recipient}!";
+            $this->dispatch('toast', message: 'Test email dispatched successfully!', type: 'success');
+        } catch (\Throwable $e) {
+            $this->testMailError = "SMTP Delivery Notice: " . $e->getMessage();
+            $this->dispatch('toast', message: 'SMTP error: ' . $e->getMessage(), type: 'error');
+        }
     }
 
     private function updateEnvMailSettings(): void

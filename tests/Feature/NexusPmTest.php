@@ -210,3 +210,69 @@ test('super admin approval updates official project deadline', function () {
     expect($request->fresh()->status->value)->toBe('approved');
     expect($project->fresh()->deadline->toDateString())->toBe('2026-12-01');
 });
+
+test('projects index renders successfully and supports health filtering', function () {
+    $user = User::factory()->create(['is_active' => true]);
+    $user->assignRole('super_admin');
+
+    \Livewire\Livewire::actingAs($user)
+        ->test(\App\Livewire\ProjectIndex::class)
+        ->assertStatus(200)
+        ->set('healthFilter', 'at_risk')
+        ->assertStatus(200)
+        ->set('healthFilter', 'delayed')
+        ->assertStatus(200)
+        ->call('resetFilters')
+        ->assertSet('healthFilter', 'all')
+        ->assertStatus(200);
+});
+
+test('audit log viewer renders successfully and supports filtering and details modal', function () {
+    $user = User::factory()->create(['is_active' => true]);
+    $user->assignRole('super_admin');
+
+    $log = \App\Models\ActivityLog::create([
+        'user_id' => $user->id,
+        'action' => 'created_project',
+        'module' => 'projects',
+        'record_id' => 1,
+        'record_type' => \App\Models\Project::class,
+        'description' => 'Created project for audit test',
+        'new_values' => ['name' => 'Audit Test Project'],
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'PHPUnit/Test',
+    ]);
+
+    \Livewire\Livewire::actingAs($user)
+        ->test(\App\Livewire\AuditLogViewer::class)
+        ->assertStatus(200)
+        ->set('moduleFilter', 'projects')
+        ->assertStatus(200)
+        ->set('search', 'Audit Test')
+        ->assertStatus(200)
+        ->assertSee('Audit Test Project')
+        ->set('viewMode', 'timeline')
+        ->assertStatus(200)
+        ->set('viewMode', 'table')
+        ->assertStatus(200)
+        ->call('setQuickTab', 'governance')
+        ->assertSet('quickTab', 'governance')
+        ->call('toggleSortOrder')
+        ->assertSet('sortOrder', 'asc')
+        ->call('toggleAutoRefresh')
+        ->assertSet('autoRefresh', false)
+        ->call('viewDetails', $log->id)
+        ->assertSet('showDetailModal', true)
+        ->call('setDiffViewMode', 'json')
+        ->assertSet('diffViewMode', 'json')
+        ->call('closeDetailModal')
+        ->assertSet('showDetailModal', false)
+        ->assertSet('selectedLog', null)
+        ->call('resetFilters')
+        ->assertSet('moduleFilter', 'all')
+        ->assertSet('quickTab', 'all')
+        ->assertSet('search', '')
+        ->call('exportCsv')
+        ->assertFileDownloaded();
+});
+

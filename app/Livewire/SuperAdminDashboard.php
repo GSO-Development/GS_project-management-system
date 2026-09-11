@@ -6,6 +6,7 @@ use App\Enums\ApprovalStatus;
 use App\Enums\ProjectStatus;
 use App\Models\ActivityLog;
 use App\Models\ApprovalRequest;
+use App\Models\CalendarEvent;
 use App\Models\Project;
 use App\Models\ProjectDocument;
 use App\Models\ProjectRisk;
@@ -331,9 +332,9 @@ class SuperAdminDashboard extends Component
 
         // Total Tasks & Overdue Tasks
         $completedTasksCount  = WbsItem::where('status', 'completed')->count();
-        $inProgressTasksCount = WbsItem::where('status', 'in_progress')->count();
-        $onHoldTasksCount     = WbsItem::whereIn('status', ['blocked', 'on_hold'])->count();
-        $notStartedTasksCount = WbsItem::whereIn('status', ['not_started', 'draft', 'pending'])->count();
+        $inProgressTasksCount = WbsItem::whereIn('status', ['in_progress', 'under_review'])->count();
+        $onHoldTasksCount     = WbsItem::whereIn('status', ['blocked', 'on_hold', 'at_risk'])->count();
+        $notStartedTasksCount = WbsItem::whereIn('status', ['not_started', 'draft', 'pending', 'backlog'])->count();
 
         // Total = sum of the four displayed buckets (so percentage matches the legend breakdown)
         $totalTasksCount = $completedTasksCount + $inProgressTasksCount + $onHoldTasksCount + $notStartedTasksCount;
@@ -357,7 +358,7 @@ class SuperAdminDashboard extends Component
         $tasksTrendCount = WbsItem::where('created_at', '>=', now()->subDays(30))->count();
 
         // Project Health Summary (100% Real-time database metrics factoring in open risks & blockers)
-        $allActiveProjects = Project::with(['risks', 'wbsItems'])
+        $allActiveProjects = Project::with(['risks', 'wbsItems.blockers'])
             ->whereNotIn('status', ['cancelled'])
             ->get();
 
@@ -369,10 +370,16 @@ class SuperAdminDashboard extends Component
             if (in_array($p->status?->value, ['draft', 'not_started'])) {
                 continue;
             }
+
+            $hasOpenRisks = $p->risks->where('status', 'open')->isNotEmpty();
+            $hasBlockedTasks = $p->wbsItems->where('status', 'blocked')->isNotEmpty()
+                || $p->wbsItems->some(fn($w) => $w->relationLoaded('blockers') && $w->blockers->where('status', 'open')->isNotEmpty());
+            $isOverdue = $p->deadline && \Carbon\Carbon::parse($p->deadline)->endOfDay()->isPast() && !in_array($p->status?->value, ['completed', 'cancelled']);
+
             $st = $p->status?->value ?? 'in_progress';
-            if ($st === 'delayed') {
+            if ($st === 'delayed' || $isOverdue) {
                 $delayedHealthCount++;
-            } elseif ($st === 'at_risk') {
+            } elseif ($st === 'at_risk' || $hasOpenRisks || $hasBlockedTasks) {
                 $atRiskHealthCount++;
             } else {
                 $onTrackHealthCount++;
@@ -509,6 +516,31 @@ class SuperAdminDashboard extends Component
         $upcomingTasks = $upcomingMilestones;
 
         $taskCompletedPct = $totalTasksCount > 0 ? (int) round(($completedTasksCount / $totalTasksCount) * 100) : 0;
+
+        // 5. Upcoming Calendar Meetings
+        $allUpcomingMeetings = CalendarEvent::with(['project.subsidiary', 'creator'])
+            ->where('start_date', '>=', now()->today())
+            ->orderBy('start_date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $todayMeetingsCount = CalendarEvent::whereDate('start_date', now()->today())->count();
+        $thisWeekMeetingsCount = CalendarEvent::whereBetween('start_date', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $totalUpcomingMeetingsCount = $allUpcomingMeetings->count();
+
+        if ($allUpcomingMeetings->count() < 4) {
+            $pastMeetings = CalendarEvent::with(['project.subsidiary', 'creator'])
+                ->whereNotIn('id', $allUpcomingMeetings->pluck('id'))
+                ->orderBy('start_date', 'desc')
+                ->take(4 - $allUpcomingMeetings->count())
+                ->get();
+            $upcomingMeetings = $allUpcomingMeetings->concat($pastMeetings)->sortBy([
+                ['start_date', 'asc'],
+                ['start_time', 'asc'],
+            ])->values();
+        } else {
+            $upcomingMeetings = $allUpcomingMeetings->take(4);
+        }
 
         // Top Subsidiaries Overview Table
         $topSubsidiaries = Subsidiary::withCount([
@@ -759,7 +791,11 @@ class SuperAdminDashboard extends Component
             'riskMitigation',
             'showReassignModal',
             'reassignProjectId',
-            'newLeaderId'
+            'newLeaderId',
+            'upcomingMeetings',
+            'todayMeetingsCount',
+            'thisWeekMeetingsCount',
+            'totalUpcomingMeetingsCount'
         ));
     }
 }

@@ -30,6 +30,7 @@ class ProjectIndex extends Component
     public string $managerFilter = 'all';
     public string $statusFilter = 'all';
     public string $priorityFilter = 'all';
+    public string $healthFilter = 'all';
     public int $perPage = 10;
     public bool $showMoreFilters = false;
 
@@ -80,6 +81,7 @@ class ProjectIndex extends Component
         'managerFilter' => ['except' => 'all'],
         'statusFilter' => ['except' => 'all'],
         'priorityFilter' => ['except' => 'all'],
+        'healthFilter' => ['except' => 'all'],
         'stuckTypeFilter' => ['except' => 'all'],
     ];
 

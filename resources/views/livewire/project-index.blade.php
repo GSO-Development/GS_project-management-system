@@ -228,7 +228,7 @@
                     </div>
 
                     <!-- Reset Filters Button -->
-                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all')
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all')
                         <button 
                             type="button" 
                             wire:click="resetFilters" 
@@ -255,7 +255,7 @@
                     </span>
                 </div>
                 <div class="flex items-center gap-2">
-                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all')
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $healthFilter !== 'all')
                         <span class="text-xs font-medium text-slate-400">Filtered view</span>
                     @endif
                 </div>
@@ -381,15 +381,6 @@
                                 <!-- Actions -->
                                 <td class="py-3.5 pl-4 pr-6 align-middle text-right whitespace-nowrap">
                                     <div class="inline-flex items-center gap-1 bg-slate-100/70 hover:bg-slate-100 p-1 rounded-xl border border-slate-200/70 shadow-2xs transition-colors">
-                                        <!-- Quick WBS Inspector Drawer -->
-                                        <button 
-                                            wire:click="openQuickDrawer({{ $project->id }})"
-                                            type="button" 
-                                            class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs transition-all cursor-pointer"
-                                            title="Inspect WBS Tasks & Schedule"
-                                        >
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
 
                                         <!-- Open Project Workspace -->
                                         <a 
@@ -400,17 +391,6 @@
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                         </a>
 
-                                        <!-- Edit Modal Button -->
-                                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->id() === $project->project_manager_id)
-                                            <button 
-                                                wire:click="openEditModal({{ $project->id }})" 
-                                                type="button" 
-                                                class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-white hover:shadow-2xs transition-all cursor-pointer"
-                                                title="Edit Project"
-                                            >
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                            </button>
-                                        @endif
 
                                         <!-- Delete Project Button (Super Admin / PMO Admin) -->
                                         @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin'))

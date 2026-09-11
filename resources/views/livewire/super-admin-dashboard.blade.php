@@ -297,12 +297,15 @@
                             }
 
                             $projStatusVal = $proj->status?->value ?? 'in_progress';
-                            $pillBg = match($projStatusVal) {
-                                'completed' => '#059669',
-                                'delayed'   => '#dc2626',
-                                'at_risk'   => '#d97706',
-                                'on_hold'   => '#d97706',
-                                default     => '#059669',
+                            $hasOpenRisks = $proj->risks && $proj->risks->where('status', 'open')->isNotEmpty();
+                            $hasBlockedTasks = $proj->wbsItems && $proj->wbsItems->where('status', 'blocked')->isNotEmpty();
+                            $isOverdue = $proj->deadline && $proj->deadline->isPast() && $proj->overall_progress < 100 && !in_array($projStatusVal, ['completed', 'cancelled']);
+
+                            $pillBg = match(true) {
+                                $projStatusVal === 'completed' => '#059669',
+                                $projStatusVal === 'delayed' || $isOverdue => '#dc2626',
+                                $projStatusVal === 'at_risk' || $hasOpenRisks || $hasBlockedTasks || $projStatusVal === 'on_hold' => '#d97706',
+                                default => '#059669',
                             };
                             
                             $dateRangeLabel = $pStart->format('M d') . ' – ' . $pEnd->format('M d');
@@ -475,82 +478,119 @@
         </a>
 
 
-        <!-- ── Col 2: Tasks Progress Donut ── -->
-        <div class="bg-white rounded-2xl border border-slate-100/90 shadow-2xs p-5 sm:p-6 flex flex-col justify-between space-y-4">
+        <!-- ── Col 2: Upcoming Meetings ── -->
+        <a href="{{ route('calendar.index') }}" 
+           wire:navigate.hover
+           class="no-underline block bg-white rounded-2xl border border-slate-100/90 shadow-2xs p-5 sm:p-6 flex flex-col space-y-4 hover:border-indigo-200 hover:shadow-md transition-all duration-200 cursor-pointer group">
             
             <!-- Card Header -->
-            <div class="pb-2 border-b border-slate-100">
-                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Tasks Progress
-                </h3>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 group-hover:bg-indigo-100 transition-colors">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-none group-hover:text-indigo-700 transition-colors" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            Upcoming Meetings
+                        </h3>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-indigo-600 group-hover:text-indigo-800 transition-colors flex items-center gap-1">
+                    <span>View Calendar</span>
+                    <span>→</span>
+                </span>
             </div>
 
-            <!-- Donut Graphic in Center -->
-            @php
-                $circumference = 314.16; // 2 * PI * 50
-                $totTasks = max(1, $totalTasksCount);
-                $pctCompleted = $completedTasksCount / $totTasks;
-                $strokeDash = round($pctCompleted * $circumference, 1);
-                $strokeGap  = $circumference - $strokeDash;
-            @endphp
-            <div class="flex flex-col items-center justify-center py-2">
-                <div class="relative w-36 h-36 flex items-center justify-center">
-                    <svg class="w-36 h-36 -rotate-90 transform" viewBox="0 0 120 120">
-                        <!-- Background ring -->
-                        <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f5f9" stroke-width="12"/>
-                        <!-- Completed stroke -->
-                        <circle cx="60" cy="60" r="50" fill="transparent" stroke="#10b981" stroke-width="12"
-                                stroke-dasharray="{{ $strokeDash }} {{ $strokeGap }}"
-                                stroke-linecap="round"
-                                class="transition-all duration-700 ease-out"/>
-                    </svg>
-
-                    <!-- Center Text -->
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
-                            {{ $taskCompletedPct }}%
-                        </span>
-                        <span class="text-[11px] font-semibold text-slate-400 mt-1">Completed</span>
-                    </div>
+            <!-- Top Stats Row (Matching Risk Summary style) -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="flex flex-col items-center justify-center bg-indigo-50/70 border border-indigo-100 rounded-xl py-2.5 px-1">
+                    <span class="text-lg font-black text-indigo-600 leading-none font-mono">{{ $todayMeetingsCount }}</span>
+                    <span class="text-[9.5px] font-bold text-indigo-500 uppercase tracking-wide mt-0.5">Today</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-blue-50/70 border border-blue-100 rounded-xl py-2.5 px-1">
+                    <span class="text-lg font-black text-blue-600 leading-none font-mono">{{ $thisWeekMeetingsCount }}</span>
+                    <span class="text-[9.5px] font-bold text-blue-500 uppercase tracking-wide mt-0.5">This Week</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-emerald-50/70 border border-emerald-100 rounded-xl py-2.5 px-1">
+                    <span class="text-lg font-black text-emerald-600 leading-none font-mono">{{ $totalUpcomingMeetingsCount }}</span>
+                    <span class="text-[9.5px] font-bold text-emerald-500 uppercase tracking-wide mt-0.5">Scheduled</span>
                 </div>
             </div>
 
-            <!-- Breakdown Legend Rows -->
-            <div class="space-y-2 pt-1 border-t border-slate-100 text-xs">
-                <a href="{{ route('all-tasks.index', ['status' => 'completed']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-emerald-50/60 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-emerald-700 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                        <span>Completed</span>
-                    </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-emerald-700 transition-colors">{{ $completedTasksCount }}</span>
-                </a>
+            <!-- Meeting Items List -->
+            <div class="space-y-2 flex-1">
+                @forelse($upcomingMeetings as $meeting)
+                    @php
+                        $isToday = $meeting->start_date && $meeting->start_date->isToday();
+                        $isTomorrow = $meeting->start_date && $meeting->start_date->isTomorrow();
+                        
+                        $dateLabel = $isToday ? 'Today' : ($isTomorrow ? 'Tmrw' : $meeting->start_date?->format('M d'));
+                        $timeFormatted = $meeting->start_time ? \Carbon\Carbon::parse($meeting->start_time)->format('h:i A') : ($meeting->is_all_day ? 'All Day' : '—');
+                        
+                        $typeBadge = match($meeting->event_type) {
+                            'review'    => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200', 'label' => 'Review'],
+                            'milestone' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200', 'label' => 'Milestone'],
+                            default     => ['bg' => 'bg-indigo-50 text-indigo-700 border-indigo-200', 'label' => 'Sync'],
+                        };
+                    @endphp
+                    <div class="p-2.5 rounded-xl border border-slate-100/90 bg-slate-50/50 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <!-- Date / Time Pill -->
+                            <div class="flex flex-col items-center justify-center px-2 py-1 rounded-lg {{ $isToday ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white border border-slate-200/80 text-slate-700' }} shrink-0 min-w-[54px] text-center">
+                                <span class="text-[10px] font-black uppercase tracking-tight leading-none">{{ $dateLabel }}</span>
+                                <span class="text-[9px] font-mono font-bold leading-tight mt-0.5 {{ $isToday ? 'text-indigo-100' : 'text-slate-500' }}">{{ $timeFormatted }}</span>
+                            </div>
 
-                <a href="{{ route('all-tasks.index', ['status' => 'in_progress']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-blue-50/60 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-blue-700 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                        <span>In Progress</span>
-                    </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-blue-700 transition-colors">{{ $inProgressTasksCount }}</span>
-                </a>
+                            <!-- Meeting Title & Project -->
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <h4 class="text-xs font-bold text-slate-900 truncate leading-tight group-hover:text-indigo-700 transition-colors">
+                                        {{ $meeting->title }}
+                                    </h4>
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-0.5 text-[10.5px] text-slate-500">
+                                    @if($meeting->project)
+                                        <span class="font-mono font-bold text-[9.5px] text-[#c3122e] bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200/60 shrink-0">
+                                            {{ $meeting->project->code }}
+                                        </span>
+                                        <span class="truncate max-w-[120px] font-medium">{{ $meeting->project->name }}</span>
+                                    @else
+                                        <span class="text-slate-400 italic">General Meeting</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
 
-                <a href="{{ route('all-tasks.index', ['status' => 'on_hold']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-rose-50/60 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-rose-700 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                        <span>On Hold</span>
-                    </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-rose-700 transition-colors">{{ $onHoldTasksCount }}</span>
-                </a>
-
-                <a href="{{ route('all-tasks.index', ['status' => 'not_started']) }}" class="flex items-center justify-between font-semibold no-underline group rounded-lg px-2 py-1.5 hover:bg-slate-100/70 transition-colors">
-                    <span class="flex items-center gap-2 text-slate-700 group-hover:text-slate-600 transition-colors">
-                        <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
-                        <span>Not Started</span>
-                    </span>
-                    <span class="font-bold text-slate-900 font-mono group-hover:text-slate-600 transition-colors">{{ $notStartedTasksCount }}</span>
-                </a>
+                        <!-- Right: Meeting link or type badge -->
+                        <div class="shrink-0 flex items-center gap-1">
+                            @if($meeting->meeting_link)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs" title="Virtual Meeting Link Available">
+                                    <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                                    <span>Teams</span>
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-bold border {{ $typeBadge['bg'] }}">
+                                    {{ $typeBadge['label'] }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-8 text-center text-slate-400 flex flex-col items-center justify-center space-y-2">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-600">No upcoming meetings</p>
+                        <span class="text-[11px] text-indigo-600 font-bold hover:underline">Schedule in Calendar →</span>
+                    </div>
+                @endforelse
             </div>
 
-        </div>
+        </a>
 
 
         <!-- ── Col 3: Recent Activity ── -->
