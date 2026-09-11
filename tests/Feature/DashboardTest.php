@@ -10,8 +10,8 @@ test('user dashboard renders project manager dashboard component successfully', 
 
     Livewire::test(ProjectManagerDashboard::class)
         ->assertStatus(200)
-        ->assertSee('Task Progress')
-        ->assertSee('Overall Project Task Completion');
+        ->assertSee('Total Projects')
+        ->assertSee('Quick Access');
 });
 
 test('user dashboard can toggle chart period between week and month', function () {

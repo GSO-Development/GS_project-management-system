@@ -50,6 +50,7 @@ class TaskOverdueNotificationService
         $alertCount = 0;
 
         foreach ($items as $item) {
+            /** @var \App\Models\WbsItem $item */
             $endDateTime = null;
             $eDateStr = $item->end_date instanceof Carbon ? $item->end_date->format('Y-m-d') : substr((string) $item->end_date, 0, 10);
             $eTimeStr = $item->end_time ?: '23:59:59';

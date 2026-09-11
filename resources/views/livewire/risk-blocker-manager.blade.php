@@ -821,7 +821,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showAddBlockerModal', false)"></div>
 
-            <div class="relative bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col">
+            <div class="relative bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col mx-3 sm:mx-auto">
                 <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
                     <div class="flex items-center gap-3">

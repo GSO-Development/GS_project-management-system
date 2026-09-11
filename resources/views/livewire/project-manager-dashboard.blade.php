@@ -564,7 +564,7 @@
                             </span>
                         @endif
                     </div>
-                    <a href="{{ route('projects.index') }}" wire:navigate.hover class="text-xs font-semibold text-amber-600/90 hover:text-amber-700 flex items-center gap-1 transition-colors no-underline">
+                    <a href="{{ route('risks.index') }}" wire:navigate.hover class="text-xs font-semibold text-amber-600/90 hover:text-amber-700 flex items-center gap-1 transition-colors no-underline">
                         <span>View all</span>
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
@@ -649,8 +649,8 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>Live risk synchronization across assigned projects</span>
                 </span>
-                <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#8b0d1f] hover:text-[#c3122e] hover:underline flex items-center gap-1 transition-colors">
-                    <span>View Projects</span>
+                <a href="{{ route('risks.index') }}" wire:navigate.hover class="font-bold text-[#8b0d1f] hover:text-[#c3122e] hover:underline flex items-center gap-1 transition-colors">
+                    <span>View Risks</span>
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>

@@ -14,6 +14,18 @@ use InvalidArgumentException;
 class ApprovalService
 {
     /**
+     * Process approval or rejection decision.
+     */
+    public function processApproval(ApprovalRequest $request, User $reviewer, bool $approved, ?string $comment = null): void
+    {
+        if ($approved) {
+            $this->approve($request, $reviewer, $comment);
+        } else {
+            $this->reject($request, $reviewer, $comment ?? 'Rejected by reviewer');
+        }
+    }
+
+    /**
      * Approves an approval request and applies official updates in a DB transaction.
      */
     public function approve(ApprovalRequest $request, User $reviewer, ?string $comment = null): void

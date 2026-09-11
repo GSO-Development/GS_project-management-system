@@ -251,7 +251,7 @@
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="open = false; $wire.showModal = false"></div>
 
         <!-- Modal Content -->
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10 p-6 sm:p-8">
+        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10 p-5 sm:p-8 mx-3 sm:mx-auto">
 
             <!-- Header -->
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
@@ -375,7 +375,7 @@
 
                     {{-- Role & Subsidiary assignment (only show once Azure user is selected) --}}
                     @if($selectedAzureUser)
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div class="form-group">
                             <label class="form-label">System Role</label>
                             <select wire:model="role" class="form-select">
@@ -421,7 +421,7 @@
                         @error('name') <span class="form-error">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div class="form-group">
                             <label class="form-label">Email Address</label>
                             <input type="email" wire:model="email" placeholder="john@company.com" class="form-input">
@@ -434,7 +434,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div class="form-group">
                             <label class="form-label">System Role</label>
                             <select wire:model="role" class="form-select">

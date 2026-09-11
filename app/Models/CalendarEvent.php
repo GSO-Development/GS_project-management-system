@@ -8,6 +8,27 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int|null $project_id
+ * @property int|null $wbs_item_id
+ * @property int $created_by
+ * @property string $title
+ * @property string|null $description
+ * @property string $event_type
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $end_date
+ * @property string|null $start_time
+ * @property string|null $end_time
+ * @property bool $is_all_day
+ * @property string|null $location
+ * @property string|null $meeting_link
+ * @property array|null $attendees
+ * @property string $priority
+ * @property \Illuminate\Support\Carbon|null $synced_to_microsoft_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class CalendarEvent extends Model
 {
     use HasFactory, SoftDeletes;

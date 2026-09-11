@@ -503,7 +503,7 @@
         <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999;">
             <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" style="z-index: 9999;" wire:click="$set('showCreateRoleModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4" style="z-index: 10000;">
+            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 mx-3 sm:mx-auto" style="z-index: 10000;">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-lg">
@@ -563,7 +563,7 @@
         <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999;">
             <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" style="z-index: 9999;" wire:click="$set('showCreatePermissionModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4" style="z-index: 10000;">
+            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 mx-3 sm:mx-auto" style="z-index: 10000;">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">

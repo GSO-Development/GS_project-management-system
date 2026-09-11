@@ -391,7 +391,7 @@
                 <div class="fixed inset-0 backdrop-blur-sm transition-opacity bg-slate-900/50" wire:click="closeHistoryModal"></div>
 
                 <!-- Popup Content Box -->
-                <div class="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl z-10 flex flex-col max-h-[90vh] md:max-h-[85vh] overflow-hidden border border-slate-200/90 animate-in fade-in zoom-in-95 duration-200">
+                <div class="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl z-10 flex flex-col max-h-[90vh] md:max-h-[85vh] overflow-hidden border border-slate-200/90 animate-in fade-in zoom-in-95 duration-200 mx-3 sm:mx-auto">
                     <!-- Modal Header -->
                     <div class="px-6 py-4.5 flex items-center justify-between border-b border-rose-900/20 flex-shrink-0" style="background: linear-gradient(135deg, #18060c 0%, #300a16 50%, #1b0710 100%); color: #ffffff;">
                         <div class="flex items-center gap-3.5">
@@ -626,7 +626,7 @@
             <!-- Overlay Backdrop with soft blur -->
             <div class="fixed inset-0 backdrop-blur-sm transition-opacity bg-slate-900/50" wire:click="$set('showUpdateModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl max-w-xl w-full p-0 overflow-hidden shadow-2xl z-10 border border-slate-200/90 animate-in fade-in zoom-in-95 duration-200">
+            <div class="relative bg-white rounded-3xl max-w-xl w-full p-0 overflow-hidden shadow-2xl z-10 border border-slate-200/90 animate-in fade-in zoom-in-95 duration-200 mx-3 sm:mx-auto max-h-[90vh] overflow-y-auto">
                 <!-- Modal Header -->
                 <div class="px-6 py-4.5 flex items-center justify-between border-b border-rose-900/20 flex-shrink-0" style="background: linear-gradient(135deg, #18060c 0%, #300a16 50%, #1b0710 100%); color: #ffffff;">
                     <div class="flex items-center gap-3.5">
