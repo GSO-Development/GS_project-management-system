@@ -16,9 +16,9 @@ class AzureUserService
      */
     public static function syncAzureUsers(): array
     {
-        $clientId = env('AZURE_CLIENT_ID');
-        $tenantId = env('AZURE_TENANT_ID');
-        $clientSecret = env('AZURE_CLIENT_SECRET');
+        $clientId     = config('services.azure.client_id') ?: env('AZURE_CLIENT_ID');
+        $tenantId     = config('services.azure.tenant') ?: env('AZURE_TENANT_ID');
+        $clientSecret = config('services.azure.client_secret') ?: env('AZURE_CLIENT_SECRET');
 
         if (!$clientId || !$tenantId || !$clientSecret) {
             Log::warning('Azure credentials missing in .env. Skipping synchronization.');

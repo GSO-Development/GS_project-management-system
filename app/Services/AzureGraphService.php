@@ -12,9 +12,9 @@ class AzureGraphService
      */
     public static function getAccessToken(): ?string
     {
-        $tenantId     = env('AZURE_TENANT_ID');
-        $clientId     = env('AZURE_CLIENT_ID');
-        $clientSecret = env('AZURE_CLIENT_SECRET');
+        $tenantId     = config('services.azure.tenant') ?: env('AZURE_TENANT_ID');
+        $clientId     = config('services.azure.client_id') ?: env('AZURE_CLIENT_ID');
+        $clientSecret = config('services.azure.client_secret') ?: env('AZURE_CLIENT_SECRET');
 
         if (empty($tenantId) || empty($clientId) || empty($clientSecret)) {
             return null;
