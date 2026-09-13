@@ -10,6 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <style>
+        [x-cloak] { display: none !important; }
+        svg { max-width: 100%; }
+    </style>
 </head>
 <body class="font-sans antialiased bg-slate-50 min-h-screen">
     {{ $slot }}

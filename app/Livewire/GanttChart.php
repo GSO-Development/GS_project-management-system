@@ -19,6 +19,7 @@ class GanttChart extends Component
 
     protected $listeners = [
         'wbsUpdated' => '$refresh',
+        'riskUpdated' => '$refresh',
     ];
 
     /**
@@ -40,15 +41,34 @@ class GanttChart extends Component
         $this->initialised = true;
     }
 
-    /** Collapse all parent items so only main tasks are visible by default */
+    /** Collapse all parent items so only main tasks are visible by default, while keeping at-risk branches open */
     public function collapseAll()
     {
-        $this->collapsedIds = WbsItem::where('project_id', $this->project->id)
+        $allParentsWithChildren = WbsItem::where('project_id', $this->project->id)
             ->whereIn('id', function ($q) {
                 $q->select('parent_id')->from('wbs_items')->whereNotNull('parent_id');
             })
             ->pluck('id')
             ->toArray();
+
+        // Keep parents of at-risk tasks expanded so the at-risk tasks are immediately visible
+        $atRiskParentIds = [];
+        $atRiskItems = WbsItem::where('project_id', $this->project->id)
+            ->where(function ($q) {
+                $q->where('status', 'at_risk')
+                  ->orWhereHas('risks', fn($rq) => $rq->where('status', 'open'));
+            })
+            ->get();
+
+        foreach ($atRiskItems as $atRiskItem) {
+            $curr = $atRiskItem;
+            while ($curr && $curr->parent_id) {
+                $atRiskParentIds[] = $curr->parent_id;
+                $curr = WbsItem::find($curr->parent_id);
+            }
+        }
+
+        $this->collapsedIds = array_values(array_diff($allParentsWithChildren, array_unique($atRiskParentIds)));
     }
 
     /** Expand everything with one click */
@@ -108,7 +128,16 @@ class GanttChart extends Component
             $query->where('title', 'like', "%{$this->search}%");
         }
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            if ($this->statusFilter === 'at_risk') {
+                $query->where(function ($q) {
+                    $q->where('status', 'at_risk')
+                      ->orWhereHas('risks', function ($rq) {
+                          $rq->whereIn('status', ['open', 'active', 'identified']);
+                      });
+                });
+            } else {
+                $query->where('status', $this->statusFilter);
+            }
         }
 
         $allRawItems = $query->get()->sort(function ($a, $b) {
@@ -421,6 +450,13 @@ class GanttChart extends Component
         $collapsedIds = $this->collapsedIds;
         $project      = $this->project;
 
+        $atRiskCount = WbsItem::where('project_id', $this->project->id)
+            ->where(function ($q) {
+                $q->where('status', 'at_risk')
+                  ->orWhereHas('risks', fn($rq) => $rq->whereIn('status', ['open', 'active', 'identified']));
+            })
+            ->count();
+
         return view('livewire.gantt-chart', compact(
             'wbsItems',
             'allRawItems',
@@ -437,7 +473,8 @@ class GanttChart extends Component
             'isPastDeadline',
             'daysToDeadline',
             'collapsedIds',
-            'parentIds'
+            'parentIds',
+            'atRiskCount'
         ));
     }
 }

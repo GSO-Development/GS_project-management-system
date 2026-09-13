@@ -7,6 +7,9 @@ use Livewire\Component;
 
 class SettingsManager extends Component
 {
+    public string $activeTab = 'general'; // 'general', 'smtp', 'security', 'maintenance'
+
+    // General & Branding
     public string $appName = 'GS NexusPM';
     public string $wbsCalculationMethod = 'weighted';
     public bool $enableEmailNotifications = false;
@@ -39,42 +42,56 @@ class SettingsManager extends Component
 
     public function mount()
     {
+        $user = auth()->user();
+        if (!$user || (!$user->hasRole('super_admin') && !$user->isPmoAdmin() && $user->id !== 1)) {
+            abort(403, 'Unauthorized access to System Settings.');
+        }
+
         $this->loadSettings();
         if (empty($this->testEmailRecipient)) {
-            $this->testEmailRecipient = 'nadumi672@gmail.com';
+            $this->testEmailRecipient = $user->email ?? 'admin@georgesteuart.com';
         }
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
     }
 
     public function loadSettings(): void
     {
-        $this->appName = SystemSetting::where('key', 'app_name')->value('value') ?? 'GS NexusPM';
-        $this->wbsCalculationMethod = SystemSetting::where('key', 'wbs_calculation_method')->value('value') ?? 'weighted';
+        $this->appName = (string) (SystemSetting::where('key', 'app_name')->value('value') ?: 'GS NexusPM');
+        $this->wbsCalculationMethod = (string) (SystemSetting::where('key', 'wbs_calculation_method')->value('value') ?: 'weighted');
         $this->enableEmailNotifications = filter_var(SystemSetting::where('key', 'enable_email_notifications')->value('value') ?? false, FILTER_VALIDATE_BOOLEAN);
 
         // Mail Server Settings — DB first, then .env fallback
-        $this->smtpHost = SystemSetting::where('key', 'smtp_host')->value('value')
-            ?? env('MAIL_HOST', 'smtp.gmail.com');
+        $this->smtpHost = (string) (SystemSetting::where('key', 'smtp_host')->value('value')
+            ?: (env('MAIL_HOST') ?: 'smtp.gmail.com'));
         $this->smtpPort = (int) (SystemSetting::where('key', 'smtp_port')->value('value')
-            ?? env('MAIL_PORT', 587));
-        $this->smtpUser = SystemSetting::where('key', 'smtp_user')->value('value')
-            ?? env('MAIL_USERNAME', 'prathibhajay098@gmail.com');
-        $this->smtpPass = SystemSetting::where('key', 'smtp_pass')->value('value')
-            ?? env('MAIL_PASSWORD', 'whvcknxyueynxiwk');
-        $this->smtpEncryption = SystemSetting::where('key', 'smtp_encryption')->value('value')
-            ?? env('MAIL_SCHEME', 'tls');
-        $this->mailFromAddress = SystemSetting::where('key', 'mail_from_address')->value('value')
-            ?? env('MAIL_FROM_ADDRESS', 'prathibhajay098@gmail.com');
-        $this->mailFromName = SystemSetting::where('key', 'mail_from_name')->value('value')
-            ?? env('MAIL_FROM_NAME', 'GS Project Management');
+            ?: (env('MAIL_PORT') ?: 587));
+        $this->smtpUser = (string) (SystemSetting::where('key', 'smtp_user')->value('value')
+            ?: (env('MAIL_USERNAME') ?: ''));
+        $this->smtpPass = (string) (SystemSetting::where('key', 'smtp_pass')->value('value')
+            ?: (env('MAIL_PASSWORD') ?: ''));
+
+        // Handle smtp_encryption safely to prevent TypeError when env('MAIL_SCHEME') is null
+        $rawEnc = SystemSetting::where('key', 'smtp_encryption')->value('value')
+            ?: (env('MAIL_ENCRYPTION') ?: (env('MAIL_SCHEME') ?: 'tls'));
+        $this->smtpEncryption = in_array(strtolower((string) $rawEnc), ['tls', 'ssl', 'none']) ? strtolower((string) $rawEnc) : 'tls';
+
+        $this->mailFromAddress = (string) (SystemSetting::where('key', 'mail_from_address')->value('value')
+            ?: (env('MAIL_FROM_ADDRESS') ?: 'nadumi672@gmail.com'));
+        $this->mailFromName = (string) (SystemSetting::where('key', 'mail_from_name')->value('value')
+            ?: (env('MAIL_FROM_NAME') ?: 'GS Project Management'));
 
         // Security Settings
         $this->enforcePasswordComplexity = filter_var(SystemSetting::where('key', 'enforce_password_complexity')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
-        $this->sessionTimeout = (int) (SystemSetting::where('key', 'session_timeout')->value('value') ?? 120);
+        $this->sessionTimeout = (int) (SystemSetting::where('key', 'session_timeout')->value('value') ?: 120);
 
         // Azure SSO Settings
         $this->enableAzureSso = filter_var(SystemSetting::where('key', 'enable_azure_sso')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
-        $this->azureTenantId = SystemSetting::where('key', 'azure_tenant_id')->value('value') ?? 'common';
-        $this->azureClientId = SystemSetting::where('key', 'azure_client_id')->value('value') ?? '';
+        $this->azureTenantId = (string) (SystemSetting::where('key', 'azure_tenant_id')->value('value') ?: 'common');
+        $this->azureClientId = (string) (SystemSetting::where('key', 'azure_client_id')->value('value') ?: '');
     }
 
     public function resetToSaved(): void
@@ -82,7 +99,7 @@ class SettingsManager extends Component
         $this->loadSettings();
         $this->testMailStatus = null;
         $this->testMailError = null;
-        $this->successToast = 'Reset to saved database settings.';
+        $this->successToast = 'Settings restored to saved database configuration.';
     }
 
     public function saveSettings()
@@ -92,9 +109,12 @@ class SettingsManager extends Component
             'wbsCalculationMethod' => 'required|in:weighted,equal',
             'smtpHost' => 'required|string',
             'smtpPort' => 'required|integer|min:1|max:65535',
+            'smtpEncryption' => 'required|in:tls,ssl,none',
             'mailFromAddress' => 'required|email',
             'mailFromName' => 'required|string|max:100',
             'sessionTimeout' => 'required|integer|min:5|max:1440',
+            'azureTenantId' => 'nullable|string|max:100',
+            'azureClientId' => 'nullable|string|max:100',
         ]);
 
         $settings = [
@@ -204,6 +224,32 @@ class SettingsManager extends Component
         }
     }
 
+    public function clearCache(string $type = 'all'): void
+    {
+        try {
+            if ($type === 'views') {
+                \Illuminate\Support\Facades\Artisan::call('view:clear');
+                $msg = 'Compiled Blade views cleared successfully!';
+            } elseif ($type === 'app') {
+                \Illuminate\Support\Facades\Artisan::call('cache:clear');
+                $msg = 'Application cache cleared successfully!';
+            } elseif ($type === 'routes') {
+                \Illuminate\Support\Facades\Artisan::call('route:clear');
+                $msg = 'Route cache cleared successfully!';
+            } elseif ($type === 'config') {
+                \Illuminate\Support\Facades\Artisan::call('config:clear');
+                $msg = 'Configuration cache cleared successfully!';
+            } else {
+                \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                $msg = 'All system caches (views, routes, config, app) cleared successfully!';
+            }
+            $this->successToast = $msg;
+            $this->dispatch('toast', message: $msg, type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: 'Failed to clear cache: ' . $e->getMessage(), type: 'error');
+        }
+    }
+
     private function updateEnvMailSettings(): void
     {
         $envPath = base_path('.env');
@@ -234,25 +280,51 @@ class SettingsManager extends Component
             }
         }
 
-        // Clean up legacy MAIL_SCHEME or MAIL_URL lines that break Symfony Mailer transport parsing
-        $content = preg_replace('/^MAIL_SCHEME=.*/m', 'MAIL_SCHEME=null', $content);
+        // Keep MAIL_SCHEME consistent with Symfony mailer (smtps for ssl, null for tls/none)
+        $schemeVal = ($encryption === 'ssl') ? 'smtps' : 'null';
+        $content = preg_replace('/^MAIL_SCHEME=.*/m', 'MAIL_SCHEME=' . $schemeVal, $content);
         if (preg_match('/^MAIL_URL=.*/m', $content)) {
             $content = preg_replace('/^MAIL_URL=.*/m', '# MAIL_URL=', $content);
         }
 
         file_put_contents($envPath, $content);
 
-        // Apply clean dynamic runtime config to Laravel Mailer Manager & purge cached transport instance
+        $actualScheme = ($encryption === 'ssl') ? 'smtps' : null;
+        $actualEnc = ($encryption === 'none') ? null : $encryption;
+
+        // Process runtime environment overrides
+        $_ENV['MAIL_MAILER'] = 'smtp';
+        $_ENV['MAIL_SCHEME'] = $actualScheme;
+        $_ENV['MAIL_HOST'] = $this->smtpHost;
+        $_ENV['MAIL_PORT'] = $port;
+        $_ENV['MAIL_USERNAME'] = $this->smtpUser;
+        $_ENV['MAIL_PASSWORD'] = $this->smtpPass;
+        $_ENV['MAIL_ENCRYPTION'] = $actualEnc;
+        $_ENV['MAIL_FROM_ADDRESS'] = $this->mailFromAddress;
+        $_ENV['MAIL_FROM_NAME'] = $this->mailFromName;
+
+        putenv("MAIL_MAILER=smtp");
+        putenv("MAIL_SCHEME=" . ($actualScheme ?? ''));
+        putenv("MAIL_HOST={$this->smtpHost}");
+        putenv("MAIL_PORT={$port}");
+        putenv("MAIL_USERNAME={$this->smtpUser}");
+        putenv("MAIL_PASSWORD={$this->smtpPass}");
+        putenv("MAIL_ENCRYPTION=" . ($actualEnc ?? ''));
+        putenv("MAIL_FROM_ADDRESS={$this->mailFromAddress}");
+        putenv("MAIL_FROM_NAME={$this->mailFromName}");
+
+        // Dynamic runtime config for current execution
         config([
             'mail.default' => 'smtp',
             'mail.mailers.smtp' => [
                 'transport' => 'smtp',
+                'scheme' => $actualScheme,
                 'host' => $this->smtpHost,
                 'port' => $port,
-                'encryption' => ($encryption === 'none') ? null : $encryption,
+                'encryption' => $actualEnc,
                 'username' => $this->smtpUser,
                 'password' => $this->smtpPass,
-                'timeout' => 10,
+                'timeout' => 15,
                 'local_domain' => parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST),
                 'stream' => [
                     'ssl' => [

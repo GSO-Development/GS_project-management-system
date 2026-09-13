@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ApprovalType;
+use App\Enums\WbsStatus;
 use App\Mail\ProjectAssignedMail;
 use App\Models\ApprovalRequest;
 use App\Models\Comment;
@@ -12,6 +13,7 @@ use App\Models\ProjectRisk;
 use App\Models\ProjectStatusUpdate;
 use App\Models\User;
 use App\Models\WbsBaseline;
+use App\Models\WbsItem;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -681,7 +683,16 @@ class ProjectWorkspace extends Component
             'status' => 'open',
         ]);
 
+        if ($this->riskWbsItemId) {
+            $wbs = WbsItem::find($this->riskWbsItemId);
+            if ($wbs && $wbs->status !== WbsStatus::COMPLETED) {
+                $wbs->update(['status' => WbsStatus::AT_RISK]);
+            }
+        }
+
         $this->reset(['riskTitle', 'riskDescription', 'riskWbsItemId', 'riskMitigation', 'riskContingency', 'riskOwnerId']);
+        $this->dispatch('wbsUpdated');
+        $this->dispatch('riskUpdated');
         $this->dispatch('toast', message: 'Project risk added successfully!', type: 'success');
     }
 
@@ -726,6 +737,7 @@ class ProjectWorkspace extends Component
 
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $this->editingRiskId)->first();
         if ($risk) {
+            $oldWbsId = $risk->wbs_item_id;
             $risk->update([
                 'wbs_item_id' => $this->riskWbsItemId ?: null,
                 'title' => $this->riskTitle,
@@ -739,8 +751,23 @@ class ProjectWorkspace extends Component
                 'contingency_plan' => $this->riskContingency,
             ]);
 
+            if ($this->riskWbsItemId) {
+                $wbs = WbsItem::find($this->riskWbsItemId);
+                if ($wbs && $wbs->status !== WbsStatus::COMPLETED && $risk->status === 'open') {
+                    $wbs->update(['status' => WbsStatus::AT_RISK]);
+                }
+            }
+            if ($oldWbsId && $oldWbsId != $this->riskWbsItemId) {
+                $oldWbs = WbsItem::find($oldWbsId);
+                if ($oldWbs && $oldWbs->openRisks()->count() === 0 && $oldWbs->status === WbsStatus::AT_RISK) {
+                    $oldWbs->update(['status' => ($oldWbs->progress > 0 ? WbsStatus::IN_PROGRESS : WbsStatus::NOT_STARTED)]);
+                }
+            }
+
             $this->showEditRiskModal = false;
             $this->reset(['riskTitle', 'riskDescription', 'riskWbsItemId', 'riskMitigation', 'riskContingency', 'riskOwnerId', 'editingRiskId']);
+            $this->dispatch('wbsUpdated');
+            $this->dispatch('riskUpdated');
             $this->dispatch('toast', message: 'Risk record updated successfully!', type: 'success');
         }
     }
@@ -754,6 +781,23 @@ class ProjectWorkspace extends Component
         if ($risk) {
             $risk->status = $status;
             $risk->save();
+
+            if ($risk->wbs_item_id) {
+                $wbs = WbsItem::find($risk->wbs_item_id);
+                if ($wbs) {
+                    $hasOtherOpenRisks = $wbs->openRisks()->where('id', '!=', $risk->id)->exists();
+                    if (!$hasOtherOpenRisks && $status !== 'open') {
+                        if ($wbs->status === WbsStatus::AT_RISK) {
+                            $wbs->update(['status' => ($wbs->progress > 0 ? WbsStatus::IN_PROGRESS : WbsStatus::NOT_STARTED)]);
+                        }
+                    } elseif ($status === 'open' && $wbs->status !== WbsStatus::COMPLETED) {
+                        $wbs->update(['status' => WbsStatus::AT_RISK]);
+                    }
+                }
+            }
+
+            $this->dispatch('wbsUpdated');
+            $this->dispatch('riskUpdated');
             $this->dispatch('toast', message: 'Risk status updated to ' . ucfirst($status), type: 'success');
         }
     }
@@ -765,7 +809,18 @@ class ProjectWorkspace extends Component
 
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
+            $wbsId = $risk->wbs_item_id;
             $risk->delete();
+
+            if ($wbsId) {
+                $wbs = WbsItem::find($wbsId);
+                if ($wbs && $wbs->openRisks()->count() === 0 && $wbs->status === WbsStatus::AT_RISK) {
+                    $wbs->update(['status' => ($wbs->progress > 0 ? WbsStatus::IN_PROGRESS : WbsStatus::NOT_STARTED)]);
+                }
+            }
+
+            $this->dispatch('wbsUpdated');
+            $this->dispatch('riskUpdated');
             $this->dispatch('toast', message: 'Risk record removed.', type: 'info');
         }
     }

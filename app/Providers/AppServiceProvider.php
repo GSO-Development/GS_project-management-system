@@ -22,6 +22,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Auto-heal stale Vite hot file if Vite dev server is offline
+        if (app()->isLocal() && file_exists(public_path('hot'))) {
+            $hotUrl = trim((string) @file_get_contents(public_path('hot')));
+            if ($hotUrl) {
+                $parts = parse_url($hotUrl);
+                $host  = trim($parts['host'] ?? '127.0.0.1', '[]');
+                $port  = (int) ($parts['port'] ?? 5173);
+                $fp    = @fsockopen($host, $port, $errno, $errstr, 0.15);
+                if (!$fp) {
+                    @unlink(public_path('hot'));
+                } else {
+                    fclose($fp);
+                }
+            }
+        }
+
         \Illuminate\Pagination\Paginator::useTailwind();
 
         // Enforce short timeout for SMTP so requests/actions are never stalled
