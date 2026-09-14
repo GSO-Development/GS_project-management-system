@@ -24,7 +24,7 @@ class WbsTree extends Component
     use WithPagination;
 
     public Project $project;
-    public int $perPage = 10;
+    public int $perPage = 50;
     public array $collapsedIds = [];
 
     // Add/Edit Modal
@@ -131,9 +131,17 @@ class WbsTree extends Component
             ->toArray();
     }
 
+    public function getCanManageTasksProperty(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+
+        return $user->isPmoAdmin() || ($this->project->project_manager_id === $user->id);
+    }
+
     public function openAddItemModal(?int $parentId = null, string $type = 'task')
     {
-        abort_if(!$this->project->userCan(auth()->user(), 'task.create'), 403, 'You do not have permission to create tasks in this project.');
+        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the assigned Project Manager can create tasks for this project.');
 
         $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'start_time', 'end_date', 'end_time', 'progress', 'estimated_hours', 'is_milestone']);
         $this->selectedParentId = $parentId;
@@ -225,7 +233,7 @@ class WbsTree extends Component
     public function openEditItemModal(int $id)
     {
         $item = WbsItem::findOrFail($id);
-        abort_if(!$this->project->userCan(auth()->user(), 'task.edit', $item), 403, 'You do not have permission to edit this task.');
+        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the designated Project Manager can edit tasks for this project.');
 
         $this->editingItemId = $item->id;
         $this->selectedParentId = $item->parent_id;
@@ -248,12 +256,7 @@ class WbsTree extends Component
 
     public function saveItem()
     {
-        if ($this->editingItemId) {
-            $item = WbsItem::findOrFail($this->editingItemId);
-            abort_if(!$this->project->userCan(auth()->user(), 'task.edit', $item), 403, 'Unauthorized to edit this task.');
-        } else {
-            abort_if(!$this->project->userCan(auth()->user(), 'task.create'), 403, 'Unauthorized to create tasks in this project.');
-        }
+        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the designated Project Manager can create or edit tasks in this project.');
 
         $this->validate();
 
@@ -355,8 +358,8 @@ class WbsTree extends Component
             (new ProgressCalculationService())->updateItemProgress($item);
             $this->showItemModal = false;
 
-            // --- Show Cascade Impact Modal if deadline was extended and user has permission ---
-            if ($daysDelta > 0 && $this->project->userCan(auth()->user(), 'schedule.view_impact')) {
+            // --- Show Cascade Impact Modal if deadline was changed (daysDelta != 0) ---
+            if ($daysDelta != 0 && ($this->project->userCan(auth()->user(), 'schedule.view_impact') || auth()->user()->isPmoAdmin() || auth()->user()->isProjectManager())) {
                 $cascadeService = app(\App\Services\ScheduleCascadeService::class);
                 $preview = $cascadeService->calculateImpact($item, $daysDelta);
 
@@ -419,16 +422,12 @@ class WbsTree extends Component
      */
     public function confirmCascadeOnly(): void
     {
-        if (!$this->cascadeSourceTaskId || $this->cascadeDaysDelta <= 0) {
+        if (!$this->cascadeSourceTaskId || $this->cascadeDaysDelta === 0) {
             $this->closeCascadeModal();
             return;
         }
 
-        abort_if(
-            !$this->project->userCan(auth()->user(), 'schedule.apply_cascade'),
-            403,
-            'You do not have permission to apply cascade rescheduling.'
-        );
+        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the designated Project Manager can apply cascade rescheduling.');
 
         $item = WbsItem::find($this->cascadeSourceTaskId);
         if (!$item) {
@@ -443,10 +442,18 @@ class WbsTree extends Component
 
         $count = count($shiftedTasks);
         $this->dispatch('toast',
-            message: "✓ Task updated! {$count} following " . \Illuminate\Support\Str::plural('task', $count) . " automatically rescheduled (+{$this->cascadeDaysDelta}d).",
+            message: "✓ Schedule updated! {$count} dependent " . \Illuminate\Support\Str::plural('task', $count) . " rescheduled (+{$this->cascadeDaysDelta}d) & official Project Deadline updated.",
             type: 'success'
         );
         $this->dispatch('wbsUpdated');
+    }
+
+    /**
+     * Alias method for confirmCascadeOnly (called from WBS Blade view).
+     */
+    public function applyCascade(): void
+    {
+        $this->confirmCascadeOnly();
     }
 
     /**
@@ -584,9 +591,8 @@ class WbsTree extends Component
         $item = WbsItem::find($id);
         if (!$item) return;
 
-        $user = auth()->user();
-        if (!$this->project->userCan($user, 'task.delete', $item)) {
-            $this->dispatch('toast', message: 'You do not have permission to delete this task.', type: 'error');
+        if (!$this->canManageTasks) {
+            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can delete tasks.', type: 'error');
             return;
         }
 

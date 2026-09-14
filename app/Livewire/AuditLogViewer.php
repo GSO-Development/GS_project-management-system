@@ -270,6 +270,8 @@ class AuditLogViewer extends Component
                 ?? $new['source_task'] 
                 ?? $new['title'] 
                 ?? $new['role_name'] 
+                ?? $new['setting_name']
+                ?? $new['key']
                 ?? $prev['name'] 
                 ?? $prev['project_name'] 
                 ?? $prev['task_title'] 
@@ -280,6 +282,13 @@ class AuditLogViewer extends Component
                 ?? $new['wbs_code'] 
                 ?? $prev['code'] 
                 ?? null;
+
+            // Handle System Settings / Settings module specifically
+            if (str_contains($log->record_type ?? '', 'SystemSetting') || $log->module === 'settings') {
+                if (!$title) {
+                    $title = 'Global System Configuration';
+                }
+            }
 
             // 2. Check live model or historical fallback
             if ($log->record_type && $log->record_id) {
@@ -295,7 +304,9 @@ class AuditLogViewer extends Component
                         $url = route('projects.show', $log->record_id);
                     }
                 } else {
-                    $isDeleted = true;
+                    if (!str_contains($log->record_type ?? '', 'SystemSetting')) {
+                        $isDeleted = true;
+                    }
                     if (!$title && isset($historicalNames[$log->record_type][$log->record_id])) {
                         $title = $historicalNames[$log->record_type][$log->record_id]['title'];
                         if (!$code) {

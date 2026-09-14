@@ -86,7 +86,7 @@
             <!-- Right Controls: Add Task -->
             <div class="flex items-center gap-2.5 flex-wrap shrink-0">
 
-                @if($project->userCan(auth()->user(), 'task.create'))
+                @if($this->canManageTasks)
                     <button 
                         wire:click="openAddItemModal(null, 'task')" 
                         type="button"
@@ -354,22 +354,94 @@
     </div>
     @endif
 
-    <!-- Cascade Modal -->
+    <!-- 🌟 Executive Schedule & Project Deadline Cascade Modal -->
     @if($showCascadeModal)
-    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px);">
-        <div style="position: relative; width: 100%; max-width: 500px; background: #ffffff; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); border: 1px solid #cbd5e1; overflow: hidden; padding: 24px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">Cascade Schedule Changes</h3>
-            <p style="font-size: 12px; color: #64748b; margin: 0 0 16px 0;">
-                Updating this task's deadline shifts dependent tasks by <strong>{{ $cascadeDaysDelta }} days</strong>.
-            </p>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button wire:click="cancelCascade" type="button" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer;">
-                    Cancel
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);">
+        <div style="position: relative; width: 100%; max-width: 580px; background: #ffffff; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 1px solid #cbd5e1; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
+            
+            <!-- Header -->
+            <div style="padding: 18px 24px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; display: flex; align-items: center; justify-between; border-b: 1px solid #334155;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.4); display: flex; align-items: center; justify-content: center; color: #f43f5e; font-size: 18px;">
+                        ⚠️
+                    </div>
+                    <div>
+                        <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: #ffffff;">Schedule & Project Deadline Cascade Notice</h3>
+                        <p style="font-size: 11px; color: #94a3b8; margin: 2px 0 0 0;">Updating task date triggers dependent task shifts & deadline adjustment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div style="padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: #ffffff;">
+                
+                <!-- Shift Alert Banner -->
+                <div style="padding: 12px 16px; border-radius: 12px; background: #fff1f2; border: 1px solid #fecdd3; display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="font-size: 16px; margin-top: 1px;">📅</div>
+                    <div style="font-size: 12px; color: #9f1239; font-weight: 600; line-height: 1.5;">
+                        Updating this task's deadline shifts subsequent dependent tasks forward by 
+                        <strong style="font-weight: 900; text-decoration: underline;">{{ $cascadeDaysDelta > 0 ? '+'.$cascadeDaysDelta : $cascadeDaysDelta }} {{ \Illuminate\Support\Str::plural('day', abs($cascadeDaysDelta)) }}</strong>.
+                    </div>
+                </div>
+
+                <!-- Project Deadline Comparison Card -->
+                <div style="padding: 14px 16px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="flex: 1;">
+                        <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Official Project Deadline</span>
+                        <span style="font-size: 13px; font-weight: 800; color: #334155; font-family: monospace;">{{ $cascadePreview['officialDeadline'] ?? $cascadePreview['projectDeadline'] ?? ($project->deadline ? $project->deadline->format('M d, Y') : 'N/A') }}</span>
+                    </div>
+
+                    <div style="font-size: 18px; color: #94a3b8; font-weight: 900;">➔</div>
+
+                    <div style="flex: 1; text-align: right;">
+                        <span style="font-size: 10px; font-weight: 800; color: #c3122e; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">New Projected Completion</span>
+                        <span style="font-size: 13.5px; font-weight: 900; color: #c3122e; font-family: monospace;">{{ $cascadePreview['projectedCompletion'] ?? 'N/A' }}</span>
+                    </div>
+                </div>
+
+                <!-- Note on Deadline Update -->
+                <p style="font-size: 11.5px; color: #475569; margin: 0; line-height: 1.5; background: #f1f5f9; padding: 10px 14px; border-radius: 10px; border-left: 3px solid #c3122e;">
+                    💡 <strong>Important:</strong> Applying this change will automatically reschedule <strong>{{ count($cascadePreview['affectedTasks'] ?? []) }}</strong> dependent tasks and update the official <strong>Project Deadline</strong> to <strong>{{ $cascadePreview['projectedCompletion'] ?? '' }}</strong>.
+                </p>
+
+                <!-- Affected Tasks List -->
+                @if(!empty($cascadePreview['affectedTasks']))
+                <div>
+                    <h4 style="font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;">Affected Dependent Tasks ({{ count($cascadePreview['affectedTasks']) }})</h4>
+                    <div style="max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: #fafafa;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                            <thead style="background: #f1f5f9; position: sticky; top: 0; border-b: 1px solid #e2e8f0; font-weight: 800; color: #475569;">
+                                <tr>
+                                    <th style="padding: 6px 10px;">WBS</th>
+                                    <th style="padding: 6px 10px;">Task Title</th>
+                                    <th style="padding: 6px 10px; text-align: right;">New End Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($cascadePreview['affectedTasks'] as $aff)
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 6px 10px; font-family: monospace; font-weight: 700; color: #64748b;">#{{ $aff['wbs_code'] }}</td>
+                                    <td style="padding: 6px 10px; font-weight: 700; color: #0f172a;" class="truncate">{{ $aff['title'] }}</td>
+                                    <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 800; color: #c3122e;">{{ $aff['new_end'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
+            </div>
+
+            <!-- Footer Buttons -->
+            <div style="padding: 14px 24px; background: #f8fafc; border-t: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                <button wire:click="cancelCascade" type="button" style="padding: 8px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                    Cancel Date Change
                 </button>
-                <button wire:click="applyCascade" type="button" style="padding: 8px 20px; border-radius: 10px; border: none; background: #c3122e; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer;">
-                    Apply to Dependent Tasks
+                <button wire:click="confirmCascadeOnly" type="button" style="padding: 8px 22px; border-radius: 10px; border: none; background: linear-gradient(135deg, #c3122e 0%, #99001a 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(195, 18, 46, 0.3); transition: all 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1.0'">
+                    Confirm & Cascade Schedule
                 </button>
             </div>
+
         </div>
     </div>
     @endif

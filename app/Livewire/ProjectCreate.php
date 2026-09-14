@@ -542,14 +542,14 @@ class ProjectCreate extends Component
                 foreach ($assignedUsers as $assignedUser) {
                     $memberRole = $syncData[$assignedUser->id]['role'] ?? 'member';
                     $assignedUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, $memberRole));
-                    Mail::to($assignedUser->email)->queue(new ProjectAssignedMail($project, $assignedUser, $memberRole));
+                    Mail::to($assignedUser->email)->send(new ProjectAssignedMail($project, $assignedUser, $memberRole));
                 }
             } else {
                 // If created by PMO Admin for a designated PM, ONLY notify the PM to review & accept first
                 $pmUser = User::find($project->project_manager_id);
                 if ($pmUser) {
                     $pmUser->notify(new \App\Notifications\ProjectAssignmentNotification($project, 'lead'));
-                    Mail::to($pmUser->email)->queue(new ProjectAssignedMail($project, $pmUser, 'lead'));
+                    Mail::to($pmUser->email)->send(new ProjectAssignedMail($project, $pmUser, 'lead'));
                 }
             }
         } catch (\Throwable $e) {

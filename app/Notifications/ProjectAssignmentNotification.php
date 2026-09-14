@@ -6,6 +6,8 @@ use App\Models\Project;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
+use Illuminate\Notifications\Messages\MailMessage;
+
 class ProjectAssignmentNotification extends Notification
 {
     use Queueable;
@@ -17,7 +19,25 @@ class ProjectAssignmentNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $roleData = $this->toArray($notifiable);
+        $targetUrl = $roleData['url'] ?? route('projects.show', $this->project->id);
+
+        return (new MailMessage)
+            ->subject("📌 [NexusPM] {$roleData['title']}: {$this->project->name} ({$this->project->code})")
+            ->greeting("Hello {$notifiable->name},")
+            ->line($roleData['message'])
+            ->line("**Project Name:** {$this->project->name}")
+            ->line("**Project Code:** {$this->project->code}")
+            ->line("**Role Assigned:** {$roleData['role_label']}")
+            ->line("**Start Date:** " . ($this->project->start_date ? $this->project->start_date->format('M d, Y') : 'N/A'))
+            ->line("**Deadline:** " . ($this->project->deadline ? $this->project->deadline->format('M d, Y') : 'N/A'))
+            ->action('Review Project Assignment', $targetUrl)
+            ->line('Thank you for your leadership and commitment to GS NexusPM excellence.');
     }
 
     public function toArray(object $notifiable): array

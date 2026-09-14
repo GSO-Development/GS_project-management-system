@@ -415,7 +415,7 @@ class ProjectWorkspace extends Component
                 foreach ($newMembers as $newMember) {
                     $mRole = $syncData[$newMember->id]['role'] ?? 'member';
                     Mail::to($newMember->email)
-                        ->queue(new ProjectAssignedMail($this->project, $newMember, $mRole));
+                        ->send(new ProjectAssignedMail($this->project, $newMember, $mRole));
                 }
             } catch (\Throwable $e) {
                 \Log::error('ProjectAssignedMail (collaborator) failed: ' . $e->getMessage());

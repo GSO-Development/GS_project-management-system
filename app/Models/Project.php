@@ -164,7 +164,7 @@ class Project extends Model
                 $role = $member->pivot->role ?? 'member';
                 $member->notify(new \App\Notifications\ProjectAssignmentNotification($this, $role));
                 \Illuminate\Support\Facades\Mail::to($member->email)
-                    ->queue(new \App\Mail\ProjectAssignedMail($this, $member, $role));
+                    ->send(new \App\Mail\ProjectAssignedMail($this, $member, $role));
             }
         } catch (\Throwable $e) {
             \Log::error('ProjectAssignmentNotification upon PM acceptance failed: ' . $e->getMessage());

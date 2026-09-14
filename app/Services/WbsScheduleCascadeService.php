@@ -105,8 +105,17 @@ class WbsScheduleCascadeService
 
         $assignHierarchyDates(0, $projectStart);
 
-        // Sync statuses based on newly cascaded dates
-        WbsItem::autoStartDueTasks($projectId);
+        // Auto-update project official deadline to match latest WBS end date
+        $maxTaskEnd = WbsItem::where('project_id', $projectId)
+            ->whereNotNull('end_date')
+            ->max('end_date');
+
+        if ($maxTaskEnd && $project) {
+            $maxTaskEndStr = \Carbon\Carbon::parse($maxTaskEnd)->toDateString();
+            if (!$project->deadline || $maxTaskEndStr !== $project->deadline->toDateString()) {
+                $project->update(['deadline' => $maxTaskEndStr]);
+            }
+        }
 
         return $updatedCount;
     }
