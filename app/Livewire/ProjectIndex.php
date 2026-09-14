@@ -813,7 +813,7 @@ class ProjectIndex extends Component
         // ═══════════════════════════════════════════════════════════════
         // 📈 GANTT TIMELINE RADAR CALCULATION
         // ═══════════════════════════════════════════════════════════════
-        $allGanttProjectsQuery = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'wbsItems.assignedUser']);
+        $allGanttProjectsQuery = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'risks', 'wbsItems.assignedUser', 'wbsItems.blockers']);
 
         if ($this->search) {
             $allGanttProjectsQuery->where(fn($q) => $q
@@ -1016,6 +1016,7 @@ class ProjectIndex extends Component
 
             return [
                 'project'          => $project,
+                'health'           => $project->computed_health,
                 'start_date'       => $pStart,
                 'end_date'         => $pEnd,
                 'left_pct'         => $leftPct,

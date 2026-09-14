@@ -718,15 +718,15 @@
                                         'delayed'   => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
                                         'at_risk'   => 'bg-amber-50 text-amber-800 border-amber-200/80',
                                         'on_track'  => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-                                        default     => 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+                                        default     => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
                                     };
                                     
                                     // Sleek modern gradients for Gantt capsule
                                     $barBgColor = match($health) {
-                                        'delayed'   => 'bg-gradient-to-r from-[#c3122e] via-[#b01029] to-[#940c21] border-[#800a1c] shadow-xs shadow-rose-950/20',
-                                        'at_risk'   => 'bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 border-amber-700 shadow-xs shadow-amber-950/20',
-                                        'on_track'  => 'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
-                                        default     => 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 border-indigo-700 shadow-xs shadow-indigo-950/20',
+                                        'delayed'   => 'bg-gradient-to-r from-[#dc2626] via-[#c3122e] to-[#991b1b] border-[#991b1b] shadow-xs shadow-rose-950/20',
+                                        'at_risk'   => 'bg-gradient-to-r from-[#d97706] via-amber-600 to-amber-700 border-amber-700 shadow-xs shadow-amber-950/20',
+                                        'on_track'  => 'bg-gradient-to-r from-[#059669] via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
+                                        default     => 'bg-gradient-to-r from-[#059669] via-emerald-600 to-teal-700 border-emerald-700 shadow-xs shadow-emerald-950/20',
                                     };
 
                                     $barWidthPct = max(3.5, $gp['width_pct']);

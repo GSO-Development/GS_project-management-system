@@ -1055,103 +1055,7 @@
 
     <!-- 8. RISKS & BLOCKERS TAB -->
     @if($activeTab === 'risks')
-        @php
-            $wbsItemIds = $project->wbsItems->pluck('id');
-            $projectBlockers = \App\Models\TaskBlocker::whereIn('wbs_item_id', $wbsItemIds)
-                ->with(['wbsItem', 'reporter', 'resolver'])
-                ->latest()
-                ->get();
-            $openBlockersCount = $projectBlockers->where('status', '!=', 'resolved')->count();
-        @endphp
-
         <div class="space-y-7">
-            <!-- 1. Active Task Blockers Summary Banner & List -->
-            <div class="card p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
-                <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center font-black text-sm shadow-2xs">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-black text-slate-900 text-base">Active Task Blockers & Execution Issues</h3>
-                            <p class="text-xs text-slate-500 font-medium">Real-time execution blockers reported by team members on specific WBS tasks</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-extrabold {{ $openBlockersCount > 0 ? 'bg-rose-100 text-rose-900 border border-rose-300' : 'bg-emerald-50 text-emerald-800 border border-emerald-200' }}">
-                        {{ $openBlockersCount }} Open Blocker(s)
-                    </span>
-                </div>
-
-                <div class="space-y-4">
-                    @forelse($projectBlockers as $b)
-                        @php
-                            $sevColors = [
-                                'low' => 'bg-slate-100 text-slate-700 border-slate-300',
-                                'medium' => 'bg-amber-50 text-amber-800 border-amber-200 font-bold',
-                                'high' => 'bg-rose-50 text-rose-800 border-rose-200 font-bold',
-                                'critical' => 'bg-red-100 text-red-900 border-red-300 font-black',
-                            ];
-                        @endphp
-                        <div class="p-4 rounded-2xl border transition-all {{ $b->status === 'resolved' ? 'bg-slate-50/70 border-slate-200/80 opacity-75' : 'bg-white border-rose-200/90 shadow-2xs' }}">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2.5">
-                                <!-- Affected Component Identifier -->
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-[#fdf4f4] text-[#c3122e] border border-[#faeaea] flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span>📍 Component: {{ $b->wbsItem->title ?? 'General Scope' }} (Code: {{ $b->wbsItem->wbs_code ?? '-' }})</span>
-                                    </span>
-
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-extrabold border {{ $sevColors[$b->severity] ?? 'bg-slate-100 text-slate-700' }}">
-                                        {{ $b->severity }} Severity
-                                    </span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    @if($b->status === 'resolved')
-                                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                                            ✓ Resolved
-                                        </span>
-                                    @else
-                                        @if($project->userCan(auth()->user(), 'blocker.resolve'))
-                                            <button wire:click="openResolveBlockerModal({{ $b->id }})" class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs transition-all cursor-pointer flex items-center gap-1">
-                                                <span>Resolve Blocker</span>
-                                            </button>
-                                        @else
-                                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                                Open
-                                            </span>
-                                        @endif
-                                    @endif
-                                </div>
-                            </div>
-
-                            <p class="text-xs font-semibold text-slate-800 leading-relaxed mb-3">{{ $b->description }}</p>
-
-                            <div class="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-2 border-t border-slate-100">
-                                <div class="flex items-center gap-1.5">
-                                    <div class="w-5 h-5 rounded-full bg-[#c3122e] text-white font-bold flex items-center justify-center text-[9px]">
-                                        {{ strtoupper(substr($b->reporter->name ?? 'U', 0, 1)) }}
-                                    </div>
-                                    <span>Reported by <strong>{{ $b->reporter->name ?? 'Team Member' }}</strong> • {{ $b->created_at->diffForHumans() }}</span>
-                                </div>
-
-                                @if($b->status === 'resolved' && $b->resolution)
-                                    <div class="text-emerald-800 font-semibold italic truncate max-w-sm">
-                                        Resolution: "{{ $b->resolution }}" (by {{ $b->resolver->name ?? 'PM' }})
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-10 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <h4 class="text-xs font-extrabold text-slate-800">No Active Task Blockers</h4>
-                            <p class="text-[11px] text-slate-500 mt-0.5 font-medium">All tasks are currently executing cleanly without reported blockers.</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
 
             <!-- 2. Risk Register Form Card -->
             @if($project->userCan(auth()->user(), 'risk.create'))
@@ -1339,44 +1243,7 @@
             </div>
         </div>
 
-        <!-- Blocker Resolution Modal -->
-        <div x-data="{ open: @entangle('showResolveBlockerModal') }"
-             x-show="open"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-50 flex items-center justify-center p-4"
-             style="display:none">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="open = false; $wire.showResolveBlockerModal = false"></div>
 
-            <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md z-10 p-6 sm:p-8">
-                <div class="flex items-center gap-3 pb-4 border-b border-slate-100 mb-6">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-black text-slate-900">Resolve Task Blocker</h3>
-                        <p class="text-xs text-slate-500 mt-0.5 font-medium">Provide resolution details to close this execution blocker</p>
-                    </div>
-                </div>
-
-                <form wire:submit="saveBlockerResolution" class="space-y-4">
-                    <div class="form-group">
-                        <label class="form-label font-extrabold text-slate-800 text-xs">Resolution Summary <span class="text-rose-500">*</span></label>
-                        <textarea wire:model="blockerResolutionInput" rows="4" placeholder="Detail the resolution steps taken to unblock the team..." class="form-input text-xs leading-relaxed rounded-xl"></textarea>
-                        @error('blockerResolutionInput') <span class="form-error">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button type="button" @click="open = false; $wire.showResolveBlockerModal = false" class="px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200">Cancel</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-md">Mark Blocker Resolved</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         <!-- Edit Risk Modal -->
         <div x-data="{ open: @entangle('showEditRiskModal') }"

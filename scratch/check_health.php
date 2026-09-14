@@ -1,16 +1,17 @@
 <?php
-
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-use App\Models\WbsItem;
-use App\Services\TaskHealthCalculationService;
-
-$items = WbsItem::where('title', 'like', '%Day 2%')->orWhere('title', 'like', '%08:30 AM%')->get();
-
-foreach ($items as $item) {
-    $health = TaskHealthCalculationService::calculate($item);
-    echo "ID: {$item->id} | Title: {$item->title} | Start: {$item->start_date} {$item->start_time} | End: {$item->end_date} {$item->end_time} | Status: {$health['status']} ({$health['label']}) | Reason: {$health['reason']}\n";
+foreach (\App\Models\Project::with(['risks', 'wbsItems'])->get() as $p) {
+    echo sprintf(
+        "%-15s | status: %-12s | health: %-10s | deadline: %-12s | risks: %d | blocked_wbs: %d\n",
+        $p->code,
+        $p->status->value,
+        $p->computed_health,
+        $p->deadline ? $p->deadline->format('Y-m-d') : 'none',
+        $p->risks->where('status', 'open')->count(),
+        $p->wbsItems->where('status', 'blocked')->count()
+    );
 }
