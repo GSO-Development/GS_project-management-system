@@ -1241,13 +1241,16 @@ class CalendarView extends Component
         if (!$user) return;
 
         if ($type === 'calendar_event') {
-            $event = CalendarEvent::find($id);
+            $event = CalendarEvent::with('project')->find($id);
             if (!$event) return;
 
             if (!$event->userCanManage($user)) {
                 $this->dispatch('toast', message: 'Unauthorized to delete this calendar event.', type: 'error');
                 return;
             }
+
+            // Unsync & delete from Microsoft 365 Outlook
+            $this->deleteEventFromAzureGraph($event);
 
             if ($event->wbs_item_id) {
                 WbsItem::where('id', $event->wbs_item_id)->delete();
@@ -1266,9 +1269,48 @@ class CalendarView extends Component
                 return;
             }
 
+            // Check linked CalendarEvent for MS Outlook sync deletion
+            $linkedCalEvent = CalendarEvent::where('wbs_item_id', $task->id)->first();
+            if ($linkedCalEvent) {
+                $this->deleteEventFromAzureGraph($linkedCalEvent);
+                $linkedCalEvent->delete();
+            }
+
             $task->delete();
             $this->showEventModal = false;
             $this->dispatch('toast', message: 'Task removed from calendar schedule.', type: 'success');
+        }
+    }
+
+    protected function deleteEventFromAzureGraph(CalendarEvent $event): void
+    {
+        if (empty($event->microsoft_event_id)) {
+            return;
+        }
+
+        $user = auth()->user();
+        $targetEmails = [];
+
+        if ($user && !empty($user->email)) {
+            $targetEmails[] = $user->email;
+        }
+
+        if (!empty($event->project_id)) {
+            $project = $event->project ?: Project::find($event->project_id);
+            if ($project && $project->projectManager && !empty($project->projectManager->email)) {
+                $targetEmails[] = $project->projectManager->email;
+            }
+        }
+
+        if (!empty($event->attendees)) {
+            $attEmails = User::whereIn('id', $event->attendees)->pluck('email')->filter()->all();
+            $targetEmails = array_merge($targetEmails, $attEmails);
+        }
+
+        $targetEmails = array_values(array_unique(array_filter($targetEmails)));
+
+        foreach ($targetEmails as $email) {
+            AzureGraphService::deleteCalendarEvent($email, $event->microsoft_event_id);
         }
     }
 
@@ -1335,16 +1377,17 @@ class CalendarView extends Component
             'attendee_emails' => $attendeeEmails,
         ];
 
-        // 1. Attempt primary sync via Microsoft Graph API for organizer (Exchange will distribute to all attendees)
+        // 1. Primary sync via Microsoft Graph API for organizer (Exchange automatically distributes to all attendees)
         $result = AzureGraphService::createCalendarEvent($targetEmail, $eventData);
 
-        // 2. Also attempt direct calendar event creation for each attendee if separate mailboxes
-        if (!empty($attendeeEmails)) {
+        // 2. If primary organizer sync failed, attempt fallback sync with the first available attendee account
+        if ((!$result || empty($result['success'])) && !empty($attendeeEmails)) {
             foreach ($attendeeEmails as $attEmail) {
                 if ($attEmail !== $targetEmail) {
                     $attResult = AzureGraphService::createCalendarEvent($attEmail, $eventData);
-                    if ($attResult['success']) {
-                        $result['success'] = true;
+                    if ($attResult && !empty($attResult['success'])) {
+                        $result = $attResult;
+                        break;
                     }
                 }
             }

@@ -63,6 +63,17 @@ class WbsTree extends Component
     public ?int $depSuccessorId = null;
     public ?int $depPredecessorId = null;
 
+    public function getCanManageTasksProperty(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->isPmoAdmin() 
+            || $this->project->project_manager_id === $user->id 
+            || $this->project->created_by === $user->id
+            || $this->project->userCan($user, 'wbs.manage')
+            || $this->project->userCan($user, 'task.manage');
+    }
+
     protected function rules(): array
     {
         return [
@@ -129,14 +140,6 @@ class WbsTree extends Component
             ->whereHas('children')
             ->pluck('id')
             ->toArray();
-    }
-
-    public function getCanManageTasksProperty(): bool
-    {
-        $user = auth()->user();
-        if (!$user) return false;
-
-        return $user->isPmoAdmin() || ($this->project->project_manager_id === $user->id);
     }
 
     public function openAddItemModal(?int $parentId = null, string $type = 'task')
@@ -358,19 +361,18 @@ class WbsTree extends Component
             (new ProgressCalculationService())->updateItemProgress($item);
             $this->showItemModal = false;
 
-            // --- Show Cascade Impact Modal if deadline was changed (daysDelta != 0) ---
-            if ($daysDelta != 0 && ($this->project->userCan(auth()->user(), 'schedule.view_impact') || auth()->user()->isPmoAdmin() || auth()->user()->isProjectManager())) {
+            // --- Show Cascade Impact Notice Modal if deadline was changed (daysDelta != 0) ---
+            if ($daysDelta != 0) {
                 $cascadeService = app(\App\Services\ScheduleCascadeService::class);
-                $preview = $cascadeService->calculateImpact($item, $daysDelta);
+                $preview        = $cascadeService->calculateImpact($item, $daysDelta);
 
                 if (!empty($preview['affectedTasks'])) {
-                    $this->cascadePreview        = $preview;
-                    $this->cascadeDaysDelta      = $daysDelta;
-                    $this->cascadeSourceTaskId   = $item->id;
-                    $this->cascadeRevertEndDate  = $oldEndDate ? $oldEndDate->toDateString() : null;
+                    $this->cascadePreview         = $preview;
+                    $this->cascadeDaysDelta       = $daysDelta;
+                    $this->cascadeSourceTaskId    = $item->id;
+                    $this->cascadeRevertEndDate   = $oldEndDate ? $oldEndDate->toDateString() : null;
                     $this->cascadeRevertStartDate = $oldStartDate ? $oldStartDate->toDateString() : null;
-                    $this->showCascadeModal      = true;
-                    // Don't dispatch wbsUpdated yet — wait for user choice
+                    $this->showCascadeModal       = true;
                     return;
                 }
             }

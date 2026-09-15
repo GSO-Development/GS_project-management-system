@@ -1,202 +1,702 @@
-<div @if($autoRefresh) wire:poll.30s @endif class="space-y-5" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+<div @if($autoRefresh) wire:poll.30s @endif style="font-family: 'Inter', system-ui, sans-serif; --brand: #c3122e; --brand-dark: #9b0e24;">
 
     <style>
-        .custom-select {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+        .audit-page {
+            min-height: 100vh;
+        }
+
+        /* Clean white hero header */
+        .audit-hero {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+
+        /* Metric cards */
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .metric-card:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .metric-card.active-red {
+            border-color: #c3122e !important;
+            background: #fef2f2 !important;
+            box-shadow: 0 0 0 1px #c3122e;
+        }
+        .metric-card.active-emerald {
+            border-color: #10b981 !important;
+            background: #ecfdf5 !important;
+            box-shadow: 0 0 0 1px #10b981;
+        }
+        .metric-card.active-purple {
+            border-color: #8b5cf6 !important;
+            background: #f5f3ff !important;
+            box-shadow: 0 0 0 1px #8b5cf6;
+        }
+
+        /* Clean icon containers */
+        .icon-box-red {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #c3122e;
+        }
+        .icon-box-emerald {
+            background: #ecfdf5;
+            border: 1px solid #d1fae5;
+            color: #059669;
+        }
+        .icon-box-blue {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            color: #2563eb;
+        }
+        .icon-box-purple {
+            background: #f5f3ff;
+            border: 1px solid #ede9fe;
+            color: #7c3aed;
+        }
+
+        /* Quick tabs */
+        .tab-btn {
+            padding: 6px 13px;
+            border-radius: 9px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #64748b;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+        .tab-btn.active-tab {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            box-shadow: 0 1px 3px rgba(15,23,42,0.15);
+        }
+        .tab-btn.active-tab .tab-count {
+            background: rgba(255,255,255,0.2);
+            color: #ffffff;
+        }
+
+        .tab-count {
+            padding: 1px 7px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        /* Filter toolbar */
+        .filter-toolbar {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        /* Custom select styling */
+        .filter-select {
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 10px center;
+            background-position: right 9px center;
             background-size: 11px;
             padding-right: 28px !important;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            padding: 7px 28px 7px 11px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            outline: none;
+        }
+        .filter-select:hover {
+            background-color: #fff;
+            border-color: #cbd5e1;
+        }
+        .filter-select:focus {
+            background-color: #fff;
+            border-color: #c3122e;
+            box-shadow: 0 0 0 3px rgba(195,18,46,0.1);
+        }
+
+        /* Table styles */
+        .audit-table-wrap {
+            background: #fff;
+            border: 1px solid #e8ecf0;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+        }
+        .audit-table th {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #64748b;
+            padding: 13px 16px;
+            white-space: nowrap;
+        }
+        .audit-table td {
+            padding: 13px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .audit-table tr:last-child td {
+            border-bottom: none;
+        }
+        .audit-table tbody tr {
+            transition: background 0.12s ease;
+        }
+        .audit-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Actor avatar */
+        .actor-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* Action badges */
+        .badge-create { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .badge-delete { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+        .badge-update { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .badge-approve { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .badge-nudge { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+        .badge-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Module pills */
+        .mod-projects { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+        .mod-wbs { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .mod-users { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .mod-roles { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .mod-approvals { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+        .mod-subsidiaries { background: #faf5ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+        .mod-documents { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+        .mod-settings { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .mod-default { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Inspect button */
+        .inspect-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .inspect-btn:hover {
+            background: #0f172a;
+            color: #fff;
+            border-color: #0f172a;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.25);
+        }
+
+        /* Export button */
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #c3122e;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(195,18,46,0.2);
+        }
+        .export-btn:hover {
+            background: #9b0e24;
+            box-shadow: 0 2px 6px rgba(195,18,46,0.3);
+        }
+        .export-btn:active { transform: translateY(0); }
+
+        /* Record code chip & links */
+        .code-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            white-space: nowrap;
+        }
+        .code-chip-red {
+            background: #fff1f2;
+            color: #c3122e;
+            border: 1px solid #fecdd3;
+        }
+        .record-link {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        .record-link:hover {
+            color: #c3122e;
+            text-decoration: underline;
+        }
+        .record-subtext {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .record-id-btn {
+            color: #475569;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 11px;
+            transition: color 0.12s ease;
+        }
+        .record-id-btn:hover {
+            color: #c3122e;
+            text-decoration: underline;
+        }
+
+        /* Live sync indicator */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .live-badge.active {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        .live-badge.paused {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+        .live-dot.pulsing {
+            background: #10b981;
+            animation: livePulse 1.4s ease-in-out infinite;
+        }
+        .live-dot.stopped { background: #94a3b8; }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.7); }
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(15,23,42,0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            animation: fadeIn 0.15s ease;
+        }
+        .modal-panel {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 760px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.18s ease;
+            overflow: hidden;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+        /* Diff table */
+        .diff-row-changed td:nth-child(2) { background: #fff7ed; }
+        .diff-row-changed td:nth-child(3) { background: #f0fdf4; }
+
+        /* Empty state */
+        .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* IP chip */
+        .ip-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: #475569;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
+
+        /* Code chip */
+        .code-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            color: #be123c;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            padding: 2px 7px;
+            border-radius: 5px;
+        }
+
+        /* Reset button */
+        .reset-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 11px;
+            border-radius: 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #be123c;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .reset-btn:hover { background: #ffe4e6; }
+
+        /* Sort button */
+        .sort-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 11px;
+            border-radius: 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #374151;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .sort-btn:hover { background: #fff; border-color: #cbd5e1; }
+
+        /* Hero number counter style */
+        .metric-number {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: #0f172a;
+        }
+
+        /* Timeline mode dot */
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid;
+            flex-shrink: 0;
+        }
+        .timeline-line {
+            width: 2px;
+            flex: 1;
+            min-height: 20px;
+            background: linear-gradient(180deg, #e2e8f0 0%, transparent 100%);
+        }
+
+        /* Record title link */
+        .record-link {
+            font-weight: 700;
+            font-size: 12.5px;
+            color: #0f172a;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .record-link:hover { color: #c3122e; }
+
+        /* Filter search input */
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 240px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 36px 8px 38px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: #1e293b;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 11px;
+            transition: all 0.15s;
+            outline: none;
+        }
+        .search-input:focus {
+            background: #fff;
+            border-color: #c3122e;
+            box-shadow: 0 0 0 3px rgba(195,18,46,0.08);
+        }
+        .search-input::placeholder { color: #94a3b8; }
+
+        /* Hover row action quick filters */
+        .row-quick-filter {
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        tr:hover .row-quick-filter { opacity: 1; }
+
+        /* Per page select */
+        .perpage-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 7px center;
+            background-size: 10px;
+            padding: 7px 26px 7px 11px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            outline: none;
+            width: 72px;
         }
     </style>
 
-    <!-- ── 1. EXECUTIVE PAGE HEADER ── -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs text-[#c3122e]">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-            </div>
-            <div>
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">
-                        Security &amp; Activity Audit Logs
-                    </h1>
-                    
-                    <!-- Live Sync Indicator Toggle -->
-                    <button wire:click="toggleAutoRefresh" 
-                            type="button" 
-                            title="{{ $autoRefresh ? 'Live auto-refresh is active (click to pause)' : 'Live auto-refresh is paused (click to resume)' }}"
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer transition-all border shadow-2xs {{ $autoRefresh ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200' }}">
-                        <span class="w-2 h-2 rounded-full {{ $autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
-                        <span>{{ $autoRefresh ? 'Live Sync Active' : 'Sync Paused' }}</span>
-                    </button>
+    {{-- ══════════════════════════════════════════════════════════
+         1.  HERO HEADER (Clean & Minimal)
+    ══════════════════════════════════════════════════════════ --}}
+    <div class="audit-hero p-5 mb-5">
+        <div>
+            {{-- Top row --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                <div class="flex items-center gap-3.5">
+                    {{-- Shield icon --}}
+                    <div class="w-11 h-11 rounded-xl icon-box-red flex items-center justify-center flex-shrink-0">
+                        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h1 style="font-size:20px;font-weight:800;color:#0f172a;letter-spacing:-0.02em;line-height:1.2;">
+                                Security & Audit Logs
+                            </h1>
+                            {{-- Live badge --}}
+                            <button wire:click="toggleAutoRefresh" type="button"
+                                     class="live-badge {{ $autoRefresh ? 'active' : 'paused' }}"
+                                     title="{{ $autoRefresh ? 'Auto-refresh on — click to pause' : 'Paused — click to resume' }}">
+                                <span class="live-dot {{ $autoRefresh ? 'pulsing' : 'stopped' }}"></span>
+                                <span>{{ $autoRefresh ? 'Live' : 'Paused' }}</span>
+                            </button>
+                        </div>
+                        <p style="font-size:12px;color:#64748b;margin-top:2px;font-weight:500;">
+                            Immutable audit trail &bull; Real-time compliance &bull; Security governance
+                        </p>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-500 font-semibold mt-1">Real-time immutable audit trail for security compliance, governance &amp; system actions</p>
-            </div>
-        </div>
 
-        <!-- Right Header Actions -->
-        <div class="flex items-center gap-2.5 flex-shrink-0">
-            <!-- Export CSV Button -->
-            <button wire:click="exportCsv" 
-                    type="button" 
-                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer bg-gradient-to-r from-[#c3122e] to-[#a00c24] hover:from-[#a00c24] hover:to-[#800a1c] active:scale-[0.98]">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                <span>Export CSV</span>
-            </button>
+                {{-- Export button --}}
+                <button wire:click="exportCsv" type="button" class="export-btn flex-shrink-0">
+                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export CSV
+                </button>
+            </div>
+
+            {{-- KPI Metric Cards --}}
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {{-- Total Events --}}
+                <button type="button" wire:click="setCardFilter('all')"
+                        class="metric-card p-3.5 text-left {{ ($quickTab === 'all' && $dateFilter === 'all') ? 'active-red' : '' }}">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="w-8 h-8 rounded-lg icon-box-red flex items-center justify-center">
+                            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <svg style="width:14px;height:14px;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="metric-number">{{ number_format($totalLogsCount) }}</div>
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-top:4px;">Total Audit Events</div>
+                </button>
+
+                {{-- Today --}}
+                <button type="button" wire:click="setCardFilter('today')"
+                        class="metric-card p-3.5 text-left {{ $dateFilter === 'today' ? 'active-emerald' : '' }}">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="w-8 h-8 rounded-lg icon-box-emerald flex items-center justify-center">
+                            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <svg style="width:14px;height:14px;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="metric-number">{{ number_format($todayLogsCount) }}</div>
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-top:4px;">Logged Today</div>
+                </button>
+
+                {{-- Active Actors --}}
+                <div class="metric-card p-3.5">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="w-8 h-8 rounded-lg icon-box-blue flex items-center justify-center">
+                            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-number">{{ number_format($activeActorsCount) }}</div>
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-top:4px;">Active Users</div>
+                </div>
+
+                {{-- Security Events --}}
+                <button type="button" wire:click="setCardFilter('security')"
+                        class="metric-card p-3.5 text-left {{ $quickTab === 'security' ? 'active-purple' : '' }}">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="w-8 h-8 rounded-lg icon-box-purple flex items-center justify-center">
+                            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+                        <svg style="width:14px;height:14px;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="metric-number">{{ number_format($securityLogsCount) }}</div>
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-top:4px;">Security Events</div>
+                </button>
+            </div>
         </div>
     </div>
 
 
-    <!-- ── 2. EXECUTIVE METRIC KPI CARDS ── -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        <!-- Card 1: Total Events -->
-        <button type="button" wire:click="setCardFilter('all')"
-                class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md p-4 sm:p-5 flex items-center gap-3.5 text-left transition-all duration-200 cursor-pointer group hover:-translate-y-0.5 {{ $quickTab === 'all' && $dateFilter === 'all' ? 'ring-2 ring-[#c3122e]/30 border-[#c3122e] bg-rose-50/10' : '' }}">
-            <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-2xs">
-                <svg class="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-            </div>
-            <div class="min-w-0">
-                <div class="text-2xl sm:text-[26px] font-black text-slate-900 leading-none tracking-tight">{{ number_format($totalLogsCount) }}</div>
-                <div class="text-xs text-slate-500 font-semibold mt-1">Total Audit Events</div>
-            </div>
-        </button>
+    {{-- ══════════════════════════════════════════════════════════
+         2.  FILTER TOOLBAR
+    ══════════════════════════════════════════════════════════ --}}
+    <div class="filter-toolbar p-3.5 mb-4">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
 
-        <!-- Card 2: Today's Logs -->
-        <button type="button" wire:click="setCardFilter('today')"
-                class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md p-4 sm:p-5 flex items-center gap-3.5 text-left transition-all duration-200 cursor-pointer group hover:-translate-y-0.5 {{ $dateFilter === 'today' ? 'ring-2 ring-emerald-500/30 border-emerald-500 bg-emerald-50/10' : '' }}">
-            <div class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-2xs">
-                <svg class="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <div class="min-w-0">
-                <div class="text-2xl sm:text-[26px] font-black text-slate-900 leading-none tracking-tight">{{ number_format($todayLogsCount) }}</div>
-                <div class="text-xs text-slate-500 font-semibold mt-1">Logged Today</div>
-            </div>
-        </button>
-
-        <!-- Card 3: Active Actors -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-5 flex items-center gap-3.5 text-left">
-            <div class="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
-                <svg class="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-            </div>
-            <div class="min-w-0">
-                <div class="text-2xl sm:text-[26px] font-black text-slate-900 leading-none tracking-tight">{{ number_format($activeActorsCount) }}</div>
-                <div class="text-xs text-slate-500 font-semibold mt-1">Active User Actors</div>
-            </div>
-        </div>
-
-        <!-- Card 4: Security Events -->
-        <button type="button" wire:click="setCardFilter('security')"
-                class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md p-4 sm:p-5 flex items-center gap-3.5 text-left transition-all duration-200 cursor-pointer group hover:-translate-y-0.5 {{ $quickTab === 'security' ? 'ring-2 ring-purple-500/30 border-purple-500 bg-purple-50/10' : '' }}">
-            <div class="w-11 h-11 rounded-2xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-2xs">
-                <svg class="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-            </div>
-            <div class="min-w-0">
-                <div class="text-2xl sm:text-[26px] font-black text-slate-900 leading-none tracking-tight">{{ number_format($securityLogsCount) }}</div>
-                <div class="text-xs text-slate-500 font-semibold mt-1">Security &amp; Auth Logs</div>
-            </div>
-        </button>
-    </div>
-
-
-    <!-- ── 3. CATEGORY QUICK TABS ── -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-200/80">
-        <button wire:click="setQuickTab('all')" type="button"
-                class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-2xs {{ $quickTab === 'all' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-            <svg class="w-3.5 h-3.5 {{ $quickTab === 'all' ? 'text-slate-300' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-            <span>All Activity</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold {{ $quickTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ number_format($tabCounts['all']) }}</span>
-        </button>
-
-        <button wire:click="setQuickTab('projects')" type="button"
-                class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-2xs {{ $quickTab === 'projects' ? 'bg-[#c3122e] text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-            <svg class="w-3.5 h-3.5 {{ $quickTab === 'projects' ? 'text-rose-200' : 'text-rose-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-            <span>Projects &amp; Subsidiaries</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold {{ $quickTab === 'projects' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ number_format($tabCounts['projects']) }}</span>
-        </button>
-
-        <button wire:click="setQuickTab('governance')" type="button"
-                class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-2xs {{ $quickTab === 'governance' ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-            <svg class="w-3.5 h-3.5 {{ $quickTab === 'governance' ? 'text-amber-200' : 'text-amber-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span>Governance &amp; Pings</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold {{ $quickTab === 'governance' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ number_format($tabCounts['governance']) }}</span>
-        </button>
-
-        <button wire:click="setQuickTab('security')" type="button"
-                class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-2xs {{ $quickTab === 'security' ? 'bg-purple-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-            <svg class="w-3.5 h-3.5 {{ $quickTab === 'security' ? 'text-purple-200' : 'text-purple-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span>Security &amp; Users</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold {{ $quickTab === 'security' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ number_format($tabCounts['security']) }}</span>
-        </button>
-
-        <button wire:click="setQuickTab('tasks')" type="button"
-                class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-2xs {{ $quickTab === 'tasks' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-            <svg class="w-3.5 h-3.5 {{ $quickTab === 'tasks' ? 'text-blue-200' : 'text-blue-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-            <span>Tasks &amp; WBS</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold {{ $quickTab === 'tasks' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ number_format($tabCounts['tasks']) }}</span>
-        </button>
-    </div>
-
-
-    <!-- ── 4. STREAMLINED SEARCH & FILTER TOOLBAR ── -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-2xs space-y-2.5">
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-            
-            <!-- Search Input -->
-            <div class="relative flex-1 min-w-[260px]">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            {{-- Search --}}
+            <div class="search-input-wrap">
+                <div style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;">
+                    <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input 
-                    type="text" 
-                    wire:model.live.debounce.300ms="search" 
-                    placeholder="Search by action, actor, or record name..." 
-                    class="w-full pl-10 pr-9 py-2 text-xs font-semibold text-slate-800 bg-slate-50/80 border border-slate-200/90 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 focus:border-[#c3122e] transition-all placeholder:text-slate-400"
-                >
+                <input type="text"
+                       wire:model.live.debounce.300ms="search"
+                       placeholder="Search by action, actor, IP, or record…"
+                       class="search-input">
                 @if($search)
-                    <button wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button wire:click="$set('search', '')"
+                            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94a3b8;cursor:pointer;background:none;border:none;padding:0;">
+                        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
                     </button>
                 @endif
             </div>
 
-            <!-- Filter Dropdowns Row -->
+            {{-- Filter controls --}}
             <div class="flex items-center gap-2 flex-wrap">
-                
-                <!-- Action Type Filter -->
-                <select wire:model.live="actionFilter" class="custom-select text-xs font-semibold text-slate-700 bg-slate-50/80 border border-slate-200/90 rounded-xl py-2 pl-3 hover:bg-white hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 cursor-pointer transition-all max-w-[155px] truncate">
+                <select wire:model.live="actionFilter" class="filter-select">
                     <option value="all">All Actions</option>
                     @foreach($actionsList as $act)
                         <option value="{{ $act }}">{{ ucwords(str_replace('_', ' ', $act)) }}</option>
                     @endforeach
                 </select>
 
-                <!-- Module Filter -->
-                <select wire:model.live="moduleFilter" class="custom-select text-xs font-semibold text-slate-700 bg-slate-50/80 border border-slate-200/90 rounded-xl py-2 pl-3 hover:bg-white hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 cursor-pointer transition-all max-w-[130px] truncate">
+                <select wire:model.live="moduleFilter" class="filter-select">
                     <option value="all">All Modules</option>
                     @foreach($modulesList as $mod)
                         <option value="{{ $mod }}">{{ ucwords(str_replace('_', ' ', $mod)) }}</option>
                     @endforeach
                 </select>
 
-                <!-- Date Range Filter -->
-                <select wire:model.live="dateFilter" class="custom-select text-xs font-semibold text-slate-700 bg-slate-50/80 border border-slate-200/90 rounded-xl py-2 pl-3 hover:bg-white hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 cursor-pointer transition-all">
+                <select wire:model.live="dateFilter" class="filter-select">
                     <option value="all">All Time</option>
                     <option value="today">Today</option>
                     <option value="7days">Last 7 Days</option>
@@ -205,23 +705,28 @@
                     <option value="custom">Custom Range</option>
                 </select>
 
-                <!-- Sort Order Toggle -->
-                <button wire:click="toggleSortOrder" 
-                        type="button" 
-                        title="{{ $sortOrder === 'desc' ? 'Newest first (click for oldest)' : 'Oldest first (click for newest)' }}"
-                        class="p-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-50/80 hover:bg-white border border-slate-200/90 transition-all flex items-center gap-1.5 cursor-pointer">
-                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <select wire:model.live="userFilter" class="filter-select" style="max-width:150px;">
+                    <option value="all">All Users</option>
+                    @foreach($usersList as $u)
+                        <option value="{{ $u->id }}">{{ $u->name }}</option>
+                    @endforeach
+                </select>
+
+                {{-- Sort toggle --}}
+                <button wire:click="toggleSortOrder" type="button" class="sort-btn"
+                        title="{{ $sortOrder === 'desc' ? 'Newest first' : 'Oldest first' }}">
+                    <svg style="width:13px;height:13px;color:#64748b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         @if($sortOrder === 'desc')
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4"/>
                         @else
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/>
                         @endif
                     </svg>
-                    <span class="hidden sm:inline">{{ $sortOrder === 'desc' ? 'Newest' : 'Oldest' }}</span>
+                    <span class="hidden sm:inline" style="font-size:11.5px;">{{ $sortOrder === 'desc' ? 'Newest' : 'Oldest' }}</span>
                 </button>
 
-                <!-- Per Page Select -->
-                <select wire:model.live="perPage" class="custom-select text-xs font-semibold text-slate-700 bg-slate-50/80 border border-slate-200/90 rounded-xl py-2 pl-3 hover:bg-white hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 cursor-pointer transition-all w-[70px]">
+                {{-- Per page --}}
+                <select wire:model.live="perPage" class="perpage-select">
                     <option value="15">15</option>
                     <option value="30">30</option>
                     <option value="50">50</option>
@@ -229,45 +734,48 @@
                 </select>
 
                 @if($search || $moduleFilter !== 'all' || $actionFilter !== 'all' || $userFilter !== 'all' || $dateFilter !== 'all' || $quickTab !== 'all')
-                    <button wire:click="resetFilters" type="button" class="px-3 py-2 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all flex items-center gap-1 cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        <span>Reset</span>
+                    <button wire:click="resetFilters" type="button" class="reset-btn">
+                        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Reset
                     </button>
                 @endif
             </div>
-
         </div>
 
-        <!-- Custom Date Range Row (Conditional) -->
+        {{-- Custom date range --}}
         @if($dateFilter === 'custom')
-            <div class="flex items-center gap-3 pt-2.5 border-t border-slate-100 text-xs">
-                <span class="font-bold text-slate-500 text-[11px] uppercase tracking-wider">Date Window:</span>
-                <div class="flex items-center gap-2">
-                    <input type="date" wire:model.live="startDate" class="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20">
-                    <span class="text-slate-400 font-bold">to</span>
-                    <input type="date" wire:model.live="endDate" class="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20">
-                </div>
+            <div class="flex items-center gap-3 mt-3 pt-3" style="border-top:1px solid #f1f5f9;">
+                <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;">Range:</span>
+                <input type="date" wire:model.live="startDate"
+                       style="padding:6px 10px;font-size:12px;font-weight:600;color:#374151;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;">
+                <span style="font-size:12px;color:#94a3b8;font-weight:700;">→</span>
+                <input type="date" wire:model.live="endDate"
+                       style="padding:6px 10px;font-size:12px;font-weight:600;color:#374151;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;">
             </div>
         @endif
     </div>
 
 
-    <!-- ── 5. AUDIT ACTIVITY TABLE ── -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+    {{-- ══════════════════════════════════════════════════════════
+         3.  AUDIT LOG TABLE
+    ══════════════════════════════════════════════════════════ --}}
+    <div class="audit-table-wrap">
+        <div style="overflow-x:auto;">
+            <table class="audit-table w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 select-none">
-                        <th class="py-3.5 pl-6 pr-4 min-w-[200px]">User / Actor</th>
-                        <th class="py-3.5 px-4 min-w-[170px]">Action Performed</th>
-                        <th class="py-3.5 px-4 min-w-[120px]">Module</th>
-                        <th class="py-3.5 px-4 min-w-[240px]">Target Record</th>
-                        <th class="py-3.5 px-4 min-w-[110px]">IP Address</th>
-                        <th class="py-3.5 px-4 min-w-[150px]">Date &amp; Time</th>
-                        <th class="py-3.5 pl-4 pr-6 text-right min-w-[90px]">Details</th>
+                    <tr>
+                        <th style="padding-left:20px;min-width:200px;">User / Actor</th>
+                        <th style="min-width:160px;">Action</th>
+                        <th style="min-width:120px;">Module</th>
+                        <th style="min-width:230px;">Target Record</th>
+                        <th style="min-width:110px;">IP Address</th>
+                        <th style="min-width:150px;">Timestamp</th>
+                        <th style="text-align:right;padding-right:20px;min-width:100px;">Details</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                <tbody>
                     @forelse($logs as $log)
                         @php
                             $actionName = match($log->action) {
@@ -279,185 +787,246 @@
                                 'accepted_project_assignment' => 'Accepted Leadership',
                                 'rejected_project_assignment' => 'Declined Leadership',
                                 'reassigned_project_leader'   => 'Reassigned Leader',
-                                'auto_cascaded_schedule'      => 'Auto-Cascaded Schedule',
+                                'auto_cascaded_schedule'      => 'Auto-Cascaded',
                                 'cascade_rescheduled'         => 'Cascade Rescheduled',
-                                'pmo_nudge_dispatched'        => 'PMO Nudge Sent',
-                                'pmo_quick_ping_dispatched'   => 'PMO Quick Ping',
+                                'pmo_nudge_dispatched'        => 'PMO Nudge',
+                                'pmo_quick_ping_dispatched'   => 'Quick Ping',
                                 'pmo_stuck_task_nudge'        => 'Stuck Task Nudge',
-                                'created_wbs_item'            => 'Added WBS Task',
-                                'updated_wbs_item'            => 'Updated WBS Task',
-                                'created_user'                => 'Created User Account',
-                                'updated_user'                => 'Updated User Profile',
-                                'provisioned_azure_user'      => 'Azure SSO Provisioned',
-                                'updated_role_permissions'    => 'Updated Role Permissions',
-                                'created_role'                => 'Created Security Role',
+                                'created_wbs_item'            => 'Added Task',
+                                'updated_wbs_item'            => 'Updated Task',
+                                'created_user'                => 'Created User',
+                                'updated_user'                => 'Updated User',
+                                'provisioned_azure_user'      => 'Azure SSO',
+                                'updated_role_permissions'    => 'Updated Permissions',
+                                'created_role'                => 'Created Role',
                                 'created_subsidiary'          => 'Created Subsidiary',
                                 'updated_subsidiary'          => 'Updated Subsidiary',
-                                'created_status_update'       => 'Posted Status Update',
-                                'created_risk'                => 'Logged Project Risk',
+                                'deleted_subsidiary'          => 'Deleted Subsidiary',
+                                'created_status_update'       => 'Status Update',
+                                'created_risk'                => 'Logged Risk',
                                 'created_blocker'             => 'Reported Blocker',
                                 'resolved_blocker'            => 'Resolved Blocker',
                                 'approved_request'            => 'Approved Request',
                                 'rejected_request'            => 'Rejected Request',
-                                'uploaded_document'           => 'Uploaded Document',
-                                'deleted_document'            => 'Deleted Document',
-                                'updated_system_settings'     => 'Updated System Settings',
+                                'uploaded_document'           => 'Uploaded Doc',
+                                'deleted_document'            => 'Deleted Doc',
+                                'updated_system_settings'     => 'Updated Settings',
                                 default                       => ucwords(str_replace('_', ' ', $log->action))
                             };
 
-                            $actionBadge = match(true) {
-                                str_contains($log->action, 'create') || str_contains($log->action, 'accept') || str_contains($log->action, 'provision') => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-                                str_contains($log->action, 'reject') || str_contains($log->action, 'delete') => 'bg-rose-50 text-rose-700 border-rose-200/80',
-                                str_contains($log->action, 'update') || str_contains($log->action, 'edit') || str_contains($log->action, 'reassign') => 'bg-blue-50 text-blue-700 border-blue-200/80',
-                                str_contains($log->action, 'approve') => 'bg-amber-50 text-amber-800 border-amber-200/80',
-                                str_contains($log->action, 'nudge') || str_contains($log->action, 'ping') => 'bg-purple-50 text-purple-700 border-purple-200/80',
-                                default => 'bg-slate-100 text-slate-700 border-slate-200'
+                            $badgeClass = match(true) {
+                                str_contains($log->action, 'create') || str_contains($log->action, 'accept') || str_contains($log->action, 'provision') || str_contains($log->action, 'upload') => 'badge-create',
+                                str_contains($log->action, 'reject') || str_contains($log->action, 'delete') => 'badge-delete',
+                                str_contains($log->action, 'update') || str_contains($log->action, 'edit') || str_contains($log->action, 'reassign') || str_contains($log->action, 'cascade') => 'badge-update',
+                                str_contains($log->action, 'approve') => 'badge-approve',
+                                str_contains($log->action, 'nudge') || str_contains($log->action, 'ping') => 'badge-nudge',
+                                default => 'badge-default'
                             };
 
-                            $moduleConfig = match($log->module) {
-                                'projects'          => ['label' => 'Projects', 'bg' => 'bg-rose-50 text-[#c3122e] border-rose-100'],
-                                'wbs', 'wbs_items'  => ['label' => 'Tasks & WBS', 'bg' => 'bg-blue-50 text-blue-700 border-blue-100'],
-                                'users'             => ['label' => 'Users & Auth', 'bg' => 'bg-emerald-50 text-emerald-700 border-emerald-100'],
-                                'roles_permissions' => ['label' => 'Security Roles', 'bg' => 'bg-amber-50 text-amber-800 border-amber-100'],
-                                'approvals'         => ['label' => 'Approvals Hub', 'bg' => 'bg-indigo-50 text-indigo-700 border-indigo-100'],
-                                'subsidiaries'      => ['label' => 'Subsidiaries', 'bg' => 'bg-purple-50 text-purple-700 border-purple-100'],
-                                'documents'         => ['label' => 'Documents', 'bg' => 'bg-teal-50 text-teal-700 border-teal-100'],
-                                'settings'          => ['label' => 'Settings', 'bg' => 'bg-slate-100 text-slate-700 border-slate-200'],
-                                default             => ['label' => ucwords(str_replace('_', ' ', $log->module)), 'bg' => 'bg-slate-100 text-slate-700 border-slate-200']
+                            $moduleClass = match($log->module) {
+                                'projects'          => 'mod-projects',
+                                'wbs', 'wbs_items'  => 'mod-wbs',
+                                'users'             => 'mod-users',
+                                'roles_permissions' => 'mod-roles',
+                                'approvals'         => 'mod-approvals',
+                                'subsidiaries'      => 'mod-subsidiaries',
+                                'documents'         => 'mod-documents',
+                                'settings'          => 'mod-settings',
+                                default             => 'mod-default'
                             };
 
-                            $recordName = $log->record_type ? class_basename($log->record_type) : 'Record';
-                            $rec = $resolvedRecords[$log->id] ?? null;
-                            $recTitle = $rec['title'] ?? null;
-                            $recCode = $rec['code'] ?? null;
-                            $recUrl = $rec['url'] ?? null;
+                            $moduleLabel = match($log->module) {
+                                'projects'          => 'Projects',
+                                'wbs', 'wbs_items'  => 'Tasks & WBS',
+                                'users'             => 'Users & Auth',
+                                'roles_permissions' => 'Security Roles',
+                                'approvals'         => 'Approvals',
+                                'subsidiaries'      => 'Subsidiaries',
+                                'documents'         => 'Documents',
+                                'settings'          => 'Settings',
+                                default             => ucwords(str_replace('_', ' ', $log->module))
+                            };
+
+                            $rawRecordName = $log->record_type ? class_basename($log->record_type) : 'Record';
+                            $recordLabel = match($rawRecordName) {
+                                'WbsItem'          => 'WBS Task',
+                                'Project'          => 'Project',
+                                'User'             => 'User Profile',
+                                'Subsidiary'       => 'Subsidiary',
+                                'ApprovalRequest'  => 'Approval Request',
+                                'SystemSetting'    => 'System Config',
+                                'ActivityLog'      => 'Audit Trail',
+                                'ProjectTemplate'  => 'Blueprint',
+                                'Role'             => 'Security Role',
+                                'Document'         => 'Document',
+                                'WbsBaseline'      => 'Schedule Baseline',
+                                default            => ucwords(str_replace('_', ' ', preg_replace('/(?<!^)[A-Z]/', ' $0', $rawRecordName)))
+                            };
+
+                            $rec       = $resolvedRecords[$log->id] ?? null;
+                            $recTitle  = $rec['title'] ?? null;
+                            $recCode   = $rec['code'] ?? null;
+                            $recUrl    = $rec['url'] ?? null;
+                            $isDeleted = !empty($rec['is_deleted']);
+
+                            // Compute Actor Role label
+                            $actorRole = 'System Worker';
+                            if ($log->user) {
+                                if ($log->user->isSuperAdmin() || $log->user->hasRole('pmo_admin')) {
+                                    $actorRole = 'PMO Admin';
+                                } elseif ($log->user->hasRole('project_manager') || $log->user->isProjectManager()) {
+                                    $actorRole = 'Project Leader';
+                                } elseif ($log->user->roles && $log->user->roles->isNotEmpty()) {
+                                    $actorRole = ucwords(str_replace('_', ' ', $log->user->roles->first()->name));
+                                } else {
+                                    $actorRole = 'User';
+                                }
+                            }
+
+                            // Avatar initials & colors
+                            $avatarColors = [
+                                '#c3122e', '#7c3aed', '#1d4ed8', '#0f766e', '#92400e',
+                                '#9d174d', '#1e40af', '#065f46', '#78350f', '#5b21b6',
+                            ];
+                            $colorIdx = $log->user_id ? ($log->user_id % count($avatarColors)) : (count($avatarColors) - 1);
+                            $avatarBg = $avatarColors[$colorIdx];
+                            $initials = $log->user ? strtoupper(substr($log->user->name, 0, 1)) : '⚙';
                         @endphp
-                        <tr class="hover:bg-slate-50/70 transition-colors group">
-                            
-                            <!-- 1. USER / ACTOR -->
-                            <td class="py-3.5 pl-6 pr-4 align-middle">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    @if($log->user)
-                                        <div class="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-[#c3122e] to-[#800a1c] text-white flex items-center justify-center text-xs font-extrabold flex-shrink-0 shadow-2xs">
-                                            {{ strtoupper(substr($log->user->name, 0, 1)) }}
+                        <tr>
+                            {{-- ACTOR --}}
+                            <td style="padding-left:20px;">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="actor-avatar"
+                                         style="background:{{ $log->user ? $avatarBg : '#1e293b' }};">
+                                        <span style="color:#fff;">{{ $initials }}</span>
+                                    </div>
+                                    <div style="min-width:0;">
+                                        <div style="font-size:12.5px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">
+                                            {{ $log->user->name ?? 'System Automated' }}
                                         </div>
-                                        <div class="min-w-0">
-                                            <span class="text-xs font-bold text-slate-900 truncate block">{{ $log->user->name }}</span>
-                                            <span class="text-[11px] text-slate-400 font-medium truncate block">{{ $log->user->email }}</span>
+                                        <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;display:flex;align-items:center;gap:5px;margin-top:1px;">
+                                            <span>{{ $log->user->email ?? 'background service' }}</span>
                                         </div>
-                                    @else
-                                        <div class="w-8.5 h-8.5 rounded-xl bg-slate-800 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-2xs">
-                                            🤖
+                                        <div style="margin-top:2px;">
+                                            <span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:9.5px;font-weight:800;background:{{ $actorRole === 'PMO Admin' ? '#fef2f2' : ($actorRole === 'Project Leader' ? '#eff6ff' : '#f1f5f9') }};color:{{ $actorRole === 'PMO Admin' ? '#c3122e' : ($actorRole === 'Project Leader' ? '#1d4ed8' : '#475569') }};border:1px solid {{ $actorRole === 'PMO Admin' ? '#fee2e2' : ($actorRole === 'Project Leader' ? '#bfdbfe' : '#e2e8f0') }};white-space:nowrap;">
+                                                {{ $actorRole }}
+                                            </span>
                                         </div>
-                                        <div class="min-w-0">
-                                            <span class="text-xs font-bold text-slate-900 truncate block">System Automated</span>
-                                            <span class="text-[11px] text-slate-400 font-medium truncate block">Background Service</span>
-                                        </div>
-                                    @endif
+                                    </div>
                                 </div>
                             </td>
 
-                            <!-- 2. ACTION -->
-                            <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                <button wire:click="filterByAction('{{ $log->action }}')" 
-                                        type="button" 
-                                        title="Filter by action: {{ $actionName }}"
-                                        class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border shadow-2xs hover:scale-105 transition-transform cursor-pointer {{ $actionBadge }}">
+                            {{-- ACTION --}}
+                            <td>
+                                <button wire:click="filterByAction('{{ $log->action }}')"
+                                        type="button"
+                                        title="Filter by: {{ $actionName }}"
+                                        class="{{ $badgeClass }}"
+                                        style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.12s;">
                                     {{ $actionName }}
                                 </button>
                             </td>
 
-                            <!-- 3. MODULE -->
-                            <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border {{ $moduleConfig['bg'] }}">
-                                    {{ $moduleConfig['label'] }}
+                            {{-- MODULE --}}
+                            <td>
+                                <span class="{{ $moduleClass }}"
+                                      style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;">
+                                    {{ $moduleLabel }}
                                 </span>
                             </td>
 
-                            <!-- 4. TARGET RECORD -->
-                            <td class="py-3.5 px-4 align-middle">
-                                <div class="min-w-0 max-w-[280px]">
-                                    @if($recTitle)
-                                        <div class="min-w-0">
+                            {{-- TARGET RECORD (Clean & Structured) --}}
+                            <td style="padding-top:12px;padding-bottom:12px;">
+                                <div style="min-width:0;max-width:290px;display:flex;flex-direction:column;gap:4px;">
+                                    {{-- Primary Title / Name --}}
+                                    <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+                                        @if($isDeleted && !$recUrl)
+                                            <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;flex-shrink:0;" title="Record deleted from database"></span>
+                                        @endif
+                                        @if($recTitle)
                                             @if($recUrl)
-                                                <a href="{{ $recUrl }}" class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors block truncate no-underline" title="{{ $recTitle }}">
+                                                <a href="{{ $recUrl }}" class="record-link" title="{{ $recTitle }}"
+                                                   style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:260px;font-size:12.5px;font-weight:700;color:#0f172a;">
                                                     {{ $recTitle }}
                                                 </a>
                                             @else
-                                                <span class="font-bold text-sm text-slate-900 block truncate" title="{{ $recTitle }}">
+                                                <span style="font-size:12.5px;font-weight:700;color:{{ $isDeleted ? '#94a3b8' : '#0f172a' }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:260px;{{ $isDeleted ? 'text-decoration:line-through;' : '' }}"
+                                                      title="{{ $recTitle }}">
                                                     {{ $recTitle }}
                                                 </span>
                                             @endif
-                                        </div>
-                                    @else
-                                        <span class="font-bold text-sm text-slate-900 block truncate">
-                                            {{ $recordName === 'SystemSetting' || $log->module === 'settings' ? 'Global System Configuration' : ($recordName . ($log->record_id ? ' #' . $log->record_id : '')) }}
-                                        </span>
-                                    @endif
-
-                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                        @if($recCode)
-                                            <span class="font-mono font-bold text-[10.5px] text-[#c3122e] bg-rose-50/90 px-2 py-0.5 rounded-md border border-rose-200/70 whitespace-nowrap shrink-0 inline-flex items-center leading-none">
-                                                {{ $recCode }}
+                                        @else
+                                            <span style="font-size:12.5px;font-weight:700;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:260px;">
+                                                {{ $recordLabel === 'System Config' || $log->module === 'settings' ? 'Global System Settings' : ($recordLabel . ($log->record_id ? ' #' . $log->record_id : '')) }}
                                             </span>
-                                            <span class="text-[10px] text-slate-300">•</span>
                                         @endif
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 whitespace-nowrap shrink-0">
-                                            <span>{{ $recordName === 'SystemSetting' || $log->module === 'settings' ? 'System Configuration' : $recordName }}</span>
-                                            @if($log->record_id && $recordName !== 'SystemSetting')
-                                                <button wire:click="filterByRecord('{{ $log->record_id }}')" title="Filter by record #{{ $log->record_id }}" class="hover:text-[#c3122e] font-semibold text-slate-600 cursor-pointer">
-                                                    #{{ $log->record_id }}
-                                                </button>
-                                            @endif
+                                    </div>
+
+                                    {{-- Secondary Metadata Badges & ID --}}
+                                    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;line-height:1.2;">
+                                        @if($recCode)
+                                            <span class="code-chip {{ str_contains($recCode, 'PRJ') ? 'code-chip-red' : '' }}">{{ $recCode }}</span>
+                                        @endif
+                                        <span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;white-space:nowrap;">
+                                            {{ $recordLabel }}
                                         </span>
+                                        @if($log->record_id && $rawRecordName !== 'SystemSetting')
+                                            <button wire:click="filterByRecord('{{ $log->record_id }}')"
+                                                    title="Filter record #{{ $log->record_id }}"
+                                                    class="record-id-btn"
+                                                    style="font-size:10px;padding:1px 5px;border-radius:4px;background:#f8fafc;border:1px solid #e2e8f0;">
+                                                #{{ $log->record_id }}
+                                            </button>
+                                        @endif
+                                        @if($isDeleted)
+                                            <span style="font-size:9px;font-weight:800;color:#dc2626;background:#fef2f2;border:1px solid #fecdd3;padding:1px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:0.04em;">Deleted</span>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
 
-                            <!-- 5. IP ADDRESS -->
-                            <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                <span class="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-200/60">
-                                    {{ $log->ip_address ?: '127.0.0.1' }}
-                                </span>
+                            {{-- IP --}}
+                            <td>
+                                <span class="ip-chip">{{ $log->ip_address ?: '127.0.0.1' }}</span>
                             </td>
 
-                            <!-- 6. DATE & TIME -->
-                            <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                <div class="text-xs font-bold text-slate-800 leading-tight">
-                                    {{ $log->created_at->format('Y-m-d H:i') }}
+                            {{-- TIMESTAMP --}}
+                            <td>
+                                <div style="font-size:12px;font-weight:700;color:#1e293b;">
+                                    {{ $log->created_at->format('Y-m-d') }}
                                 </div>
-                                <div class="text-[11px] text-slate-400 font-medium mt-0.5">
-                                    {{ $log->created_at->diffForHumans() }}
+                                <div style="font-size:10.5px;color:#94a3b8;margin-top:2px;">
+                                    {{ $log->created_at->format('H:i:s') }} &bull; {{ $log->created_at->diffForHumans() }}
                                 </div>
                             </td>
 
-                            <!-- 7. INSPECT ACTION -->
-                            <td class="py-3.5 pl-4 pr-6 align-middle text-right whitespace-nowrap">
-                                <button wire:click="viewDetails({{ $log->id }})" 
-                                        type="button" 
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs">
-                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            {{-- INSPECT --}}
+                            <td style="text-align:right;padding-right:20px;">
+                                <button wire:click="viewDetails({{ $log->id }})"
+                                        type="button"
+                                        class="inspect-btn">
+                                    <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
-                                    <span>Inspect</span>
+                                    Inspect
                                 </button>
                             </td>
-
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-16 text-slate-400">
-                                <div class="flex flex-col items-center justify-center">
-                                    <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
-                                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <div style="width:56px;height:56px;border-radius:18px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                                        <svg style="width:26px;height:26px;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-700">No audit logs found</span>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">No log records matched your search or active filter parameters.</p>
-                                    <button wire:click="resetFilters" type="button" class="mt-2.5 text-xs font-bold text-[#c3122e] hover:underline cursor-pointer">
-                                        Clear All Filters
+                                    <div style="font-size:14px;font-weight:800;color:#374151;">No audit logs found</div>
+                                    <p style="font-size:12px;color:#94a3b8;margin-top:5px;">No records matched your filters.</p>
+                                    <button wire:click="resetFilters" type="button"
+                                            style="margin-top:12px;font-size:12px;font-weight:700;color:#c3122e;cursor:pointer;background:none;border:none;text-decoration:underline;">
+                                        Clear all filters
                                     </button>
                                 </div>
                             </td>
@@ -467,120 +1036,127 @@
             </table>
         </div>
 
-        <!-- Pagination Bar -->
+        {{-- Pagination --}}
         @if($logs->hasPages())
-            <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+            <div style="padding:14px 20px;border-top:1px solid #f1f5f9;background:#fafafa;">
                 {{ $logs->links() }}
             </div>
         @endif
     </div>
 
 
-    <!-- ── 6. INTERACTIVE AUDIT LOG INSPECTOR MODAL ── -->
+    {{-- ══════════════════════════════════════════════════════════
+         4.  AUDIT INSPECTOR MODAL
+    ══════════════════════════════════════════════════════════ --}}
     @if($showDetailModal && $selectedLog)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity">
-            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in duration-150 flex flex-col max-h-[90vh]">
-                
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center font-bold shrink-0">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+        <div class="modal-backdrop" wire:click.self="closeDetailModal">
+            <div class="modal-panel">
+
+                {{-- Modal Header --}}
+                <div style="padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:42px;height:42px;border-radius:13px;background:#fff1f2;border:1px solid #fecdd3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg style="width:20px;height:20px;color:#be123c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-base font-extrabold text-slate-900 leading-tight">
-                                    Audit Log Inspector
-                                </h3>
-                                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-xs font-bold">#{{ $selectedLog->id }}</span>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <h3 style="font-size:16px;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">Audit Inspector</h3>
+                                <span style="padding:2px 8px;border-radius:6px;background:#f1f5f9;color:#475569;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;">#{{ $selectedLog->id }}</span>
                             </div>
-                            <span class="text-xs text-slate-400 font-mono">{{ $selectedLog->created_at->format('M d, Y • h:i:s A T') }}</span>
+                            <span style="font-size:11px;color:#94a3b8;font-family:'JetBrains Mono',monospace;">
+                                {{ $selectedLog->created_at->format('M d, Y · h:i:s A') }}
+                            </span>
                         </div>
                     </div>
-                    <button wire:click="closeDetailModal" type="button" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer font-bold text-sm">
-                        ✕
-                    </button>
+                    <button wire:click="closeDetailModal" type="button"
+                            style="width:32px;height:32px;border-radius:10px;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:14px;font-weight:800;transition:all 0.15s;"
+                            onmouseover="this.style.background='#e2e8f0';this.style.color='#0f172a';"
+                            onmouseout="this.style.background='#f1f5f9';this.style.color='#64748b';">✕</button>
                 </div>
 
-                <!-- Modal Body -->
-                <div class="p-6 space-y-4 overflow-y-auto flex-1">
-                    
-                    <!-- Metadata Summary Cards -->
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-100">
+                {{-- Modal Body --}}
+                <div style="padding:20px 24px;overflow-y:auto;flex:1;space-y:16px;">
+
+                    {{-- Metadata grid --}}
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:14px;padding:16px;margin-bottom:16px;">
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Actor</span>
-                            <span class="text-xs font-bold text-slate-900 block truncate">{{ $selectedLog->user->name ?? 'System Automated' }}</span>
-                            <span class="text-[10.5px] text-slate-500 block truncate font-mono">{{ $selectedLog->user->email ?? 'system@nexus' }}</span>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Actor</span>
+                            <span style="font-size:12.5px;font-weight:700;color:#0f172a;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $selectedLog->user->name ?? 'System Automated' }}</span>
+                            <span style="font-size:10.5px;color:#64748b;font-family:'JetBrains Mono',monospace;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $selectedLog->user->email ?? 'system@nexus' }}</span>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Action</span>
-                            <span class="text-xs font-mono font-extrabold text-[#c3122e]">{{ $selectedLog->action }}</span>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Action</span>
+                            <span style="font-size:11.5px;font-family:'JetBrains Mono',monospace;font-weight:700;color:#be123c;">{{ $selectedLog->action }}</span>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Module</span>
-                            <span class="text-xs font-bold text-slate-800">{{ ucwords(str_replace('_', ' ', $selectedLog->module)) }}</span>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Module</span>
+                            <span style="font-size:12.5px;font-weight:700;color:#1e293b;">{{ ucwords(str_replace('_', ' ', $selectedLog->module)) }}</span>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Record Target</span>
-                            @if(!empty($selectedLogRecord['title']))
-                                <span class="text-xs font-bold text-slate-900 block truncate">{{ $selectedLogRecord['title'] }}</span>
-                            @else
-                                <span class="text-xs font-bold text-slate-900 block truncate">{{ $selectedLog->module === 'settings' ? 'Global System Configuration' : 'System Record' }}</span>
-                            @endif
-                            <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                <span>{{ class_basename($selectedLog->record_type) }} {{ $selectedLog->record_id ? '#' . $selectedLog->record_id : '' }}</span>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Record</span>
+                            <span style="font-size:12px;font-weight:700;color:#0f172a;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                @if(!empty($selectedLogRecord['title']))
+                                    {{ $selectedLogRecord['title'] }}
+                                @else
+                                    {{ $selectedLog->module === 'settings' ? 'System Config' : 'System Record' }}
+                                @endif
+                            </span>
+                            <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+                                <span style="font-size:10.5px;color:#94a3b8;">{{ class_basename($selectedLog->record_type) }} {{ $selectedLog->record_id ? '#'.$selectedLog->record_id : '' }}</span>
                                 @if(!empty($selectedLogRecord['code']))
-                                    <span class="text-slate-300">•</span>
-                                    <span class="font-mono text-[#c3122e] bg-rose-50 border border-rose-200/70 px-1.5 py-0.2 rounded text-[10px] font-bold">{{ $selectedLogRecord['code'] }}</span>
+                                    <span class="code-chip">{{ $selectedLogRecord['code'] }}</span>
                                 @endif
                                 @if(!empty($selectedLogRecord['url']))
-                                    <a href="{{ $selectedLogRecord['url'] }}" target="_blank" title="Open project workspace in new tab" class="text-[#c3122e] hover:underline inline-flex items-center ml-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    <a href="{{ $selectedLogRecord['url'] }}" target="_blank" style="color:#be123c;display:inline-flex;align-items:center;">
+                                        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     </a>
                                 @endif
                             </div>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Client IP</span>
-                            <span class="text-xs font-mono font-bold text-slate-700">{{ $selectedLog->ip_address ?: '127.0.0.1' }}</span>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Client IP</span>
+                            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#374151;">{{ $selectedLog->ip_address ?: '127.0.0.1' }}</span>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Occurred</span>
-                            <span class="text-xs font-bold text-emerald-600">{{ $selectedLog->created_at->diffForHumans() }}</span>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Occurred</span>
+                            <span style="font-size:12px;font-weight:700;color:#059669;">{{ $selectedLog->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
 
-                    <!-- Filter Shortcuts Row -->
-                    <div class="flex items-center gap-2 flex-wrap">
+                    {{-- Quick filter shortcuts --}}
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
                         @if($selectedLog->user_id)
-                            <button wire:click="filterByUser({{ $selectedLog->user_id }})" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                <span>Filter by this User</span>
+                            <button wire:click="filterByUser({{ $selectedLog->user_id }})" type="button"
+                                    style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;">
+                                <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                Filter by User
                             </button>
                         @endif
-                        <button wire:click="filterByAction('{{ $selectedLog->action }}')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                            <span>Filter by this Action</span>
+                        <button wire:click="filterByAction('{{ $selectedLog->action }}')" type="button"
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;">
+                            <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            Filter by Action
                         </button>
                         @if($selectedLog->record_id)
-                            <button wire:click="filterByRecord('{{ $selectedLog->record_id }}')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
-                                <span>Filter by Record #{{ $selectedLog->record_id }}</span>
+                            <button wire:click="filterByRecord('{{ $selectedLog->record_id }}')" type="button"
+                                    style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;">
+                                <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                                Record #{{ $selectedLog->record_id }}
                             </button>
                         @endif
                     </div>
 
-                    <!-- User Agent Device Information -->
+                    {{-- User Agent --}}
                     @if($selectedLog->user_agent)
-                        <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-100 text-xs">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">User Agent &amp; Environment</span>
-                            <span class="text-[11px] font-mono text-slate-600 break-all leading-relaxed block">{{ $selectedLog->user_agent }}</span>
+                        <div style="padding:11px 14px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:11px;margin-bottom:16px;">
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:4px;">User Agent</span>
+                            <span style="font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#64748b;word-break:break-all;line-height:1.5;display:block;">{{ $selectedLog->user_agent }}</span>
                         </div>
                     @endif
 
-                    <!-- Payload Comparison / Values Diff -->
+                    {{-- Payload diff --}}
                     @php
                         $hasPayload = $selectedLog->previous_values || $selectedLog->new_values;
                         $allKeys = array_unique(array_merge(
@@ -590,58 +1166,59 @@
                     @endphp
 
                     @if($hasPayload)
-                        <div class="space-y-3">
-                            <!-- Diff Mode Switcher -->
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Payload Changes</span>
-                                <div class="flex items-center p-0.5 bg-slate-100 rounded-lg text-xs font-bold">
-                                    <button wire:click="setDiffViewMode('visual')" type="button" class="px-2.5 py-1 rounded-md transition-all cursor-pointer {{ $diffViewMode === 'visual' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-800' }}">
+                        <div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.07em;">Payload Changes</span>
+                                <div style="display:flex;align-items:center;background:#f1f5f9;border-radius:8px;padding:3px;">
+                                    <button wire:click="setDiffViewMode('visual')" type="button"
+                                            style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all 0.12s;{{ $diffViewMode === 'visual' ? 'background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,0.1);' : 'background:transparent;color:#64748b;' }}">
                                         Visual Diff
                                     </button>
-                                    <button wire:click="setDiffViewMode('json')" type="button" class="px-2.5 py-1 rounded-md transition-all cursor-pointer {{ $diffViewMode === 'json' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-800' }}">
+                                    <button wire:click="setDiffViewMode('json')" type="button"
+                                            style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all 0.12s;{{ $diffViewMode === 'json' ? 'background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,0.1);' : 'background:transparent;color:#64748b;' }}">
                                         Raw JSON
                                     </button>
                                 </div>
                             </div>
 
                             @if($diffViewMode === 'visual')
-                                <!-- Formatted Visual Diff Table -->
-                                <div class="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
-                                    <table class="w-full text-left text-xs border-collapse">
+                                <div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+                                    <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
                                         <thead>
-                                            <tr class="bg-slate-50 border-b border-slate-200 text-[10.5px] font-bold uppercase tracking-wider text-slate-500">
-                                                <th class="py-2.5 px-4 w-1/3">Field / Attribute</th>
-                                                <th class="py-2.5 px-4 w-1/3">Previous Value</th>
-                                                <th class="py-2.5 px-4 w-1/3">Applied Value</th>
+                                            <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
+                                                <th style="padding:10px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;text-align:left;width:30%;">Field</th>
+                                                <th style="padding:10px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#ef4444;text-align:left;width:35%;">Before</th>
+                                                <th style="padding:10px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#059669;text-align:left;width:35%;">After</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-slate-100">
+                                        <tbody>
                                             @foreach($allKeys as $key)
                                                 @php
                                                     $oldVal = $selectedLog->previous_values[$key] ?? null;
                                                     $newVal = $selectedLog->new_values[$key] ?? null;
+                                                    $changed = $oldVal !== $newVal;
                                                 @endphp
-                                                <tr class="hover:bg-slate-50/50 transition-colors">
-                                                    <td class="py-2.5 px-4 font-mono font-bold text-slate-800 align-top">
+                                                <tr style="border-bottom:1px solid #f8fafc;{{ $changed ? '' : 'opacity:0.6;' }}">
+                                                    <td style="padding:10px 14px;font-weight:700;color:#374151;font-family:'JetBrains Mono',monospace;font-size:10.5px;vertical-align:top;">
                                                         {{ ucwords(str_replace('_', ' ', $key)) }}
-                                                        <span class="block text-[10px] text-slate-400 font-mono">{{ $key }}</span>
+                                                        <span style="display:block;font-size:9.5px;color:#94a3b8;font-weight:500;">{{ $key }}</span>
                                                     </td>
-                                                    <td class="py-2.5 px-4 align-top">
+                                                    <td style="padding:10px 14px;vertical-align:top;">
                                                         @if($oldVal !== null)
-                                                            <div class="font-mono text-xs text-rose-700 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 break-all leading-relaxed">
+                                                            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#be123c;background:#fff1f2;padding:5px 8px;border-radius:7px;border:1px solid #fecdd3;word-break:break-all;line-height:1.5;">
                                                                 {{ is_array($oldVal) ? json_encode($oldVal, JSON_UNESCAPED_SLASHES) : (string)$oldVal }}
                                                             </div>
                                                         @else
-                                                            <span class="text-slate-300 font-mono text-xs">—</span>
+                                                            <span style="color:#cbd5e1;font-size:12px;">—</span>
                                                         @endif
                                                     </td>
-                                                    <td class="py-2.5 px-4 align-top">
+                                                    <td style="padding:10px 14px;vertical-align:top;">
                                                         @if($newVal !== null)
-                                                            <div class="font-mono text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 break-all leading-relaxed">
+                                                            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#059669;background:#f0fdf4;padding:5px 8px;border-radius:7px;border:1px solid #bbf7d0;word-break:break-all;line-height:1.5;">
                                                                 {{ is_array($newVal) ? json_encode($newVal, JSON_UNESCAPED_SLASHES) : (string)$newVal }}
                                                             </div>
                                                         @else
-                                                            <span class="text-slate-300 font-mono text-xs">—</span>
+                                                            <span style="color:#cbd5e1;font-size:12px;">—</span>
                                                         @endif
                                                     </td>
                                                 </tr>
@@ -650,41 +1227,45 @@
                                     </table>
                                 </div>
                             @else
-                                <!-- Raw JSON Diff View -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                                     <div>
-                                        <div class="flex items-center justify-between mb-1.5">
-                                            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Previous State</span>
-                                            <span class="text-[10px] font-mono font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">Before</span>
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                            <span style="font-size:10.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:0.07em;">Previous</span>
+                                            <span style="font-size:9.5px;font-weight:700;color:#be123c;background:#fff1f2;border:1px solid #fecdd3;padding:1px 7px;border-radius:4px;">BEFORE</span>
                                         </div>
-                                        <pre class="p-3 bg-slate-900 text-rose-300 rounded-xl text-[11px] font-mono overflow-x-auto border border-slate-800 shadow-inner max-h-56">{{ $selectedLog->previous_values ? json_encode($selectedLog->previous_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '// No previous state recorded' }}</pre>
+                                        <pre style="padding:12px;background:#0f172a;color:#fca5a5;border-radius:11px;font-size:10.5px;font-family:'JetBrains Mono',monospace;overflow-x:auto;border:1px solid #1e293b;max-height:220px;line-height:1.6;">{{ $selectedLog->previous_values ? json_encode($selectedLog->previous_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '// No previous state' }}</pre>
                                     </div>
                                     <div>
-                                        <div class="flex items-center justify-between mb-1.5">
-                                            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Applied State</span>
-                                            <span class="text-[10px] font-mono font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">After</span>
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                            <span style="font-size:10.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:0.07em;">Applied</span>
+                                            <span style="font-size:9.5px;font-weight:700;color:#059669;background:#f0fdf4;border:1px solid #bbf7d0;padding:1px 7px;border-radius:4px;">AFTER</span>
                                         </div>
-                                        <pre class="p-3 bg-slate-900 text-emerald-300 rounded-xl text-[11px] font-mono overflow-x-auto border border-slate-800 shadow-inner max-h-56">{{ $selectedLog->new_values ? json_encode($selectedLog->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '// No new state recorded' }}</pre>
+                                        <pre style="padding:12px;background:#0f172a;color:#86efac;border-radius:11px;font-size:10.5px;font-family:'JetBrains Mono',monospace;overflow-x:auto;border:1px solid #1e293b;max-height:220px;line-height:1.6;">{{ $selectedLog->new_values ? json_encode($selectedLog->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '// No new state' }}</pre>
                                     </div>
                                 </div>
                             @endif
                         </div>
                     @else
-                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center text-xs text-slate-400">
-                            No modified payload values attached to this audit event.
+                        <div style="padding:20px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:12px;text-align:center;font-size:12px;color:#94a3b8;font-weight:500;">
+                            No payload changes recorded for this audit event.
                         </div>
                     @endif
-
                 </div>
 
-                <!-- Modal Footer -->
-                <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
-                    <span class="text-[11px] text-slate-400 font-mono">Immutable cryptographic hash verified</span>
-                    <button wire:click="closeDetailModal" type="button" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs transition-all cursor-pointer">
+                {{-- Modal Footer --}}
+                <div style="padding:14px 24px;border-top:1px solid #f1f5f9;background:#fafafa;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <svg style="width:12px;height:12px;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <span style="font-size:10.5px;color:#94a3b8;font-family:'JetBrains Mono',monospace;">Immutable audit record verified</span>
+                    </div>
+                    <button wire:click="closeDetailModal" type="button"
+                            style="padding:8px 20px;border-radius:10px;font-size:12px;font-weight:700;color:#374151;background:#fff;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 2px rgba(0,0,0,0.06);"
+                            onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='#fff';">
                         Close
                     </button>
                 </div>
-
             </div>
         </div>
     @endif

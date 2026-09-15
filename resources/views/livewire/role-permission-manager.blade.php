@@ -22,11 +22,12 @@
     @endif
 
     <!-- Clean Standard Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div>
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                Roles &amp; Permissions Hub
+                Roles &amp; Permissions Governance Hub
             </h1>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">Manage project-level contextual roles &amp; system-wide granular capabilities</p>
         </div>
 
         <div class="flex items-center gap-2.5 flex-wrap flex-shrink-0">
@@ -174,10 +175,10 @@
             <table class="w-full text-left border-collapse min-w-[1260px]">
                 <thead>
                     <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                        <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[240px] shadow-r">Project Role</th>
+                        <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[240px] shadow-r">Project Context Role</th>
                         <th class="py-4 px-3 text-center min-w-[105px]">Project</th>
-                        <th class="py-4 px-3 text-center min-w-[125px]">Scope</th>
-                        <th class="py-4 px-3 text-center min-w-[125px]">Tasks / WBS</th>
+                        <th class="py-4 px-3 text-center min-w-[145px] bg-amber-50/70 border-x border-amber-200/60 text-amber-900">Project Details</th>
+                        <th class="py-4 px-3 text-center min-w-[145px] bg-rose-50/70 border-r border-rose-200/60 text-rose-900">Tasks &amp; WBS</th>
                         <th class="py-4 px-3 text-center min-w-[100px]">Team</th>
                         <th class="py-4 px-3 text-center min-w-[120px]">Budget</th>
                         <th class="py-4 px-3 text-center min-w-[125px]">Risks</th>
@@ -304,7 +305,13 @@
         @php
             $currentRoleInfo = $allRoles[$selectedRole] ?? ['name' => $selectedRole, 'icon' => '🏷️', 'badge' => 'bg-slate-100'];
             $hasUnsaved = $this->hasUnsavedChanges;
-            $selectedCount = count(array_filter($rolePermissions));
+            $isAdminRole = in_array($selectedRole, ['super_admin', 'pmo_admin'], true);
+            $activeRolePermissions = $rolePermissions;
+            if (!$isAdminRole) {
+                unset($activeRolePermissions['project.create'], $activeRolePermissions['project.delete']);
+            }
+            $selectedCount = count(array_filter($activeRolePermissions));
+            $visibleTotalPermsCount = $isAdminRole ? $totalPermsCount : ($totalPermsCount - 2);
         @endphp
 
         <div class="fixed inset-0 overflow-hidden" style="z-index: 9999;">
@@ -337,7 +344,7 @@
                                     @endif
                                 </div>
                                 <p class="text-xs text-slate-400 font-medium mt-0.5">
-                                    <strong class="text-slate-800">{{ $selectedCount }}</strong> of {{ $totalPermsCount }} permissions granted
+                                    <strong class="text-slate-800">{{ $selectedCount }}</strong> of {{ $visibleTotalPermsCount }} permissions granted
                                 </p>
                             </div>
                         </div>
@@ -368,7 +375,7 @@
                         </div>
                         <!-- Progress Bar -->
                         <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-300 {{ $selectedCount === $totalPermsCount ? 'bg-emerald-500' : 'bg-[#c3122e]' }}" style="width: {{ $totalPermsCount > 0 ? round(($selectedCount / $totalPermsCount) * 100) : 0 }}%"></div>
+                            <div class="h-full rounded-full transition-all duration-300 {{ $selectedCount === $visibleTotalPermsCount ? 'bg-emerald-500' : 'bg-[#c3122e]' }}" style="width: {{ $visibleTotalPermsCount > 0 ? round(($selectedCount / $visibleTotalPermsCount) * 100) : 0 }}%"></div>
                         </div>
                     </div>
 
@@ -378,6 +385,9 @@
                         @foreach($allModules as $modKey => $modDef)
                             @php
                                 $modPerms = $modDef['permissions'];
+                                if (!$isAdminRole && $modKey === 'project') {
+                                    unset($modPerms['project.create'], $modPerms['project.delete']);
+                                }
                                 if (!empty($searchDrawerPermission)) {
                                     $pQ = strtolower($searchDrawerPermission);
                                     $modPerms = array_filter($modPerms, function($label, $code) use ($pQ) {
@@ -388,7 +398,7 @@
                                     continue;
                                 }
                                 $matchingModulesCount++;
-                                $modPermKeys = array_keys($modDef['permissions']);
+                                $modPermKeys = array_keys($modPerms);
                                 $grantedInMod = count(array_filter(array_intersect_key($rolePermissions, array_flip($modPermKeys))));
                                 $totalInMod = count($modPermKeys);
                             @endphp
@@ -641,7 +651,7 @@
                     @if($roleUsersCountToDelete > 0)
                         <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold flex items-center gap-2">
                             <span>⚠️</span>
-                            <span>Warning: {{ $roleUsersCountToDelete }} user(s) are currently assigned to this role and must be reassigned.</span>
+                            <span>Notice: {{ $roleUsersCountToDelete }} user(s) currently assigned to this role will be unassigned automatically upon deletion.</span>
                         </div>
                     @endif
                 </div>

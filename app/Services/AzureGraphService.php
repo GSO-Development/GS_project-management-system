@@ -373,6 +373,45 @@ class AzureGraphService
     }
 
     /**
+     * Delete a calendar event from a user's Microsoft 365 Outlook Calendar via Azure Graph API.
+     */
+    public static function deleteCalendarEvent(string $userPrincipalName, string $eventId): array
+    {
+        $token = self::getAccessToken();
+        if (!$token) {
+            return [
+                'success' => false,
+                'message' => 'Azure Graph API credentials not configured or token expired.',
+            ];
+        }
+
+        try {
+            $url = "https://graph.microsoft.com/v1.0/users/" . urlencode($userPrincipalName) . "/events/" . urlencode($eventId);
+
+            $response = \Illuminate\Support\Facades\Http::withToken($token)->delete($url);
+
+            if ($response->successful() || $response->status() === 404) {
+                return [
+                    'success' => true,
+                    'message' => 'Successfully deleted event from Microsoft Outlook Calendar.',
+                ];
+            }
+
+            \Illuminate\Support\Facades\Log::warning('AzureGraphService: Calendar event deletion returned error — ' . $response->body());
+            return [
+                'success' => false,
+                'message' => 'Microsoft Graph API: ' . ($response->json('error.message') ?? 'Could not delete event from Microsoft Outlook.'),
+            ];
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AzureGraphService: Calendar event deletion exception — ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Retrieve Microsoft 365 Outlook calendar schedule / busy intervals for a list of attendee emails.
      * Uses Microsoft Graph API /getSchedule endpoint.
      *

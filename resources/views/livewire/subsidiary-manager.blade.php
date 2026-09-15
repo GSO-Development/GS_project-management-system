@@ -123,13 +123,43 @@
         </div>
     </div>
 
+    <!-- Bulk Action Bar -->
+    @if(count($selectedSubsidiaries) > 0)
+        <div class="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-4 animate-in fade-in duration-200">
+            <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-[#c3122e] text-white flex items-center justify-center text-xs font-black">
+                    {{ count($selectedSubsidiaries) }}
+                </span>
+                <span class="text-xs font-bold text-slate-800">subsidiary company(ies) selected</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button 
+                    wire:click="deleteSelected"
+                    wire:confirm="Are you sure you want to delete the selected subsidiaries? Subsidiaries with active projects or users will be skipped."
+                    type="button" 
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] transition-all cursor-pointer shadow-xs"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Delete Selected</span>
+                </button>
+                <button 
+                    wire:click="$set('selectedSubsidiaries', [])" 
+                    type="button" 
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                >
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+    @endif
+
     <!-- SUBSIDIARIES DATA TABLE -->
     <div class="card p-0 overflow-hidden mb-6 shadow-xs">
         <div class="overflow-x-auto">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="w-8"><input type="checkbox" class="rounded border-slate-300"></th>
+                        <th class="w-8"><input type="checkbox" wire:model.live="selectAll" class="rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] cursor-pointer"></th>
                         <th>SUBSIDIARY</th>
                         <th>CODE</th>
                         <th>TYPE</th>
@@ -151,10 +181,11 @@
                                 'bg-rose-50 text-rose-600 border-rose-200/60',
                             ];
                             $codePill = $codePills[$index % count($codePills)];
+                            $isSelected = in_array((string)$sub->id, array_map('strval', $selectedSubsidiaries), true);
                         @endphp
 
-                        <tr class="hover:bg-[#fdf4f4]/20 transition-colors">
-                            <td class="w-8"><input type="checkbox" class="rounded border-slate-300"></td>
+                        <tr class="transition-colors {{ $isSelected ? 'bg-rose-50/40' : 'hover:bg-[#fdf4f4]/20' }}">
+                            <td class="w-8"><input type="checkbox" wire:model.live="selectedSubsidiaries" value="{{ (string)$sub->id }}" class="rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] cursor-pointer"></td>
 
                             <!-- SUBSIDIARY -->
                             <td>
@@ -164,7 +195,7 @@
                                             <img src="{{ asset('storage/' . $sub->logo) }}" alt="{{ $sub->name }}" class="max-w-full max-h-full object-contain">
                                         @else
                                             <div class="w-full h-full rounded-lg bg-[#c3122e] text-white font-extrabold text-xs flex items-center justify-center">
-                                                N
+                                                {{ strtoupper(substr($sub->code ?? 'N', 0, 1)) }}
                                             </div>
                                         @endif
                                     </div>
@@ -230,8 +261,11 @@
                             <!-- ACTIONS -->
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-1">
-                                    <button wire:click="edit({{ $sub->id }})" @click="$wire.showModal = true" class="p-1.5 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-[#fdf4f4] transition-colors cursor-pointer" title="Edit Subsidiary">
+                                    <button wire:click="edit({{ $sub->id }})" class="p-1.5 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-[#fdf4f4] transition-colors cursor-pointer" title="Edit Subsidiary">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                    <button wire:click="confirmDelete({{ $sub->id }})" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer" title="Delete Subsidiary">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
                             </td>
@@ -441,4 +475,68 @@
             </form>
         </div>
     </div>
+
+    <!-- ===== DELETE SUBSIDIARY CONFIRMATION MODAL ===== -->
+    @if($showDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" wire:click="cancelDelete"></div>
+
+            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4 z-10 animate-in zoom-in-95 duration-200">
+                <div class="flex items-center gap-3.5 pb-3 border-b border-slate-100">
+                    <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-lg flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Delete Subsidiary</h3>
+                        <p class="text-xs text-slate-500 font-medium">Permanently delete corporate entity record</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Are you sure you want to delete subsidiary <strong class="text-slate-900 font-bold">[{{ $subsidiaryToDeleteCode }}] {{ $subsidiaryToDeleteName }}</strong>?
+                    </p>
+
+                    @if($subsidiaryToDeleteProjectsCount > 0 || $subsidiaryToDeleteUsersCount > 0)
+                        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold space-y-1">
+                            <div class="flex items-center gap-1.5 font-bold text-amber-800">
+                                <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span>Cannot Delete Active Entity</span>
+                            </div>
+                            <p class="text-[11px] font-normal text-amber-800">
+                                This subsidiary has <strong>{{ $subsidiaryToDeleteProjectsCount }} project(s)</strong> and <strong>{{ $subsidiaryToDeleteUsersCount }} user(s)</strong> assigned to it. Please reassign or remove them first.
+                            </p>
+                        </div>
+                    @else
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 font-medium">
+                            This action will soft-delete the subsidiary and record an audit log entry.
+                        </div>
+                    @endif
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button wire:click="cancelDelete" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer">
+                        Cancel
+                    </button>
+                    @if($subsidiaryToDeleteProjectsCount === 0 && $subsidiaryToDeleteUsersCount === 0)
+                        <button 
+                            wire:click="deleteSubsidiary" 
+                            type="button" 
+                            class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm transition-all cursor-pointer"
+                        >
+                            Confirm Delete
+                        </button>
+                    @else
+                        <button 
+                            disabled 
+                            type="button" 
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 cursor-not-allowed border border-slate-200"
+                        >
+                            Cannot Delete
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

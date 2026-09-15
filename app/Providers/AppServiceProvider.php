@@ -45,6 +45,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Model Observers
         \App\Models\Project::observe(\App\Observers\ProjectObserver::class);
+        \App\Models\Project::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\WbsItem::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\ProjectStatusUpdate::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\ProjectRisk::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\TaskBlocker::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\ProjectDocument::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\Comment::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\User::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\Subsidiary::observe(\App\Observers\AuditLogObserver::class);
 
         // Register Microsoft Azure Socialite Provider
         Event::listen(function (SocialiteWasCalled $event) {
@@ -85,13 +94,33 @@ class AppServiceProvider extends ServiceProvider
                         'mail.mailers.smtp.password'   => $smtpPass,
                         'mail.mailers.smtp.scheme'     => $scheme,
                         'mail.mailers.smtp.encryption' => ($encryption === 'ssl') ? null : $encryption,
+                        'mail.mailers.smtp.verify_peer' => false,
+                        'mail.mailers.smtp.verify_peer_name' => false,
                         'mail.mailers.smtp.timeout'    => 10,
+                        'mail.mailers.smtp.stream'     => [
+                            'ssl' => [
+                                'allow_self_signed' => true,
+                                'verify_peer'       => false,
+                                'verify_peer_name'  => false,
+                            ],
+                        ],
                         'mail.from.address'            => $fromAddress ?? config('mail.from.address'),
                         'mail.from.name'               => $fromName    ?? config('mail.from.name'),
                     ]);
                 } else {
-                    // Use .env settings but enforce a short timeout
-                    config(['mail.mailers.smtp.timeout' => 10]);
+                    // Use .env settings but enforce a short timeout and disable SSL peer verification
+                    config([
+                        'mail.mailers.smtp.verify_peer' => false,
+                        'mail.mailers.smtp.verify_peer_name' => false,
+                        'mail.mailers.smtp.timeout' => 10,
+                        'mail.mailers.smtp.stream'  => [
+                            'ssl' => [
+                                'allow_self_signed' => true,
+                                'verify_peer'       => false,
+                                'verify_peer_name'  => false,
+                            ],
+                        ],
+                    ]);
                 }
             } catch (\Exception $e) {
                 // DB not ready – fall back to .env settings silently

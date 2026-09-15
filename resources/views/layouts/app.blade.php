@@ -559,19 +559,29 @@
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         <span class="text-slate-900 font-black">Risks &amp; Blockers Hub</span>
                     @elseif(request()->routeIs('projects.create'))
-                        <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
-                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        @if($isSuperAdmin)
+                            <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                            <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        @endif
                         <span class="text-slate-900 font-black">Create Project</span>
                     @elseif(request()->routeIs('projects.my-leads'))
-                        <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
-                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">Lead Projects</span>
+                        @if($isSuperAdmin)
+                            <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects Directory</a>
+                            <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        @endif
+                        <span class="text-slate-900 font-black">Projects</span>
                     @elseif(request()->routeIs('projects.my-collaborations'))
-                        <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
-                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">Collaborator Projects</span>
+                        @if($isSuperAdmin)
+                            <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects Directory</a>
+                            <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        @endif
+                        <span class="text-slate-900 font-black">Projects</span>
                     @elseif(request()->routeIs('projects.show'))
-                        <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        @if($isSuperAdmin)
+                            <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        @else
+                            <a href="{{ route('projects.my-leads') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
+                        @endif
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         <span class="text-slate-900 font-black">Project Workspace</span>
                     @elseif(request()->routeIs('subsidiaries*'))

@@ -27,6 +27,10 @@ class SettingsManager extends Component
     public bool $enforcePasswordComplexity = true;
     public int $sessionTimeout = 120;
 
+    // Automated Overdue Task Email Alerts
+    public bool $enableOverdueEmailAlerts = true;
+    public string $overdueNotificationEmail = '';
+
     // Azure AD SSO Integration
     public bool $enableAzureSso = true;
     public string $azureTenantId = 'common';
@@ -84,6 +88,10 @@ class SettingsManager extends Component
         $this->mailFromName = (string) (SystemSetting::where('key', 'mail_from_name')->value('value')
             ?: (env('MAIL_FROM_NAME') ?: 'GS Project Management'));
 
+        // Overdue Email Alert Settings
+        $this->enableOverdueEmailAlerts = filter_var(SystemSetting::where('key', 'enable_overdue_email_alerts')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
+        $this->overdueNotificationEmail = (string) (SystemSetting::where('key', 'overdue_notification_email')->value('value') ?: ($this->mailFromAddress ?: 'admin@georgesteuart.com'));
+
         // Security Settings
         $this->enforcePasswordComplexity = filter_var(SystemSetting::where('key', 'enforce_password_complexity')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
         $this->sessionTimeout = (int) (SystemSetting::where('key', 'session_timeout')->value('value') ?: 120);
@@ -92,6 +100,66 @@ class SettingsManager extends Component
         $this->enableAzureSso = filter_var(SystemSetting::where('key', 'enable_azure_sso')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
         $this->azureTenantId = (string) (SystemSetting::where('key', 'azure_tenant_id')->value('value') ?: 'common');
         $this->azureClientId = (string) (SystemSetting::where('key', 'azure_client_id')->value('value') ?: '');
+    }
+
+    public function updatedEnableOverdueEmailAlerts($value): void
+    {
+        $message = $value 
+            ? 'Automated overdue task email alerts Enabled.' 
+            : 'Automated overdue task email alerts Disabled (In-App notifications active).';
+
+        $this->successToast = $message;
+        $this->dispatch('toast', message: $message, type: $value ? 'success' : 'info');
+
+        SystemSetting::updateOrCreate(
+            ['key' => 'enable_overdue_email_alerts'],
+            ['value' => $value ? 'true' : 'false', 'group' => 'notifications']
+        );
+    }
+
+    public function updatedEnableEmailNotifications($value): void
+    {
+        $message = $value 
+            ? 'General email notifications Enabled.' 
+            : 'General email notifications Disabled.';
+
+        $this->successToast = $message;
+        $this->dispatch('toast', message: $message, type: $value ? 'success' : 'info');
+
+        SystemSetting::updateOrCreate(
+            ['key' => 'enable_email_notifications'],
+            ['value' => $value ? 'true' : 'false', 'group' => 'notifications']
+        );
+    }
+
+    public function updatedEnforcePasswordComplexity($value): void
+    {
+        $message = $value 
+            ? 'Password complexity enforcement Enabled.' 
+            : 'Password complexity enforcement Disabled.';
+
+        $this->successToast = $message;
+        $this->dispatch('toast', message: $message, type: $value ? 'success' : 'info');
+
+        SystemSetting::updateOrCreate(
+            ['key' => 'enforce_password_complexity'],
+            ['value' => $value ? 'true' : 'false', 'group' => 'security']
+        );
+    }
+
+    public function updatedEnableAzureSso($value): void
+    {
+        $message = $value 
+            ? 'Microsoft Azure AD SSO integration Enabled.' 
+            : 'Microsoft Azure AD SSO integration Disabled.';
+
+        $this->successToast = $message;
+        $this->dispatch('toast', message: $message, type: $value ? 'success' : 'info');
+
+        SystemSetting::updateOrCreate(
+            ['key' => 'enable_azure_sso'],
+            ['value' => $value ? 'true' : 'false', 'group' => 'security']
+        );
     }
 
     public function resetToSaved(): void
@@ -112,6 +180,20 @@ class SettingsManager extends Component
             'smtpEncryption' => 'required|in:tls,ssl,none',
             'mailFromAddress' => 'required|email',
             'mailFromName' => 'required|string|max:100',
+            'overdueNotificationEmail' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!empty($value)) {
+                        $emails = array_map('trim', preg_split('/[,;]+/', $value));
+                        foreach ($emails as $email) {
+                            if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                                $fail("The email address '{$email}' is invalid.");
+                            }
+                        }
+                    }
+                },
+            ],
             'sessionTimeout' => 'required|integer|min:5|max:1440',
             'azureTenantId' => 'nullable|string|max:100',
             'azureClientId' => 'nullable|string|max:100',
@@ -121,6 +203,8 @@ class SettingsManager extends Component
             'app_name' => [$this->appName, 'general'],
             'wbs_calculation_method' => [$this->wbsCalculationMethod, 'wbs'],
             'enable_email_notifications' => [$this->enableEmailNotifications ? 'true' : 'false', 'notifications'],
+            'enable_overdue_email_alerts' => [$this->enableOverdueEmailAlerts ? 'true' : 'false', 'notifications'],
+            'overdue_notification_email' => [$this->overdueNotificationEmail, 'notifications'],
             'smtp_host' => [$this->smtpHost, 'notifications'],
             'smtp_port' => [$this->smtpPort, 'notifications'],
             'smtp_user' => [$this->smtpUser, 'notifications'],
@@ -324,6 +408,8 @@ class SettingsManager extends Component
                 'encryption' => $actualEnc,
                 'username' => $this->smtpUser,
                 'password' => $this->smtpPass,
+                'verify_peer' => false,
+                'verify_peer_name' => false,
                 'timeout' => 15,
                 'local_domain' => parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST),
                 'stream' => [

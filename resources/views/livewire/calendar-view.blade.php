@@ -668,19 +668,6 @@
                             </div>
                         </div>
                     @endif
-
-                    <!-- Microsoft 365 1-Click Sync Button -->
-                    <div class="pt-2">
-                        <a
-                            href="{{ $selectedEvent['outlook_web_url'] }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="w-full py-2.5 px-4 rounded-xl text-xs font-black text-white bg-[#0078d4] hover:bg-[#006ab8] transition-all flex items-center justify-center gap-2 no-underline shadow-sm"
-                        >
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
-                            <span>Open in Microsoft 365 Outlook</span>
-                        </a>
-                    </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-100">

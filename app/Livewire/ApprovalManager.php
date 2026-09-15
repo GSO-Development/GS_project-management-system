@@ -281,6 +281,286 @@ class ApprovalManager extends Component
         $this->dispatch('toast', message: 'Project leadership assignment declined. PMO Admin has been notified.', type: 'warning');
     }
 
+    // Reassign PM Leadership & Reconfigure Project Modal State
+    public bool   $showReassignModal       = false;
+    public ?int   $reassignProjectId       = null;
+    public ?int   $reassignRequestId       = null;
+    public ?string $reassignDeclineReason  = null;
+
+    // Editable Project Creation Fields for Reassign Modal
+    public string  $reassignName           = '';
+    public string  $reassignCode           = '';
+    public ?int    $reassignSubsidiaryId   = null;
+    public string  $reassignCategory       = 'General';
+    public string  $reassignPriority       = 'medium';
+    public ?string $reassignStartDate      = null;
+    public ?string $reassignDeadline       = null;
+    public ?float  $reassignEstimatedBudget= null;
+    public ?string $reassignDescription    = null;
+    public ?int    $reassignPmId           = null;
+
+    public array   $reassignSponsorIds     = [];
+    public array   $reassignOwnerIds       = [];
+    public array   $reassignSteeringIds    = [];
+    public array   $reassignMemberIds      = [];
+
+    public function addReassignSponsor(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->reassignSponsorIds)) {
+            $this->reassignSponsorIds[] = $userId;
+        }
+    }
+
+    public function removeReassignSponsor(string $userId): void
+    {
+        $this->reassignSponsorIds = array_values(array_diff($this->reassignSponsorIds, [$userId]));
+    }
+
+    public function addReassignOwner(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->reassignOwnerIds)) {
+            $this->reassignOwnerIds[] = $userId;
+        }
+    }
+
+    public function removeReassignOwner(string $userId): void
+    {
+        $this->reassignOwnerIds = array_values(array_diff($this->reassignOwnerIds, [$userId]));
+    }
+
+    public function addReassignSteering(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->reassignSteeringIds)) {
+            $this->reassignSteeringIds[] = $userId;
+        }
+    }
+
+    public function removeReassignSteering(string $userId): void
+    {
+        $this->reassignSteeringIds = array_values(array_diff($this->reassignSteeringIds, [$userId]));
+    }
+
+    public function addReassignMember(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->reassignMemberIds)) {
+            $this->reassignMemberIds[] = $userId;
+        }
+    }
+
+    public function removeReassignMember(string $userId): void
+    {
+        $this->reassignMemberIds = array_values(array_diff($this->reassignMemberIds, [$userId]));
+    }
+
+    public function openReassignModal(int $projectId, ?int $requestId = null): void
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('super_admin') && !$user->isPmoAdmin()) {
+            $this->dispatch('toast', message: 'Only PMO Admins can reassign project leadership.', type: 'error');
+            return;
+        }
+
+        $project = Project::with(['subsidiary', 'projectManager', 'members'])->find($projectId);
+        if (!$project) {
+            $this->dispatch('toast', message: 'Project not found.', type: 'error');
+            return;
+        }
+
+        $this->reassignProjectId = $projectId;
+        $this->reassignRequestId = $requestId;
+
+        // Fetch decline/rejection reason if available
+        $req = $requestId ? ApprovalRequest::find($requestId) : ApprovalRequest::where('project_id', $projectId)->where('request_type', ApprovalType::NEW_PROJECT_PLAN)->latest()->first();
+        $this->reassignDeclineReason = $project->pm_rejection_reason ?: ($req?->review_comment ?: $req?->reason);
+
+        // Pre-fill all original project creation fields
+        $this->reassignName            = $project->name ?? '';
+        $this->reassignCode            = $project->code ?? '';
+        $this->reassignSubsidiaryId    = $project->subsidiary_id;
+        $this->reassignCategory        = $project->category ?? 'General';
+        $this->reassignPriority        = $project->priority?->value ?? 'medium';
+        $this->reassignStartDate       = $project->start_date ? $project->start_date->format('Y-m-d') : now()->format('Y-m-d');
+        $this->reassignDeadline        = $project->deadline ? $project->deadline->format('Y-m-d') : now()->addMonths(3)->format('Y-m-d');
+        $this->reassignEstimatedBudget = $project->estimated_budget ? (float) $project->estimated_budget : 0;
+        $this->reassignDescription     = $project->description ?? '';
+        $this->reassignPmId            = $project->project_manager_id;
+
+        // Sync governance and member arrays
+        $this->reassignSponsorIds  = $project->members->where('pivot.role', 'sponsor')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $this->reassignOwnerIds    = $project->members->where('pivot.role', 'owner')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $this->reassignSteeringIds = $project->members->where('pivot.role', 'steering_committee')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $this->reassignMemberIds   = $project->members->where('pivot.role', 'member')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+
+        $this->showReassignModal = true;
+    }
+
+    public function closeReassignModal(): void
+    {
+        $this->showReassignModal       = false;
+        $this->reassignProjectId       = null;
+        $this->reassignRequestId       = null;
+        $this->reassignDeclineReason   = null;
+        $this->reassignName           = '';
+        $this->reassignCode           = '';
+        $this->reassignSubsidiaryId   = null;
+        $this->reassignCategory       = 'General';
+        $this->reassignPriority       = 'medium';
+        $this->reassignStartDate      = null;
+        $this->reassignDeadline       = null;
+        $this->reassignEstimatedBudget= null;
+        $this->reassignDescription    = null;
+        $this->reassignPmId           = null;
+        $this->reassignSponsorIds     = [];
+        $this->reassignOwnerIds       = [];
+        $this->reassignSteeringIds    = [];
+        $this->reassignMemberIds      = [];
+    }
+
+    public function submitReassignPm(): void
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('super_admin') && !$user->isPmoAdmin()) {
+            $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
+            return;
+        }
+
+        $this->validate([
+            'reassignName'            => 'required|string|max:255',
+            'reassignCode'            => 'required|string|max:100',
+            'reassignSubsidiaryId'    => 'required|exists:subsidiaries,id',
+            'reassignPmId'            => 'required|exists:users,id',
+            'reassignStartDate'       => 'required|date',
+            'reassignDeadline'        => 'required|date|after_or_equal:reassignStartDate',
+            'reassignEstimatedBudget' => 'nullable|numeric|min:0',
+            'reassignPriority'        => 'required|string',
+        ], [
+            'reassignName.required'            => 'Please enter the project name.',
+            'reassignCode.required'            => 'Please enter the project code.',
+            'reassignSubsidiaryId.required'    => 'Please select a subsidiary.',
+            'reassignPmId.required'            => 'Please select a new Project Manager.',
+            'reassignStartDate.required'       => 'Please select a start date.',
+            'reassignDeadline.required'        => 'Please select a target deadline.',
+            'reassignDeadline.after_or_equal' => 'Deadline must be on or after the start date.',
+        ]);
+
+        $project   = Project::findOrFail($this->reassignProjectId);
+        $newLeader = \App\Models\User::findOrFail($this->reassignPmId);
+        $isSelfAssigned = ($user->id === $newLeader->id);
+
+        // 1. Update project details & reset PM acceptance status
+        $project->update([
+            'code'               => strtoupper($this->reassignCode),
+            'name'               => $this->reassignName,
+            'description'        => $this->reassignDescription,
+            'subsidiary_id'      => $this->reassignSubsidiaryId,
+            'category'           => $this->reassignCategory,
+            'priority'           => $this->reassignPriority,
+            'start_date'         => $this->reassignStartDate,
+            'deadline'           => $this->reassignDeadline,
+            'estimated_budget'   => $this->reassignEstimatedBudget ?: 0,
+            'project_manager_id' => $newLeader->id,
+            'pm_accepted'        => $isSelfAssigned,
+            'pm_accepted_at'     => $isSelfAssigned ? now() : null,
+            'pm_rejection_reason'=> null,
+            'pm_rejected_at'     => null,
+        ]);
+
+        // 2. Sync all governance roles & team members in project_members
+        $syncData = [];
+        foreach (array_map('intval', $this->reassignSponsorIds) as $sId) {
+            if ($sId > 0) $syncData[$sId] = ['role' => 'sponsor'];
+        }
+        foreach (array_map('intval', $this->reassignOwnerIds) as $oId) {
+            if ($oId > 0) $syncData[$oId] = ['role' => 'owner'];
+        }
+        foreach (array_map('intval', $this->reassignSteeringIds) as $scId) {
+            if ($scId > 0) $syncData[$scId] = ['role' => 'steering_committee'];
+        }
+        $syncData[$newLeader->id] = ['role' => 'lead'];
+
+        foreach (array_map('intval', $this->reassignMemberIds) as $mId) {
+            if ($mId > 0 && !isset($syncData[$mId])) {
+                $syncData[$mId] = ['role' => 'member'];
+            }
+        }
+        $project->members()->sync($syncData);
+
+        // 3. Update or recreate the approval request
+        $req = null;
+        if ($this->reassignRequestId) {
+            $req = ApprovalRequest::find($this->reassignRequestId);
+        }
+        if (!$req) {
+            $req = ApprovalRequest::where('project_id', $project->id)
+                ->where('request_type', ApprovalType::NEW_PROJECT_PLAN)
+                ->latest()
+                ->first();
+        }
+
+        $requestedValue = [
+            'project_name'         => $project->name,
+            'project_code'         => $project->code,
+            'assigned_pm_id'       => $newLeader->id,
+            'project_manager_id'   => $newLeader->id,
+            'project_manager_name' => $newLeader->name,
+            'start_date'           => $project->start_date?->toDateString(),
+            'deadline'             => $project->deadline?->toDateString(),
+            'estimated_budget'     => $project->estimated_budget,
+        ];
+
+        if ($req) {
+            $req->update([
+                'status'          => $isSelfAssigned ? ApprovalStatus::APPROVED : ApprovalStatus::PENDING,
+                'reason'          => "PMO Administration reassigned & reconfigured project details for '{$project->name}'.",
+                'reviewed_by'     => $isSelfAssigned ? $user->id : null,
+                'reviewed_at'     => $isSelfAssigned ? now() : null,
+                'review_comment'  => $isSelfAssigned ? 'Self-assigned by PMO Admin' : null,
+                'requested_value' => $requestedValue,
+            ]);
+        } else {
+            ApprovalRequest::create([
+                'project_id'      => $project->id,
+                'request_type'    => ApprovalType::NEW_PROJECT_PLAN,
+                'requested_by'    => $user->id,
+                'reason'          => "PMO Administration reassigned & reconfigured project details for '{$project->name}'.",
+                'status'          => $isSelfAssigned ? ApprovalStatus::APPROVED : ApprovalStatus::PENDING,
+                'submitted_at'    => now(),
+                'requested_value' => $requestedValue,
+            ]);
+        }
+
+        // 4. Log activity
+        \App\Models\ActivityLog::create([
+            'user_id'     => $user->id,
+            'action'      => 'reassigned_project_and_reconfigured',
+            'module'      => 'projects',
+            'record_type' => Project::class,
+            'record_id'   => $project->id,
+            'new_values'  => [
+                'name'                 => $project->name,
+                'code'                 => $project->code,
+                'project_manager_id'  => $newLeader->id,
+                'project_manager_name' => $newLeader->name,
+                'start_date'           => $project->start_date?->toDateString(),
+                'deadline'             => $project->deadline?->toDateString(),
+                'estimated_budget'     => $project->estimated_budget,
+            ],
+            'ip_address'  => request()->ip(),
+            'user_agent'  => request()->userAgent(),
+        ]);
+
+        // 5. Send notification to the new leader
+        try {
+            $newLeader->notify(new \App\Notifications\ProjectAssignmentNotification($project, 'lead'));
+            \Illuminate\Support\Facades\Mail::to($newLeader->email)->send(new \App\Mail\ProjectAssignedMail($project, $newLeader, 'lead'));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Reassign notification error: ' . $e->getMessage());
+        }
+
+        $this->closeReassignModal();
+        $this->dispatch('toast', message: "🎉 Project '{$project->name}' reassigned to {$newLeader->name} and reconfigured successfully!", type: 'success');
+    }
+
     public function render()
     {
         $user = auth()->user();
@@ -353,13 +633,38 @@ class ApprovalManager extends Component
                 ->get()
             : collect();
 
+        $subUsers = $this->reassignSubsidiaryId
+            ? \App\Models\User::getUsersForSubsidiary($this->reassignSubsidiaryId)
+            : \App\Models\User::where('is_active', true)->orderBy('name')->get();
+
+        $assignedIds = array_filter(array_map('intval', array_merge(
+            [$this->reassignPmId],
+            $this->reassignSponsorIds,
+            $this->reassignOwnerIds,
+            $this->reassignSteeringIds,
+            $this->reassignMemberIds
+        )));
+
+        if (!empty($assignedIds)) {
+            $assignedUsers = \App\Models\User::with(['subsidiary', 'roles'])->whereIn('id', $assignedIds)->get();
+            $availablePms = $subUsers->concat($assignedUsers)->unique('id')->sortBy('name')->values();
+        } else {
+            $availablePms = $subUsers;
+        }
+
+        $subsidiaries = \App\Models\Subsidiary::orderBy('name')->get();
+        $reassignProject = $this->reassignProjectId ? Project::with(['projectManager', 'subsidiary', 'members'])->find($this->reassignProjectId) : null;
+
         return view('livewire.approval-manager', compact(
             'requests',
             'selectedRequest',
             'deletingRequest',
             'userProjects',
             'userWbsTasks',
-            'pendingLeadershipProjects'
+            'pendingLeadershipProjects',
+            'availablePms',
+            'subsidiaries',
+            'reassignProject'
         ))->layout('layouts.app', ['title' => 'Approval Workflows — GS NexusPM']);
     }
 }

@@ -121,6 +121,21 @@ class ProjectWorkspace extends Component
     public string $rejectionReasonInput = '';
     public bool $showReassignModal = false;
     public ?int $newLeaderId = null;
+    public ?string $reassignName = null;
+    public ?string $reassignCode = null;
+    public ?int $reassignSubsidiaryId = null;
+    public ?string $reassignCategory = 'General';
+    public ?string $reassignPriority = 'medium';
+    public ?string $reassignStartDate = null;
+    public ?string $reassignDeadline = null;
+    public ?float $reassignEstimatedBudget = null;
+    public ?string $reassignDescription = null;
+    public ?int $reassignPmId = null;
+    public array $reassignSponsorIds = [];
+    public array $reassignOwnerIds = [];
+    public array $reassignSteeringIds = [];
+    public array $reassignMemberIds = [];
+    public ?string $reassignDeclineReason = null;
 
     // Comprehensive Project Details Sheet/Modal
     public bool $showProjectDetailsModal = false;
@@ -180,43 +195,186 @@ class ProjectWorkspace extends Component
 
     public function openReassignModal(): void
     {
-        $this->newLeaderId = $this->project->project_manager_id;
+        $this->project->load(['subsidiary', 'projectManager', 'members']);
+        
+        $this->reassignName           = $this->project->name;
+        $this->reassignCode           = $this->project->code;
+        $this->reassignSubsidiaryId   = $this->project->subsidiary_id;
+        $this->reassignCategory       = $this->project->category ?? 'General';
+        $this->reassignPriority       = $this->project->priority?->value ?? 'medium';
+        $this->reassignStartDate      = $this->project->start_date ? $this->project->start_date->format('Y-m-d') : now()->format('Y-m-d');
+        $this->reassignDeadline       = $this->project->deadline ? $this->project->deadline->format('Y-m-d') : now()->addMonths(3)->format('Y-m-d');
+        $this->reassignEstimatedBudget = $this->project->estimated_budget ? (float) $this->project->estimated_budget : 0;
+        $this->reassignDescription    = $this->project->description ?? '';
+        $this->reassignPmId           = $this->project->project_manager_id;
+        $this->newLeaderId            = $this->project->project_manager_id;
+        $this->reassignDeclineReason  = $this->project->pm_rejection_reason;
+
+        $this->reassignSponsorIds  = $this->project->members->where('pivot.role', 'sponsor')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $this->reassignOwnerIds    = $this->project->members->where('pivot.role', 'owner')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $this->reassignSteeringIds = $this->project->members->where('pivot.role', 'steering_committee')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $this->reassignMemberIds   = $this->project->members->where('pivot.role', 'member')->pluck('id')->map(fn($id) => (string)$id)->toArray();
+
         $this->showReassignModal = true;
+    }
+
+    public function closeReassignModal(): void
+    {
+        $this->showReassignModal       = false;
+        $this->reassignDeclineReason   = null;
+        $this->reassignName           = '';
+        $this->reassignCode           = '';
+        $this->reassignSubsidiaryId   = null;
+        $this->reassignCategory       = 'General';
+        $this->reassignPriority       = 'medium';
+        $this->reassignStartDate      = null;
+        $this->reassignDeadline       = null;
+        $this->reassignEstimatedBudget= null;
+        $this->reassignDescription    = null;
+        $this->reassignPmId           = null;
+        $this->reassignSponsorIds     = [];
+        $this->reassignOwnerIds       = [];
+        $this->reassignSteeringIds    = [];
+        $this->reassignMemberIds      = [];
+    }
+
+    public function addReassignSponsor($userId): void
+    {
+        if ($userId && !in_array((string)$userId, $this->reassignSponsorIds)) {
+            $this->reassignSponsorIds[] = (string)$userId;
+        }
+    }
+    public function removeReassignSponsor($userId): void
+    {
+        $this->reassignSponsorIds = array_values(array_filter($this->reassignSponsorIds, fn($id) => (string)$id !== (string)$userId));
+    }
+    public function addReassignOwner($userId): void
+    {
+        if ($userId && !in_array((string)$userId, $this->reassignOwnerIds)) {
+            $this->reassignOwnerIds[] = (string)$userId;
+        }
+    }
+    public function removeReassignOwner($userId): void
+    {
+        $this->reassignOwnerIds = array_values(array_filter($this->reassignOwnerIds, fn($id) => (string)$id !== (string)$userId));
+    }
+    public function addReassignSteering($userId): void
+    {
+        if ($userId && !in_array((string)$userId, $this->reassignSteeringIds)) {
+            $this->reassignSteeringIds[] = (string)$userId;
+        }
+    }
+    public function removeReassignSteering($userId): void
+    {
+        $this->reassignSteeringIds = array_values(array_filter($this->reassignSteeringIds, fn($id) => (string)$id !== (string)$userId));
+    }
+    public function addReassignMember($userId): void
+    {
+        if ($userId && !in_array((string)$userId, $this->reassignMemberIds)) {
+            $this->reassignMemberIds[] = (string)$userId;
+        }
+    }
+    public function removeReassignMember($userId): void
+    {
+        $this->reassignMemberIds = array_values(array_filter($this->reassignMemberIds, fn($id) => (string)$id !== (string)$userId));
     }
 
     public function submitReassign(): void
     {
         $user = auth()->user();
-        if (!$user->isSuperAdmin()) {
+        if (!$user->isSuperAdmin() && !$user->isPmoAdmin()) {
             $this->dispatch('toast', message: 'Only PMO Admin can reassign project leadership.', type: 'error');
             return;
         }
 
         $this->validate([
-            'newLeaderId' => 'required|exists:users,id',
+            'reassignName'            => 'required|string|max:255',
+            'reassignCode'            => 'required|string|max:100',
+            'reassignSubsidiaryId'    => 'required|exists:subsidiaries,id',
+            'reassignPmId'            => 'required|exists:users,id',
+            'reassignStartDate'       => 'required|date',
+            'reassignDeadline'        => 'required|date|after_or_equal:reassignStartDate',
+            'reassignEstimatedBudget' => 'nullable|numeric|min:0',
+            'reassignPriority'        => 'required|string',
+        ], [
+            'reassignName.required'            => 'Please enter the project name.',
+            'reassignCode.required'            => 'Please enter the project code.',
+            'reassignSubsidiaryId.required'    => 'Please select a subsidiary.',
+            'reassignPmId.required'            => 'Please select a new Project Manager.',
+            'reassignStartDate.required'       => 'Please select a start date.',
+            'reassignDeadline.required'        => 'Please select a target deadline.',
+            'reassignDeadline.after_or_equal' => 'Deadline must be on or after the start date.',
         ]);
+
+        $newLeader = User::findOrFail($this->reassignPmId);
+        $isSelfAssigned = ($user->id === $newLeader->id);
 
         $this->project->update([
-            'project_manager_id' => $this->newLeaderId,
-            'pm_accepted' => false,
-            'pm_accepted_at' => null,
-            'pm_rejection_reason' => null,
-            'pm_rejected_at' => null,
+            'code'               => strtoupper($this->reassignCode),
+            'name'               => $this->reassignName,
+            'description'        => $this->reassignDescription,
+            'subsidiary_id'      => $this->reassignSubsidiaryId,
+            'category'           => $this->reassignCategory,
+            'priority'           => $this->reassignPriority,
+            'start_date'         => $this->reassignStartDate,
+            'deadline'           => $this->reassignDeadline,
+            'estimated_budget'   => $this->reassignEstimatedBudget ?: 0,
+            'project_manager_id' => $newLeader->id,
+            'pm_accepted'        => $isSelfAssigned,
+            'pm_accepted_at'     => $isSelfAssigned ? now() : null,
+            'pm_rejection_reason'=> null,
+            'pm_rejected_at'     => null,
         ]);
 
-        // Sync new leader as lead role
-        $this->project->members()->syncWithoutDetaching([
-            $this->newLeaderId => ['role' => 'lead']
-        ]);
+        // Sync all governance roles & team members in project_members
+        $syncData = [];
+        foreach (array_map('intval', $this->reassignSponsorIds) as $sId) {
+            if ($sId > 0) $syncData[$sId] = ['role' => 'sponsor'];
+        }
+        foreach (array_map('intval', $this->reassignOwnerIds) as $oId) {
+            if ($oId > 0) $syncData[$oId] = ['role' => 'owner'];
+        }
+        foreach (array_map('intval', $this->reassignSteeringIds) as $scId) {
+            if ($scId > 0) $syncData[$scId] = ['role' => 'steering_committee'];
+        }
+        $syncData[$newLeader->id] = ['role' => 'lead'];
+        foreach (array_map('intval', $this->reassignMemberIds) as $mId) {
+            if ($mId > 0 && !isset($syncData[$mId])) {
+                $syncData[$mId] = ['role' => 'member'];
+            }
+        }
+        $this->project->members()->sync($syncData);
 
-        $newLeader = User::find($this->newLeaderId);
-        if ($newLeader) {
-            $newLeader->notify(new \App\Notifications\ProjectAssignmentNotification($this->project, 'lead'));
+        // Reset NEW_PROJECT_PLAN approval request if exists
+        $pendingReq = ApprovalRequest::where('project_id', $this->project->id)
+            ->where('request_type', ApprovalType::NEW_PROJECT_PLAN->value)
+            ->first();
+
+        if ($pendingReq) {
+            $pendingReq->update([
+                'status'         => 'pending',
+                'review_comment' => null,
+                'reviewed_by'    => null,
+                'reviewed_at'    => null,
+            ]);
+        }
+
+        if (!$isSelfAssigned) {
+            try {
+                $newLeader->notify(new \App\Notifications\ProjectAssignmentNotification($this->project, 'lead'));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Reassign project notification failed: {$e->getMessage()}");
+            }
+            try {
+                Mail::to($newLeader->email)->send(new ProjectAssignedMail($this->project, $newLeader));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Reassign project mail failed: {$e->getMessage()}");
+            }
         }
 
         $this->project->refresh();
         $this->showReassignModal = false;
-        $this->dispatch('toast', message: "Project reassigned to {$newLeader->name}. Acceptance notification sent.", type: 'success');
+        $this->dispatch('toast', message: "Project reassigned & reconfigured. Assigned to {$newLeader->name}.", type: 'success');
     }
 
     public function saveSetupModal()
@@ -233,10 +391,14 @@ class ProjectWorkspace extends Component
             'setupEstimatedBudget' => 'nullable|numeric|min:0',
         ]);
 
+        $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit_estimated');
+
         $this->project->description = $this->setupDescription;
         $this->project->start_date = $this->setupStartDate ?: now()->toDateString();
         $this->project->deadline = $this->setupDeadline;
-        $this->project->estimated_budget = $this->setupEstimatedBudget ?: 0;
+        if ($canEditEstimatedBudget) {
+            $this->project->estimated_budget = $this->setupEstimatedBudget ?: 0;
+        }
         $this->project->save();
 
         // Sync collaborators preserving existing roles
@@ -329,8 +491,17 @@ class ProjectWorkspace extends Component
         $this->project->status = $this->editStatus;
         $this->project->start_date = $this->editStartDate ?: null;
         $this->project->deadline = $this->editDeadline ?: null;
-        $this->project->estimated_budget = $this->editEstimatedBudget ?: 0;
-        $this->project->actual_cost = $this->editActualCost ?: 0;
+        
+        $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit_estimated');
+        $canEditActualCost = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit_actual');
+
+        if ($canEditEstimatedBudget) {
+            $this->project->estimated_budget = $this->editEstimatedBudget ?: 0;
+        }
+        if ($canEditActualCost) {
+            $this->project->actual_cost = $this->editActualCost ?: 0;
+        }
+
         $this->project->save();
 
         $this->project->refresh();
@@ -1076,11 +1247,33 @@ class ProjectWorkspace extends Component
         ]);
 
         $previewDoc = $this->previewDocId ? ProjectDocument::with(['project', 'uploader'])->find($this->previewDocId) : null;
-        $availableUsers = \App\Models\User::getUsersForSubsidiary($this->project->subsidiary_id);
-        $allSubsidiaries = \App\Models\Subsidiary::orderBy('name')->get();
+        
+        $reassignSubsidiary = $this->reassignSubsidiaryId ?: $this->project->subsidiary_id;
+        $availablePms = \App\Models\User::getUsersForSubsidiary($reassignSubsidiary);
+        
+        // Ensure assigned governance members & selected PM exist in $availablePms collection
+        $assignedUserIds = array_filter(array_unique(array_merge(
+            [$this->reassignPmId ?: $this->project->project_manager_id],
+            array_map('intval', $this->reassignSponsorIds),
+            array_map('intval', $this->reassignOwnerIds),
+            array_map('intval', $this->reassignSteeringIds),
+            array_map('intval', $this->reassignMemberIds)
+        )));
+        
+        if (!empty($assignedUserIds)) {
+            $missingUserIds = array_diff($assignedUserIds, $availablePms->pluck('id')->toArray());
+            if (!empty($missingUserIds)) {
+                $missingUsers = \App\Models\User::with('subsidiary')->whereIn('id', $missingUserIds)->get();
+                $availablePms = $availablePms->concat($missingUsers)->unique('id');
+            }
+        }
+
+        $availableUsers = $availablePms;
+        $subsidiaries = \App\Models\Subsidiary::orderBy('name')->get();
+        $allSubsidiaries = $subsidiaries;
         $allPms = \App\Models\User::where('is_active', true)->orderBy('name')->get();
 
-        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'allSubsidiaries', 'allPms'));
+        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms'));
     }
 
     public function toggleCollapse(int $id)

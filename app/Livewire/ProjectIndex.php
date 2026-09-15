@@ -402,6 +402,10 @@ class ProjectIndex extends Component
                 return;
             }
 
+            if (!$isSuperAdmin && !$project->userCan($user, 'budget.edit_estimated')) {
+                unset($data['estimated_budget']);
+            }
+
             $oldValues = $project->toArray();
             $project->update($data);
             

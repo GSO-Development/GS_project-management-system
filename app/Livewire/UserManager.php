@@ -64,10 +64,117 @@ class UserManager extends Component
         ];
     }
 
-    public function updatedSearch() { $this->resetPage(); }
-    public function updatedRoleFilter() { $this->resetPage(); }
-    public function updatedSubsidiaryFilter() { $this->resetPage(); }
-    public function updatedStatusFilter() { $this->resetPage(); }
+    // Batch Selection State
+    public array $selectedUsers = [];
+    public bool $selectAll = false;
+
+    public function updatedSearch() { $this->resetPage(); $this->clearSelection(); }
+    public function updatedRoleFilter() { $this->resetPage(); $this->clearSelection(); }
+    public function updatedSubsidiaryFilter() { $this->resetPage(); $this->clearSelection(); }
+    public function updatedStatusFilter() { $this->resetPage(); $this->clearSelection(); }
+
+    public function updatedSelectAll($value): void
+    {
+        if ($value) {
+            $q = User::query();
+            if ($this->search) {
+                $q->where(fn($sq) => $sq->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('email', 'like', "%{$this->search}%"));
+            }
+            if ($this->roleFilter === 'super_admin') {
+                $q->role('super_admin');
+            } elseif ($this->roleFilter === 'regular_user') {
+                $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super_admin'));
+            }
+            if ($this->subsidiaryFilter !== 'all') {
+                $q->where('subsidiary_id', $this->subsidiaryFilter);
+            }
+            if ($this->statusFilter !== 'all') {
+                $q->where('is_active', $this->statusFilter === 'active');
+            }
+            $this->selectedUsers = $q->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        } else {
+            $this->selectedUsers = [];
+        }
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedUsers = [];
+        $this->selectAll = false;
+    }
+
+    public function batchActivate(): void
+    {
+        if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
+
+        User::whereIn('id', $this->selectedUsers)->update(['is_active' => true]);
+        $count = count($this->selectedUsers);
+        $this->clearSelection();
+        $this->dispatch('toast', message: "{$count} user(s) activated successfully.", type: 'success');
+    }
+
+    public function batchDisable(): void
+    {
+        if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
+
+        $targetIds = array_diff($this->selectedUsers, [(string)auth()->id(), auth()->id()]);
+        User::whereIn('id', $targetIds)->update(['is_active' => false]);
+        $count = count($targetIds);
+        $this->clearSelection();
+        $this->dispatch('toast', message: "{$count} user(s) disabled successfully.", type: 'warning');
+    }
+
+    public function batchMakeAdmin(): void
+    {
+        if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
+
+        $users = User::whereIn('id', $this->selectedUsers)->get();
+        foreach ($users as $u) {
+            $u->assignRole('super_admin');
+        }
+        $count = count($users);
+        $this->clearSelection();
+        $this->dispatch('toast', message: "{$count} user(s) assigned PMO Admin role.", type: 'success');
+    }
+
+    public function batchMakeUser(): void
+    {
+        if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
+
+        $users = User::whereIn('id', $this->selectedUsers)->get();
+        foreach ($users as $u) {
+            $u->removeRole('super_admin');
+        }
+        $count = count($users);
+        $this->clearSelection();
+        $this->dispatch('toast', message: "{$count} user(s) set to Regular User role.", type: 'success');
+    }
+
+    public function batchDelete(): void
+    {
+        if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
+
+        $targetIds = array_diff($this->selectedUsers, [(string)auth()->id(), auth()->id()]);
+        $count = 0;
+        foreach ($targetIds as $id) {
+            $user = User::find($id);
+            if ($user) {
+                \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+                    \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
+                    \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
+                    \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
+                    $user->projects()->detach();
+                    $user->is_active = false;
+                    $user->save();
+                    $user->delete();
+                });
+                $count++;
+            }
+        }
+        $this->clearSelection();
+        $this->dispatch('toast', message: "{$count} user(s) deleted successfully.", type: 'info');
+    }
 
     public function updatedCreationType(): void
     {
@@ -326,7 +433,7 @@ class UserManager extends Component
                 $user->update($data);
                 $action = 'updated_user';
             } else {
-                $data['must_change_password'] = false;
+                $data['must_change_password'] = true;
                 $user = User::create($data);
                 $action = 'created_user';
             }

@@ -29,7 +29,13 @@ class TaskOverdueAlertNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        // On-Demand Mail dispatch for designated recipient emails configured in Settings
+        if ($notifiable instanceof \Illuminate\Notifications\AnonymousNotifiable) {
+            return ['mail'];
+        }
+
+        // In-app system notifications for PMO Admins & Project Leaders
+        return ['database'];
     }
 
     /**
@@ -40,10 +46,11 @@ class TaskOverdueAlertNotification extends Notification
         $targetUrl = $this->url ?? route('projects.show', $this->projectId);
         $assignee = $this->assignedUserName ?: 'Unassigned';
         $deadlineText = $this->deadlineFormatted ? ($this->deadlineFormatted . ($this->dueTimeFormatted ? " at {$this->dueTimeFormatted}" : '')) : 'Not specified';
+        $recipientName = (property_exists($notifiable, 'name') && !empty($notifiable->name)) ? $notifiable->name : 'PMO Team';
 
         return (new MailMessage)
             ->subject("🚨 [PMO Alert] Deliverable Delayed: {$this->taskTitle} ({$this->projectName})")
-            ->greeting("Hello {$notifiable->name},")
+            ->greeting("Hello {$recipientName},")
             ->line("This is an automated PMO governance alert. A project deliverable has passed its scheduled completion time without being marked as completed.")
             ->line("**Project:** {$this->projectName}")
             ->line("**Task:** {$this->taskTitle}")

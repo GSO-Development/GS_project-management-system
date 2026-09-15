@@ -13,7 +13,13 @@ class ForcePasswordChange extends Component
 
     public function mount()
     {
-        return redirect()->route('dashboard');
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        if (!auth()->user()->must_change_password) {
+            return redirect()->route('dashboard');
+        }
     }
 
     protected function rules(): array
@@ -41,11 +47,14 @@ class ForcePasswordChange extends Component
             $user->password = Hash::make($this->new_password);
             $user->must_change_password = false;
             $user->save();
+
+            // Keep user authenticated seamlessly without re-login
+            auth()->login($user);
         }
 
-        session()->flash('message', 'Password updated successfully!');
+        session()->flash('status', 'Your password has been changed successfully! Welcome to your dashboard.');
 
-        return redirect()->to(route('dashboard'));
+        return redirect()->route('dashboard');
     }
 
     public function render()

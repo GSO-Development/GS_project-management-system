@@ -977,14 +977,16 @@
                         >
                             Cancel
                         </button>
-                        <button
-                            wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)"
-                            type="button"
-                            class="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#8b1424] hover:bg-[#70101d] transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-98"
-                        >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Accept Assignment &amp; Launch &rarr;</span>
-                        </button>
+                        @if(!$showRejectModal)
+                            <button
+                                wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)"
+                                type="button"
+                                class="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#8b1424] hover:bg-[#70101d] transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-98"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span>Accept Assignment &amp; Launch &rarr;</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
 

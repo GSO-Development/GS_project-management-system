@@ -28,6 +28,19 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if (Auth::check()) {
+            \App\Models\ActivityLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'user_logged_in',
+                'module'      => 'users',
+                'record_type' => \App\Models\User::class,
+                'record_id'   => Auth::id(),
+                'new_values'  => ['email' => Auth::user()->email, 'name' => Auth::user()->name],
+                'ip_address'  => $request->ip(),
+                'user_agent'  => $request->userAgent(),
+            ]);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -36,6 +49,19 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if (Auth::check()) {
+            \App\Models\ActivityLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'user_logged_out',
+                'module'      => 'users',
+                'record_type' => \App\Models\User::class,
+                'record_id'   => Auth::id(),
+                'new_values'  => ['email' => Auth::user()->email],
+                'ip_address'  => $request->ip(),
+                'user_agent'  => $request->userAgent(),
+            ]);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

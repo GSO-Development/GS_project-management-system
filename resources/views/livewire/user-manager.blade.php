@@ -75,13 +75,43 @@
         </div>
     </div>
 
+    <!-- Floating Batch Action Toolbar -->
+    @if(count($selectedUsers) > 0)
+        <div class="rounded-2xl p-3 bg-white border border-slate-200/90 text-slate-800 shadow-md flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div class="flex items-center gap-2.5">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-black bg-rose-50 text-[#c3122e] border border-rose-200/70 font-mono">
+                    {{ count($selectedUsers) }}
+                </span>
+                <span class="text-xs font-bold text-slate-700">
+                    user{{ count($selectedUsers) > 1 ? 's' : '' }} selected
+                </span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button wire:click="batchMakeAdmin" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-[#c3122e] transition-colors cursor-pointer border border-rose-200 shadow-2xs">
+                    🏛️ Set PMO Admin
+                </button>
+                <button wire:click="batchMakeUser" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200 shadow-2xs">
+                    👤 Set Regular User
+                </button>
+                <button wire:click="batchDelete" wire:confirm="Are you sure you want to delete {{ count($selectedUsers) }} selected user(s)?" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-2xs">
+                    🗑️ Delete Selected
+                </button>
+                <button wire:click="clearSelection" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    @endif
+
     <!-- Users Table -->
     <div class="card p-0 overflow-hidden shadow-xs mb-6">
         <div class="overflow-x-auto">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="w-8"><input type="checkbox" class="rounded border-slate-300"></th>
+                        <th class="w-8">
+                            <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer">
+                        </th>
                         <th class="whitespace-nowrap">USER MEMBER</th>
                         <th class="whitespace-nowrap">ACCOUNT TYPE</th>
                         <th class="whitespace-nowrap">SYSTEM ROLE</th>
@@ -102,8 +132,11 @@
                             </td>
                         </tr>
                         @foreach($group['users'] as $user)
-                            <tr class="hover:bg-[#fdf4f4]/20 transition-colors">
-                                <td class="w-8"><input type="checkbox" class="rounded border-slate-300"></td>
+                            @php $isUserSelected = in_array((string)$user->id, $selectedUsers, true) || in_array($user->id, $selectedUsers, false); @endphp
+                            <tr class="transition-colors {{ $isUserSelected ? 'bg-rose-50/50' : 'hover:bg-[#fdf4f4]/20' }}">
+                                <td class="w-8">
+                                    <input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedUsers" class="w-4 h-4 rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e]/20 cursor-pointer">
+                                </td>
                                 <td>
                                     <div class="flex items-center gap-3">
                                         <div class="avatar-sm w-9 h-9 font-bold text-xs text-white rounded-full flex items-center justify-center shadow-xs ring-2 ring-rose-200/50" style="background: linear-gradient(135deg, #c3122e 0%, #800a1c 100%);">
@@ -172,8 +205,11 @@
                             </td>
                         </tr>
                         @foreach($noSubUsers as $user)
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="w-8"><input type="checkbox" class="rounded border-slate-300"></td>
+                            @php $isNoSubSelected = in_array((string)$user->id, $selectedUsers, true) || in_array($user->id, $selectedUsers, false); @endphp
+                            <tr class="transition-colors {{ $isNoSubSelected ? 'bg-rose-50/50' : 'hover:bg-slate-50' }}">
+                                <td class="w-8">
+                                    <input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedUsers" class="w-4 h-4 rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e]/20 cursor-pointer">
+                                </td>
                                 <td>
                                     <div class="flex items-center gap-3">
                                         <div class="avatar-sm w-9 h-9 font-bold text-xs text-white" style="background: linear-gradient(135deg, rgb(79 70 229), rgb(124 58 237));">

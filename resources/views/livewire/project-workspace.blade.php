@@ -180,7 +180,7 @@
         <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>
-        <a href="{{ route('projects.index') }}" wire:navigate.hover class="text-slate-600 hover:text-[#c3122e] font-semibold transition-colors no-underline">
+        <a href="{{ auth()->user()?->isPmoAdmin() ? route('projects.index') : route('projects.my-leads') }}" wire:navigate.hover class="text-slate-600 hover:text-[#c3122e] font-semibold transition-colors no-underline">
             Projects
         </a>
         <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -541,7 +541,7 @@
                                     $role = $isPm ? 'lead' : ($member->pivot->role ?? 'member');
                                     $roleLabel = match($role) {
                                         'sponsor' => 'Sponsor',
-                                        'owner' => 'Owner',
+                                        'owner' => 'Project Owner',
                                         'steering_committee' => 'Committee',
                                         'lead' => 'Project Manager',
                                         default => 'Member'
@@ -777,7 +777,7 @@
                                         $role = $member->pivot->role ?? 'member';
                                         $roleLabel = match($role) {
                                             'sponsor' => 'Sponsor',
-                                            'owner' => 'Business Owner',
+                                            'owner' => 'Project Owner',
                                             'steering_committee' => 'Committee',
                                             'lead' => 'Team Lead',
                                             default => 'Team Member'
@@ -1896,21 +1896,35 @@
                         </div>
                     </div>
 
+                    @php
+                        $canEditEstimatedBudget = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'budget.edit_estimated');
+                        $canEditActualCost = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'budget.edit_actual');
+                    @endphp
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div class="form-group">
-                            <label class="form-label font-extrabold text-slate-800 text-xs mb-1 block">Total Estimated Budget (LKR)</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="form-label font-extrabold text-slate-800 text-xs block">Total Estimated Budget (LKR)</label>
+                                @if(!$canEditEstimatedBudget)
+                                    <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Locked (No Permission)</span>
+                                @endif
+                            </div>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rs.</span>
-                                <input type="number" step="1" wire:model="editEstimatedBudget" placeholder="0" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-[#c3122e] outline-none shadow-2xs">
+                                <input type="number" step="1" wire:model="editEstimatedBudget" {{ !$canEditEstimatedBudget ? 'disabled' : '' }} placeholder="0" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 {{ !$canEditEstimatedBudget ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-900 focus:border-[#c3122e]' }} text-xs font-bold outline-none shadow-2xs">
                             </div>
                             @error('editEstimatedBudget') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label font-extrabold text-slate-800 text-xs mb-1 block">Actual Cost / Spend (LKR)</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="form-label font-extrabold text-slate-800 text-xs block">Actual Cost / Spend (LKR)</label>
+                                @if(!$canEditActualCost)
+                                    <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Locked (No Permission)</span>
+                                @endif
+                            </div>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rs.</span>
-                                <input type="number" step="1" wire:model="editActualCost" placeholder="0" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-[#c3122e] outline-none shadow-2xs">
+                                <input type="number" step="1" wire:model="editActualCost" {{ !$canEditActualCost ? 'disabled' : '' }} placeholder="0" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 {{ !$canEditActualCost ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-900 focus:border-[#c3122e]' }} text-xs font-bold outline-none shadow-2xs">
                             </div>
                             @error('editActualCost') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
                         </div>
@@ -2120,48 +2134,384 @@
     </div>
     @endif
 
-    <!-- ===== REASSIGN PROJECT LEADER MODAL (PMO ADMIN) ===== -->
+    <!-- ===== REASSIGN & RECONFIGURE PROJECT LEADER MODAL (PMO ADMIN) ===== -->
     @if($showReassignModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="p-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-[#c3122e] text-white flex items-center justify-center font-black text-xs">
-                        ðŸ‘‘
+        <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[92vh] my-auto">
+                {{-- Header --}}
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg shadow-2xs flex-shrink-0">
+                            🔄
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                                Reassign &amp; Reconfigure Project
+                            </h3>
+                            <p class="text-[11px] text-slate-500 font-medium">Edit project parameters &amp; reassign leadership for rejected or declined project</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-sm font-black text-slate-900">Reassign Project Leader</h3>
-                        <p class="text-[10px] text-slate-400 font-medium">Select a new leader for this project</p>
-                    </div>
-                </div>
-                <button type="button" wire:click="$set('showReassignModal', false)" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <form wire:submit.prevent="submitReassign" class="p-5 space-y-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
-                        Select New Leader <span class="text-rose-500">*</span>
-                    </label>
-                    <select wire:model="newLeaderId" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-900 outline-none focus:border-[#c3122e]" required>
-                        <option value="">Choose a leader...</option>
-                        @foreach($availableUsers as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} Â· {{ $user->email }} ({{ $user->subsidiary->code ?? 'GS' }})</option>
-                        @endforeach
-                    </select>
-                    @error('newLeaderId') <span class="text-[10px] text-rose-600 font-bold block">{{ $message }}</span> @enderror
+                    <button wire:click="closeReassignModal" type="button" class="text-slate-400 hover:text-slate-600 font-bold p-1 rounded-xl hover:bg-slate-100 transition-colors text-lg cursor-pointer">&times;</button>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" wire:click="$set('showReassignModal', false)" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md">
-                        Confirm Reassignment
+                {{-- Scrollable Body --}}
+                <div class="p-6 space-y-5 text-xs overflow-y-auto flex-1 scrollbar-thin">
+                    {{-- Decline Reason Alert Card (if declined) --}}
+                    @if($reassignDeclineReason)
+                        <div class="p-4 rounded-2xl bg-rose-50/90 border border-rose-200/90 text-rose-950 space-y-1.5 shadow-2xs">
+                            <div class="flex items-center justify-between font-extrabold text-xs">
+                                <span class="flex items-center gap-2 text-rose-700">
+                                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                                    <span>⚠️ Declined Leadership Assignment Reason</span>
+                                </span>
+                                @if($project->projectManager)
+                                    <span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">
+                                        Prev PM: {{ $project->projectManager->name }}
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-rose-900 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-100">
+                                "{{ $reassignDeclineReason }}"
+                            </p>
+                        </div>
+                    @endif
+
+                    {{-- Form Grid: Section 1 - Basic Info --}}
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                            <span class="text-base">📌</span>
+                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">1. Project Identity &amp; Classification</h4>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {{-- Project Code --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Project Code <span class="text-rose-600">*</span></label>
+                                <input type="text" wire:model="reassignCode" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none uppercase" placeholder="GST-PRJ-001">
+                                @error('reassignCode') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            {{-- Project Name --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Project Name <span class="text-rose-600">*</span></label>
+                                <input type="text" wire:model="reassignName" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="Project Name">
+                                @error('reassignName') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {{-- Subsidiary --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Subsidiary <span class="text-rose-600">*</span></label>
+                                <select wire:model.live="reassignSubsidiaryId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer">
+                                    <option value="">-- Select Subsidiary --</option>
+                                    @foreach($subsidiaries as $sub)
+                                        <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->code }})</option>
+                                    @endforeach
+                                </select>
+                                @error('reassignSubsidiaryId') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            {{-- Category --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Category</label>
+                                <input type="text" wire:model="reassignCategory" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="e.g. Corporate Strategy">
+                            </div>
+
+                            {{-- Priority --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Priority Level <span class="text-rose-600">*</span></label>
+                                <select wire:model="reassignPriority" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer">
+                                    <option value="low">Low Priority</option>
+                                    <option value="medium">Medium Priority</option>
+                                    <option value="high">High Priority</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                                @error('reassignPriority') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Form Grid: Section 2 - Timeline & Financials --}}
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                            <span class="text-base">📅</span>
+                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">2. Timeline Schedule &amp; Budget Allocation</h4>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {{-- Start Date --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Start Date <span class="text-rose-600">*</span></label>
+                                <input type="date" wire:model="reassignStartDate" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none">
+                                @error('reassignStartDate') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            {{-- Target Deadline --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Target Deadline <span class="text-rose-600">*</span></label>
+                                <input type="date" wire:model="reassignDeadline" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none">
+                                @error('reassignDeadline') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            {{-- Estimated Budget --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 text-xs mb-1">Estimated Budget (LKR)</label>
+                                <input type="number" step="0.01" wire:model="reassignEstimatedBudget" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="0.00">
+                                @error('reassignEstimatedBudget') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Form Grid: Section 3 - Leadership & Governance Team --}}
+                    <div class="space-y-4 pt-1">
+                        <div class="flex items-center justify-between border-b border-slate-200/70 pb-2.5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center text-xs shadow-xs font-black">
+                                    👥
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">3. Project Leadership &amp; Governance Panel</h4>
+                                    <p class="text-[10px] text-slate-400 font-medium">Assign leadership roles, executive sponsors &amp; team structure</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60 hidden sm:inline-block">Governance &amp; Team</span>
+                        </div>
+
+                        {{-- Hero Card: Designated Project Manager / Leader --}}
+                        <div class="bg-gradient-to-r from-rose-50/80 via-slate-50/90 to-white p-4.5 rounded-2xl border-l-4 border-l-[#c3122e] border border-rose-200/70 shadow-xs space-y-3 relative overflow-hidden">
+                            <div class="flex items-center justify-between">
+                                <label class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-lg bg-[#c3122e] text-white flex items-center justify-center font-black text-[10px] shadow-2xs">⭐</span>
+                                    <span>Select New Project Manager / Leader <span class="text-rose-600">*</span></span>
+                                </label>
+                                <span class="text-[10px] font-extrabold text-[#c3122e] bg-rose-100/90 px-2.5 py-0.5 rounded-full border border-rose-200 shadow-2xs">Required Lead Role</span>
+                            </div>
+                            <div class="relative">
+                                <select wire:model="reassignPmId" class="w-full text-xs font-extrabold rounded-xl border border-slate-200 bg-white p-3 pr-10 focus:border-[#c3122e] focus:ring-4 focus:ring-[#c3122e]/10 outline-none shadow-2xs text-slate-900 cursor-pointer hover:border-rose-300 transition-all">
+                                    <option value="">-- Choose New Project Manager --</option>
+                                    @foreach($availablePms as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('reassignPmId') <span class="text-rose-600 text-[11px] font-bold block mt-1 flex items-center gap-1">⚠️ {{ $message }}</span> @enderror
+                        </div>
+
+                        {{-- Governance Roles Cards (Sponsors, Owners, Steering, Members) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {{-- Project Sponsors --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-amber-300 hover:shadow-md transition-all duration-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
+                                            👑
+                                        </div>
+                                        <div>
+                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Project Sponsors</h5>
+                                            <span class="text-[10px] text-amber-700/80 font-bold bg-amber-50 px-1.5 py-0.2 rounded">Executive Tier</span>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignSponsorIds) > 0 ? 'bg-amber-100 text-amber-900 border border-amber-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
+                                        {{ count($reassignSponsorIds) }} {{ count($reassignSponsorIds) === 1 ? 'Sponsor' : 'Sponsors' }}
+                                    </span>
+                                </div>
+
+                                <!-- Display Assigned Sponsors Badges -->
+                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
+                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignSponsorIds)) as $sUser)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-amber-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition-all">
+                                            <span class="w-4.5 h-4.5 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($sUser->name, 0, 1)) }}
+                                            </span>
+                                            <span>{{ $sUser->name }}</span>
+                                            <span class="text-[9px] font-mono font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.2 rounded-md border border-amber-200/60">({{ $sUser->subsidiary->code ?? 'GST' }})</span>
+                                            <button type="button" wire:click="removeReassignSponsor('{{ $sUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove sponsor">&times;</button>
+                                        </span>
+                                    @empty
+                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                            <span>No sponsors assigned yet.</span>
+                                        </span>
+                                    @endforelse
+                                </div>
+
+                                <!-- Dropdown to Add Sponsor -->
+                                <div class="relative">
+                                    <select wire:change="addReassignSponsor($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
+                                        <option value="">+ Add Sponsor from available list...</option>
+                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignSponsorIds)) as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Project Owners --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-emerald-300 hover:shadow-md transition-all duration-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
+                                            🎯
+                                        </div>
+                                        <div>
+                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Project Owners</h5>
+                                            <span class="text-[10px] text-emerald-700/80 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">Business Tier</span>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignOwnerIds) > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
+                                        {{ count($reassignOwnerIds) }} {{ count($reassignOwnerIds) === 1 ? 'Owner' : 'Owners' }}
+                                    </span>
+                                </div>
+
+                                <!-- Display Assigned Owners Badges -->
+                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
+                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignOwnerIds)) as $oUser)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-emerald-200 shadow-2xs hover:border-emerald-400 hover:shadow-xs transition-all">
+                                            <span class="w-4.5 h-4.5 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($oUser->name, 0, 1)) }}
+                                            </span>
+                                            <span>{{ $oUser->name }}</span>
+                                            <span class="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.2 rounded-md border border-emerald-200/60">({{ $oUser->subsidiary->code ?? 'GST' }})</span>
+                                            <button type="button" wire:click="removeReassignOwner('{{ $oUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove owner">&times;</button>
+                                        </span>
+                                    @empty
+                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                            <span>No owners assigned yet.</span>
+                                        </span>
+                                    @endforelse
+                                </div>
+
+                                <!-- Dropdown to Add Owner -->
+                                <div class="relative">
+                                    <select wire:change="addReassignOwner($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
+                                        <option value="">+ Add Owner from available list...</option>
+                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignOwnerIds)) as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Steering Committee --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-violet-300 hover:shadow-md transition-all duration-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-700 border border-violet-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
+                                            🏛️
+                                        </div>
+                                        <div>
+                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Steering Committee</h5>
+                                            <span class="text-[10px] text-violet-700/80 font-bold bg-violet-50 px-1.5 py-0.2 rounded">Oversight Panel</span>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignSteeringIds) > 0 ? 'bg-violet-100 text-violet-900 border border-violet-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
+                                        {{ count($reassignSteeringIds) }} {{ count($reassignSteeringIds) === 1 ? 'Member' : 'Members' }}
+                                    </span>
+                                </div>
+
+                                <!-- Display Assigned Steering Committee Badges -->
+                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
+                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignSteeringIds)) as $scUser)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-violet-200 shadow-2xs hover:border-violet-400 hover:shadow-xs transition-all">
+                                            <span class="w-4.5 h-4.5 rounded-full bg-violet-600 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($scUser->name, 0, 1)) }}
+                                            </span>
+                                            <span>{{ $scUser->name }}</span>
+                                            <span class="text-[9px] font-mono font-bold text-violet-800 bg-violet-100/80 px-1.5 py-0.2 rounded-md border border-violet-200/60">({{ $scUser->subsidiary->code ?? 'GST' }})</span>
+                                            <button type="button" wire:click="removeReassignSteering('{{ $scUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove committee member">&times;</button>
+                                        </span>
+                                    @empty
+                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                            <span>No steering committee assigned yet.</span>
+                                        </span>
+                                    @endforelse
+                                </div>
+
+                                <!-- Dropdown to Add Steering Member -->
+                                <div class="relative">
+                                    <select wire:change="addReassignSteering($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
+                                        <option value="">+ Add Committee Member from available list...</option>
+                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignSteeringIds)) as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Core Team Members --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
+                                            🤝
+                                        </div>
+                                        <div>
+                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Core Team Members</h5>
+                                            <span class="text-[10px] text-blue-700/80 font-bold bg-blue-50 px-1.5 py-0.2 rounded">Execution Team</span>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignMemberIds) > 0 ? 'bg-blue-100 text-blue-900 border border-blue-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
+                                        {{ count($reassignMemberIds) }} {{ count($reassignMemberIds) === 1 ? 'Member' : 'Members' }}
+                                    </span>
+                                </div>
+
+                                <!-- Display Assigned Team Members Badges -->
+                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
+                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignMemberIds)) as $mUser)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-blue-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition-all">
+                                            <span class="w-4.5 h-4.5 rounded-full bg-blue-600 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                {{ strtoupper(substr($mUser->name, 0, 1)) }}
+                                            </span>
+                                            <span>{{ $mUser->name }}</span>
+                                            <span class="text-[9px] font-mono font-bold text-blue-800 bg-blue-100/80 px-1.5 py-0.2 rounded-md border border-blue-200/60">({{ $mUser->subsidiary->code ?? 'GST' }})</span>
+                                            <button type="button" wire:click="removeReassignMember('{{ $mUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove team member">&times;</button>
+                                        </span>
+                                    @empty
+                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                            <span>No team members assigned yet.</span>
+                                        </span>
+                                    @endforelse
+                                </div>
+
+                                <!-- Dropdown to Add Core Team Member -->
+                                <div class="relative">
+                                    <select wire:change="addReassignMember($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
+                                        <option value="">+ Add Core Team Member from available list...</option>
+                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignMemberIds)) as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Form Grid: Section 4 - Description / Scope --}}
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                            <span class="text-base">📝</span>
+                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">4. Description &amp; Project Scope</h4>
+                        </div>
+                        <textarea wire:model="reassignDescription" rows="3" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-white p-3 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="Provide revised description or charter details..."></textarea>
+                    </div>
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0">
+                    <button wire:click="closeReassignModal" type="button" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-all cursor-pointer">
+                        Cancel
+                    </button>
+                    <button wire:click="submitReassign" type="button" class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-md shadow-rose-900/20 transition-all cursor-pointer flex items-center gap-2">
+                        <span>🚀</span>
+                        <span>Reassign &amp; Recreate Project</span>
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
     @endif
 
     <!-- ===== COMPREHENSIVE PROJECT DETAILS EXECUTIVE MODAL (ULTRA-CLEAN MODERN SAAS) ===== -->

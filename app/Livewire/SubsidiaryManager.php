@@ -41,6 +41,18 @@ class SubsidiaryManager extends Component
     public string $status = 'active';
     public $logoFile = null;
 
+    // Checkbox selection state
+    public array $selectedSubsidiaries = [];
+    public bool $selectAll = false;
+
+    // Delete modal state
+    public bool $showDeleteModal = false;
+    public ?int $subsidiaryToDeleteId = null;
+    public ?string $subsidiaryToDeleteName = null;
+    public ?string $subsidiaryToDeleteCode = null;
+    public int $subsidiaryToDeleteProjectsCount = 0;
+    public int $subsidiaryToDeleteUsersCount = 0;
+
     protected function rules(): array
     {
         return [
@@ -55,9 +67,176 @@ class SubsidiaryManager extends Component
         ];
     }
 
-    public function updatedSearch() { $this->resetPage(); }
-    public function updatedStatusFilter() { $this->resetPage(); }
-    public function updatedSortBy() { $this->resetPage(); }
+    public function updatedSearch() { $this->resetPage(); $this->selectedSubsidiaries = []; $this->selectAll = false; }
+    public function updatedStatusFilter() { $this->resetPage(); $this->selectedSubsidiaries = []; $this->selectAll = false; }
+    public function updatedSortBy() { $this->resetPage(); $this->selectedSubsidiaries = []; $this->selectAll = false; }
+
+    public function updatedSelectAll($value): void
+    {
+        if ($value) {
+            $this->selectedSubsidiaries = $this->getFilteredQuery()->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        } else {
+            $this->selectedSubsidiaries = [];
+        }
+    }
+
+    public function updatedSelectedSubsidiaries(): void
+    {
+        $this->selectedSubsidiaries = array_values(array_map('strval', $this->selectedSubsidiaries));
+        $allIds = $this->getFilteredQuery()->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        if (empty($allIds)) {
+            $this->selectAll = false;
+            return;
+        }
+        $this->selectAll = empty(array_diff($allIds, $this->selectedSubsidiaries));
+    }
+
+    protected function getFilteredQuery()
+    {
+        $query = Subsidiary::query();
+
+        if ($this->search) {
+            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%"));
+        }
+
+        if ($this->statusFilter !== 'all') {
+            $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->sortBy === 'name') {
+            $query->orderBy('name', 'asc')->orderBy('id', 'asc');
+        } elseif ($this->sortBy === 'code') {
+            $query->orderBy('code', 'asc')->orderBy('id', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+        }
+
+        return $query;
+    }
+
+    protected function getCurrentPageSubsidiaryIds(): array
+    {
+        return $this->getFilteredQuery()
+            ->paginate($this->perPage, ['id'], 'page', $this->getPage())
+            ->pluck('id')
+            ->map(fn($id) => (string)$id)
+            ->toArray();
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        if (!$this->isAuthorized()) {
+            $this->dispatch('toast', message: 'Only PMO Admins can delete subsidiaries.', type: 'error');
+            return;
+        }
+
+        $sub = Subsidiary::withCount(['projects', 'users'])->findOrFail($id);
+        $this->subsidiaryToDeleteId = $sub->id;
+        $this->subsidiaryToDeleteName = $sub->name;
+        $this->subsidiaryToDeleteCode = $sub->code;
+        $this->subsidiaryToDeleteProjectsCount = $sub->projects_count;
+        $this->subsidiaryToDeleteUsersCount = $sub->users_count;
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->showDeleteModal = false;
+        $this->subsidiaryToDeleteId = null;
+        $this->subsidiaryToDeleteName = null;
+        $this->subsidiaryToDeleteCode = null;
+        $this->subsidiaryToDeleteProjectsCount = 0;
+        $this->subsidiaryToDeleteUsersCount = 0;
+    }
+
+    public function deleteSubsidiary(): void
+    {
+        if (!$this->isAuthorized()) {
+            $this->dispatch('toast', message: 'Only PMO Admins can delete subsidiaries.', type: 'error');
+            return;
+        }
+
+        if (!$this->subsidiaryToDeleteId) {
+            return;
+        }
+
+        $sub = Subsidiary::withCount(['projects', 'users'])->find($this->subsidiaryToDeleteId);
+        if (!$sub) {
+            $this->cancelDelete();
+            return;
+        }
+
+        if ($sub->projects_count > 0 || $sub->users_count > 0) {
+            $this->dispatch('toast', message: "Cannot delete '{$sub->name}' because it has {$sub->projects_count} project(s) and {$sub->users_count} user(s) assigned. Please reassign them first.", type: 'error');
+            return;
+        }
+
+        $name = $sub->name;
+        $code = $sub->code;
+
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'deleted_subsidiary',
+            'module' => 'subsidiaries',
+            'record_type' => Subsidiary::class,
+            'record_id' => $sub->id,
+            'old_values' => $sub->toArray(),
+        ]);
+
+        $sub->delete();
+
+        $this->cancelDelete();
+        $this->selectedSubsidiaries = array_values(array_diff($this->selectedSubsidiaries, [(string)$sub->id]));
+        $this->dispatch('toast', message: "Subsidiary [{$code}] '{$name}' deleted successfully!", type: 'success');
+    }
+
+    public function deleteSelected(): void
+    {
+        if (!$this->isAuthorized()) {
+            $this->dispatch('toast', message: 'Only PMO Admins can delete subsidiaries.', type: 'error');
+            return;
+        }
+
+        if (empty($this->selectedSubsidiaries)) {
+            return;
+        }
+
+        $deletedCount = 0;
+        $skippedCount = 0;
+
+        foreach ($this->selectedSubsidiaries as $subId) {
+            $sub = Subsidiary::withCount(['projects', 'users'])->find($subId);
+            if (!$sub) continue;
+
+            if ($sub->projects_count > 0 || $sub->users_count > 0) {
+                $skippedCount++;
+                continue;
+            }
+
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'deleted_subsidiary',
+                'module' => 'subsidiaries',
+                'record_type' => Subsidiary::class,
+                'record_id' => $sub->id,
+                'old_values' => $sub->toArray(),
+            ]);
+
+            $sub->delete();
+            $deletedCount++;
+        }
+
+        $this->selectedSubsidiaries = [];
+        $this->selectAll = false;
+
+        if ($deletedCount > 0 && $skippedCount === 0) {
+            $this->dispatch('toast', message: "Successfully deleted {$deletedCount} selected subsidiary(ies).", type: 'success');
+        } elseif ($deletedCount > 0 && $skippedCount > 0) {
+            $this->dispatch('toast', message: "Deleted {$deletedCount} subsidiary(ies). Skipped {$skippedCount} because they have active projects or users.", type: 'warning');
+        } else {
+            $this->dispatch('toast', message: "Cannot delete selected subsidiaries because they have active projects or users assigned.", type: 'error');
+        }
+    }
 
     public function updatedCreationType(): void
     {
@@ -284,24 +463,7 @@ class SubsidiaryManager extends Component
         $totalUsers = User::count();
         $avgProgress = round(Project::avg('overall_progress') ?? 68, 1);
 
-        $query = Subsidiary::withCount(['projects', 'users']);
-
-        if ($this->search) {
-            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('code', 'like', "%{$this->search}%"));
-        }
-
-        if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->sortBy === 'name') {
-            $query->orderBy('name', 'asc');
-        } elseif ($this->sortBy === 'code') {
-            $query->orderBy('code', 'asc');
-        } else {
-            $query->latest();
-        }
-
+        $query = $this->getFilteredQuery()->withCount(['projects', 'users']);
         $subsidiaries = $query->paginate($this->perPage);
 
         return view('livewire.subsidiary-manager', compact(

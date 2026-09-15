@@ -27,8 +27,10 @@ class RbacService
         'project_manager',
         'sponsor',
         'owner',
+        'steering_committee',
         'member',
         'team_member',
+        'collaborator',
     ];
 
     /**
@@ -39,22 +41,14 @@ class RbacService
         if (!$code) {
             return false;
         }
-        return in_array(strtolower($code), self::PROTECTED_ROLES, true);
+        $code = strtolower($code);
+        return isset(self::ROLES[$code]) || in_array($code, self::PROTECTED_ROLES, true);
     }
 
     /**
      * Standard built-in role definitions with metadata.
      */
     public const ROLES = [
-        'super_admin' => [
-            'name' => 'Super Administrator',
-            'code' => 'super_admin',
-            'icon' => '🛡️',
-            'badge' => 'bg-red-50 text-red-800 border-red-200 font-black',
-            'description' => 'Unrestricted global system administration, enterprise security, and audit governance.',
-            'is_system' => true,
-            'is_protected' => true,
-        ],
         'pmo_admin' => [
             'name' => 'PMO Administrator',
             'code' => 'pmo_admin',
@@ -69,7 +63,7 @@ class RbacService
             'code' => 'lead',
             'icon' => '⭐',
             'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200',
-            'description' => 'Operational leader managing day-to-day WBS scheduling, task execution, and team assignments.',
+            'description' => 'Project-level leader with full access to project details, WBS scheduling, task creation, editing & deletion.',
             'is_system' => true,
             'is_protected' => true,
         ],
@@ -78,7 +72,7 @@ class RbacService
             'code' => 'sponsor',
             'icon' => '💼',
             'badge' => 'bg-amber-50 text-amber-800 border-amber-200',
-            'description' => 'Executive sponsor with oversight, budget governance, and final sign-off authority.',
+            'description' => 'Project-level executive sponsor with view-only oversight on project details & tasks, plus budget sign-off.',
             'is_system' => true,
             'is_protected' => true,
         ],
@@ -87,7 +81,7 @@ class RbacService
             'code' => 'owner',
             'icon' => '👑',
             'badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-            'description' => 'Business owner responsible for project outcomes, scope verification, and milestone sign-offs.',
+            'description' => 'Project-level business owner with view-only access to project details & tasks, and scope sign-off authority.',
             'is_system' => true,
             'is_protected' => true,
         ],
@@ -96,16 +90,16 @@ class RbacService
             'code' => 'steering_committee',
             'icon' => '🏛️',
             'badge' => 'bg-violet-50 text-violet-800 border-violet-200',
-            'description' => 'Governance board member reviewing strategic alignment, risks, and high-level milestones.',
+            'description' => 'Project-level governance board member with view-only access to project details, tasks, and strategic milestones.',
             'is_system' => true,
-            'is_protected' => false,
+            'is_protected' => true,
         ],
         'member' => [
             'name' => 'Core Project Team',
             'code' => 'member',
             'icon' => '🤝',
             'badge' => 'bg-blue-50 text-blue-700 border-blue-200',
-            'description' => 'Active team collaborator executing assigned WBS deliverables and providing status updates.',
+            'description' => 'Project team member assigned to specific projects. Can view assigned project & tasks, update status/progress (no task create/delete).',
             'is_system' => true,
             'is_protected' => true,
         ],
@@ -114,9 +108,9 @@ class RbacService
             'code' => 'collaborator',
             'icon' => '⚡',
             'badge' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
-            'description' => 'Specialist contributor assisting on specific deliverables and technical tasks.',
+            'description' => 'Specialist contributor assisting on specific deliverables with view-only project access & task status updates.',
             'is_system' => true,
-            'is_protected' => false,
+            'is_protected' => true,
         ],
     ];
 
@@ -130,6 +124,10 @@ class RbacService
 
         foreach ($dbRoles as $role) {
             $code = $role->name;
+            // Filter out super_admin as Superadmin & PMO admin are unified under PMO Administrator
+            if ($code === 'super_admin') {
+                continue;
+            }
             // Normalize aliases
             if ($code === 'project_manager' && !isset(self::ROLES['project_manager'])) {
                 continue; // mapped under lead
@@ -471,6 +469,82 @@ class RbacService
 
         $perms = $role->permissions->pluck('name')->toArray();
         return self::$rolePermissionsCache[$roleCode] = $perms;
+    }
+
+    /**
+     * Get default permissions mapping for standard project governance & system roles.
+     */
+    public static function getDefaultPermissionsForRole(string $roleCode): array
+    {
+        return match($roleCode) {
+            'super_admin', 'pmo_admin' => Permission::pluck('name')->toArray(),
+            'lead', 'project_manager' => [
+                'project.view', 'project.view_all', 'project.view_assigned', 'project.edit', 'project.manage_scope', 'project.manage_schedule', 'project.manage_milestones',
+                'project_details.view', 'project_details.edit', 'scope.view', 'scope.edit', 'schedule.edit',
+                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.reassign', 'task.change_status', 'task.update_progress', 'task.change_priority', 'task.change_due_date', 'task.create_subtask', 'task.comment', 'task.upload_attachment', 'task.complete', 'schedule.view_impact', 'schedule.apply_cascade',
+                'team.view', 'team.add', 'team.remove', 'team.assign_role', 'team.change_role', 'team.view_member',
+                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.edit_estimated', 'budget.edit_actual', 'budget.submit_change', 'budget.report',
+                'risk.view', 'risk.create', 'risk.edit', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
+                'approval.view', 'approval.submit',
+                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
+                'project_settings.view', 'project_settings.edit',
+                'calendar.view', 'calendar.create', 'calendar.edit', 'calendar.delete', 'calendar.sync_outlook', 'calendar.export',
+            ],
+            'member', 'team_member' => [
+                'project.view_assigned',
+                'project_details.view', 'scope.view',
+                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete', 'schedule.view_impact',
+                'team.view', 'team.view_member',
+                'risk.view', 'risk.create', 'blocker.create',
+                'approval.view', 'approval.submit',
+                'calendar.view', 'calendar.export',
+            ],
+            'collaborator' => [
+                'project.view_assigned',
+                'project_details.view', 'scope.view',
+                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete',
+                'team.view', 'team.view_member',
+                'risk.view', 'blocker.create',
+                'calendar.view', 'calendar.export',
+            ],
+            'sponsor' => [
+                'project.view', 'project.view_all', 'project.view_assigned',
+                'project_details.view', 'scope.view',
+                'task.view', 'task.view_all', 'task.view_assigned', 'schedule.view_impact',
+                'team.view', 'team.view_member',
+                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.report',
+                'risk.view',
+                'approval.view', 'approval.final_approve',
+                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
+                'project_settings.view',
+                'calendar.view', 'calendar.export',
+            ],
+            'owner' => [
+                'project.view', 'project.view_assigned',
+                'project_details.view', 'scope.view',
+                'task.view', 'task.view_all', 'task.view_assigned', 'schedule.view_impact',
+                'team.view', 'team.view_member',
+                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.submit_change', 'budget.report',
+                'risk.view',
+                'approval.view', 'approval.submit', 'approval.approve', 'approval.reject', 'approval.return',
+                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
+                'project_settings.view',
+                'calendar.view', 'calendar.export',
+            ],
+            'steering_committee' => [
+                'project.view', 'project.view_assigned',
+                'project_details.view', 'scope.view',
+                'task.view', 'task.view_all', 'task.view_assigned', 'schedule.view_impact',
+                'team.view', 'team.view_member',
+                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.report',
+                'risk.view',
+                'approval.view', 'approval.approve', 'approval.reject',
+                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
+                'project_settings.view',
+                'calendar.view', 'calendar.export',
+            ],
+            default => [],
+        };
     }
 
     /**

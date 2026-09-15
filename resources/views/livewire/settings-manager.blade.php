@@ -145,7 +145,75 @@
             </div>
         </div>
 
-        <!-- SECTION 2: TEST EMAIL DELIVERY -->
+        <!-- SECTION 2: AUTOMATED OVERDUE TASK ALERTS -->
+        <div class="pt-6 border-t border-slate-100">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 mb-6 gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm font-extrabold text-slate-900">Automated Overdue Task Alerts</h2>
+                        <span class="px-2 py-0.5 text-[10px] font-black rounded-md tracking-wider uppercase {{ $enableOverdueEmailAlerts ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600' }}">
+                            {{ $enableOverdueEmailAlerts ? 'Auto Email Enabled' : 'In-App Notifications Only' }}
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Control automatic notification dispatch when tasks pass their scheduled completion deadlines.</p>
+                </div>
+
+                <!-- Overdue Email Toggle Switch -->
+                <div class="flex items-center gap-3 select-none shrink-0">
+                    <span class="text-xs font-bold text-slate-700">Auto Email Alerts:</span>
+                    <button 
+                        type="button" 
+                        wire:click="$toggle('enableOverdueEmailAlerts')" 
+                        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $enableOverdueEmailAlerts ? 'bg-[#c3122e]' : 'bg-slate-300' }}" 
+                        role="switch" 
+                        aria-checked="{{ $enableOverdueEmailAlerts ? 'true' : 'false' }}"
+                        title="Toggle Automated Overdue Task Email Alerts"
+                    >
+                        <span 
+                            class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $enableOverdueEmailAlerts ? 'translate-x-5' : 'translate-x-0' }}"
+                        ></span>
+                    </button>
+                    <span class="text-xs font-bold {{ $enableOverdueEmailAlerts ? 'text-[#c3122e]' : 'text-slate-400' }}">
+                        {{ $enableOverdueEmailAlerts ? 'Enabled' : 'Disabled' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-3">
+                    <div class="flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="text-slate-600 leading-relaxed">
+                            @if($enableOverdueEmailAlerts)
+                                When <strong class="text-slate-900">Enabled</strong>, overdue deliverable emails will be sent <strong class="text-rose-600 font-bold">EXCLUSIVELY</strong> to the recipient address(es) configured below. In-app system notifications will still be delivered in the system header tray.
+                            @else
+                                When <strong class="text-slate-900">Disabled</strong>, emails will <strong class="text-rose-600 font-bold">NOT</strong> be dispatched. Overdue alerts are delivered <strong class="text-slate-900">exclusively as in-app system notifications</strong>.
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Overdue Notification Recipient Email(s)
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            wire:model="overdueNotificationEmail" 
+                            placeholder="e.g. alerts@georgesteuart.com, manager@georgesteuart.com" 
+                            class="w-full px-3.5 py-2.5 text-xs font-semibold text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 focus:border-[#c3122e] transition-all"
+                        >
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium mt-1">Single or comma-separated email addresses to receive auto-generated overdue deliverable emails.</p>
+                    @error('overdueNotificationEmail') <span class="text-[11px] text-rose-600 font-bold block mt-1">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: TEST EMAIL DELIVERY -->
         <div class="pt-6 border-t border-slate-100">
             <div class="pb-3 mb-4">
                 <h2 class="text-sm font-extrabold text-slate-900">Send Test Email</h2>

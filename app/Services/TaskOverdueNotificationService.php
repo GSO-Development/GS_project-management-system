@@ -104,12 +104,32 @@ class TaskOverdueNotificationService
                     url: route('projects.show', $item->project_id)
                 );
 
-                // Dispatch to each recipient (Database notification always succeeds; catch mail delays)
+                // Dispatch in-app system notifications to PMO Admins & Project Manager
                 foreach ($recipients as $recipient) {
                     try {
                         $recipient->notify($notification);
                     } catch (\Throwable $e) {
-                        Log::warning("Failed to dispatch TaskOverdueAlertNotification to user #{$recipient->id} ({$recipient->email}): " . $e->getMessage());
+                        Log::warning("Failed to dispatch in-app TaskOverdueAlertNotification to user #{$recipient->id}: " . $e->getMessage());
+                    }
+                }
+
+                // Dispatch emails EXCLUSIVELY to the recipient email address(es) configured in Admin Settings when toggle is Enabled
+                $enableEmailAlerts = filter_var(
+                    \App\Models\SystemSetting::where('key', 'enable_overdue_email_alerts')->value('value') ?? true,
+                    FILTER_VALIDATE_BOOLEAN
+                );
+                $overdueAlertEmailStr = trim((string) \App\Models\SystemSetting::where('key', 'overdue_notification_email')->value('value'));
+
+                if ($enableEmailAlerts && !empty($overdueAlertEmailStr)) {
+                    $targetEmails = array_map('trim', preg_split('/[,;]+/', $overdueAlertEmailStr));
+                    foreach ($targetEmails as $targetEmail) {
+                        if (!empty($targetEmail) && filter_var($targetEmail, FILTER_VALIDATE_EMAIL)) {
+                            try {
+                                \Illuminate\Support\Facades\Notification::route('mail', $targetEmail)->notify($notification);
+                            } catch (\Throwable $e) {
+                                Log::warning("Failed to dispatch overdue alert email to {$targetEmail}: " . $e->getMessage());
+                            }
+                        }
                     }
                 }
 

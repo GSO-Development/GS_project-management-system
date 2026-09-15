@@ -392,7 +392,7 @@ class AuditLogViewer extends Component
 
     protected function buildQuery()
     {
-        $query = ActivityLog::with('user');
+        $query = ActivityLog::with(['user.roles']);
 
         // Quick Tab Filter
         if ($this->quickTab === 'projects') {

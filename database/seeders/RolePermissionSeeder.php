@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Services\RbacService;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -14,71 +15,36 @@ class RolePermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create Permissions
-        $permissions = [
-            // Subsidiary permissions
-            'view subsidiaries',
-            'create subsidiaries',
-            'edit subsidiaries',
-            'archive subsidiaries',
-
-            // User permissions
-            'view users',
-            'create users',
-            'edit users',
-            'manage roles',
-
-            // Project permissions
-            'view all projects',
-            'view assigned projects',
-            'create projects',
-            'edit projects',
-            'archive projects',
-
-            // WBS permissions
-            'create wbs',
-            'edit wbs',
-            'delete wbs',
-            'approve wbs',
-
-            // Approvals
-            'submit approvals',
-            'review approvals',
-
-            // Reports & Audits
-            'view reports',
-            'view audit logs',
-            'manage settings',
-        ];
-
-        foreach ($permissions as $perm) {
-            Permission::findOrCreate($perm, 'web');
+        // 1. Ensure all granular module permissions are created in database
+        $modules = RbacService::MODULES;
+        foreach ($modules as $mod) {
+            foreach (array_keys($mod['permissions']) as $permCode) {
+                Permission::findOrCreate($permCode, 'web');
+            }
         }
 
-        // Create Roles & Assign Permissions
-        $superAdmin = Role::findOrCreate('super_admin', 'web');
-        $superAdmin->givePermissionTo(Permission::all());
+        // 2. Standard system & governance roles
+        $rolesToSeed = [
+            'super_admin',
+            'pmo_admin',
+            'lead',
+            'project_manager',
+            'member',
+            'team_member',
+            'sponsor',
+            'owner',
+            'steering_committee',
+            'collaborator',
+        ];
 
-        $projectManager = Role::findOrCreate('project_manager', 'web');
-        $projectManager->givePermissionTo([
-            'view assigned projects',
-            'edit projects',
-            'create wbs',
-            'edit wbs',
-            'delete wbs',
-            'submit approvals',
-            'view reports',
-        ]);
+        foreach ($rolesToSeed as $roleCode) {
+            $role = Role::findOrCreate($roleCode, 'web');
+            $defaults = RbacService::getDefaultPermissionsForRole($roleCode);
+            if (!empty($defaults)) {
+                $role->syncPermissions($defaults);
+            }
+        }
 
-        $teamMember = Role::findOrCreate('team_member', 'web');
-        $teamMember->givePermissionTo([
-            'view assigned projects',
-        ]);
-
-        $collaborator = Role::findOrCreate('collaborator', 'web');
-        $collaborator->givePermissionTo([
-            'view assigned projects',
-            'submit approvals',
-        ]);
+        RbacService::clearCache();
     }
 }

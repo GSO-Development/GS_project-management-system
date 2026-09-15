@@ -17,16 +17,8 @@ class ScheduleCascadeService
      * Returns full preview data for the Impact Modal.
      *
      * @param WbsItem $sourceTask  The task whose deadline was extended
-     * @param int     $daysDelta   Positive number of days extended
-     * @return array{
-     *     shiftDays: int,
-     *     affectedTasks: array,
-     *     skippedTasks: array,
-     *     projectedCompletion: string|null,
-     *     projectDeadline: string|null,
-     *     varianceDays: int,
-     *     isBehindSchedule: bool
-     * }
+     * @param int     $daysDelta   Positive or negative number of days extended
+     * @return array
      */
     public function calculateImpact(WbsItem $sourceTask, int $daysDelta): array
     {
@@ -39,12 +31,6 @@ class ScheduleCascadeService
 
         $affectedTasks = [];
         $skippedTasks  = [];
-
-        // CHAINED logic: start chain from sourceTask's NEW end_date and end_time
-        $sourceFresh = $sourceTask->fresh();
-        $sEnd = $sourceFresh->end_date ? $sourceFresh->end_date->copy() : now()->startOfDay();
-        $sTimeStr = $sourceFresh->end_time ? \Carbon\Carbon::parse($sourceFresh->end_time)->format('H:i') : '17:30';
-        $chainCursor = \Carbon\Carbon::parse($sEnd->format('Y-m-d') . ' ' . $sTimeStr);
 
         foreach ($eligibleTasks as $task) {
             $statusValue = $task->status instanceof WbsStatus ? $task->status->value : (string) $task->status;
@@ -59,14 +45,6 @@ class ScheduleCascadeService
                     'status'   => $statusValue,
                     'reason'   => 'Completed — historical dates preserved',
                 ];
-                // Completed tasks don't move. Update chainCursor ONLY IF completed task's end datetime is later
-                if ($task->end_date) {
-                    $tTimeStr = $task->end_time ? \Carbon\Carbon::parse($task->end_time)->format('H:i') : '17:30';
-                    $tEndDt   = \Carbon\Carbon::parse($task->end_date->format('Y-m-d') . ' ' . $tTimeStr);
-                    if ($tEndDt->gt($chainCursor)) {
-                        $chainCursor = $tEndDt->copy();
-                    }
-                }
                 continue;
             }
 
@@ -74,52 +52,34 @@ class ScheduleCascadeService
             $oldEnd   = $task->end_date   ? $task->end_date->copy()   : null;
             $oldStartTimeStr = $task->start_time ? \Carbon\Carbon::parse($task->start_time)->format('H:i') : '08:30';
             $oldEndTimeStr   = $task->end_time   ? \Carbon\Carbon::parse($task->end_time)->format('H:i')   : '17:30';
+
+            $sourceNewEnd = $sourceTask->fresh()?->end_date;
             $durDays = ($oldStart && $oldEnd) ? max(0, (int) $oldStart->diffInDays($oldEnd)) : 0;
 
-            // Intelligent start time & date calculation based on chainCursor
-            $cTime = $chainCursor->format('H:i');
-            if ($cTime >= '17:30') {
-                $calculatedStart = $chainCursor->copy()->addDay()->setTime(8, 30);
-            } elseif ($cTime < '08:30') {
-                $calculatedStart = $chainCursor->copy()->setTime(8, 30);
-            } else {
-                $calculatedStart = $chainCursor->copy();
-            }
-
-            if ($isInProgress && $oldStart) {
-                $oldStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr);
-                // If calculatedStart (from predecessor end date/time) is AFTER oldStartDt, push start to calculatedStart!
-                if ($calculatedStart->gt($oldStartDt)) {
-                    $newStartDt = $calculatedStart->copy();
-                } else {
-                    $newStartDt = $oldStartDt->copy();
-                }
-
-                $newEndDt = $oldEnd ? \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta) : $newStartDt->copy()->addDays(1);
-                if ($newEndDt->lt($newStartDt)) {
-                    $newEndDt = $newStartDt->copy()->addDays(max(1, $durDays));
-                }
-            } else {
-                $newStartDt = $calculatedStart->copy();
-
-                if ($durDays > 0) {
-                    $newEndDt = $newStartDt->copy()->addDays($durDays)->setTimeFrom(\Carbon\Carbon::parse($oldEndTimeStr));
-                } else {
-                    $oldStartDt = $oldStart ? \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr) : null;
-                    $oldEndDt   = $oldEnd   ? \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)   : null;
-                    $durMinutes = ($oldStartDt && $oldEndDt) ? max(30, (int) $oldStartDt->diffInMinutes($oldEndDt, false)) : 480;
-
-                    $newEndDt = $newStartDt->copy()->addMinutes($durMinutes);
-                    if ($newEndDt->format('H:i') > '17:30') {
-                        // Overflow past 5:30 PM -> roll over to next morning 08:30 AM + remaining minutes
-                        $overMinutes = \Carbon\Carbon::parse($newEndDt->format('H:i'))->diffInMinutes(\Carbon\Carbon::parse('17:30'));
-                        $newEndDt = $newStartDt->copy()->addDay()->setTime(8, 30)->addMinutes($overMinutes);
+            if ($oldStart && $oldEnd) {
+                if ($isInProgress) {
+                    // For tasks in progress, keep start date but extend end date by daysDelta
+                    $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr);
+                    $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                    if ($newEndDt->lt($newStartDt)) {
+                        $newEndDt = $newStartDt->copy()->addDay();
                     }
+                } else {
+                    // Shift both start_date and end_date by daysDelta
+                    $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta);
+                    $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
                 }
+            } elseif ($oldEnd) {
+                $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                $newStartDt = $oldStart ? \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta) : $newEndDt->copy();
+            } else {
+                continue;
             }
 
-            if ($newEndDt->gt($chainCursor)) {
-                $chainCursor = $newEndDt->copy();
+            // Ensure start date of following task is not earlier than source task's new end date
+            if ($sourceNewEnd && !$isInProgress && $newStartDt->lt($sourceNewEnd)) {
+                $newStartDt = $sourceNewEnd->copy()->addDay()->setTimeFrom(\Carbon\Carbon::parse($oldStartTimeStr));
+                $newEndDt   = $newStartDt->copy()->addDays($durDays)->setTimeFrom(\Carbon\Carbon::parse($oldEndTimeStr));
             }
 
             $affectedTasks[] = [
@@ -143,16 +103,7 @@ class ScheduleCascadeService
         }
 
         // Projected completion = max end_date across all tasks after cascade
-        $projectMaxEnd = WbsItem::where('project_id', $projectId)
-            ->where('id', '!=', $sourceTask->id)
-            ->where('item_type', '!=', 'phase')
-            ->whereNotNull('end_date')
-            ->max('end_date');
-
-        // Factor in the source task's new end_date (already saved before this call)
         $sourceNewEnd = $sourceTask->fresh()->end_date;
-
-        // Also factor in the projected new end dates from affected tasks
         $maxAffectedEnd = null;
         foreach ($affectedTasks as $t) {
             if ($t['new_end_raw']) {
@@ -162,13 +113,17 @@ class ScheduleCascadeService
             }
         }
 
+        $projectMaxEnd = WbsItem::where('project_id', $projectId)
+            ->whereNotNull('end_date')
+            ->max('end_date');
+
         $projectedDate = $maxAffectedEnd ?? ($sourceNewEnd ? $sourceNewEnd->toDateString() : $projectMaxEnd);
 
         // Project official deadline
         $project = Project::find($projectId);
         $officialDeadline = $project?->deadline ? $project->deadline->toDateString() : null;
         if (!$officialDeadline) {
-            $officialDeadline = WbsItem::where('project_id', $projectId)->max('end_date');
+            $officialDeadline = $projectMaxEnd;
         }
 
         $varianceDays = 0;
@@ -187,7 +142,7 @@ class ScheduleCascadeService
             'projectedCompletion'=> $projectedDate  ? Carbon::parse($projectedDate)->format('M d, Y') : null,
             'officialDeadline'   => $fmtOfficial,
             'projectDeadline'    => $fmtOfficial,
-            'varianceDays'       => abs($varianceDays),
+            'varianceDays'       => abs((int) $varianceDays),
             'isBehindSchedule'   => $isBehindSchedule,
         ];
     }
@@ -196,8 +151,7 @@ class ScheduleCascadeService
      * Destructive: Apply cascade reschedule within a DB transaction.
      * Skips completed/cancelled tasks.
      * Preserves in-progress start dates.
-     * Does NOT change project deadline.
-     * Records full audit log.
+     * Automatically updates parent container dates and official project deadline.
      *
      * @return array List of shifted tasks with metadata
      */
@@ -214,26 +168,12 @@ class ScheduleCascadeService
             $eligibleTasks = $this->findEligibleFollowingTasks($sourceTask);
             $reason = "Upstream task \"{$sourceTask->title}\" (WBS {$sourceTask->wbs_code}) deadline changed by {$daysDelta} " . (abs($daysDelta) === 1 ? 'day' : 'days');
 
-            // CHAINED logic: start chain from sourceTask's NEW end_date and end_time
-            $sourceFresh = $sourceTask->fresh();
-            $sEnd = $sourceFresh->end_date ? $sourceFresh->end_date->copy() : now()->startOfDay();
-            $sTimeStr = $sourceFresh->end_time ? \Carbon\Carbon::parse($sourceFresh->end_time)->format('H:i') : '17:30';
-            $chainCursor = \Carbon\Carbon::parse($sEnd->format('Y-m-d') . ' ' . $sTimeStr);
-
             foreach ($eligibleTasks as $task) {
                 $statusValue = $task->status instanceof WbsStatus ? $task->status->value : (string) $task->status;
                 $isCompleted = in_array($statusValue, ['completed', 'cancelled']);
                 $isInProgress = $statusValue === 'in_progress';
 
-                // Never touch completed or cancelled tasks
                 if ($isCompleted) {
-                    if ($task->end_date) {
-                        $tTimeStr = $task->end_time ? \Carbon\Carbon::parse($task->end_time)->format('H:i') : '17:30';
-                        $tEndDt   = \Carbon\Carbon::parse($task->end_date->format('Y-m-d') . ' ' . $tTimeStr);
-                        if ($tEndDt->gt($chainCursor)) {
-                            $chainCursor = $tEndDt->copy();
-                        }
-                    }
                     continue;
                 }
 
@@ -242,50 +182,31 @@ class ScheduleCascadeService
                 $oldStartTimeStr = $task->start_time ? \Carbon\Carbon::parse($task->start_time)->format('H:i') : '08:30';
                 $oldEndTimeStr   = $task->end_time   ? \Carbon\Carbon::parse($task->end_time)->format('H:i')   : '17:30';
 
+                $sourceNewEnd = $sourceTask->fresh()?->end_date;
                 $durDays = ($oldStart && $oldEnd) ? max(0, (int) $oldStart->diffInDays($oldEnd)) : 0;
 
-                // Intelligent start time & date calculation based on chainCursor
-                $cTime = $chainCursor->format('H:i');
-                if ($cTime >= '17:30') {
-                    $calculatedStart = $chainCursor->copy()->addDay()->setTime(8, 30);
-                } elseif ($cTime < '08:30') {
-                    $calculatedStart = $chainCursor->copy()->setTime(8, 30);
-                } else {
-                    $calculatedStart = $chainCursor->copy();
-                }
-
-                if ($isInProgress && $oldStart) {
-                    $oldStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr);
-                    if ($calculatedStart->gt($oldStartDt)) {
-                        $newStartDt = $calculatedStart->copy();
-                    } else {
-                        $newStartDt = $oldStartDt->copy();
-                    }
-
-                    $newEndDt = $oldEnd ? \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta) : $newStartDt->copy()->addDays(1);
-                    if ($newEndDt->lt($newStartDt)) {
-                        $newEndDt = $newStartDt->copy()->addDays(max(1, $durDays));
-                    }
-                } else {
-                    $newStartDt = $calculatedStart->copy();
-
-                    if ($durDays > 0) {
-                        $newEndDt = $newStartDt->copy()->addDays($durDays)->setTimeFrom(\Carbon\Carbon::parse($oldEndTimeStr));
-                    } else {
-                        $oldStartDt = $oldStart ? \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr) : null;
-                        $oldEndDt   = $oldEnd   ? \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)   : null;
-                        $durMinutes = ($oldStartDt && $oldEndDt) ? max(30, (int) $oldStartDt->diffInMinutes($oldEndDt, false)) : 480;
-
-                        $newEndDt = $newStartDt->copy()->addMinutes($durMinutes);
-                        if ($newEndDt->format('H:i') > '17:30') {
-                            $overMinutes = \Carbon\Carbon::parse($newEndDt->format('H:i'))->diffInMinutes(\Carbon\Carbon::parse('17:30'));
-                            $newEndDt = $newStartDt->copy()->addDay()->setTime(8, 30)->addMinutes($overMinutes);
+                if ($oldStart && $oldEnd) {
+                    if ($isInProgress) {
+                        $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr);
+                        $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                        if ($newEndDt->lt($newStartDt)) {
+                            $newEndDt = $newStartDt->copy()->addDay();
                         }
+                    } else {
+                        $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta);
+                        $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
                     }
+                } elseif ($oldEnd) {
+                    $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                    $newStartDt = $oldStart ? \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta) : $newEndDt->copy();
+                } else {
+                    continue;
                 }
 
-                if ($newEndDt->gt($chainCursor)) {
-                    $chainCursor = $newEndDt->copy();
+                // Ensure start date of following task is not earlier than source task's new end date
+                if ($sourceNewEnd && !$isInProgress && $newStartDt->lt($sourceNewEnd)) {
+                    $newStartDt = $sourceNewEnd->copy()->addDay()->setTimeFrom(\Carbon\Carbon::parse($oldStartTimeStr));
+                    $newEndDt   = $newStartDt->copy()->addDays($durDays)->setTimeFrom(\Carbon\Carbon::parse($oldEndTimeStr));
                 }
 
                 $updateData = [
@@ -319,10 +240,10 @@ class ScheduleCascadeService
                 ];
             }
 
-            // Recalculate parent phase boundaries
+            // Recalculate parent phase/container boundaries from child dates
             $this->recalculatePhaseBoundaries($projectId);
 
-            // Auto-update Project official deadline to sync with new task schedule
+            // Auto-update Project official deadline to sync with new overall maximum task schedule
             $project = Project::find($projectId);
             if ($project) {
                 $maxTaskEnd = WbsItem::where('project_id', $projectId)
@@ -369,40 +290,58 @@ class ScheduleCascadeService
     }
 
     /**
-     * Recalculates all parent phase start/end dates from their child tasks.
+     * Recalculates all parent container (phase, work package, container task) start/end dates from child tasks.
      */
     public function recalculatePhaseBoundaries(int $projectId): void
     {
-        $phases = WbsItem::where('project_id', $projectId)
-            ->where('item_type', 'phase')
-            ->get();
+        $parentIds = WbsItem::where('project_id', $projectId)
+            ->whereNotNull('parent_id')
+            ->distinct()
+            ->pluck('parent_id')
+            ->toArray();
 
-        foreach ($phases as $phase) {
-            $childMinStart = WbsItem::where('project_id', $projectId)
-                ->where('wbs_code', 'like', $phase->wbs_code . '.%')
-                ->where('item_type', '!=', 'phase')
-                ->whereNotNull('start_date')
-                ->min('start_date');
+        // Perform multiple passes to cascade parent dates up through multi-level hierarchies
+        for ($pass = 0; $pass < 4; $pass++) {
+            $parents = WbsItem::where('project_id', $projectId)
+                ->where(function ($q) use ($parentIds) {
+                    $q->whereIn('id', $parentIds)
+                      ->orWhere('item_type', 'phase');
+                })
+                ->get();
 
-            $childMaxEnd = WbsItem::where('project_id', $projectId)
-                ->where('wbs_code', 'like', $phase->wbs_code . '.%')
-                ->where('item_type', '!=', 'phase')
-                ->whereNotNull('end_date')
-                ->max('end_date');
+            foreach ($parents as $parent) {
+                $childMinStart = WbsItem::where('project_id', $projectId)
+                    ->where(function ($q) use ($parent) {
+                        $q->where('parent_id', $parent->id)
+                          ->orWhere('wbs_code', 'like', $parent->wbs_code . '.%');
+                    })
+                    ->where('id', '!=', $parent->id)
+                    ->whereNotNull('start_date')
+                    ->min('start_date');
 
-            if ($childMinStart || $childMaxEnd) {
-                $phase->update([
-                    'start_date' => $childMinStart ?: $phase->start_date,
-                    'end_date'   => $childMaxEnd   ?: $phase->end_date,
-                ]);
+                $childMaxEnd = WbsItem::where('project_id', $projectId)
+                    ->where(function ($q) use ($parent) {
+                        $q->where('parent_id', $parent->id)
+                          ->orWhere('wbs_code', 'like', $parent->wbs_code . '.%');
+                    })
+                    ->where('id', '!=', $parent->id)
+                    ->whereNotNull('end_date')
+                    ->max('end_date');
+
+                if ($childMinStart || $childMaxEnd) {
+                    $parent->update([
+                        'start_date' => $childMinStart ?: $parent->start_date,
+                        'end_date'   => $childMaxEnd   ?: $parent->end_date,
+                    ]);
+                }
             }
         }
     }
 
     /**
      * Find all eligible following tasks in sequential project order after sourceTask.
-     * Includes both explicit WbsDependency successors AND all sequential tasks that come
-     * after the source task in the natural project WBS order.
+     * Includes explicit WbsDependency successors AND sequential tasks that come
+     * after the source task in WBS order.
      */
     private function findEligibleFollowingTasks(WbsItem $sourceTask): \Illuminate\Support\Collection
     {
@@ -410,16 +349,7 @@ class ScheduleCascadeService
         $visited   = [$sourceTask->id => true];
         $tasksToShift = collect();
 
-        // 1. All non-phase tasks in natural WBS order
-        $allTasks = WbsItem::where('project_id', $projectId)
-            ->where('item_type', '!=', 'phase')
-            ->get()
-            ->sort(fn($a, $b) => strnatcmp($a->wbs_code, $b->wbs_code))
-            ->values();
-
-        $sourceIndex = $allTasks->search(fn($t) => $t->id === $sourceTask->id);
-
-        // 2. Direct dependency-graph successors (BFS)
+        // 1. Direct and indirect dependency-graph successors (BFS)
         $queue = new \SplQueue();
         $directDeps = WbsDependency::where('predecessor_id', $sourceTask->id)->get();
         foreach ($directDeps as $dep) {
@@ -442,13 +372,48 @@ class ScheduleCascadeService
             }
         }
 
-        // 3. All sequential tasks after source in project order
-        if ($sourceIndex !== false) {
-            for ($i = $sourceIndex + 1; $i < $allTasks->count(); $i++) {
-                $subsequent = $allTasks[$i];
-                if (!isset($visited[$subsequent->id])) {
-                    $tasksToShift[$subsequent->id] = $subsequent;
-                    $visited[$subsequent->id] = true;
+        // 2. All tasks in natural WBS code sequence after sourceTask
+        $allProjectItems = WbsItem::where('project_id', $projectId)
+            ->get()
+            ->sort(fn($a, $b) => strnatcmp($a->wbs_code, $b->wbs_code))
+            ->values();
+
+        $sourceCode = $sourceTask->wbs_code;
+
+        foreach ($allProjectItems as $item) {
+            if (isset($visited[$item->id])) {
+                continue;
+            }
+
+            // Skip top-level phases (recalculated from children)
+            if ($item->item_type?->value === 'phase' || $item->item_type === 'phase') {
+                continue;
+            }
+
+            // If item has children, skip direct shifting (its children will be shifted)
+            $hasChildren = WbsItem::where('parent_id', $item->id)->exists();
+            if ($hasChildren) {
+                continue;
+            }
+
+            // Check if item's WBS code is sequentially after sourceTask's WBS code
+            if (!empty($sourceCode) && !empty($item->wbs_code) && strnatcmp($item->wbs_code, $sourceCode) > 0) {
+                $tasksToShift[$item->id] = $item;
+                $visited[$item->id] = true;
+            }
+        }
+
+        // 3. If sourceTask itself has children, include its leaf subtasks
+        if (!empty($sourceCode)) {
+            $sourceChildren = WbsItem::where('project_id', $projectId)
+                ->where('wbs_code', 'like', $sourceCode . '.%')
+                ->get();
+
+            foreach ($sourceChildren as $child) {
+                $hasSubChildren = WbsItem::where('parent_id', $child->id)->exists();
+                if (!$hasSubChildren && !isset($visited[$child->id])) {
+                    $tasksToShift[$child->id] = $child;
+                    $visited[$child->id] = true;
                 }
             }
         }

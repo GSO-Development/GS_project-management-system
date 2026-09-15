@@ -68,6 +68,17 @@ class AzureController extends Controller
         Auth::login($user, true);
         request()->session()->regenerate();
 
+        \App\Models\ActivityLog::create([
+            'user_id'     => $user->id,
+            'action'      => 'azure_sso_logged_in',
+            'module'      => 'users',
+            'record_type' => User::class,
+            'record_id'   => $user->id,
+            'new_values'  => ['email' => $user->email, 'azure_id' => $user->azure_id],
+            'ip_address'  => request()->ip(),
+            'user_agent'  => request()->userAgent(),
+        ]);
+
         // --- 6. Role-based redirect ---
         return $this->redirectByRole($user);
     }

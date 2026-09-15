@@ -28,7 +28,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'must_change_password'])->group(function () {
 
     // Force Password Change route for new users
     Route::get('/force-password-change', \App\Livewire\ForcePasswordChange::class)->name('force-password-change');

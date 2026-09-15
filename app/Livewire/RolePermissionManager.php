@@ -74,6 +74,11 @@ class RolePermissionManager extends Component
         $this->selectedRole = $roleCode;
         $activePerms = RbacService::getPermissionsForRole($roleCode);
 
+        // Explicitly strip project.create and project.delete for non-admin roles
+        if (!in_array($roleCode, ['super_admin', 'pmo_admin'], true)) {
+            $activePerms = array_diff($activePerms, ['project.create', 'project.delete']);
+        }
+
         $this->rolePermissions = [];
         foreach ($activePerms as $p) {
             $this->rolePermissions[$p] = true;
@@ -95,6 +100,11 @@ class RolePermissionManager extends Component
 
     public function togglePermission(string $permCode): void
     {
+        $isAdmin = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+        if (!$isAdmin && in_array($permCode, ['project.create', 'project.delete'], true)) {
+            return;
+        }
+
         if (!empty($this->rolePermissions[$permCode])) {
             unset($this->rolePermissions[$permCode]);
         } else {
@@ -108,7 +118,12 @@ class RolePermissionManager extends Component
         $module = $allModules[$moduleKey] ?? null;
         if (!$module) return;
 
+        $isAdmin = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+
         foreach (array_keys($module['permissions']) as $permCode) {
+            if (!$isAdmin && in_array($permCode, ['project.create', 'project.delete'], true)) {
+                continue;
+            }
             $this->rolePermissions[$permCode] = true;
         }
     }
@@ -127,8 +142,13 @@ class RolePermissionManager extends Component
     public function selectAllGlobal(): void
     {
         $allModules = RbacService::getAllModules();
+        $isAdmin = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+
         foreach ($allModules as $module) {
             foreach (array_keys($module['permissions']) as $permCode) {
+                if (!$isAdmin && in_array($permCode, ['project.create', 'project.delete'], true)) {
+                    continue;
+                }
                 $this->rolePermissions[$permCode] = true;
             }
         }
@@ -168,6 +188,11 @@ class RolePermissionManager extends Component
 
         // Active permissions to save
         $newPerms = array_keys(array_filter($this->rolePermissions));
+
+        // Strip project.create and project.delete for non-admin roles
+        if (!in_array($roleCode, ['super_admin', 'pmo_admin'], true)) {
+            $newPerms = array_values(array_diff($newPerms, ['project.create', 'project.delete']));
+        }
         $oldPerms = $role->permissions->pluck('name')->toArray();
 
         // Sync with Spatie
@@ -227,74 +252,26 @@ class RolePermissionManager extends Component
             return;
         }
 
-        $defaultPerms = match($targetRole) {
-            'super_admin' => Permission::pluck('name')->toArray(),
-            'pmo_admin' => Permission::pluck('name')->toArray(),
-            'lead' => [
-                'project.view', 'project.view_assigned', 'project.edit', 'project.manage_scope', 'project.manage_schedule', 'project.manage_milestones',
-                'project_details.view', 'project_details.edit', 'scope.view', 'scope.edit', 'schedule.edit',
-                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.reassign', 'task.change_status', 'task.update_progress', 'task.change_priority', 'task.change_due_date', 'task.create_subtask', 'task.comment', 'task.upload_attachment', 'task.complete',
-                'team.view', 'team.add', 'team.remove', 'team.assign_role', 'team.change_role', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.edit_actual', 'budget.submit_change', 'budget.report',
-                'risk.view', 'risk.create', 'risk.edit', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
-                'approval.view', 'approval.submit',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view', 'project_settings.edit'
-            ],
-            'member' => [
-                'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete',
-                'team.view', 'team.view_member',
-                'risk.view', 'risk.create', 'blocker.create',
-                'approval.view', 'approval.submit'
-            ],
-            'collaborator' => [
-                'project.view_assigned',
-                'project_details.view',
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete',
-                'team.view', 'team.view_member',
-                'risk.view', 'blocker.create'
-            ],
-            'sponsor' => [
-                'project.view', 'project.view_assigned', 'project.view_all',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_all',
-                'team.view', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.report',
-                'risk.view',
-                'approval.view', 'approval.final_approve',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view'
-            ],
-            'owner' => [
-                'project.view', 'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_all',
-                'team.view', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.submit_change', 'budget.report',
-                'risk.view',
-                'approval.view', 'approval.submit', 'approval.approve', 'approval.reject', 'approval.return',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view'
-            ],
-            'steering_committee' => [
-                'project.view', 'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_all',
-                'team.view', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.report',
-                'risk.view',
-                'approval.view', 'approval.approve', 'approval.reject',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view'
-            ],
-            default => [],
-        };
+        $defaultPerms = RbacService::getDefaultPermissionsForRole($targetRole);
 
         $role = Role::where('name', $targetRole)->first();
         if ($role) {
             $role->syncPermissions($defaultPerms);
+        }
+
+        // Also sync alias role if exists
+        $alias = match($targetRole) {
+            'lead' => 'project_manager',
+            'member' => 'team_member',
+            'project_manager' => 'lead',
+            'team_member' => 'member',
+            default => null,
+        };
+        if ($alias) {
+            $aliasRole = Role::where('name', $alias)->first();
+            if ($aliasRole) {
+                $aliasRole->syncPermissions($defaultPerms);
+            }
         }
 
         RbacService::clearCache();
@@ -416,19 +393,11 @@ class RolePermissionManager extends Component
         $allRoles = RbacService::getAllRoles();
         $displayName = $allRoles[$roleCode]['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role->name));
 
-        // Check if role is currently assigned to users (system-wide)
-        $userCount = $role->users()->count();
-        if ($userCount > 0) {
-            $this->dispatch('toast', message: "Cannot delete role '{$displayName}' because {$userCount} user(s) are currently assigned to it. Please reassign them first.", type: 'error');
-            return;
-        }
+        // Automatically detach users from this role
+        $role->users()->detach();
 
-        // Check if role is assigned to project members
-        $pmCount = \App\Models\ProjectMember::where('role', $roleCode)->count();
-        if ($pmCount > 0) {
-            $this->dispatch('toast', message: "Cannot delete role '{$displayName}' because it is assigned to {$pmCount} project member(s). Please remove or reassign them in their respective projects first.", type: 'error');
-            return;
-        }
+        // Automatically clean up any project member assignments with this role
+        \App\Models\ProjectMember::where('role', $roleCode)->delete();
 
         // Detach permissions and delete
         $role->permissions()->detach();

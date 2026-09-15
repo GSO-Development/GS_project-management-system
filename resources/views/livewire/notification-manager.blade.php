@@ -370,13 +370,20 @@
                 {{-- Bottom Row inside Item Card: Clean Message & Title --}}
                 <div class="pl-9 pr-2">
                     @if($cleanTitle && $cleanTitle !== $cleanMsg)
-                        <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug tracking-tight mb-0.5">
-                            {{ $cleanTitle }}
+                        <h4 class="text-sm sm:text-[15px] font-bold text-slate-900 tracking-tight leading-snug mb-1 group-hover:text-[#c3122e] transition-colors flex items-center gap-2" style="font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;">
+                            <span>{{ $cleanTitle }}</span>
                         </h4>
                     @endif
 
-                    <p class="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed">
-                        {{ $cleanMsg }}
+                    @php
+                        $formattedMsg = e($cleanMsg);
+                        $formattedMsg = preg_replace("/'([^']+)'/", '<span class="font-semibold text-slate-900 bg-slate-100/90 px-1.5 py-0.5 rounded-md border border-slate-200/70 font-sans text-xs inline-block">$1</span>', $formattedMsg);
+                        $formattedMsg = preg_replace("/\(Overdue by ([^\)]+)\)/i", '<span class="font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/80 text-[11px] inline-flex items-center gap-1.5 ml-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>Overdue by $1</span>', $formattedMsg);
+                        $formattedMsg = preg_replace("/Current progress is ([0-9]+%)/i", 'Current progress is <span class="font-bold text-slate-800">$1</span>', $formattedMsg);
+                    @endphp
+
+                    <p class="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed" style="font-family: 'Inter', system-ui, sans-serif;">
+                        {!! $formattedMsg !!}
                     </p>
 
                     @if($isProjectLeaderAssignment && $isUnread)
