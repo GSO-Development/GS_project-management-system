@@ -307,6 +307,19 @@ class Project extends Model
     }
 
     /**
+     * Check if a user is a member or manager of this project.
+     */
+    public function isMember(User|int|null $user): bool
+    {
+        if (!$user) return false;
+        $userId = $user instanceof User ? $user->id : (int) $user;
+        if ($this->project_manager_id === $userId) {
+            return true;
+        }
+        return $this->members()->where('users.id', $userId)->exists();
+    }
+
+    /**
      * Get the specific role of a user in this project.
      * Returns: 'lead', 'sponsor', 'owner', 'steering_committee', 'member', or null.
      */

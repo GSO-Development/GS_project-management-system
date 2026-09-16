@@ -391,7 +391,7 @@ class ProjectWorkspace extends Component
             'setupEstimatedBudget' => 'nullable|numeric|min:0',
         ]);
 
-        $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit_estimated');
+        $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit');
 
         $this->project->description = $this->setupDescription;
         $this->project->start_date = $this->setupStartDate ?: now()->toDateString();
@@ -427,7 +427,7 @@ class ProjectWorkspace extends Component
     public function openEditProjectModal()
     {
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'project.edit') && !$this->project->userCan($user, 'project_details.edit') && !$user->isSuperAdmin() && !$user->isPmoAdmin()) {
+        if (!$user->isPmoAdmin() && !$this->project->userCan($user, 'project_details.edit')) {
             $this->dispatch('toast', message: 'You do not have permission to edit project details.', type: 'error');
             return;
         }
@@ -452,7 +452,7 @@ class ProjectWorkspace extends Component
     public function saveProjectDetails()
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'project.edit'), 403, 'Unauthorized to edit project details.');
+        abort_if(!$user->isPmoAdmin() && !$this->project->userCan($user, 'project_details.edit'), 403, 'Unauthorized to edit project details.');
 
         $this->validate([
             'editName' => 'required|string|max:255',
@@ -492,8 +492,8 @@ class ProjectWorkspace extends Component
         $this->project->start_date = $this->editStartDate ?: null;
         $this->project->deadline = $this->editDeadline ?: null;
         
-        $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit_estimated');
-        $canEditActualCost = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit_actual');
+        $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit');
+        $canEditActualCost = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit');
 
         if ($canEditEstimatedBudget) {
             $this->project->estimated_budget = $this->editEstimatedBudget ?: 0;
@@ -543,7 +543,7 @@ class ProjectWorkspace extends Component
     public function openCollaboratorsModal()
     {
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'team.add') && !$this->project->userCan($user, 'team.view')) {
+        if (!$user->isPmoAdmin() && !$this->project->userCan($user, 'team.add') && !$this->project->userCan($user, 'team.view')) {
             $this->dispatch('toast', message: 'You do not have permission to manage team members.', type: 'error');
             return;
         }
@@ -556,7 +556,7 @@ class ProjectWorkspace extends Component
     public function saveCollaborators()
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'team.add'), 403, 'Unauthorized to add or edit project team members.');
+        abort_if(!$user->isPmoAdmin() && !$this->project->userCan($user, 'team.add'), 403, 'Unauthorized to add or edit project team members.');
 
         // Track existing member roles before sync so roles like 'sponsor', 'owner', 'steering_committee' are PRESERVED
         $existingMembers = $this->project->members()->withPivot('role')->get()->keyBy('id');
@@ -600,7 +600,7 @@ class ProjectWorkspace extends Component
     public function removeCollaborator(int $userId)
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'team.remove'), 403, 'Unauthorized to remove team members.');
+        abort_if(!$user->isPmoAdmin() && !$this->project->userCan($user, 'team.remove'), 403, 'Unauthorized to remove team members.');
 
         if ($userId === $this->project->project_manager_id) {
             $this->dispatch('toast', message: 'Cannot remove the designated Project Leader.', type: 'error');
@@ -634,6 +634,11 @@ class ProjectWorkspace extends Component
         $targetUser = \App\Models\User::find($userId);
         if (!$targetUser) return;
 
+        if ($targetUser->isPmoAdmin() || $targetUser->isSuperAdmin() || $targetUser->hasRole('super_admin') || $targetUser->hasRole('pmo_admin')) {
+            $this->dispatch('toast', message: 'PMO Administrator accounts are core protected and cannot be deleted.', type: 'error');
+            return;
+        }
+
         // Disassociate user from projects & tasks before deleting
         \App\Models\Project::where('project_manager_id', $targetUser->id)->update(['project_manager_id' => null]);
         \App\Models\Project::where('created_by', $targetUser->id)->update(['created_by' => null]);
@@ -655,8 +660,8 @@ class ProjectWorkspace extends Component
     public function quickCreateCollaborator()
     {
         $user = auth()->user();
-        if (!$user->hasAnyRole(['super_admin', 'pmo_admin', 'project_manager']) && $this->project->project_manager_id !== $user->id) {
-            $this->dispatch('toast', message: 'Only the Project Leader or Administrator can create team members.', type: 'error');
+        if (!$user->isPmoAdmin() && !$this->project->userCan($user, 'team.add')) {
+            $this->dispatch('toast', message: 'Only authorized team leads or PMO Administrators can create team members.', type: 'error');
             return;
         }
 

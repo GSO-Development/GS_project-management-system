@@ -402,7 +402,7 @@ class ProjectIndex extends Component
                 return;
             }
 
-            if (!$isSuperAdmin && !$project->userCan($user, 'budget.edit_estimated')) {
+            if (!$isSuperAdmin && !$project->userCan($user, 'budget.edit')) {
                 unset($data['estimated_budget']);
             }
 

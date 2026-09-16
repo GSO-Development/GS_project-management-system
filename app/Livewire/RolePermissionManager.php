@@ -74,14 +74,23 @@ class RolePermissionManager extends Component
         $this->selectedRole = $roleCode;
         $activePerms = RbacService::getPermissionsForRole($roleCode);
 
-        // Explicitly strip project.create and project.delete for non-admin roles
-        if (!in_array($roleCode, ['super_admin', 'pmo_admin'], true)) {
-            $activePerms = array_diff($activePerms, ['project.create', 'project.delete']);
+        $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
+        $isLeadRole = in_array($roleCode, ['lead', 'project_manager'], true);
+
+        // Strip project.create for non-PMO admin roles, and project.delete for non-lead/non-PMO roles
+        if (!$isPmoAdminRole) {
+            $activePerms = array_diff($activePerms, ['project.create']);
+            if (!$isLeadRole) {
+                $activePerms = array_diff($activePerms, ['project.delete']);
+            }
         }
 
         $this->rolePermissions = [];
-        foreach ($activePerms as $p) {
-            $this->rolePermissions[$p] = true;
+        $allModules = RbacService::getAllModules();
+        foreach ($allModules as $module) {
+            foreach (array_keys($module['permissions']) as $p) {
+                $this->rolePermissions[$p] = in_array($p, $activePerms, true);
+            }
         }
 
         $this->initialRolePermissions = $this->rolePermissions;
@@ -100,16 +109,13 @@ class RolePermissionManager extends Component
 
     public function togglePermission(string $permCode): void
     {
-        $isAdmin = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
-        if (!$isAdmin && in_array($permCode, ['project.create', 'project.delete'], true)) {
+        $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+
+        if ($permCode === 'project.create' && !$isPmoAdminRole) {
             return;
         }
 
-        if (!empty($this->rolePermissions[$permCode])) {
-            unset($this->rolePermissions[$permCode]);
-        } else {
-            $this->rolePermissions[$permCode] = true;
-        }
+        $this->rolePermissions[$permCode] = !($this->rolePermissions[$permCode] ?? false);
     }
 
     public function selectAllForModule(string $moduleKey): void
@@ -118,10 +124,10 @@ class RolePermissionManager extends Component
         $module = $allModules[$moduleKey] ?? null;
         if (!$module) return;
 
-        $isAdmin = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+        $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
 
         foreach (array_keys($module['permissions']) as $permCode) {
-            if (!$isAdmin && in_array($permCode, ['project.create', 'project.delete'], true)) {
+            if ($permCode === 'project.create' && !$isPmoAdminRole) {
                 continue;
             }
             $this->rolePermissions[$permCode] = true;
@@ -135,18 +141,22 @@ class RolePermissionManager extends Component
         if (!$module) return;
 
         foreach (array_keys($module['permissions']) as $permCode) {
-            unset($this->rolePermissions[$permCode]);
+            $this->rolePermissions[$permCode] = false;
         }
     }
 
     public function selectAllGlobal(): void
     {
         $allModules = RbacService::getAllModules();
-        $isAdmin = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+        $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
+        $isLeadRole = in_array($this->selectedRole, ['lead', 'project_manager'], true);
 
         foreach ($allModules as $module) {
             foreach (array_keys($module['permissions']) as $permCode) {
-                if (!$isAdmin && in_array($permCode, ['project.create', 'project.delete'], true)) {
+                if ($permCode === 'project.create' && !$isPmoAdminRole) {
+                    continue;
+                }
+                if ($permCode === 'project.delete' && !$isPmoAdminRole && !$isLeadRole) {
                     continue;
                 }
                 $this->rolePermissions[$permCode] = true;
@@ -156,7 +166,8 @@ class RolePermissionManager extends Component
 
     public function clearAllGlobal(): void
     {
-        $this->rolePermissions = [];
+        // Set all to false rather than empty array so Livewire detects each key change
+        $this->rolePermissions = array_map(fn() => false, $this->rolePermissions);
     }
 
     public function getHasUnsavedChangesProperty(): bool
@@ -189,9 +200,14 @@ class RolePermissionManager extends Component
         // Active permissions to save
         $newPerms = array_keys(array_filter($this->rolePermissions));
 
-        // Strip project.create and project.delete for non-admin roles
-        if (!in_array($roleCode, ['super_admin', 'pmo_admin'], true)) {
-            $newPerms = array_values(array_diff($newPerms, ['project.create', 'project.delete']));
+        $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
+        $isLeadRole = in_array($roleCode, ['lead', 'project_manager'], true);
+
+        if (!$isPmoAdminRole) {
+            $newPerms = array_values(array_diff($newPerms, ['project.create']));
+            if (!$isLeadRole) {
+                $newPerms = array_values(array_diff($newPerms, ['project.delete']));
+            }
         }
         $oldPerms = $role->permissions->pluck('name')->toArray();
 

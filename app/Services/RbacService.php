@@ -30,7 +30,6 @@ class RbacService
         'steering_committee',
         'member',
         'team_member',
-        'collaborator',
     ];
 
     /**
@@ -42,7 +41,7 @@ class RbacService
             return false;
         }
         $code = strtolower($code);
-        return isset(self::ROLES[$code]) || in_array($code, self::PROTECTED_ROLES, true);
+        return isset(self::ROLES[$code]) && !empty(self::ROLES[$code]['is_protected']) || in_array($code, self::PROTECTED_ROLES, true);
     }
 
     /**
@@ -110,7 +109,7 @@ class RbacService
             'badge' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
             'description' => 'Specialist contributor assisting on specific deliverables with view-only project access & task status updates.',
             'is_system' => true,
-            'is_protected' => true,
+            'is_protected' => false,
         ],
     ];
 
@@ -156,14 +155,25 @@ class RbacService
             }
         }
 
-        // Ensure ONLY core protected built-in roles appear even if not yet in DB table
-        foreach (self::ROLES as $code => $def) {
-            if (!empty($def['is_protected']) && !isset($roles[$code])) {
-                $roles[$code] = $def;
-                $roles[$code]['id'] = null;
-                $roles[$code]['users_count'] = 0;
+        // Sort roles by logical governance hierarchy order
+        $priorityOrder = [
+            'pmo_admin' => 1,
+            'lead' => 2,
+            'sponsor' => 3,
+            'owner' => 4,
+            'steering_committee' => 5,
+            'member' => 6,
+            'collaborator' => 7,
+        ];
+
+        uksort($roles, function ($a, $b) use ($priorityOrder) {
+            $posA = $priorityOrder[$a] ?? 99;
+            $posB = $priorityOrder[$b] ?? 99;
+            if ($posA === $posB) {
+                return strcmp($a, $b);
             }
-        }
+            return $posA <=> $posB;
+        });
 
         return $roles;
     }
@@ -172,24 +182,6 @@ class RbacService
      * Module definitions with granular permission codes.
      */
     public const MODULES = [
-        'project' => [
-            'key' => 'project',
-            'name' => 'Project',
-            'icon' => '📁',
-            'permissions' => [
-                'project.view' => 'View Project',
-                'project.view_all' => 'View All Projects',
-                'project.view_assigned' => 'View Assigned Projects',
-                'project.create' => 'Create Project',
-                'project.edit' => 'Edit Project',
-                'project.delete' => 'Delete Project',
-                'project.archive' => 'Archive Project',
-                'project.change_status' => 'Change Project Status',
-                'project.manage_scope' => 'Manage Scope',
-                'project.manage_schedule' => 'Manage Schedule',
-                'project.manage_milestones' => 'Manage Milestones',
-            ],
-        ],
         'scope' => [
             'key' => 'scope',
             'name' => 'Scope / Project Details',
@@ -197,10 +189,6 @@ class RbacService
             'permissions' => [
                 'project_details.view' => 'View Project Details',
                 'project_details.edit' => 'Edit Project Details',
-                'scope.view' => 'View Scope',
-                'scope.edit' => 'Edit Scope',
-                'scope.approve' => 'Approve Scope Change',
-                'schedule.edit' => 'Edit Project Dates',
             ],
         ],
         'task' => [
@@ -216,17 +204,10 @@ class RbacService
                 'task.edit_assigned' => 'Edit Assigned Task',
                 'task.delete' => 'Delete Task',
                 'task.assign' => 'Assign Task',
-                'task.reassign' => 'Reassign Task',
                 'task.change_status' => 'Update Task Status',
-                'task.update_progress' => 'Update Task Progress',
                 'task.change_priority' => 'Change Task Priority',
-                'task.change_due_date' => 'Change Due Date',
                 'task.create_subtask' => 'Create Subtask',
-                'task.comment' => 'Add Comment',
-                'task.upload_attachment' => 'Upload Attachment',
-                'task.complete' => 'Complete Task',
-                'schedule.view_impact' => 'View Schedule Impact Preview',
-                'schedule.apply_cascade' => 'Apply Cascade Rescheduling',
+                'task.log_daily' => 'Daily Progress Log',
             ],
         ],
         'team' => [
@@ -237,77 +218,6 @@ class RbacService
                 'team.view' => 'View Project Team',
                 'team.add' => 'Add Project Member',
                 'team.remove' => 'Remove Project Member',
-                'team.assign_role' => 'Assign Project Role',
-                'team.change_role' => 'Change Project Role',
-                'team.view_member' => 'View Member Details',
-            ],
-        ],
-        'budget' => [
-            'key' => 'budget',
-            'name' => 'Budget / Finance',
-            'icon' => '💰',
-            'permissions' => [
-                'budget.view' => 'View Budget',
-                'budget.view_estimated' => 'View Estimated Budget',
-                'budget.edit_estimated' => 'Edit Estimated Budget',
-                'budget.view_actual' => 'View Actual Cost',
-                'budget.edit_actual' => 'Edit Actual Cost',
-                'budget.submit_change' => 'Submit Budget Change',
-                'budget.approve' => 'Approve Budget Change',
-                'budget.report' => 'View Financial Reports',
-            ],
-        ],
-        'risks' => [
-            'key' => 'risks',
-            'name' => 'Risks & Blockers',
-            'icon' => '⚠️',
-            'permissions' => [
-                'risk.view' => 'View Risks',
-                'risk.create' => 'Create Risk',
-                'risk.edit' => 'Edit Risk',
-                'risk.delete' => 'Delete Risk',
-                'risk.assign' => 'Assign Risk',
-                'risk.escalate' => 'Escalate Risk',
-                'risk.resolve' => 'Resolve Risk',
-                'blocker.create' => 'Create Blocker',
-                'blocker.edit' => 'Edit Blocker',
-                'blocker.resolve' => 'Resolve Blocker',
-            ],
-        ],
-        'approvals' => [
-            'key' => 'approvals',
-            'name' => 'Approvals',
-            'icon' => '✅',
-            'permissions' => [
-                'approval.view' => 'View Approval Requests',
-                'approval.submit' => 'Submit Approval Request',
-                'approval.approve' => 'Approve Request',
-                'approval.reject' => 'Reject Request',
-                'approval.return' => 'Return for Changes',
-                'approval.final_approve' => 'Final Approval',
-            ],
-        ],
-        'reports' => [
-            'key' => 'reports',
-            'name' => 'Reports',
-            'icon' => '📊',
-            'permissions' => [
-                'report.view' => 'View Reports',
-                'report.project' => 'View Project Reports',
-                'report.financial' => 'View Financial Reports',
-                'report.performance' => 'View Performance Reports',
-                'report.export' => 'Export Reports',
-            ],
-        ],
-        'settings' => [
-            'key' => 'settings',
-            'name' => 'Project Settings',
-            'icon' => '⚙️',
-            'permissions' => [
-                'project_settings.view' => 'View Project Settings',
-                'project_settings.edit' => 'Edit Project Settings',
-                'project_settings.configure' => 'Manage Project Configuration',
-                'project_settings.manage_roles' => 'Manage Project Roles',
             ],
         ],
         'calendar' => [
@@ -331,35 +241,7 @@ class RbacService
      */
     public static function getAllModules(): array
     {
-        $modules = self::MODULES;
-        $dbPermissions = Permission::all();
-
-        // Check if there are any DB permissions not listed in standard modules
-        $knownCodes = [];
-        foreach ($modules as $m) {
-            $knownCodes = array_merge($knownCodes, array_keys($m['permissions']));
-        }
-
-        foreach ($dbPermissions as $perm) {
-            if (!in_array($perm->name, $knownCodes)) {
-                $prefix = explode('.', $perm->name)[0] ?? 'custom';
-                if (isset($modules[$prefix])) {
-                    $modules[$prefix]['permissions'][$perm->name] = ucwords(str_replace(['_', '.'], ' ', $perm->name));
-                } else {
-                    if (!isset($modules['custom'])) {
-                        $modules['custom'] = [
-                            'key' => 'custom',
-                            'name' => 'Custom & Additional Rights',
-                            'icon' => '🔐',
-                            'permissions' => [],
-                        ];
-                    }
-                    $modules['custom']['permissions'][$perm->name] = ucwords(str_replace(['_', '.'], ' ', $perm->name));
-                }
-            }
-        }
-
-        return $modules;
+        return self::MODULES;
     }
 
     /**
@@ -383,46 +265,48 @@ class RbacService
                 return false;
             }
 
+            // Project Manager (lead or designated manager on this project) has 100% FULL ACCESS
+            if ($projectModel->project_manager_id === $user->id) {
+                return true;
+            }
+
             $roleCode = $projectModel->getUserRole($user);
 
-            // User has no role in this project
+            // If user has no explicit role in this project, check if assigned to a task
             if (!$roleCode) {
-                // If user is assigned to a specific task, check task-level access
                 if ($task && $task->assigned_user_id === $user->id) {
-                    $memberPermissions = self::getPermissionsForRole('member');
-                    if (in_array($permission, ['task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete'])) {
-                        return in_array($permission, $memberPermissions);
+                    if (in_array($permission, ['task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'approval.submit', 'approval.view', 'risk.create', 'risk.view'], true)) {
+                        return true;
                     }
                 }
                 return false;
             }
 
-            // Get permissions granted to this role
+            // Role: Project Lead/Manager (Full Access on PM project)
+            if ($roleCode === 'lead' || $roleCode === 'project_manager') {
+                return true;
+            }
+
+            // Fetch permissions dynamically assigned to this role in database (Spatie RBAC)
             $rolePermissions = self::getPermissionsForRole($roleCode);
 
-            // If task-specific edit check:
-            if ($permission === 'task.edit') {
-                if (in_array('task.edit', $rolePermissions)) {
-                    return true;
-                }
-                if (in_array('task.edit_assigned', $rolePermissions) && $task && $task->assigned_user_id === $user->id) {
-                    return true;
-                }
+            // If requested permission is not in the granted permissions array, deny access
+            if (!in_array($permission, $rolePermissions, true)) {
                 return false;
             }
 
-            // If task-specific view check:
-            if ($permission === 'task.view') {
-                if (in_array('task.view', $rolePermissions) || in_array('task.view_all', $rolePermissions)) {
+            // Task-specific assignment scoping:
+            // If checking access on a specific $task model (e.g. view, edit assigned, status update)
+            if ($task && in_array($permission, ['task.view', 'task.edit_assigned', 'task.change_status'], true)) {
+                // Roles with 'task.view_all' can view and act on any task across the project
+                if (in_array('task.view_all', $rolePermissions, true)) {
                     return true;
                 }
-                if (in_array('task.view_assigned', $rolePermissions) && $task && $task->assigned_user_id === $user->id) {
-                    return true;
-                }
-                return in_array('task.view_assigned', $rolePermissions);
+                // Otherwise, restricted to tasks assigned to this user
+                return $task->assigned_user_id === $user->id;
             }
 
-            return in_array($permission, $rolePermissions);
+            return true;
         }
 
         // 2. Global / Unscoped Check
@@ -479,69 +363,30 @@ class RbacService
         return match($roleCode) {
             'super_admin', 'pmo_admin' => Permission::pluck('name')->toArray(),
             'lead', 'project_manager' => [
-                'project.view', 'project.view_all', 'project.view_assigned', 'project.edit', 'project.manage_scope', 'project.manage_schedule', 'project.manage_milestones',
-                'project_details.view', 'project_details.edit', 'scope.view', 'scope.edit', 'schedule.edit',
-                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.reassign', 'task.change_status', 'task.update_progress', 'task.change_priority', 'task.change_due_date', 'task.create_subtask', 'task.comment', 'task.upload_attachment', 'task.complete', 'schedule.view_impact', 'schedule.apply_cascade',
-                'team.view', 'team.add', 'team.remove', 'team.assign_role', 'team.change_role', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.edit_estimated', 'budget.edit_actual', 'budget.submit_change', 'budget.report',
-                'risk.view', 'risk.create', 'risk.edit', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
-                'approval.view', 'approval.submit',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view', 'project_settings.edit',
+                'project_details.view', 'project_details.edit',
+                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.change_status', 'task.change_priority', 'task.create_subtask', 'task.log_daily',
+                'team.view', 'team.add', 'team.remove',
                 'calendar.view', 'calendar.create', 'calendar.edit', 'calendar.delete', 'calendar.sync_outlook', 'calendar.export',
             ],
             'member', 'team_member' => [
-                'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete', 'schedule.view_impact',
-                'team.view', 'team.view_member',
-                'risk.view', 'risk.create', 'blocker.create',
-                'approval.view', 'approval.submit',
-                'calendar.view', 'calendar.export',
+                // WBS & Tasks permissions only
+                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.log_daily',
             ],
             'collaborator' => [
-                'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete',
-                'team.view', 'team.view_member',
-                'risk.view', 'blocker.create',
-                'calendar.view', 'calendar.export',
+                // WBS & Tasks permissions only
+                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.log_daily',
             ],
             'sponsor' => [
-                'project.view', 'project.view_all', 'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_all', 'task.view_assigned', 'schedule.view_impact',
-                'team.view', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.report',
-                'risk.view',
-                'approval.view', 'approval.final_approve',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view',
-                'calendar.view', 'calendar.export',
+                // WBS & Tasks permissions only
+                'task.view', 'task.view_all', 'task.view_assigned',
             ],
             'owner' => [
-                'project.view', 'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_all', 'task.view_assigned', 'schedule.view_impact',
-                'team.view', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.submit_change', 'budget.report',
-                'risk.view',
-                'approval.view', 'approval.submit', 'approval.approve', 'approval.reject', 'approval.return',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view',
-                'calendar.view', 'calendar.export',
+                // WBS & Tasks permissions only
+                'task.view', 'task.view_assigned',
             ],
             'steering_committee' => [
-                'project.view', 'project.view_assigned',
-                'project_details.view', 'scope.view',
-                'task.view', 'task.view_all', 'task.view_assigned', 'schedule.view_impact',
-                'team.view', 'team.view_member',
-                'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.report',
-                'risk.view',
-                'approval.view', 'approval.approve', 'approval.reject',
-                'report.view', 'report.project', 'report.financial', 'report.performance', 'report.export',
-                'project_settings.view',
-                'calendar.view', 'calendar.export',
+                // WBS & Tasks permissions only
+                'task.view', 'task.view_assigned',
             ],
             default => [],
         };
@@ -561,7 +406,6 @@ class RbacService
      */
     public static function computeModuleSummary(string $roleCode, string $moduleKey): array
     {
-        $rolePermissions = self::getPermissionsForRole($roleCode);
         $allModules = self::getAllModules();
         $moduleDef = $allModules[$moduleKey] ?? (self::MODULES[$moduleKey] ?? null);
 
@@ -571,6 +415,17 @@ class RbacService
 
         $modulePermKeys = array_keys($moduleDef['permissions']);
         $totalModulePerms = count($modulePermKeys);
+
+        if (in_array($roleCode, ['super_admin', 'pmo_admin'], true)) {
+            return [
+                'label' => 'Full Access',
+                'badgeClass' => 'bg-emerald-50 text-emerald-700 border-emerald-200 font-extrabold',
+                'count' => $totalModulePerms,
+                'total' => $totalModulePerms,
+            ];
+        }
+
+        $rolePermissions = self::getPermissionsForRole($roleCode);
         $grantedPerms = array_intersect($modulePermKeys, $rolePermissions);
         $grantedCount = count($grantedPerms);
 

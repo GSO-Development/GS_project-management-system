@@ -157,9 +157,14 @@ class UserManager extends Component
 
         $targetIds = array_diff($this->selectedUsers, [(string)auth()->id(), auth()->id()]);
         $count = 0;
+        $blockedCount = 0;
         foreach ($targetIds as $id) {
             $user = User::find($id);
             if ($user) {
+                if ($user->isPmoAdmin() || $user->isSuperAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin')) {
+                    $blockedCount++;
+                    continue;
+                }
                 \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
                     \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
                     \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
@@ -173,7 +178,13 @@ class UserManager extends Component
             }
         }
         $this->clearSelection();
-        $this->dispatch('toast', message: "{$count} user(s) deleted successfully.", type: 'info');
+        if ($blockedCount > 0 && $count === 0) {
+            $this->dispatch('toast', message: 'PMO Administrator accounts are core protected and cannot be deleted.', type: 'error');
+        } elseif ($blockedCount > 0) {
+            $this->dispatch('toast', message: "{$count} user(s) deleted. PMO Admin account(s) were protected from deletion.", type: 'info');
+        } else {
+            $this->dispatch('toast', message: "{$count} user(s) deleted successfully.", type: 'info');
+        }
     }
 
     public function updatedCreationType(): void
@@ -486,6 +497,11 @@ class UserManager extends Component
         }
 
         $user = User::findOrFail($id);
+
+        if ($user->isPmoAdmin() || $user->isSuperAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin')) {
+            $this->dispatch('toast', message: 'PMO Administrator accounts are core protected and cannot be deleted.', type: 'error');
+            return;
+        }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
             // 1. Unassign from active projects where this user is the Project Manager

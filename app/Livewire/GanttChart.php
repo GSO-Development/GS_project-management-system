@@ -120,7 +120,9 @@ class GanttChart extends Component
 
     public function render()
     {
-        // ── 1. Query ALL WBS items for this project ────────────────────────
+        $user = auth()->user();
+
+        // ── 1. Query WBS items for this project ────────────────────────
         $query = WbsItem::with(['assignedUser', 'children', 'risks'])
             ->where('project_id', $this->project->id);
 

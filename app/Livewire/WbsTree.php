@@ -50,6 +50,9 @@ class WbsTree extends Component
     // Task Status Filter ('all', 'in_progress', 'at_risk', 'blocked', 'completed')
     public string $statusFilter = 'all';
 
+    // Assignee Filter ('all', 'mine')
+    public string $assigneeFilter = 'all';
+
     // Cascade Impact Preview Modal
     public bool $showCascadeModal = false;
     public array $cascadePreview = [];
@@ -68,10 +71,56 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
-            || $this->project->project_manager_id === $user->id 
-            || $this->project->created_by === $user->id
             || $this->project->userCan($user, 'wbs.manage')
             || $this->project->userCan($user, 'task.manage');
+    }
+
+    public function getCanCreateTasksProperty(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->isPmoAdmin() 
+            || $this->project->userCan($user, 'task.create')
+            || $this->project->userCan($user, 'task.create_subtask')
+            || $this->canManageTasks;
+    }
+
+    public function getCanEditTasksProperty(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->isPmoAdmin() 
+            || $this->project->userCan($user, 'task.edit')
+            || $this->project->userCan($user, 'task.edit_assigned')
+            || $this->canManageTasks;
+    }
+
+    public function getCanDeleteTasksProperty(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->isPmoAdmin() 
+            || $this->project->userCan($user, 'task.delete')
+            || $this->canManageTasks;
+    }
+
+    public function canEditSpecificItem(?WbsItem $item): bool
+    {
+        $user = auth()->user();
+        if (!$user || !$item) return false;
+        if ($user->isPmoAdmin()) return true;
+        if ($this->project->userCan($user, 'task.edit')) return true;
+        if ($item->assigned_user_id === $user->id && $this->project->userCan($user, 'task.edit_assigned')) return true;
+        return $this->canManageTasks;
+    }
+
+    public function canDeleteSpecificItem(?WbsItem $item): bool
+    {
+        $user = auth()->user();
+        if (!$user || !$item) return false;
+        if ($user->isPmoAdmin()) return true;
+        if ($this->project->userCan($user, 'task.delete')) return true;
+        return false;
     }
 
     protected function rules(): array
@@ -144,7 +193,7 @@ class WbsTree extends Component
 
     public function openAddItemModal(?int $parentId = null, string $type = 'task')
     {
-        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the assigned Project Manager can create tasks for this project.');
+        abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
 
         $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'start_time', 'end_date', 'end_time', 'progress', 'estimated_hours', 'is_milestone']);
         $this->selectedParentId = $parentId;
@@ -236,7 +285,7 @@ class WbsTree extends Component
     public function openEditItemModal(int $id)
     {
         $item = WbsItem::findOrFail($id);
-        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the designated Project Manager can edit tasks for this project.');
+        abort_if(!$this->canEditSpecificItem($item), 403, 'You do not have permission to edit this task.');
 
         $this->editingItemId = $item->id;
         $this->selectedParentId = $item->parent_id;
@@ -259,7 +308,12 @@ class WbsTree extends Component
 
     public function saveItem()
     {
-        abort_if(!$this->canManageTasks, 403, 'Only PMO Admins and the designated Project Manager can create or edit tasks in this project.');
+        if ($this->editingItemId) {
+            $existingItem = WbsItem::find($this->editingItemId);
+            abort_if(!$this->canEditSpecificItem($existingItem), 403, 'You do not have permission to edit this task.');
+        } else {
+            abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
+        }
 
         $this->validate();
 
@@ -593,8 +647,8 @@ class WbsTree extends Component
         $item = WbsItem::find($id);
         if (!$item) return;
 
-        if (!$this->canManageTasks) {
-            $this->dispatch('toast', message: 'Only PMO Admins and the designated Project Manager can delete tasks.', type: 'error');
+        if (!$this->canDeleteSpecificItem($item)) {
+            $this->dispatch('toast', message: 'You do not have permission to delete this task.', type: 'error');
             return;
         }
 
@@ -662,6 +716,12 @@ class WbsTree extends Component
         $this->resetPage();
     }
 
+    public function setAssigneeFilter(string $filter)
+    {
+        $this->assigneeFilter = in_array($filter, ['all', 'mine']) ? $filter : 'all';
+        $this->resetPage();
+    }
+
     public function setHealthFilter(string $filter)
     {
         $this->setStatusFilter($filter);
@@ -681,7 +741,9 @@ class WbsTree extends Component
         $query = WbsItem::with(['children.children', 'children.assignedUser', 'children.risks', 'assignedUser', 'predecessors.predecessor', 'risks'])
             ->where('project_id', $this->project->id);
 
-        if ($canViewAllTasks) {
+        if ($this->assigneeFilter === 'mine') {
+            $query->where('assigned_user_id', $user->id);
+        } elseif ($canViewAllTasks) {
             $query->whereNull('parent_id');
         } else {
             // Collaborators / Team Members with only task.view_assigned: ONLY show tasks assigned directly to them!

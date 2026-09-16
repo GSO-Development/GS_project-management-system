@@ -1,25 +1,4 @@
 <div class="space-y-6 sm:space-y-7 pb-12" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-    
-    <!-- ===== FLOATING TOAST NOTIFICATION ===== -->
-    @if($successToast)
-        <div 
-            x-data="{ show: true }" 
-            x-show="show" 
-            x-init="setTimeout(() => { show = false; $wire.set('successToast', null); }, 4500)"
-            class="fixed top-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 bg-emerald-600 text-white rounded-2xl shadow-2xl border border-emerald-400/40 animate-in slide-in-from-top-4 duration-300"
-        >
-            <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-bold text-base flex-shrink-0">
-                ✓
-            </div>
-            <div>
-                <h5 class="text-xs font-black tracking-tight">Operation Successful</h5>
-                <p class="text-[11px] font-medium text-emerald-100 mt-0.5">{{ $successToast }}</p>
-            </div>
-            <button @click="show = false; $wire.set('successToast', null)" class="ml-3 text-white/70 hover:text-white cursor-pointer p-1">
-                ✕
-            </button>
-        </div>
-    @endif
 
     <!-- Clean Standard Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -135,7 +114,7 @@
                             {{ count($roles) }} Roles Active
                         </span>
                     </div>
-                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Granular capability privileges across all 9 functional project modules</p>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Granular capability privileges across active project governance modules</p>
                 </div>
             </div>
 
@@ -172,20 +151,13 @@
 
         <!-- Table View -->
         <div class="w-full overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse min-w-[1260px]">
+            <table class="w-full text-left border-collapse min-w-full">
                 <thead>
                     <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                        <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[240px] shadow-r">Project Context Role</th>
-                        <th class="py-4 px-3 text-center min-w-[105px]">Project</th>
-                        <th class="py-4 px-3 text-center min-w-[145px] bg-amber-50/70 border-x border-amber-200/60 text-amber-900">Project Details</th>
-                        <th class="py-4 px-3 text-center min-w-[145px] bg-rose-50/70 border-r border-rose-200/60 text-rose-900">Tasks &amp; WBS</th>
-                        <th class="py-4 px-3 text-center min-w-[100px]">Team</th>
-                        <th class="py-4 px-3 text-center min-w-[120px]">Budget</th>
-                        <th class="py-4 px-3 text-center min-w-[125px]">Risks</th>
-                        <th class="py-4 px-3 text-center min-w-[110px]">Approvals</th>
-                        <th class="py-4 px-3 text-center min-w-[105px]">Reports</th>
-                        <th class="py-4 px-3 text-center min-w-[115px]">Settings</th>
-                        <th class="py-4 px-3 text-center min-w-[115px]">Calendar</th>
+                        <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[220px] shadow-r">Project Context Role</th>
+                        @foreach(\App\Services\RbacService::getAllModules() as $mKey => $mDef)
+                            <th class="py-4 px-3 text-center min-w-[130px]">{{ $mDef['name'] }}</th>
+                        @endforeach
                         <th class="py-4 pl-3 pr-6 text-right min-w-[160px]">Actions</th>
                     </tr>
                 </thead>
@@ -199,13 +171,25 @@
                             $isProtected = $roleDef['is_protected'] ?? \App\Services\RbacService::isProtectedRole($roleCode);
                             $isSystem = $roleDef['is_system'] ?? false;
                             $userCount = $roleDef['users_count'] ?? 0;
+                            $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
+
+                            $abbr = match($roleCode) {
+                                'pmo_admin' => 'PM',
+                                'lead' => 'PM',
+                                'sponsor' => 'PS',
+                                'owner' => 'PO',
+                                'steering_committee' => 'SC',
+                                'member' => 'CT',
+                                'collaborator' => 'CS',
+                                default => strtoupper(substr($roleDef['name'], 0, 2))
+                            };
                         @endphp
                         <tr wire:key="role-row-{{ $roleCode }}" class="hover:bg-slate-50/70 transition-colors group">
-                            <!-- Sticky Role Column (Clean Identity, No Duplicate Manage Button) -->
+                            <!-- Sticky Role Column -->
                             <td class="py-4 pl-6 pr-4 sticky left-0 z-10 bg-white group-hover:bg-slate-50/90 transition-colors shadow-r">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold border shadow-2xs flex-shrink-0 {{ $roleDef['badge'] ?? 'bg-slate-100 text-slate-800' }}">
-                                        {{ strtoupper(substr($roleDef['name'], 0, 2)) }}
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black border shadow-2xs flex-shrink-0 {{ $roleDef['badge'] ?? 'bg-slate-100 text-slate-800' }}">
+                                        {{ $abbr }}
                                     </div>
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-1.5 flex-wrap">
@@ -218,19 +202,12 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="flex items-center gap-2 text-[10px] font-mono text-slate-400 mt-0.5">
-                                            <span class="font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{{ $roleCode }}</span>
-                                            @if($userCount > 0)
-                                                <span>&bull;</span>
-                                                <span class="text-slate-600 font-bold">👥 {{ $userCount }} user{{ $userCount !== 1 ? 's' : '' }}</span>
-                                            @endif
-                                        </div>
                                     </div>
                                 </div>
                             </td>
 
-                            <!-- 10 Functional Modules Columns -->
-                            @foreach(['project', 'scope', 'task', 'team', 'budget', 'risks', 'approvals', 'reports', 'settings', 'calendar'] as $mKey)
+                            <!-- Dynamic Active Functional Modules Columns -->
+                            @foreach(array_keys(\App\Services\RbacService::getAllModules()) as $mKey)
                                 <td class="py-4 px-3 text-center">
                                     @php $s = \App\Services\RbacService::computeModuleSummary($roleCode, $mKey); @endphp
                                     <span class="px-2.5 py-1 rounded-lg text-[10.5px] border inline-block whitespace-nowrap {{ $s['badgeClass'] }}">
@@ -239,51 +216,47 @@
                                 </td>
                             @endforeach
 
-                            <!-- Actions Column: 1 Manage Button + Delete Option -->
+                            <!-- Actions Column: Omit Manage button for PMO admin -->
                             <td class="py-4 pl-3 pr-6 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-2">
-                                    <!-- Single Primary Manage Button -->
-                                    <button 
-                                        wire:key="btn-manage-{{ $roleCode }}"
-                                        wire:click="openManageModal('{{ $roleCode }}')" 
-                                        type="button" 
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-[#c3122e] bg-rose-50 hover:bg-[#c3122e] hover:text-white border border-rose-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
-                                        title="Manage {{ $roleDef['name'] }} Permissions"
-                                    >
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span>Manage</span>
-                                    </button>
-
-                                    <!-- Delete Button Option -->
-                                    @if(!$isProtected)
-                                        <button 
-                                            wire:key="btn-del-{{ $roleCode }}"
-                                            wire:click="promptDeleteRole('{{ $roleCode }}')" 
-                                            type="button" 
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-white hover:bg-rose-600 hover:text-white border border-rose-300 hover:border-rose-600 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
-                                            title="Delete Role"
-                                        >
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Delete</span>
-                                        </button>
+                                    @if($isPmoAdminRole)
+                                        <span class="px-3 py-1.5 rounded-xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs inline-flex items-center gap-1.5">
+                                            <span>⭐</span>
+                                            <span>Full System Access</span>
+                                        </span>
                                     @else
+                                        <!-- Single Primary Manage Button for Non-Admin Roles -->
                                         <button 
-                                            wire:key="btn-protected-{{ $roleCode }}"
-                                            wire:click="cannotDeleteSystemRole('{{ $roleDef['name'] }}')" 
+                                            wire:key="btn-manage-{{ $roleCode }}"
+                                            wire:click="openManageModal('{{ $roleCode }}')" 
                                             type="button" 
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-95"
-                                            title="Core Protected Governance Role (Cannot be deleted)"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-[#c3122e] bg-rose-50 hover:bg-[#c3122e] hover:text-white border border-rose-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                                            title="Manage {{ $roleDef['name'] }} Permissions"
                                         >
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Delete</span>
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span>Manage</span>
                                         </button>
+
+                                        <!-- Delete Button Option (Only rendered for non-protected roles) -->
+                                        @if(!$isProtected)
+                                            <button 
+                                                wire:key="btn-del-{{ $roleCode }}"
+                                                wire:click="promptDeleteRole('{{ $roleCode }}')" 
+                                                type="button" 
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-white hover:bg-rose-600 hover:text-white border border-rose-300 hover:border-rose-600 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                                                title="Delete Role"
+                                            >
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                <span>Delete</span>
+                                            </button>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="12" class="text-center py-12 text-slate-400 text-xs font-semibold">
+                            <td colspan="{{ count(\App\Services\RbacService::getAllModules()) + 2 }}" class="text-center py-12 text-slate-400 text-xs font-semibold">
                                 No matching roles found matching search criteria.
                             </td>
                         </tr>
@@ -305,13 +278,26 @@
         @php
             $currentRoleInfo = $allRoles[$selectedRole] ?? ['name' => $selectedRole, 'icon' => '🏷️', 'badge' => 'bg-slate-100'];
             $hasUnsaved = $this->hasUnsavedChanges;
-            $isAdminRole = in_array($selectedRole, ['super_admin', 'pmo_admin'], true);
-            $activeRolePermissions = $rolePermissions;
-            if (!$isAdminRole) {
-                unset($activeRolePermissions['project.create'], $activeRolePermissions['project.delete']);
+            $isPmoAdminRole = in_array($selectedRole, ['super_admin', 'pmo_admin'], true);
+            $isLeadRole = in_array($selectedRole, ['lead', 'project_manager'], true);
+            $taskOnlyRoles = ['owner', 'steering_committee', 'member', 'team_member', 'sponsor', 'collaborator'];
+            $isTaskOnlyRole = in_array($selectedRole, $taskOnlyRoles);
+
+            if ($isTaskOnlyRole) {
+                $taskPermKeys = array_keys($allModules['task']['permissions'] ?? []);
+                $selectedCount = count(array_filter(array_intersect_key($rolePermissions, array_flip($taskPermKeys))));
+                $visibleTotalPermsCount = count($taskPermKeys);
+            } else {
+                $activeRolePermissions = $rolePermissions;
+                if (!$isPmoAdminRole) {
+                    unset($activeRolePermissions['project.create']);
+                    if (!$isLeadRole) {
+                        unset($activeRolePermissions['project.delete']);
+                    }
+                }
+                $selectedCount = count(array_filter($activeRolePermissions));
+                $visibleTotalPermsCount = count($activeRolePermissions);
             }
-            $selectedCount = count(array_filter($activeRolePermissions));
-            $visibleTotalPermsCount = $isAdminRole ? $totalPermsCount : ($totalPermsCount - 2);
         @endphp
 
         <div class="fixed inset-0 overflow-hidden" style="z-index: 9999;">
@@ -381,26 +367,43 @@
 
                     <!-- Drawer Permissions Body (Scrollable Modules Accordion) -->
                     <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/40">
-                        @php $matchingModulesCount = 0; @endphp
+                        @php
+                            $matchingModulesCount = 0;
+                            // Roles that should only see WBS & Tasks module in the drawer
+                            $taskOnlyRoles = ['owner', 'steering_committee', 'member', 'team_member', 'sponsor', 'collaborator'];
+                            $isTaskOnlyRole = in_array($selectedRole, $taskOnlyRoles);
+                        @endphp
                         @foreach($allModules as $modKey => $modDef)
                             @php
-                                $modPerms = $modDef['permissions'];
-                                if (!$isAdminRole && $modKey === 'project') {
-                                    unset($modPerms['project.create'], $modPerms['project.delete']);
+                                // Skip all non-task modules for task-only roles
+                                if ($isTaskOnlyRole && $modKey !== 'task') {
+                                    continue;
                                 }
+                                $modPerms = $modDef['permissions'];
+
+                                if ($modKey === 'project') {
+                                    if (!$isPmoAdminRole) {
+                                        unset($modPerms['project.create']);
+                                        if (!$isLeadRole) {
+                                            unset($modPerms['project.delete']);
+                                        }
+                                    }
+                                }
+
                                 if (!empty($searchDrawerPermission)) {
                                     $pQ = strtolower($searchDrawerPermission);
                                     $modPerms = array_filter($modPerms, function($label, $code) use ($pQ) {
                                         return str_contains(strtolower($label), $pQ) || str_contains(strtolower($code), $pQ);
                                     }, ARRAY_FILTER_USE_BOTH);
                                 }
+
                                 if (empty($modPerms)) {
                                     continue;
                                 }
+
                                 $matchingModulesCount++;
-                                $modPermKeys = array_keys($modPerms);
-                                $grantedInMod = count(array_filter(array_intersect_key($rolePermissions, array_flip($modPermKeys))));
-                                $totalInMod = count($modPermKeys);
+                                $grantedInMod = count(array_filter(array_intersect_key($rolePermissions, array_flip(array_keys($modPerms)))));
+                                $totalInMod = count($modPerms);
                             @endphp
 
                             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
@@ -421,7 +424,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Module Permissions Checkboxes -->
+                                <!-- Module Permissions Grid -->
                                 <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     @foreach($modPerms as $pCode => $pLabel)
                                         @php $checked = !empty($rolePermissions[$pCode]); @endphp

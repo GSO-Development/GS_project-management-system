@@ -9,14 +9,32 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportExportController extends Controller
 {
+    private function getScopedProjects(Request $request)
+    {
+        $user = auth()->user();
+        $query = Project::with(['subsidiary', 'projectManager']);
+
+        if (!$user->isPmoAdmin()) {
+            $query->where('project_manager_id', $user->id);
+        }
+
+        if ($request->filled('subsidiary') && $request->subsidiary !== 'all') {
+            $query->where('subsidiary_id', $request->subsidiary);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        return $query->latest()->get();
+    }
+
     /**
      * Export Projects Summary to PDF using Barryvdh DomPDF.
      */
     public function exportPdf(Request $request)
     {
-        abort_if(!auth()->user()->hasProjectPermission('report.export'), 403, 'Unauthorized to export reports.');
-
-        $projects = Project::with(['subsidiary', 'projectManager'])->get();
+        $projects = $this->getScopedProjects($request);
 
         $pdf = Pdf::loadView('reports.pdf-summary', compact('projects'));
         return $pdf->download('NexusPM_Executive_Report_' . now()->format('Y-m-d') . '.pdf');
@@ -27,8 +45,7 @@ class ReportExportController extends Controller
      */
     public function exportCsv(Request $request): StreamedResponse
     {
-        abort_if(!auth()->user()->hasProjectPermission('report.export'), 403, 'Unauthorized to export reports.');
-        $projects = Project::with(['subsidiary', 'projectManager'])->get();
+        $projects = $this->getScopedProjects($request);
 
         $headers = [
             'Content-Type' => 'text/csv',

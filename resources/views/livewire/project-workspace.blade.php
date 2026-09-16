@@ -636,8 +636,8 @@
                     'kanban'    => ['Kanban', 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7'],
                     'team'      => ['Team Roster', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
                     'updates'   => ['Status Updates', 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'],
-                    'risks'     => ['Risks & Blockers', 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
                     'approvals' => ['Approvals', 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                    'risks'     => ['Risks & Blockers', 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
                 ] as $tabKey => [$tabLabel, $tabIcon])
                     <button
                         wire:click="$set('activeTab', '{{ $tabKey }}')"
@@ -666,6 +666,11 @@
                                 </span>
                             @endif
                         @endif
+                        @if($tabKey === 'risks' && $project->risks->count() > 0)
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $activeTab === $tabKey ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 border border-amber-200/60' }} shadow-2xs">
+                                {{ $project->risks->count() }}
+                            </span>
+                        @endif
                     </button>
                 @endforeach
             </div>
@@ -675,10 +680,19 @@
         <!-- 1. DEDICATED TEAM ROSTER TAB -->
         @if($activeTab === 'team')
             @php
-                $canManageTeam = $project->userCan(auth()->user(), 'team.add');
+                $canViewTeam   = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'team.view');
+                $canAddTeam    = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'team.add');
+                $canRemoveTeam = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'team.remove');
+                $canViewMember = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'team.view_member');
                 $otherMembers  = $project->members->reject(fn($m) => $m->id === $project->project_manager_id);
                 $pmUser        = $project->projectManager;
             @endphp
+            @if(!$canViewTeam)
+                <div class="p-8 rounded-2xl bg-white border border-slate-200 text-center space-y-3">
+                    <p class="text-sm font-bold text-slate-700">Access Restricted</p>
+                    <p class="text-xs text-slate-500">You do not have permission to view the team roster for this project.</p>
+                </div>
+            @else
             <div class="space-y-5" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 
                 <!-- Main Clean Container Card -->
@@ -701,7 +715,7 @@
                             </div>
                         </div>
 
-                        @if($canManageTeam)
+                        @if($canAddTeam)
                             <button 
                                 wire:click="openCollaboratorsModal" 
                                 type="button"
@@ -804,7 +818,7 @@
                                                     {{ $member->subsidiary->code ?? 'GS' }}
                                                 </span>
 
-                                                @if($canManageTeam)
+                                                @if($canRemoveTeam)
                                                     <button 
                                                         wire:click="removeCollaborator({{ $member->id }})" 
                                                         wire:confirm="Remove {{ $member->name }} from this project team?"
@@ -852,7 +866,7 @@
                                 @endforelse
 
                                 <!-- Add Collaborator Dashed Quick Card -->
-                                @if($canManageTeam && $otherMembers->isNotEmpty())
+                                @if($canAddTeam && $otherMembers->isNotEmpty())
                                     <button
                                         wire:click="openCollaboratorsModal"
                                         type="button"
@@ -871,6 +885,7 @@
                 </div>
 
             </div>
+            @endif
         @endif
 
     <!-- 2. WBS PLAN TAB -->
@@ -1897,8 +1912,8 @@
                     </div>
 
                     @php
-                        $canEditEstimatedBudget = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'budget.edit_estimated');
-                        $canEditActualCost = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'budget.edit_actual');
+                        $canEditEstimatedBudget = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'budget.edit');
+                        $canEditActualCost = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'budget.edit');
                     @endphp
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div class="form-group">
@@ -2059,7 +2074,7 @@
                                     {{ $isOwner ? 'Leader' : 'Participant' }}
                                 </span>
 
-                                @if(!$isOwner && auth()->id() !== $u->id && auth()->user()->hasRole('super_admin'))
+                                @if(!$isOwner && auth()->id() !== $u->id && auth()->user()->hasRole('super_admin') && !$u->isPmoAdmin())
                                     <button wire:click="deleteUserFromSystem({{ $u->id }})" wire:confirm="Permanently delete user '{{ $u->name }}' from system &amp; remove from all project lists?" type="button" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer" title="Delete User from System">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
@@ -2571,8 +2586,9 @@
 
             <!-- 2. Streamlined Property Bar (Status, Priority, Deadline) -->
             @php
-                $canEditProject = $project->userCan(auth()->user(), 'project.edit') || $project->userCan(auth()->user(), 'project_details.edit') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
-                $canManageTeam = $project->userCan(auth()->user(), 'team.add') || $project->userCan(auth()->user(), 'team.assign_role') || auth()->user()->isSuperAdmin() || auth()->user()->isPmoAdmin();
+                $canEditProjectDetails = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'project_details.edit');
+                $canChangeStatus = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'project.change_status');
+                $canManageTeam = auth()->user()->isPmoAdmin() || $project->userCan(auth()->user(), 'team.add') || $project->userCan(auth()->user(), 'team.assign_role') || $project->userCan(auth()->user(), 'team.change_role') || $project->userCan(auth()->user(), 'team.remove');
                 $prio = $project->priority->value ?? 'medium';
                 $prioStyle = match($prio) {
                     'critical' => 'bg-rose-50 text-rose-700 border-rose-200',
@@ -2585,7 +2601,7 @@
                 <!-- Status Dropdown / Pill -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status:</span>
-                    @if($canEditProject)
+                    @if($canChangeStatus)
                         <div class="relative inline-flex items-center">
                             <select
                                 wire:change="updateProjectStatus($event.target.value)"
@@ -2834,7 +2850,7 @@
                     Created on {{ $project->created_at->format('M d, Y') }}
                 </span>
                 <div class="flex items-center gap-2">
-                    @if($canEditProject)
+                    @if($canEditProjectDetails)
                         <button 
                             wire:click="openEditProjectModal" 
                             type="button" 

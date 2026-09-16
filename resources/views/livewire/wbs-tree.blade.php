@@ -23,11 +23,21 @@
 
                 <!-- Status Filter Pills (Apple/Linear-style Segmented Group) -->
                 <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 gap-0.5 text-xs">
+                    <!-- My Tasks -->
+                    <button 
+                        wire:click="setAssigneeFilter('{{ $assigneeFilter === 'mine' ? 'all' : 'mine' }}')" 
+                        type="button" 
+                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap {{ $assigneeFilter === 'mine' ? 'bg-[#c3122e] text-white shadow-xs font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
+                        title="Show tasks assigned to me in this project"
+                    >
+                        <span>👤 My Tasks</span>
+                    </button>
+
                     <!-- All -->
                     <button 
                         wire:click="setStatusFilter('all')" 
                         type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap {{ $statusFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap {{ $statusFilter === 'all' && $assigneeFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
                     >
                         <span>All</span>
                         <span class="font-mono text-[11px] opacity-75 ml-0.5">({{ $statusStats['total'] }})</span>
@@ -86,7 +96,7 @@
             <!-- Right Controls: Add Task -->
             <div class="flex items-center gap-2.5 flex-wrap shrink-0">
 
-                @if($this->canManageTasks)
+                @if($this->canCreateTasks)
                     <button 
                         wire:click="openAddItemModal(null, 'task')" 
                         type="button"

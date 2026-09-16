@@ -355,20 +355,18 @@
             @endif
 
             <!-- Reports -->
-            @if($isSuperAdmin || $isPM || auth()->user()->hasProjectPermission('report.view'))
-                <a href="{{ route('reports.index') }}" 
-                   wire:navigate.hover
-                   @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('reports.*')) }}" 
-                   :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('reports.*')) }}" 
-                   title="Reports">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('reports.*') ? '2.5' : '2' }}">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
-                </a>
-            @endif
+            <a href="{{ route('reports.index') }}" 
+               wire:navigate.hover
+               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
+               class="{{ $navItemClass(request()->routeIs('reports.*')) }}" 
+               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
+               style="{{ $navItemStyle(request()->routeIs('reports.*')) }}" 
+               title="Reports">
+                <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('reports.*') ? '2.5' : '2' }}">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
+            </a>
 
             <!-- Notifications -->
             <a href="{{ route('notifications.index') }}" 
@@ -754,9 +752,9 @@
         </div>
     </main>
 
-    <!-- Toast Container — top-right, ultra-high z-index above all modals/drawers -->
+    <!-- Toast Container — bottom-right, ultra-high z-index above all modals/drawers -->
     <div id="toast-container"
-         style="position:fixed; top:24px; right:24px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);">
+         style="position:fixed; bottom:28px; right:28px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);">
     </div>
 
     <!-- Confirm Modal -->
@@ -808,7 +806,7 @@
         if (!container) {
             container = document.createElement('div');
             container.id = 'toast-container';
-            container.style.cssText = 'position:fixed; top:24px; right:24px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);';
+            container.style.cssText = 'position:fixed; bottom:28px; right:28px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);';
             document.body.appendChild(container);
         }
 
