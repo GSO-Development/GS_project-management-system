@@ -189,6 +189,7 @@ class RbacService
             'permissions' => [
                 'project_details.view' => 'View Project Details',
                 'project_details.edit' => 'Edit Project Details',
+                'budget.edit' => 'Edit Financials & Budget (Estimated Budget & Actual Spend)',
             ],
         ],
         'task' => [
@@ -203,9 +204,7 @@ class RbacService
                 'task.edit' => 'Edit Task',
                 'task.edit_assigned' => 'Edit Assigned Task',
                 'task.delete' => 'Delete Task',
-                'task.assign' => 'Assign Task',
                 'task.change_status' => 'Update Task Status',
-                'task.change_priority' => 'Change Task Priority',
                 'task.create_subtask' => 'Create Subtask',
                 'task.log_daily' => 'Daily Progress Log',
             ],
@@ -220,27 +219,27 @@ class RbacService
                 'team.remove' => 'Remove Project Member',
             ],
         ],
-        'calendar' => [
-            'key' => 'calendar',
-            'name' => 'Calendar & Microsoft 365',
-            'icon' => '📅',
-            'permissions' => [
-                'calendar.view' => 'View Calendar',
-                'calendar.view_all' => 'View All Project Calendars',
-                'calendar.create' => 'Schedule Event / Meeting',
-                'calendar.edit' => 'Edit Calendar Event',
-                'calendar.delete' => 'Delete Calendar Event',
-                'calendar.sync_outlook' => 'Sync to Microsoft Outlook',
-                'calendar.export' => 'Export Calendar (.ICS / Feed)',
-            ],
-        ],
     ];
 
     /**
-     * Dynamically discover all permissions from DB and map into modules.
+     * Ensure all defined module permissions exist in Spatie permissions table.
+     */
+    public static function ensureAllPermissionsExist(): void
+    {
+        foreach (self::MODULES as $module) {
+            foreach (array_keys($module['permissions']) as $permName) {
+                Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
+            }
+        }
+    }
+
+    /**
+     * Get all active module definitions and permissions.
      */
     public static function getAllModules(): array
     {
+        self::ensureAllPermissionsExist();
+        
         return self::MODULES;
     }
 
@@ -265,11 +264,6 @@ class RbacService
                 return false;
             }
 
-            // Project Manager (lead or designated manager on this project) has 100% FULL ACCESS
-            if ($projectModel->project_manager_id === $user->id) {
-                return true;
-            }
-
             $roleCode = $projectModel->getUserRole($user);
 
             // If user has no explicit role in this project, check if assigned to a task
@@ -280,11 +274,6 @@ class RbacService
                     }
                 }
                 return false;
-            }
-
-            // Role: Project Lead/Manager (Full Access on PM project)
-            if ($roleCode === 'lead' || $roleCode === 'project_manager') {
-                return true;
             }
 
             // Fetch permissions dynamically assigned to this role in database (Spatie RBAC)
@@ -363,10 +352,9 @@ class RbacService
         return match($roleCode) {
             'super_admin', 'pmo_admin' => Permission::pluck('name')->toArray(),
             'lead', 'project_manager' => [
-                'project_details.view', 'project_details.edit',
-                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.change_status', 'task.change_priority', 'task.create_subtask', 'task.log_daily',
+                'project_details.view', 'project_details.edit', 'budget.edit',
+                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.change_status', 'task.create_subtask', 'task.log_daily',
                 'team.view', 'team.add', 'team.remove',
-                'calendar.view', 'calendar.create', 'calendar.edit', 'calendar.delete', 'calendar.sync_outlook', 'calendar.export',
             ],
             'member', 'team_member' => [
                 // WBS & Tasks permissions only

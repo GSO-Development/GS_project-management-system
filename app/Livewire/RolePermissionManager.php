@@ -49,7 +49,7 @@ class RolePermissionManager extends Component
     public bool $showCreatePermissionModal = false;
     public string $newPermissionName = '';
     public string $newPermissionCode = '';
-    public string $newPermissionModule = 'project';
+    public string $newPermissionModule = 'scope';
 
     // Delete Role Confirmation Modal
     public bool $showDeleteRoleModal = false;
@@ -75,14 +75,10 @@ class RolePermissionManager extends Component
         $activePerms = RbacService::getPermissionsForRole($roleCode);
 
         $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
-        $isLeadRole = in_array($roleCode, ['lead', 'project_manager'], true);
 
-        // Strip project.create for non-PMO admin roles, and project.delete for non-lead/non-PMO roles
+        // Strip project.create for non-PMO admin roles
         if (!$isPmoAdminRole) {
             $activePerms = array_diff($activePerms, ['project.create']);
-            if (!$isLeadRole) {
-                $activePerms = array_diff($activePerms, ['project.delete']);
-            }
         }
 
         $this->rolePermissions = [];
@@ -149,14 +145,10 @@ class RolePermissionManager extends Component
     {
         $allModules = RbacService::getAllModules();
         $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
-        $isLeadRole = in_array($this->selectedRole, ['lead', 'project_manager'], true);
 
         foreach ($allModules as $module) {
             foreach (array_keys($module['permissions']) as $permCode) {
                 if ($permCode === 'project.create' && !$isPmoAdminRole) {
-                    continue;
-                }
-                if ($permCode === 'project.delete' && !$isPmoAdminRole && !$isLeadRole) {
                     continue;
                 }
                 $this->rolePermissions[$permCode] = true;
@@ -201,15 +193,14 @@ class RolePermissionManager extends Component
         $newPerms = array_keys(array_filter($this->rolePermissions));
 
         $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
-        $isLeadRole = in_array($roleCode, ['lead', 'project_manager'], true);
 
         if (!$isPmoAdminRole) {
             $newPerms = array_values(array_diff($newPerms, ['project.create']));
-            if (!$isLeadRole) {
-                $newPerms = array_values(array_diff($newPerms, ['project.delete']));
-            }
         }
         $oldPerms = $role->permissions->pluck('name')->toArray();
+
+        // Ensure all defined permissions exist in database
+        RbacService::ensureAllPermissionsExist();
 
         // Sync with Spatie
         $role->syncPermissions($newPerms);
@@ -479,7 +470,7 @@ class RolePermissionManager extends Component
     {
         $this->newPermissionName = '';
         $this->newPermissionCode = '';
-        $this->newPermissionModule = 'project';
+        $this->newPermissionModule = 'scope';
         $this->showCreatePermissionModal = true;
     }
 

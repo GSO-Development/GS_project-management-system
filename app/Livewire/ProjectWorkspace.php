@@ -109,12 +109,13 @@ class ProjectWorkspace extends Component
     // Collaborators Management Modal Properties
     public bool $showCollaboratorsModal = false;
     public array $selectedCollaboratorIds = [];
+    public array $collaboratorRoles = [];
     public string $collaboratorSearch = '';
     public bool $showCreateCollaboratorSection = false;
     public string $newCollabName = '';
     public string $newCollabEmail = '';
     public string $newCollabPhone = '';
-    public string $newCollabRole = 'team_member';
+    public string $newCollabRole = 'member';
     public string $newCollabTempPassword = 'Password@123';
 
     public bool $showRejectionModal = false;
@@ -142,6 +143,11 @@ class ProjectWorkspace extends Component
 
     public function openProjectDetailsModal(): void
     {
+        $user = auth()->user();
+        if ($user && !$user->isPmoAdmin() && !$this->project->userCan($user, 'project_details.view')) {
+            $this->dispatch('toast', message: 'You do not have permission to view project details.', type: 'error');
+            return;
+        }
         $this->showProjectDetailsModal = true;
     }
 
@@ -549,6 +555,10 @@ class ProjectWorkspace extends Component
         }
 
         $this->selectedCollaboratorIds = array_map('strval', $this->project->members->pluck('id')->toArray());
+        $this->collaboratorRoles = [];
+        foreach ($this->project->members as $member) {
+            $this->collaboratorRoles[(string) $member->id] = $member->pivot->role ?? 'member';
+        }
         $this->showCreateCollaboratorSection = false;
         $this->showCollaboratorsModal = true;
     }
@@ -558,7 +568,7 @@ class ProjectWorkspace extends Component
         $user = auth()->user();
         abort_if(!$user->isPmoAdmin() && !$this->project->userCan($user, 'team.add'), 403, 'Unauthorized to add or edit project team members.');
 
-        // Track existing member roles before sync so roles like 'sponsor', 'owner', 'steering_committee' are PRESERVED
+        // Track existing member roles before sync
         $existingMembers = $this->project->members()->withPivot('role')->get()->keyBy('id');
         $existingMemberIds = $existingMembers->keys()->toArray();
 
@@ -568,10 +578,11 @@ class ProjectWorkspace extends Component
         foreach ($membersToSync as $memberId) {
             if ($memberId == $this->project->project_manager_id) {
                 $syncData[$memberId] = ['role' => 'lead'];
-            } elseif (isset($existingMembers[$memberId])) {
-                $syncData[$memberId] = ['role' => $existingMembers[$memberId]->pivot->role ?? 'member'];
             } else {
-                $syncData[$memberId] = ['role' => 'member'];
+                $chosenRole = $this->collaboratorRoles[(string) $memberId] 
+                    ?? $this->collaboratorRoles[$memberId] 
+                    ?? ($existingMembers[$memberId]->pivot->role ?? 'member');
+                $syncData[$memberId] = ['role' => $chosenRole];
             }
         }
 
@@ -594,7 +605,7 @@ class ProjectWorkspace extends Component
         }
 
         $this->showCollaboratorsModal = false;
-        $this->dispatch('toast', message: 'Project team members updated successfully!', type: 'success');
+        $this->dispatch('toast', message: 'Project team members & assigned roles updated successfully!', type: 'success');
     }
 
     public function removeCollaborator(int $userId)
@@ -609,6 +620,7 @@ class ProjectWorkspace extends Component
 
         $this->project->members()->detach($userId);
         $this->selectedCollaboratorIds = array_values(array_diff($this->selectedCollaboratorIds, [(string) $userId, $userId]));
+        unset($this->collaboratorRoles[(string) $userId], $this->collaboratorRoles[$userId]);
         $this->project->load('members');
         $this->dispatch('toast', message: 'Team member removed from project.', type: 'info');
     }
@@ -652,6 +664,7 @@ class ProjectWorkspace extends Component
 
         // Remove from selected ids array
         $this->selectedCollaboratorIds = array_values(array_diff($this->selectedCollaboratorIds, [(string) $userId, $userId]));
+        unset($this->collaboratorRoles[(string) $userId], $this->collaboratorRoles[$userId]);
 
         $this->project->load('members');
         $this->dispatch('toast', message: 'User permanently deleted from system & removed from list.', type: 'info');
@@ -669,7 +682,7 @@ class ProjectWorkspace extends Component
             'newCollabName' => 'required|string|max:255',
             'newCollabEmail' => 'required|email|max:255|unique:users,email',
             'newCollabPhone' => 'nullable|string|max:50',
-            'newCollabRole' => 'required|in:team_member,project_manager',
+            'newCollabRole' => 'required|string',
             'newCollabTempPassword' => 'nullable|string|min:6',
         ]);
 
@@ -685,10 +698,10 @@ class ProjectWorkspace extends Component
             'must_change_password' => false,
         ]);
 
-        // No system-wide roles assigned to new collaborators
         if (!in_array((string) $newCollab->id, $this->selectedCollaboratorIds)) {
             $this->selectedCollaboratorIds[] = (string) $newCollab->id;
         }
+        $this->collaboratorRoles[(string) $newCollab->id] = $this->newCollabRole ?? 'member';
 
         // Clear search filter so newly created collaborator appears in the selection list
         $this->collaboratorSearch = '';

@@ -70,9 +70,7 @@ class WbsTree extends Component
     {
         $user = auth()->user();
         if (!$user) return false;
-        return $user->isPmoAdmin() 
-            || $this->project->userCan($user, 'wbs.manage')
-            || $this->project->userCan($user, 'task.manage');
+        return $user->isPmoAdmin();
     }
 
     public function getCanCreateTasksProperty(): bool
@@ -80,9 +78,16 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
-            || $this->project->userCan($user, 'task.create')
+            || $this->project->userCan($user, 'task.create');
+    }
+
+    public function getCanCreateSubtasksProperty(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->isPmoAdmin() 
             || $this->project->userCan($user, 'task.create_subtask')
-            || $this->canManageTasks;
+            || $this->project->userCan($user, 'task.create');
     }
 
     public function getCanEditTasksProperty(): bool
@@ -91,8 +96,7 @@ class WbsTree extends Component
         if (!$user) return false;
         return $user->isPmoAdmin() 
             || $this->project->userCan($user, 'task.edit')
-            || $this->project->userCan($user, 'task.edit_assigned')
-            || $this->canManageTasks;
+            || $this->project->userCan($user, 'task.edit_assigned');
     }
 
     public function getCanDeleteTasksProperty(): bool
@@ -100,8 +104,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
-            || $this->project->userCan($user, 'task.delete')
-            || $this->canManageTasks;
+            || $this->project->userCan($user, 'task.delete');
     }
 
     public function canEditSpecificItem(?WbsItem $item): bool
@@ -111,7 +114,7 @@ class WbsTree extends Component
         if ($user->isPmoAdmin()) return true;
         if ($this->project->userCan($user, 'task.edit')) return true;
         if ($item->assigned_user_id === $user->id && $this->project->userCan($user, 'task.edit_assigned')) return true;
-        return $this->canManageTasks;
+        return false;
     }
 
     public function canDeleteSpecificItem(?WbsItem $item): bool
@@ -193,7 +196,11 @@ class WbsTree extends Component
 
     public function openAddItemModal(?int $parentId = null, string $type = 'task')
     {
-        abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
+        if ($parentId || $type === 'subtask') {
+            abort_if(!$this->canCreateSubtasks, 403, 'You do not have permission to create subtasks for this project.');
+        } else {
+            abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
+        }
 
         $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'start_time', 'end_date', 'end_time', 'progress', 'estimated_hours', 'is_milestone']);
         $this->selectedParentId = $parentId;
@@ -312,7 +319,11 @@ class WbsTree extends Component
             $existingItem = WbsItem::find($this->editingItemId);
             abort_if(!$this->canEditSpecificItem($existingItem), 403, 'You do not have permission to edit this task.');
         } else {
-            abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
+            if ($this->selectedParentId || $this->item_type === 'subtask') {
+                abort_if(!$this->canCreateSubtasks, 403, 'You do not have permission to create subtasks for this project.');
+            } else {
+                abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
+            }
         }
 
         $this->validate();

@@ -192,6 +192,11 @@ class CalendarEvent extends Model
      */
     public function userCanManage(?User $user): bool
     {
+        return $this->userCanEdit($user) || $this->userCanDelete($user);
+    }
+
+    public function userCanEdit(?User $user): bool
+    {
         if (!$user) return false;
         if ($user->isPmoAdmin()) return true;
 
@@ -200,7 +205,21 @@ class CalendarEvent extends Model
             if ($project && (int)$project->project_manager_id === (int)$user->id) {
                 return true;
             }
-            return false;
+        }
+
+        return (int)$this->created_by === (int)$user->id;
+    }
+
+    public function userCanDelete(?User $user): bool
+    {
+        if (!$user) return false;
+        if ($user->isPmoAdmin()) return true;
+
+        if ($this->project_id) {
+            $project = $this->project ?: Project::find($this->project_id);
+            if ($project && (int)$project->project_manager_id === (int)$user->id) {
+                return true;
+            }
         }
 
         return (int)$this->created_by === (int)$user->id;

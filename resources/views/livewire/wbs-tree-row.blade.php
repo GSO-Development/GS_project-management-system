@@ -67,9 +67,10 @@
     $cleanTitle = str_replace(['???', '??'], '–', $item->title);
     $usr = auth()->user();
     $isPmoAdmin = $usr?->isPmoAdmin();
-    $canCreateTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.create') || $item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.manage') || $item->project->userCan($usr, 'wbs.manage')));
-    $canEditTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned')) || $item->project->userCan($usr, 'task.manage') || $item->project->userCan($usr, 'wbs.manage')));
-    $canDeleteTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.delete') || $item->project->userCan($usr, 'task.manage') || $item->project->userCan($usr, 'wbs.manage')));
+    $canCreateTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.create')));
+    $canEditTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned'))));
+    $canDeleteTaskRow = $isPmoAdmin || ($item->project && $item->project->userCan($usr, 'task.delete'));
+    $canChangeStatusRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.change_status') || $item->assigned_user_id === $usr?->id));
 @endphp
 
 <tr class="transition-colors duration-150 group border-b border-slate-100/90 hover:bg-slate-50/60 {{ $levelConfig['rowBg'] }}">
@@ -159,43 +160,33 @@
                     <span>{{ $item->risks->count() }}</span>
                 </span>
             @endif
-
-            {{-- Predecessors --}}
-            @if($item->predecessors && $item->predecessors->count() > 0)
-                @foreach($item->predecessors as $dep)
-                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-50 text-blue-800 border border-blue-200 shrink-0">
-                        #{{ $dep->predecessor->wbs_code ?? '?' }}
-                        <button wire:click="removeDependency({{ $dep->id }})" wire:confirm="Remove this dependency?" class="text-blue-400 hover:text-rose-600 cursor-pointer ml-0.5">&times;</button>
-                    </span>
-                @endforeach
-            @endif
         </div>
     </td>
 
-    <!-- 3. ASSIGNED TO (Clean Pill with Generous Width) -->
-    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 195px;">
-        @if($item->assignedUser)
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50/90 hover:bg-slate-100 border border-slate-200/80 shadow-2xs max-w-[190px] transition-colors" title="{{ $item->assignedUser->name }}">
-                <div class="w-5.5 h-5.5 rounded-full {{ $avatarBg }} text-white text-[9.5px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
-                    {{ strtoupper(substr($item->assignedUser->name, 0, 1)) }}
+    <!-- 3. ASSIGNED TO -->
+    <td class="py-3.5 px-3 text-xs align-middle" style="width: 195px;">
+        @if($item->assignee)
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full {{ $avatarBg }} text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                    {{ strtoupper(substr($item->assignee->name, 0, 1)) }}
                 </div>
-                <span class="truncate font-semibold text-slate-800 text-xs">{{ $item->assignedUser->name }}</span>
+                <div class="flex flex-col truncate leading-tight">
+                    <span class="font-bold text-slate-800 truncate text-xs">{{ $item->assignee->name }}</span>
+                </div>
             </div>
         @else
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-slate-400 text-xs bg-slate-50/50 border border-dashed border-slate-200 select-none" title="Unassigned">
-                <svg class="w-3.5 h-3.5 text-slate-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                <span class="text-slate-400 text-[11px] font-medium">Unassigned</span>
+            <div class="flex items-center gap-1.5 text-slate-400 font-medium text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Unassigned</span>
             </div>
         @endif
     </td>
 
-    <!-- 4. START SCHEDULE (Clean Date & Time) -->
+    <!-- 4. START SCHEDULE -->
     <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 130px;">
         @if($item->start_date)
             <div class="flex flex-col leading-tight">
-                <span class="text-xs font-semibold text-slate-800">{{ $item->start_date->format('M d, Y') }}</span>
+                <span class="font-semibold text-slate-700 text-xs">{{ $item->start_date->format('M d, Y') }}</span>
                 <span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->start_time_formatted ?: '09:00 AM' }}</span>
             </div>
         @else
@@ -241,24 +232,27 @@
     <td class="py-3.5 px-3 align-middle whitespace-nowrap" style="width: 145px;">
         <div class="relative inline-block w-full max-w-[140px]">
             @php
+                $currentStatus = is_object($item->status) ? $item->status->value : $item->status;
                 $stBadge = match($currentStatus) {
-                    'completed'    => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70', 'dot' => 'bg-emerald-500'],
-                    'in_progress'  => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100/70', 'dot' => 'bg-blue-500'],
-                    'at_risk'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70', 'dot' => 'bg-amber-500'],
-                    'under_review' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100/70', 'dot' => 'bg-purple-500'],
-                    'blocked'      => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70', 'dot' => 'bg-rose-500'],
-                    'on_hold'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70', 'dot' => 'bg-amber-500'],
+                    'in_progress'  => ['bg' => 'bg-blue-50/90 text-blue-700 border-blue-200/90 hover:bg-blue-100/80 hover:border-blue-300', 'dot' => 'bg-blue-500'],
+                    'completed'    => ['bg' => 'bg-emerald-50/90 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/80 hover:border-emerald-300', 'dot' => 'bg-emerald-500'],
+                    'at_risk'      => ['bg' => 'bg-amber-50/90 text-amber-800 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300', 'dot' => 'bg-amber-500'],
+                    'under_review' => ['bg' => 'bg-purple-50/90 text-purple-700 border-purple-200/90 hover:bg-purple-100/80 hover:border-purple-300', 'dot' => 'bg-purple-500'],
+                    'blocked'      => ['bg' => 'bg-rose-50/90 text-rose-700 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300', 'dot' => 'bg-rose-500'],
+                    'on_hold'      => ['bg' => 'bg-amber-50/90 text-amber-800 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300', 'dot' => 'bg-amber-500'],
                     default        => ($isOverdue 
-                        ? ['bg' => 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70', 'dot' => 'bg-rose-500'] 
-                        : ['bg' => 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100/70', 'dot' => 'bg-slate-400']),
+                        ? ['bg' => 'bg-rose-50/90 text-rose-700 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300', 'dot' => 'bg-rose-500'] 
+                        : ['bg' => 'bg-slate-50 text-slate-600 border-slate-200/90 hover:bg-slate-100/90 hover:border-slate-300', 'dot' => 'bg-slate-400']),
                 };
             @endphp
-            <div class="relative flex items-center">
-                <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full {{ $stBadge['dot'] }}"></span>
+            <div class="relative flex items-center min-w-[130px] max-w-[150px]">
+                <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full z-10 {{ $stBadge['dot'] }}"></span>
                 <select
                     wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
-                    class="text-xs font-bold rounded-full pl-6.5 pr-6 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all shadow-2xs w-full appearance-none truncate {{ $stBadge['bg'] }}"
-                    title="Update Task Status"
+                    @if(!$canChangeStatusRow) disabled @endif
+                    class="text-xs font-bold rounded-full pl-7 pr-8 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs w-full truncate {{ $stBadge['bg'] }} {{ !$canChangeStatusRow ? 'opacity-70 cursor-not-allowed' : '' }}"
+                    style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important;"
+                    title="{{ $canChangeStatusRow ? 'Update Task Status' : 'Status change disabled' }}"
                 >
                     <option value="not_started" @selected($currentStatus === 'not_started' || $currentStatus === 'backlog') class="bg-white text-slate-900 font-semibold">Not Started</option>
                     <option value="in_progress" @selected($currentStatus === 'in_progress') class="bg-white text-slate-900 font-semibold">In Progress</option>
@@ -268,8 +262,8 @@
                     <option value="on_hold" @selected($currentStatus === 'on_hold') class="bg-white text-amber-700 font-semibold">On Hold</option>
                     <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">Done</option>
                 </select>
-                <div class="pointer-events-none absolute right-2.5 text-current opacity-60">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                <div class="pointer-events-none absolute right-2.5 text-current opacity-70 z-10 flex items-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
         </div>

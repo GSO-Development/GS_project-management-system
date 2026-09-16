@@ -397,25 +397,45 @@ class DailyStatusUpdates extends Component
         }
 
         if ($this->searchQuery) {
-            $q = $this->searchQuery;
+            $q = trim($this->searchQuery);
             $updatesQuery->where(function($sub) use ($q) {
                 $sub->where('title', 'like', "%{$q}%")
                     ->orWhere('summary', 'like', "%{$q}%")
                     ->orWhere('work_completed', 'like', "%{$q}%")
-                    ->orWhereHas('creator', fn($cu) => $cu->where('name', 'like', "%{$q}%"))
-                    ->orWhereHas('wbsItem', fn($w) => $w->where('title', 'like', "%{$q}%")->orWhere('wbs_code', 'like', "%{$q}%"));
+                    ->orWhere('current_blockers', 'like', "%{$q}%")
+                    ->orWhere('next_steps', 'like', "%{$q}%")
+                    ->orWhere('updated_status', 'like', "%{$q}%")
+                    ->orWhereHas('creator', fn($cu) => $cu->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%"))
+                    ->orWhereHas('project', fn($pr) => $pr->where('name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
+                    ->orWhereHas('wbsItem', fn($w) => $w->where('title', 'like', "%{$q}%")->orWhere('wbs_code', 'like', "%{$q}%"))
+                    ->orWhereHas('comments', fn($cm) => $cm->where('content', 'like', "%{$q}%"));
             });
         }
 
         $statusUpdates = $updatesQuery->latest()->get();
 
         $groupedProjectUpdates = collect();
+        $isSearchingOrFiltering = !empty(trim($this->searchQuery)) || $this->selectedScope !== 'all' || $this->dateFilter !== 'all';
+
         foreach ($accessibleProjects as $proj) {
             $pUpdates = $statusUpdates->where('project_id', $proj->id)->values();
             
             // Apply project filter if selected
             if ($this->selectedProjectId && $this->selectedProjectId != $proj->id) {
                 continue;
+            }
+
+            // If active search/scope/date filter is applied and no updates match this project, skip project UNLESS the search query matches the project name/code directly
+            if ($isSearchingOrFiltering && $pUpdates->isEmpty()) {
+                $q = trim($this->searchQuery);
+                $matchesProjectNameOrCode = !empty($q) && (
+                    Str::contains(strtolower($proj->name), strtolower($q)) ||
+                    Str::contains(strtolower($proj->code ?? ''), strtolower($q))
+                );
+                
+                if (!$matchesProjectNameOrCode) {
+                    continue;
+                }
             }
 
             $groupedProjectUpdates->push([

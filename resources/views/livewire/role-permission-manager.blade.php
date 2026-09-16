@@ -279,25 +279,13 @@
             $currentRoleInfo = $allRoles[$selectedRole] ?? ['name' => $selectedRole, 'icon' => '🏷️', 'badge' => 'bg-slate-100'];
             $hasUnsaved = $this->hasUnsavedChanges;
             $isPmoAdminRole = in_array($selectedRole, ['super_admin', 'pmo_admin'], true);
-            $isLeadRole = in_array($selectedRole, ['lead', 'project_manager'], true);
-            $taskOnlyRoles = ['owner', 'steering_committee', 'member', 'team_member', 'sponsor', 'collaborator'];
-            $isTaskOnlyRole = in_array($selectedRole, $taskOnlyRoles);
 
-            if ($isTaskOnlyRole) {
-                $taskPermKeys = array_keys($allModules['task']['permissions'] ?? []);
-                $selectedCount = count(array_filter(array_intersect_key($rolePermissions, array_flip($taskPermKeys))));
-                $visibleTotalPermsCount = count($taskPermKeys);
-            } else {
-                $activeRolePermissions = $rolePermissions;
-                if (!$isPmoAdminRole) {
-                    unset($activeRolePermissions['project.create']);
-                    if (!$isLeadRole) {
-                        unset($activeRolePermissions['project.delete']);
-                    }
-                }
-                $selectedCount = count(array_filter($activeRolePermissions));
-                $visibleTotalPermsCount = count($activeRolePermissions);
+            $activeRolePermissions = $rolePermissions;
+            if (!$isPmoAdminRole) {
+                unset($activeRolePermissions['project.create']);
             }
+            $selectedCount = count(array_filter($activeRolePermissions));
+            $visibleTotalPermsCount = count($activeRolePermissions);
         @endphp
 
         <div class="fixed inset-0 overflow-hidden" style="z-index: 9999;">
@@ -367,26 +355,14 @@
 
                     <!-- Drawer Permissions Body (Scrollable Modules Accordion) -->
                     <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/40">
-                        @php
-                            $matchingModulesCount = 0;
-                            // Roles that should only see WBS & Tasks module in the drawer
-                            $taskOnlyRoles = ['owner', 'steering_committee', 'member', 'team_member', 'sponsor', 'collaborator'];
-                            $isTaskOnlyRole = in_array($selectedRole, $taskOnlyRoles);
-                        @endphp
+                        @php $matchingModulesCount = 0; @endphp
                         @foreach($allModules as $modKey => $modDef)
                             @php
-                                // Skip all non-task modules for task-only roles
-                                if ($isTaskOnlyRole && $modKey !== 'task') {
-                                    continue;
-                                }
                                 $modPerms = $modDef['permissions'];
 
                                 if ($modKey === 'project') {
                                     if (!$isPmoAdminRole) {
                                         unset($modPerms['project.create']);
-                                        if (!$isLeadRole) {
-                                            unset($modPerms['project.delete']);
-                                        }
                                     }
                                 }
 

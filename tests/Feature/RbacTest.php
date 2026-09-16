@@ -141,4 +141,52 @@ class RbacTest extends TestCase
         $this->assertFalse($project->userCan($member, 'task.view_all'));
         $this->assertTrue($project->userCan($member, 'task.view_assigned'));
     }
+
+    public function test_project_manager_dynamic_permission_toggle()
+    {
+        $pm = User::create([
+            'name' => 'Dynamic PM',
+            'email' => 'dynamic_pm@nexuspm.local',
+            'password' => bcrypt('secret'),
+        ]);
+        $project = $this->createProject(['project_manager_id' => $pm->id]);
+
+        $role = Role::firstOrCreate(['name' => 'lead', 'guard_name' => 'web']);
+        $role->syncPermissions(['project_details.view', 'task.view', 'task.create']);
+        RbacService::clearCache();
+
+        // Project details view is granted
+        $this->assertTrue($pm->hasProjectPermission('project_details.view', $project));
+
+        // Revoke project_details.view from lead
+        $role->revokePermissionTo('project_details.view');
+        RbacService::clearCache();
+
+        // Project details view should now be false (unchecked)
+        $this->assertFalse($pm->hasProjectPermission('project_details.view', $project));
+    }
+
+    public function test_project_manager_task_create_permission_toggle()
+    {
+        $pm = User::create([
+            'name' => 'PM Task Test',
+            'email' => 'pm_task_test@nexuspm.local',
+            'password' => bcrypt('secret'),
+        ]);
+        $project = $this->createProject(['project_manager_id' => $pm->id]);
+
+        $role = Role::firstOrCreate(['name' => 'lead', 'guard_name' => 'web']);
+        $role->syncPermissions(['project_details.view', 'task.view']); // task.create is NOT granted
+        RbacService::clearCache();
+
+        // task.create is unchecked -> must return false
+        $this->assertFalse($pm->hasProjectPermission('task.create', $project));
+
+        // Grant task.create
+        $role->givePermissionTo('task.create');
+        RbacService::clearCache();
+
+        // task.create is checked -> must return true
+        $this->assertTrue($pm->hasProjectPermission('task.create', $project));
+    }
 }

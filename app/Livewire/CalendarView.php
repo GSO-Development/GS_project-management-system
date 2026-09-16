@@ -1027,8 +1027,8 @@ class CalendarView extends Component
             return;
         }
 
-        if (!$event->userCanManage($user)) {
-            $this->dispatch('toast', message: 'Unauthorized: Only PMO Admins and the Project Manager of this project can edit this meeting.', type: 'error');
+        if (!$event->userCanEdit($user)) {
+            $this->dispatch('toast', message: 'Unauthorized to edit this calendar event.', type: 'error');
             return;
         }
 
@@ -1244,7 +1244,7 @@ class CalendarView extends Component
             $event = CalendarEvent::with('project')->find($id);
             if (!$event) return;
 
-            if (!$event->userCanManage($user)) {
+            if (!$event->userCanDelete($user)) {
                 $this->dispatch('toast', message: 'Unauthorized to delete this calendar event.', type: 'error');
                 return;
             }

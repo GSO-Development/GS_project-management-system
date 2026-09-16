@@ -122,16 +122,38 @@
         </span>
     </td>
 
-    <!-- 5. STATUS (Interactive Dropdown) -->
-    <td class="py-3 px-4 align-middle whitespace-nowrap min-w-[140px]">
-        <select wire:change="updateStatus({{ $task->id }}, $event.target.value)" 
-                class="w-full h-8 px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e]/10 shadow-2xs outline-none cursor-pointer custom-select transition-all">
-            @foreach(\App\Enums\WbsStatus::cases() as $st)
-                <option value="{{ $st->value }}" {{ $task->status === $st ? 'selected' : '' }}>
-                    {{ $st->label() }}
-                </option>
-            @endforeach
-        </select>
+    <!-- 5. STATUS (Interactive Dropdown Pill) -->
+    <td class="py-3 px-4 align-middle whitespace-nowrap min-w-[145px]">
+        @php
+            $currentStatusVal = is_object($task->status) ? $task->status->value : $task->status;
+            $stBadge = match($currentStatusVal) {
+                'in_progress'  => ['bg' => 'bg-blue-50/90 text-blue-700 border-blue-200/90 hover:bg-blue-100/80 hover:border-blue-300', 'dot' => 'bg-blue-500'],
+                'completed'    => ['bg' => 'bg-emerald-50/90 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/80 hover:border-emerald-300', 'dot' => 'bg-emerald-500'],
+                'at_risk'      => ['bg' => 'bg-amber-50/90 text-amber-800 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300', 'dot' => 'bg-amber-500'],
+                'under_review' => ['bg' => 'bg-purple-50/90 text-purple-700 border-purple-200/90 hover:bg-purple-100/80 hover:border-purple-300', 'dot' => 'bg-purple-500'],
+                'blocked'      => ['bg' => 'bg-rose-50/90 text-rose-700 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300', 'dot' => 'bg-rose-500'],
+                'on_hold'      => ['bg' => 'bg-amber-50/90 text-amber-800 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300', 'dot' => 'bg-amber-500'],
+                default        => ($isOverdue 
+                    ? ['bg' => 'bg-rose-50/90 text-rose-700 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300', 'dot' => 'bg-rose-500'] 
+                    : ['bg' => 'bg-slate-50 text-slate-600 border-slate-200/90 hover:bg-slate-100/90 hover:border-slate-300', 'dot' => 'bg-slate-400']),
+            };
+        @endphp
+        <div class="relative flex items-center min-w-[130px] max-w-[150px]">
+            <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full z-10 {{ $stBadge['dot'] }}"></span>
+            <select wire:change="updateStatus({{ $task->id }}, $event.target.value)" 
+                    class="text-xs font-bold rounded-full pl-7 pr-8 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs w-full truncate {{ $stBadge['bg'] }}"
+                    style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important;"
+                    title="Update Task Status">
+                @foreach(\App\Enums\WbsStatus::cases() as $st)
+                    <option value="{{ $st->value }}" {{ $task->status === $st ? 'selected' : '' }} class="bg-white text-slate-900 font-semibold">
+                        {{ $st->label() }}
+                    </option>
+                @endforeach
+            </select>
+            <div class="pointer-events-none absolute right-2.5 text-current opacity-70 z-10 flex items-center">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+        </div>
     </td>
 
     <!-- 6. PROGRESS -->

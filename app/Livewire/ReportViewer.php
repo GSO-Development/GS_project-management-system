@@ -27,9 +27,11 @@ class ReportViewer extends Component
         $user = auth()->user();
         $query = Project::with(['subsidiary', 'projectManager']);
 
-        // Scope strictly to projects where this user is the designated Project Manager if not PMO Admin
         if (!$user->isPmoAdmin()) {
-            $query->where('project_manager_id', $user->id);
+            $query->where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+            });
         }
 
         if ($this->subsidiaryFilter !== 'all') {
