@@ -1290,8 +1290,9 @@ class ProjectWorkspace extends Component
         $subsidiaries = \App\Models\Subsidiary::orderBy('name')->get();
         $allSubsidiaries = $subsidiaries;
         $allPms = \App\Models\User::where('is_active', true)->orderBy('name')->get();
+        $allRoles = \App\Services\RbacService::getAllRoles();
 
-        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms'));
+        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms', 'allRoles'));
     }
 
     public function toggleCollapse(int $id)

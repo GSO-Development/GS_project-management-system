@@ -791,20 +791,9 @@
                                     @php
                                         $isMe = ($member->id === $currentUser->id);
                                         $role = $member->pivot->role ?? 'member';
-                                        $roleLabel = match($role) {
-                                            'sponsor' => 'Sponsor',
-                                            'owner' => 'Project Owner',
-                                            'steering_committee' => 'Committee',
-                                            'lead' => 'Team Lead',
-                                            default => 'Team Member'
-                                        };
-                                        $roleBadgeClass = match($role) {
-                                            'sponsor' => 'bg-amber-50 text-amber-800 border-amber-200',
-                                            'owner' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                            'steering_committee' => 'bg-purple-50 text-purple-800 border-purple-200',
-                                            'lead' => 'bg-rose-50 text-[#c3122e] border-rose-200 font-bold',
-                                            default => 'bg-blue-50 text-blue-800 border-blue-200'
-                                        };
+                                        $roleMeta = $allRoles[$role] ?? null;
+                                        $roleLabel = $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role));
+                                        $roleBadgeClass = $roleMeta['badge'] ?? 'bg-blue-50 text-blue-800 border-blue-200';
                                         $memberTasksCount = \App\Models\WbsItem::where('project_id', $project->id)->where('assigned_user_id', $member->id)->count();
                                     @endphp
 
@@ -2028,12 +2017,11 @@
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Project Role <span class="text-rose-500">*</span></label>
                             <select wire:model="newCollabRole" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 outline-none focus:border-[#c3122e]">
-                                <option value="member">Core Team Member</option>
-                                <option value="sponsor">Project Sponsor</option>
-                                <option value="owner">Project Owner</option>
-                                <option value="steering_committee">Steering Committee</option>
-                                <option value="collaborator">Collaborator / Specialist</option>
-                                <option value="lead">Project Manager / Lead PM</option>
+                                @foreach($allRoles as $rCode => $rMeta)
+                                    @if($rCode !== 'pmo_admin' && $rCode !== 'super_admin')
+                                        <option value="{{ $rCode }}">{{ $rMeta['name'] }}</option>
+                                    @endif
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -2082,12 +2070,11 @@
                                     </span>
                                 @else
                                     <select wire:model="collaboratorRoles.{{ $u->id }}" class="px-2.5 py-1 rounded-xl border border-slate-200 bg-white text-[11px] font-extrabold text-slate-800 outline-none focus:border-[#c3122e]">
-                                        <option value="member">Core Team Member</option>
-                                        <option value="sponsor">Project Sponsor</option>
-                                        <option value="owner">Project Owner</option>
-                                        <option value="steering_committee">Steering Committee</option>
-                                        <option value="collaborator">Collaborator / Specialist</option>
-                                        <option value="lead">Project Manager / Lead PM</option>
+                                        @foreach($allRoles as $rCode => $rMeta)
+                                            @if($rCode !== 'pmo_admin' && $rCode !== 'super_admin')
+                                                <option value="{{ $rCode }}">{{ $rMeta['name'] }}</option>
+                                            @endif
+                                        @endforeach
                                     </select>
                                 @endif
 
