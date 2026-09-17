@@ -41,4 +41,38 @@ class ReportExportController extends Controller
         $pdf = Pdf::loadView('reports.pdf-summary', compact('projects'));
         return $pdf->download('NexusPM_Executive_Report_' . now()->format('Y-m-d') . '.pdf');
     }
+
+    /**
+     * Export Projects Summary to CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $projects = $this->getScopedProjects($request);
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="NexusPM_Executive_Report_' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function () use ($projects) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Project Code', 'Project Name', 'Subsidiary', 'Project Manager', 'Status', 'Overall Progress (%)', 'Budget (LKR)']);
+
+            foreach ($projects as $p) {
+                fputcsv($file, [
+                    $p->code,
+                    $p->name,
+                    $p->subsidiary->name ?? '-',
+                    $p->projectManager->name ?? '-',
+                    is_object($p->status) && method_exists($p->status, 'label') ? $p->status->label() : (string) $p->status,
+                    $p->overall_progress . '%',
+                    $p->estimated_budget,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

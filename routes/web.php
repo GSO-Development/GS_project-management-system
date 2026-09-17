@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified', 'must_change_password'])->group(function 
     // Reports (Protected by report.view and report.export permissions)
     Route::get('/reports', ReportViewer::class)->name('reports.index');
     Route::get('/reports/export-pdf', [ReportExportController::class, 'exportPdf'])->name('reports.export-pdf');
+    Route::get('/reports/export-csv', [ReportExportController::class, 'exportCsv'])->name('reports.export-csv');
 
     Route::middleware(['role:super_admin'])->group(function () {
         Route::get('/team-members', PmTeamMembers::class)->name('team-members.index');

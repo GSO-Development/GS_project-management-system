@@ -143,12 +143,25 @@ class UserManager extends Component
         if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
 
         $users = User::whereIn('id', $this->selectedUsers)->get();
+        $count = 0;
+        $protectedCount = 0;
         foreach ($users as $u) {
+            if ($u->email === 'superadmin@georgesteuart.com') {
+                $protectedCount++;
+                continue;
+            }
             $u->removeRole('super_admin');
+            $u->removeRole('pmo_admin');
+            $count++;
         }
-        $count = count($users);
         $this->clearSelection();
-        $this->dispatch('toast', message: "{$count} user(s) set to Regular User role.", type: 'success');
+        if ($protectedCount > 0 && $count === 0) {
+            $this->dispatch('toast', message: 'Master PMO Administrator role (superadmin@georgesteuart.com) is protected and cannot be changed.', type: 'error');
+        } elseif ($protectedCount > 0) {
+            $this->dispatch('toast', message: "{$count} user(s) set to Regular User role. Master PMO Admin was protected.", type: 'info');
+        } else {
+            $this->dispatch('toast', message: "{$count} user(s) set to Regular User role.", type: 'success');
+        }
     }
 
     public function batchDelete(): void
@@ -161,7 +174,7 @@ class UserManager extends Component
         foreach ($targetIds as $id) {
             $user = User::find($id);
             if ($user) {
-                if ($user->isPmoAdmin() || $user->isSuperAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin')) {
+                if ($user->email === 'superadmin@georgesteuart.com') {
                     $blockedCount++;
                     continue;
                 }
@@ -179,9 +192,9 @@ class UserManager extends Component
         }
         $this->clearSelection();
         if ($blockedCount > 0 && $count === 0) {
-            $this->dispatch('toast', message: 'PMO Administrator accounts are core protected and cannot be deleted.', type: 'error');
+            $this->dispatch('toast', message: 'Master PMO Administrator account (superadmin@georgesteuart.com) is core protected and cannot be deleted.', type: 'error');
         } elseif ($blockedCount > 0) {
-            $this->dispatch('toast', message: "{$count} user(s) deleted. PMO Admin account(s) were protected from deletion.", type: 'info');
+            $this->dispatch('toast', message: "{$count} user(s) deleted. Master PMO Admin account was protected from deletion.", type: 'info');
         } else {
             $this->dispatch('toast', message: "{$count} user(s) deleted successfully.", type: 'info');
         }
@@ -441,6 +454,10 @@ class UserManager extends Component
 
             if ($this->editingId) {
                 $user = User::findOrFail($this->editingId);
+                // Protect superadmin@georgesteuart.com role from being changed
+                if ($user->email === 'superadmin@georgesteuart.com') {
+                    $this->role = 'super_admin';
+                }
                 $user->update($data);
                 $action = 'updated_user';
             } else {
@@ -498,8 +515,8 @@ class UserManager extends Component
 
         $user = User::findOrFail($id);
 
-        if ($user->isPmoAdmin() || $user->isSuperAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin')) {
-            $this->dispatch('toast', message: 'PMO Administrator accounts are core protected and cannot be deleted.', type: 'error');
+        if ($user->email === 'superadmin@georgesteuart.com') {
+            $this->dispatch('toast', message: 'Master PMO Administrator account (superadmin@georgesteuart.com) is core protected and cannot be deleted.', type: 'error');
             return;
         }
 

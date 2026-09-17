@@ -180,7 +180,7 @@
                                         <button wire:click="edit({{ $user->id }})" @click="$wire.showModal = true" class="p-1.5 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-[#fdf4f4] transition-colors cursor-pointer" title="Edit User">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
-                                        @if(!$isSuper && auth()->id() !== $user->id)
+                                        @if($user->email !== 'superadmin@georgesteuart.com' && auth()->id() !== $user->id)
                                         <button wire:click="deleteUser({{ $user->id }})" wire:confirm="Are you sure you want to delete user '{{ $user->name }}'?" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer" title="Delete User">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
@@ -253,7 +253,7 @@
                                         <button wire:click="edit({{ $user->id }})" @click="$wire.showModal = true" class="p-1.5 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-[#fdf4f4] transition-colors cursor-pointer" title="Edit User">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
-                                        @if(!$isSuper && auth()->id() !== $user->id)
+                                        @if($user->email !== 'superadmin@georgesteuart.com' && auth()->id() !== $user->id)
                                         <button wire:click="deleteUser({{ $user->id }})" wire:confirm="Are you sure you want to delete user '{{ $user->name }}'?" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer" title="Delete User">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
@@ -467,10 +467,13 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div class="form-group">
                             <label class="form-label">System Role</label>
-                            <select wire:model="role" class="form-select">
+                            <select wire:model="role" class="form-select" @if($email === 'superadmin@georgesteuart.com') disabled @endif>
                                 <option value="regular_user">Regular User</option>
                                 <option value="super_admin">PMO Admin</option>
                             </select>
+                            @if($email === 'superadmin@georgesteuart.com')
+                                <p class="text-[10px] text-amber-600 font-bold mt-1">🔒 Master PMO Admin role is protected and cannot be changed.</p>
+                            @endif
                             @error('role') <span class="form-error">{{ $message }}</span> @enderror
                         </div>
                         <div class="form-group">

@@ -48,6 +48,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->email === 'superadmin@georgesteuart.com') {
+            return back()->withErrors(['password' => 'Master PMO Administrator account is core protected and cannot be deleted.'], 'userDeletion');
+        }
+
         Auth::logout();
 
         $user->delete();
