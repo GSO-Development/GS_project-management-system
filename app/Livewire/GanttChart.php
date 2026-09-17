@@ -18,7 +18,8 @@ class GanttChart extends Component
     public bool $initialised = false;
 
     protected $listeners = [
-        'wbsUpdated' => '$refresh',
+        'wbsUpdated' => 'collapseAll',
+        'refreshWbs' => 'collapseAll',
         'riskUpdated' => '$refresh',
     ];
 
@@ -41,7 +42,7 @@ class GanttChart extends Component
         $this->initialised = true;
     }
 
-    /** Collapse all parent items so only main tasks are visible by default, while keeping at-risk branches open */
+    /** Collapse all parent items so only main tasks are visible by default */
     public function collapseAll()
     {
         $allParentsWithChildren = WbsItem::where('project_id', $this->project->id)
@@ -49,26 +50,10 @@ class GanttChart extends Component
                 $q->select('parent_id')->from('wbs_items')->whereNotNull('parent_id');
             })
             ->pluck('id')
+            ->map(fn($id) => (int)$id)
             ->toArray();
 
-        // Keep parents of at-risk tasks expanded so the at-risk tasks are immediately visible
-        $atRiskParentIds = [];
-        $atRiskItems = WbsItem::where('project_id', $this->project->id)
-            ->where(function ($q) {
-                $q->where('status', 'at_risk')
-                  ->orWhereHas('risks', fn($rq) => $rq->where('status', 'open'));
-            })
-            ->get();
-
-        foreach ($atRiskItems as $atRiskItem) {
-            $curr = $atRiskItem;
-            while ($curr && $curr->parent_id) {
-                $atRiskParentIds[] = $curr->parent_id;
-                $curr = WbsItem::find($curr->parent_id);
-            }
-        }
-
-        $this->collapsedIds = array_values(array_diff($allParentsWithChildren, array_unique($atRiskParentIds)));
+        $this->collapsedIds = array_values(array_unique($allParentsWithChildren));
     }
 
     /** Expand everything with one click */

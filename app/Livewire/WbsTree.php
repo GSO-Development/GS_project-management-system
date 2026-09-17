@@ -16,6 +16,7 @@ use App\Services\DependencyValidationService;
 use App\Services\ProgressCalculationService;
 use App\Services\WbsNumberingService;
 use InvalidArgumentException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -169,6 +170,7 @@ class WbsTree extends Component
         $this->collapsedIds = WbsItem::where('project_id', $project->id)
             ->whereHas('children')
             ->pluck('id')
+            ->map(fn($id) => (int)$id)
             ->toArray();
     }
 
@@ -191,6 +193,19 @@ class WbsTree extends Component
         $this->collapsedIds = WbsItem::where('project_id', $this->project->id)
             ->whereHas('children')
             ->pluck('id')
+            ->map(fn($id) => (int)$id)
+            ->toArray();
+    }
+
+    #[On('wbsUpdated')]
+    #[On('refreshWbs')]
+    public function refreshTree(): void
+    {
+        $this->project->refresh();
+        $this->collapsedIds = WbsItem::where('project_id', $this->project->id)
+            ->whereHas('children')
+            ->pluck('id')
+            ->map(fn($id) => (int)$id)
             ->toArray();
     }
 

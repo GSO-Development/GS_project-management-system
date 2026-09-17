@@ -98,6 +98,21 @@ class ProjectWorkspace extends Component
     public ?string $editDeadline = null;
     public ?float $editEstimatedBudget = null;
     public ?float $editActualCost = null;
+    public ?string $editWbsBreakdownType = 'monthly';
+    public ?int $editTemplateId = null;
+    public string $editTemplateSearch = '';
+
+    public function selectEditBlankCanvas(): void
+    {
+        $this->editWbsBreakdownType = 'manual';
+        $this->editTemplateId = null;
+    }
+
+    public function selectEditTemplate(int $templateId): void
+    {
+        $this->editWbsBreakdownType = 'template';
+        $this->editTemplateId = $templateId;
+    }
 
     public bool $showSetupModal = false;
     public ?string $setupDescription = null;
@@ -450,6 +465,9 @@ class ProjectWorkspace extends Component
         $this->editDeadline = $this->project->deadline ? $this->project->deadline->format('Y-m-d') : null;
         $this->editEstimatedBudget = (float) ($this->project->estimated_budget ?? 0);
         $this->editActualCost = (float) ($this->project->actual_cost ?? 0);
+        $this->editWbsBreakdownType = $this->project->wbs_breakdown_type ?? 'monthly';
+        $this->editTemplateId = $this->project->template_id;
+        $this->editTemplateSearch = '';
 
         $this->showProjectDetailsModal = false;
         $this->showEditProjectModal = true;
@@ -473,6 +491,8 @@ class ProjectWorkspace extends Component
             'editDeadline' => 'nullable|date',
             'editEstimatedBudget' => 'nullable|numeric|min:0',
             'editActualCost' => 'nullable|numeric|min:0',
+            'editWbsBreakdownType' => 'nullable|string',
+            'editTemplateId' => 'nullable|exists:project_templates,id',
         ]);
 
         $this->project->name = $this->editName;
@@ -492,11 +512,21 @@ class ProjectWorkspace extends Component
             }
         }
 
+        $oldBreakdownType = $this->project->wbs_breakdown_type;
+        $oldTemplateId = $this->project->template_id;
+
+        $newBreakdownType = $this->editWbsBreakdownType ?: 'monthly';
+        $newTemplateId = ($newBreakdownType === 'template') ? $this->editTemplateId : null;
+
+        $blueprintChanged = ($oldBreakdownType !== $newBreakdownType) || ($newBreakdownType === 'template' && (int)$oldTemplateId !== (int)$newTemplateId);
+
         $this->project->description = $this->editDescription;
         $this->project->priority = $this->editPriority;
         $this->project->status = $this->editStatus;
         $this->project->start_date = $this->editStartDate ?: null;
         $this->project->deadline = $this->editDeadline ?: null;
+        $this->project->wbs_breakdown_type = $newBreakdownType;
+        $this->project->template_id = $newTemplateId;
         
         $canEditEstimatedBudget = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit');
         $canEditActualCost = $user->isPmoAdmin() || $this->project->userCan($user, 'budget.edit');
@@ -510,9 +540,105 @@ class ProjectWorkspace extends Component
 
         $this->project->save();
 
+        if ($blueprintChanged) {
+            $startDateObj = \Carbon\Carbon::parse($this->project->start_date ?: now());
+            \Illuminate\Support\Facades\DB::transaction(function () use ($newBreakdownType, $newTemplateId, $startDateObj) {
+                // Permanently force delete all existing WBS items for this project (including soft deleted ones)
+                \App\Models\WbsItem::withTrashed()->where('project_id', $this->project->id)->forceDelete();
+
+                if ($newBreakdownType === 'template' && $newTemplateId) {
+                    $this->createWbsFromTemplate($this->project, (int)$newTemplateId, $startDateObj);
+                } else {
+                    $this->project->update(['overall_progress' => 0]);
+                }
+            });
+
+            $this->project->touch();
+        }
+
         $this->project->refresh();
+        $this->dispatch('wbsUpdated');
+        $this->dispatch('refreshWbs');
         $this->showEditProjectModal = false;
-        $this->dispatch('toast', message: 'All project parameters and details updated successfully!', type: 'success');
+        
+        $msg = $blueprintChanged 
+            ? 'All project parameters updated! WBS deliverable task list regenerated according to the selected delivery blueprint.' 
+            : 'All project parameters and details updated successfully!';
+            
+        $this->dispatch('toast', message: $msg, type: 'success');
+    }
+
+    private function createWbsFromTemplate(Project $project, int $templateId, \Carbon\Carbon $projectStartDate)
+    {
+        $template = \App\Models\ProjectTemplate::findOrFail($templateId);
+        $templateTasks = $template->tasks;
+
+        // Group tasks by parent_id
+        $tasksByParent = $templateTasks->groupBy(function($task) {
+            return $task->parent_id ?: 'root';
+        });
+
+        $this->scheduleAndCreateTasks($project, $tasksByParent, 'root', $projectStartDate, null);
+
+        // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
+        \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
+
+        // Recalculate WBS numbering and progress
+        (new \App\Services\WbsNumberingService())->recalculateProjectWbsCodes($project->id);
+        (new \App\Services\ProgressCalculationService())->updateProjectOverallProgress($project->id);
+    }
+
+    private function scheduleAndCreateTasks(Project $project, $tasksByParent, $parentIdKey, \Carbon\Carbon $currentStartDate, $parentWbsItemId = null)
+    {
+        $tasks = $tasksByParent->get($parentIdKey);
+        if (!$tasks) {
+            return $currentStartDate;
+        }
+
+        $lastEndDate = $currentStartDate->copy();
+
+        foreach ($tasks as $task) {
+            $durationInDays = $this->getDurationInDays($task->duration, $task->unit);
+            $taskStartDate = $lastEndDate->copy();
+            $taskEndDate = $taskStartDate->copy()->addDays(max(1, $durationInDays))->subDay();
+
+            $itemType = $parentWbsItemId ? \App\Enums\ItemType::TASK : \App\Enums\ItemType::PHASE;
+
+            $wbsItem = \App\Models\WbsItem::create([
+                'project_id'   => $project->id,
+                'parent_id'    => $parentWbsItemId,
+                'wbs_code'     => 'TEMP',
+                'item_type'    => $itemType,
+                'title'        => $task->name ?? 'Task',
+                'description'  => null,
+                'duration'     => $durationInDays,
+                'start_date'   => $taskStartDate->toDateString(),
+                'end_date'     => $taskEndDate->toDateString(),
+                'status'       => \App\Enums\WbsStatus::NOT_STARTED,
+                'priority'     => \App\Enums\Priority::MEDIUM,
+                'progress'     => 0,
+                'sort_order'   => (int) ($task->order_index ?? 0),
+                'is_milestone' => false,
+                'created_by'   => auth()->id(),
+            ]);
+
+            // Recursively create children
+            $childEndDate = $this->scheduleAndCreateTasks($project, $tasksByParent, (string)$task->id, $taskStartDate, $wbsItem->id);
+
+            $lastEndDate = $taskEndDate;
+        }
+
+        return $lastEndDate;
+    }
+
+    private function getDurationInDays($duration, $unit)
+    {
+        if ($unit === 'weeks') {
+            return $duration * 7;
+        } elseif ($unit === 'months') {
+            return $duration * 30;
+        }
+        return $duration;
     }
 
     public function openTimelineModal()
@@ -1294,8 +1420,20 @@ class ProjectWorkspace extends Component
         $allSubsidiaries = $subsidiaries;
         $allPms = \App\Models\User::where('is_active', true)->orderBy('name')->get();
         $allRoles = \App\Services\RbacService::getAllRoles();
+        $allTemplates = \App\Models\ProjectTemplate::with('tasks')->get();
 
-        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms', 'allRoles'));
+        $editTemplateSearch = trim($this->editTemplateSearch);
+        if ($editTemplateSearch !== '') {
+            $lowerTSearch = strtolower($editTemplateSearch);
+            $filteredEditTemplates = $allTemplates->filter(function ($tpl) use ($lowerTSearch) {
+                return str_contains(strtolower($tpl->name), $lowerTSearch)
+                    || str_contains(strtolower($tpl->description ?? ''), $lowerTSearch);
+            })->values();
+        } else {
+            $filteredEditTemplates = $allTemplates;
+        }
+
+        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms', 'allRoles', 'allTemplates', 'filteredEditTemplates'));
     }
 
     public function toggleCollapse(int $id)

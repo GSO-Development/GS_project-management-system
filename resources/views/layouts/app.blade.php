@@ -777,6 +777,62 @@
         </div>
     </div>
 
+    <!-- Project Not Found Modal Popup -->
+    @if(session('project_not_found') || (session('error') && str_contains(strtolower(session('error')), 'project is not found')))
+    <div x-data="{ open: true }" 
+         x-show="open" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="fixed inset-0 z-[9999999] flex items-center justify-center p-4" 
+         style="background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px);">
+        
+        <div @click.away="open = false" 
+             class="relative w-full max-w-md overflow-hidden bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 text-center transform transition-all"
+             style="box-shadow: 0 25px 80px -15px rgba(195, 18, 46, 0.25), 0 10px 30px -10px rgba(0, 0, 0, 0.2);">
+            
+            <!-- Top Gradient Accent -->
+            <div class="absolute top-0 left-0 right-0 h-1.5" style="background: linear-gradient(90deg, #c3122e 0%, #f43f5e 50%, #b8860b 100%);"></div>
+
+            <!-- Icon Header -->
+            <div class="mx-auto my-3 flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-[#c3122e] border border-rose-100 shadow-inner relative">
+                <div class="absolute inset-0 rounded-2xl bg-rose-500/10 blur-md animate-pulse"></div>
+                <svg class="w-8 h-8 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+
+            <!-- Content -->
+            <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mt-3">
+                Project Not Found
+            </h3>
+            
+            <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed font-medium">
+                {{ session('project_not_found') ?? session('error') ?? 'The requested project does not exist, may have been deleted, or the link is invalid.' }}
+            </p>
+
+            <!-- Actions -->
+            <div class="mt-6 flex items-center justify-center gap-3">
+                <button @click="open = false" 
+                        type="button" 
+                        class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all duration-200"
+                        style="background: linear-gradient(135deg, #c3122e 0%, #a00e25 100%); box-shadow: 0 8px 20px rgba(195, 18, 46, 0.3);"
+                        onmouseover="this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.transform='none'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span>Return to Projects Directory</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @livewireScripts
 
     <script>
@@ -789,21 +845,30 @@
     window.showToast = function (message, type = 'success', duration = 4000) {
         if (!message) return;
 
-        // Clean string from potential JSON stringification
+        if (Array.isArray(message)) {
+            message = message[0];
+        }
         if (typeof message === 'object') {
             message = message.message || message.text || message.title || JSON.stringify(message);
         }
+        message = String(message).trim();
+        if (!message) return;
 
         const now = Date.now();
-        const normMsg = String(message).trim().toLowerCase();
-        const normLast = String(lastToastMsg).trim().toLowerCase();
+        const lastToastKey = sessionStorage.getItem('__gs_last_toast_key');
+        const lastToastTime = parseInt(sessionStorage.getItem('__gs_last_toast_time') || '0', 10);
 
-        // Prevent duplicate toast if same/similar message received within 2 seconds
-        if ((normLast === normMsg || (normLast.includes('unauthorized') && normMsg.includes('unauthorized'))) && (now - lastToastTime) < 2000) {
+        const currentKey = type + ':' + message.toLowerCase();
+
+        // Deduplication: Ignore if identical/similar toast was shown within the last 3 seconds
+        if ((lastToastKey === currentKey || (lastToastKey && lastToastKey.includes('unauthorized') && currentKey.includes('unauthorized'))) && (now - lastToastTime) < 3000) {
             return;
         }
-        lastToastMsg = message;
-        lastToastTime = now;
+
+        try {
+            sessionStorage.setItem('__gs_last_toast_key', currentKey);
+            sessionStorage.setItem('__gs_last_toast_time', now.toString());
+        } catch (e) {}
 
         let container = document.getElementById('toast-container');
         if (!container) {
@@ -813,7 +878,7 @@
             document.body.appendChild(container);
         }
 
-        // Remove any existing toasts immediately so only 1 message displays at a time
+        // Remove any existing toasts immediately so ONLY 1 toast is visible on screen
         const existingToasts = container.querySelectorAll('[data-toast]');
         existingToasts.forEach(t => t.remove());
 
@@ -1008,11 +1073,26 @@
     function __gsShowFlashMessages() {
         if (__gsFlashShown) return;
         __gsFlashShown = true;
-        @if(session('success')) window.showToast(@json(session('success')), 'success'); @endif
-        @if(session('error')) window.showToast(@json(session('error')), 'error'); @endif
-        @if(session('warning')) window.showToast(@json(session('warning')), 'warning'); @endif
-        @if(session('info')) window.showToast(@json(session('info')), 'info'); @endif
-        @if(session('status')) window.showToast(@json(session('status')), 'info'); @endif
+        @if(session('success'))
+            let msgSuccess = @json(session('success'));
+            window.showToast(Array.isArray(msgSuccess) ? msgSuccess[0] : msgSuccess, 'success');
+        @endif
+        @if(session('error'))
+            let msgError = @json(session('error'));
+            window.showToast(Array.isArray(msgError) ? msgError[0] : msgError, 'error');
+        @endif
+        @if(session('warning'))
+            let msgWarn = @json(session('warning'));
+            window.showToast(Array.isArray(msgWarn) ? msgWarn[0] : msgWarn, 'warning');
+        @endif
+        @if(session('info'))
+            let msgInfo = @json(session('info'));
+            window.showToast(Array.isArray(msgInfo) ? msgInfo[0] : msgInfo, 'info');
+        @endif
+        @if(session('status'))
+            let msgStatus = @json(session('status'));
+            window.showToast(Array.isArray(msgStatus) ? msgStatus[0] : msgStatus, 'info');
+        @endif
     }
     document.addEventListener('DOMContentLoaded', __gsShowFlashMessages);
     document.addEventListener('livewire:navigated', __gsShowFlashMessages, { once: true });

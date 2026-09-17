@@ -887,12 +887,12 @@
 
     <!-- 2. WBS PLAN TAB -->
     @if($activeTab === 'wbs')
-        <livewire:wbs-tree :project="$project" />
+        <livewire:wbs-tree :project="$project" :key="'wbs-tree-'.$project->id.'-'.($project->updated_at?->timestamp ?? time())" />
     @endif
 
     <!-- 3. KANBAN TAB -->
     @if($activeTab === 'kanban')
-        <livewire:kanban-board :project="$project" />
+        <livewire:kanban-board :project="$project" :key="'kanban-board-'.$project->id.'-'.($project->updated_at?->timestamp ?? time())" />
     @endif
 
     <!-- 5. STATUS UPDATES TAB -->
@@ -1953,6 +1953,141 @@
                     @error('editDescription') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- 5. Execution Progress & Blueprints (Delivery Blueprint Options) Section --}}
+                <div class="bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                    <!-- Header with Title, Count Badge & Search Bar -->
+                    <div class="flex items-center justify-between gap-3 flex-wrap border-b border-slate-200/80 pb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-[#c3122e]">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-black text-slate-800 uppercase tracking-wider">Delivery Blueprint Options</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-rose-50 text-[#c3122e] border border-rose-200/80">
+                                {{ $filteredEditTemplates->count() + 1 }} Available
+                            </span>
+                        </div>
+
+                        <!-- Live Search Input -->
+                        <div class="relative w-full sm:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                wire:model.live.debounce.150ms="editTemplateSearch"
+                                placeholder="Search blueprint templates..."
+                                class="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#c3122e] transition-all shadow-2xs"
+                            >
+                            @if($editTemplateSearch)
+                                <button type="button" wire:click="$set('editTemplateSearch', '')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[360px] overflow-y-auto pr-1">
+                        <!-- Card 1: Blank Slate Canvas -->
+                        @if(empty($editTemplateSearch) || str_contains(strtolower('blank slate canvas custom agile empty scratch'), strtolower($editTemplateSearch)))
+                            @php $isBlankSelected = ($editWbsBreakdownType === 'manual'); @endphp
+                            <button
+                                type="button"
+                                wire:click="selectEditBlankCanvas"
+                                class="p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer min-h-[175px] flex flex-col justify-between relative bg-white {{ $isBlankSelected ? 'border-[#c3122e] bg-gradient-to-b from-rose-50/70 via-white to-rose-50/30 shadow-md ring-2 ring-[#c3122e]/20' : 'border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5' }}"
+                            >
+                                <div class="space-y-2.5 w-full">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black shadow-xs transition-colors {{ $isBlankSelected ? 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white' : 'bg-indigo-50 text-indigo-600 border border-indigo-100' }}">
+                                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </div>
+                                        @if($isBlankSelected)
+                                            <span class="px-2.5 py-1 rounded-full text-[9px] font-black bg-[#c3122e] text-white shadow-2xs uppercase tracking-wider flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                                SELECTED
+                                            </span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                                                Custom / Agile
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 leading-snug">Blank Slate Canvas</h4>
+                                        <p class="text-[11px] text-slate-500 font-medium mt-1 line-clamp-2 leading-relaxed">
+                                            Starts with an empty project workspace. Build custom milestones, agile sprint tasks, and timelines on demand.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                                    <span>No Predefined Tasks</span>
+                                    <span class="text-indigo-600 font-black">Empty Canvas</span>
+                                </div>
+                            </button>
+                        @endif
+
+                        <!-- Template Cards -->
+                        @forelse($filteredEditTemplates as $tplItem)
+                            @php
+                                $isTplSelected = ($editWbsBreakdownType === 'template' && $editTemplateId == $tplItem->id);
+                                $taskCount = $tplItem->tasks->count();
+                                $rootCount = $tplItem->tasks->whereNull('parent_id')->count();
+                            @endphp
+                            <button
+                                type="button"
+                                wire:click="selectEditTemplate({{ $tplItem->id }})"
+                                class="p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer min-h-[175px] flex flex-col justify-between relative bg-white {{ $isTplSelected ? 'border-[#c3122e] bg-gradient-to-b from-rose-50/70 via-white to-rose-50/30 shadow-md ring-2 ring-[#c3122e]/20' : 'border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5' }}"
+                            >
+                                <div class="space-y-2.5 w-full">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black shadow-xs transition-colors {{ $isTplSelected ? 'bg-gradient-to-br from-[#c3122e] to-[#8b0d1f] text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-100' }}">
+                                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                        </div>
+                                        @if($isTplSelected)
+                                            <span class="px-2.5 py-1 rounded-full text-[9px] font-black bg-[#c3122e] text-white shadow-2xs uppercase tracking-wider flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                                SELECTED
+                                            </span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black bg-slate-100 text-slate-600 border border-slate-200">
+                                                Blueprint Template
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 leading-snug truncate" title="{{ $tplItem->name }}">{{ $tplItem->name }}</h4>
+                                        <p class="text-[11px] text-slate-500 font-medium mt-1 line-clamp-2 leading-relaxed">
+                                            {{ $tplItem->description ?: 'Auto-generates phases, tasks, dependencies, and delivery roadmap structure.' }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold">
+                                    <span class="text-slate-600 flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                                        {{ $rootCount }} Phase(s)
+                                    </span>
+                                    <span class="text-[#c3122e] font-mono font-black bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">{{ $taskCount }} Tasks</span>
+                                </div>
+                            </button>
+                        @empty
+                            @if(!empty($editTemplateSearch))
+                                <div class="col-span-full py-8 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                                    <p class="text-xs font-black text-slate-800">No blueprint templates found matching "{{ $editTemplateSearch }}"</p>
+                                    <button type="button" wire:click="$set('editTemplateSearch', '')" class="text-[11px] font-bold text-[#c3122e] hover:underline mt-1 cursor-pointer">Clear search query</button>
+                                </div>
+                            @endif
+                        @endforelse
+                    </div>
+                </div>
+
                 {{-- Action Buttons --}}
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                     <button type="button" wire:click="$set('showEditProjectModal', false)" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all shadow-2xs">
@@ -2833,6 +2968,36 @@
                             </div>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 shadow-2xs">
                                 Active Blueprint
+                            </span>
+                        </div>
+                    @else
+                        <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8.5 h-8.5 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100 shrink-0 shadow-2xs">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">BREAKDOWN TYPE:</span>
+                                        <span class="font-extrabold text-slate-900 text-xs">
+                                            {{ match($project->wbs_breakdown_type) {
+                                                'template' => 'Standard Blueprint Template',
+                                                'monthly' => 'Monthly Phase Breakdown',
+                                                'milestones' => 'Strategic Milestone Canvas',
+                                                default => 'Custom Agile WBS Canvas'
+                                            } }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-100">
+                                            {{ $project->wbsItems->count() }} Configured Deliverables
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 shrink-0 shadow-2xs">
+                                WBS Architecture
                             </span>
                         </div>
                     @endif

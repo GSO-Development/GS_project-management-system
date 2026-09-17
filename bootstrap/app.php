@@ -22,11 +22,32 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException|\Illuminate\Database\Eloquent\ModelNotFoundException $e, \Illuminate\Http\Request $request) {
+            if ($request->isMethod('GET') && !$request->wantsJson()) {
+                $isProjectRoute = $request->is('projects/*') 
+                    || ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException && $e->getModel() === \App\Models\Project::class);
+
+                if ($isProjectRoute) {
+                    $targetRoute = route('projects.index');
+                    if (auth()->check()) {
+                        $user = auth()->user();
+                        $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
+                    }
+
+                    session()->flash('project_not_found', 'The requested project could not be found. It may have been deleted or the link is invalid.');
+                    session()->flash('error', '⚠️ Project is not found');
+                    return redirect()->to($targetRoute);
+                }
+            }
+        });
+
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException|\Illuminate\Auth\AccessDeniedException $e, \Illuminate\Http\Request $request) {
             if ($request->isMethod('GET') && !$request->wantsJson() && auth()->check()) {
                 $user = auth()->user();
                 $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
-                session()->flash('error', '🔒 Unauthorized Access: You do not have permission to view or access this project workspace.');
+                if (!session()->has('error')) {
+                    session()->flash('error', '🔒 Unauthorized Access: You do not have permission to view or access this project workspace.');
+                }
                 return redirect()->to($targetRoute);
             }
         });
