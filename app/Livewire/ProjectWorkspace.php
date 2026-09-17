@@ -766,13 +766,16 @@ class ProjectWorkspace extends Component
             $hasTask = $project->wbsItems()->where('assigned_user_id', $user->id)->exists();
             
             if (!$isGov && !$isPm && !$isMember && !$hasTask) {
-                abort(403, 'Unauthorized project access.');
+                session()->flash('error', '🔒 Unauthorized Access: You do not have permission to view or access this project workspace.');
+                $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
+                return redirect()->to($targetRoute);
             }
 
             // If project is awaiting PM acceptance, only the designated Project Manager can access it
             if (!$project->isPmAccepted() && !$isPm) {
                 session()->flash('warning', "Project '{$project->name}' ({$project->code}) is currently awaiting Project Manager acceptance and initialization before opening to the team.");
-                return redirect()->route('dashboard');
+                $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
+                return redirect()->to($targetRoute);
             }
         }
     }

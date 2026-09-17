@@ -22,5 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException|\Illuminate\Auth\AccessDeniedException $e, \Illuminate\Http\Request $request) {
+            if ($request->isMethod('GET') && !$request->wantsJson() && auth()->check()) {
+                $user = auth()->user();
+                $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
+                session()->flash('error', '🔒 Unauthorized Access: You do not have permission to view or access this project workspace.');
+                return redirect()->to($targetRoute);
+            }
+        });
     })->create();

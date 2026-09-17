@@ -108,36 +108,40 @@
         $currentUser     = auth()->user();
         $isSuperAdmin    = $currentUser->isSuperAdmin() || $currentUser->hasRole('pmo_admin');
         $isPm            = ($project->project_manager_id === $currentUser->id);
-        $memberRecord    = $project->members->firstWhere('id', $currentUser->id);
-        $memberPivotRole = $memberRecord?->pivot?->role;
+        $userRoleCode    = $project->getUserRole($currentUser);
+        $roleMeta        = $allRoles[$userRoleCode] ?? null;
 
-        if ($isPm) {
+        if ($isPm || $userRoleCode === 'lead') {
             $myRoleLabel      = 'Project Leader';
             $myRoleDesc       = 'You are the primary operational leader with authority over deliverables, schedule & budget.';
             $myRoleBadgeClass = 'bg-rose-50 text-[#c3122e] border-rose-200/80';
-        } elseif ($memberPivotRole === 'sponsor') {
+        } elseif ($userRoleCode === 'sponsor') {
             $myRoleLabel      = 'Project Sponsor';
             $myRoleDesc       = 'You are the executive sponsor championing this strategic project.';
             $myRoleBadgeClass = 'bg-amber-50 text-amber-800 border-amber-200/80';
-        } elseif ($memberPivotRole === 'owner') {
+        } elseif ($userRoleCode === 'owner') {
             $myRoleLabel      = 'Project Owner';
             $myRoleDesc       = 'You are the business owner accountable for project value and outcomes.';
             $myRoleBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
-        } elseif ($memberPivotRole === 'steering_committee') {
+        } elseif ($userRoleCode === 'steering_committee') {
             $myRoleLabel      = 'Steering Committee';
             $myRoleDesc       = 'You provide steering governance and strategic advisory oversight.';
             $myRoleBadgeClass = 'bg-purple-50 text-purple-800 border-purple-200/80';
-        } elseif ($memberPivotRole) {
-            $myRoleLabel      = 'Collaborator';
-            $myRoleDesc       = 'You are an assigned project collaborator executing deliverables.';
+        } elseif ($roleMeta) {
+            $myRoleLabel      = $roleMeta['name'];
+            $myRoleDesc       = $roleMeta['description'] ?? 'Assigned project governance role.';
+            $myRoleBadgeClass = $roleMeta['badge'] ?? 'bg-blue-50 text-blue-800 border-blue-200/80';
+        } elseif ($userRoleCode && $userRoleCode !== 'member') {
+            $myRoleLabel      = ucwords(str_replace(['_', '-'], ' ', $userRoleCode));
+            $myRoleDesc       = 'Assigned project role.';
             $myRoleBadgeClass = 'bg-blue-50 text-blue-800 border-blue-200/80';
         } elseif ($isSuperAdmin) {
             $myRoleLabel      = 'PMO Admin';
             $myRoleDesc       = 'Enterprise governance, audit authority, and full workspace access.';
             $myRoleBadgeClass = 'bg-rose-50 text-[#c3122e] border-rose-200/80';
         } else {
-            $myRoleLabel      = 'Stakeholder';
-            $myRoleDesc       = 'You have read-only stakeholder visibility on this project.';
+            $myRoleLabel      = 'Team Member';
+            $myRoleDesc       = 'You are an assigned project team member executing deliverables.';
             $myRoleBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
         }
 
@@ -541,19 +545,21 @@
                                 @php
                                     $isPm = ($member->id === $project->project_manager_id);
                                     $role = $isPm ? 'lead' : ($member->pivot->role ?? 'member');
+                                    $roleMeta = $allRoles[$role] ?? null;
                                     $roleLabel = match($role) {
                                         'sponsor' => 'Sponsor',
                                         'owner' => 'Project Owner',
                                         'steering_committee' => 'Committee',
                                         'lead' => 'Project Manager',
-                                        default => 'Member'
+                                        'member' => 'Member',
+                                        default => $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role)),
                                     };
                                     $roleBadgeClass = match($role) {
                                         'sponsor' => 'bg-amber-50 text-amber-800 border-amber-200/80',
                                         'owner' => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
                                         'steering_committee' => 'bg-violet-50 text-violet-800 border-violet-200/80',
                                         'lead' => 'bg-rose-50 text-[#c3122e] border-rose-200/80',
-                                        default => 'bg-blue-50 text-blue-700 border-blue-200/80'
+                                        default => $roleMeta['badge'] ?? 'bg-blue-50 text-blue-700 border-blue-200/80'
                                     };
                                 @endphp
                                 <div class="p-2.5 rounded-xl bg-slate-50/60 border border-slate-200/70 flex items-center justify-between text-xs">

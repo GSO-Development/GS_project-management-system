@@ -327,13 +327,27 @@ class Project extends Model
     {
         if (!$user) return null;
         $userId = $user instanceof User ? $user->id : (int) $user;
+        $uObj = $user instanceof User ? $user : User::find($userId);
 
         if ($this->project_manager_id === $userId) {
             return 'lead';
         }
 
         $member = $this->members()->where('users.id', $userId)->first();
-        return $member?->pivot?->role;
+        $pivotRole = $member?->pivot?->role;
+
+        if ($pivotRole && $pivotRole !== 'member') {
+            return $pivotRole;
+        }
+
+        if ($uObj) {
+            $spatieRole = $uObj->roles->first()?->name;
+            if ($spatieRole && !in_array($spatieRole, ['super_admin', 'pmo_admin', 'lead', 'project_manager', 'member', 'team_member', 'regular_user'])) {
+                return $spatieRole;
+            }
+        }
+
+        return $pivotRole ?: ($member ? 'member' : null);
     }
 
     /**

@@ -165,14 +165,32 @@
 
     <!-- 3. ASSIGNED TO -->
     <td class="py-3.5 px-3 text-xs align-middle" style="width: 195px;">
-        @if($item->assignee)
+        @php
+            $effectiveAssignee = $item->assignedUser ?? $item->assignee;
+            $childAssignees = collect();
+            if (!$effectiveAssignee && $item->children && $item->children->count() > 0) {
+                $childAssignees = $item->children->map(fn($c) => $c->assignedUser ?? $c->assignee)->filter()->unique('id');
+                if ($childAssignees->count() === 1) {
+                    $effectiveAssignee = $childAssignees->first();
+                }
+            }
+        @endphp
+
+        @if($effectiveAssignee)
             <div class="flex items-center gap-2">
                 <div class="w-6 h-6 rounded-full {{ $avatarBg }} text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                    {{ strtoupper(substr($item->assignee->name, 0, 1)) }}
+                    {{ strtoupper(substr($effectiveAssignee->name, 0, 1)) }}
                 </div>
                 <div class="flex flex-col truncate leading-tight">
-                    <span class="font-bold text-slate-800 truncate text-xs">{{ $item->assignee->name }}</span>
+                    <span class="font-bold text-slate-800 truncate text-xs">{{ $effectiveAssignee->name }}</span>
                 </div>
+            </div>
+        @elseif($childAssignees->count() > 1)
+            <div class="flex items-center gap-1.5 text-slate-600 font-semibold text-xs" title="{{ $childAssignees->pluck('name')->implode(', ') }}">
+                <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-extrabold text-[9px] flex items-center justify-center border border-blue-200 shrink-0">
+                    {{ $childAssignees->count() }}
+                </span>
+                <span class="truncate text-slate-700 font-semibold">{{ $childAssignees->count() }} Assignees</span>
             </div>
         @else
             <div class="flex items-center gap-1.5 text-slate-400 font-medium text-xs">

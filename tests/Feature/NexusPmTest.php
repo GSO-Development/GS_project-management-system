@@ -60,9 +60,10 @@ test('unauthorized project access is blocked', function () {
         'status' => ProjectStatus::PLANNING,
     ]);
 
-    // PM1 trying to access PM2 project should be forbidden
+    // PM1 trying to access PM2 project should be redirected with unauthorized toast error
     $response = $this->actingAs($pm1)->get("/projects/{$project->id}");
-    $response->assertForbidden();
+    $response->assertRedirect(route('projects.my-leads'));
+    $response->assertSessionHas('error');
 });
 
 test('wbs automatic numbering generates correct hierarchical codes', function () {

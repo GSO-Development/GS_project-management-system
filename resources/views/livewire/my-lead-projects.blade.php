@@ -142,13 +142,23 @@
                                 default       => ['dot' => 'bg-slate-400',   'text' => 'text-slate-700',   'bg' => 'bg-slate-50',   'border' => 'border-slate-200',   'label' => $p->status->label()],
                             };
 
+                            $allRoles = \App\Services\RbacService::getAllRoles();
+                            $roleMeta = $allRoles[$userRole] ?? null;
+
                             $roleConfig = match($userRole) {
                                 'pmo_admin'          => ['label' => 'PMO Admin',          'icon' => '🛡️', 'bg' => 'bg-slate-900',    'text' => 'text-white',         'border' => 'border-slate-700'],
                                 'lead'               => ['label' => 'Project Manager',     'icon' => '⭐', 'bg' => 'bg-[#c3122e]',    'text' => 'text-white',         'border' => 'border-rose-700'],
                                 'sponsor'            => ['label' => 'Project Sponsor',    'icon' => '💼', 'bg' => 'bg-amber-100',    'text' => 'text-amber-800',     'border' => 'border-amber-300'],
                                 'owner'              => ['label' => 'Project Owner',      'icon' => '🏛️', 'bg' => 'bg-purple-100',   'text' => 'text-purple-800',    'border' => 'border-purple-300'],
                                 'steering_committee' => ['label' => 'Steering Committee', 'icon' => '🎖️', 'bg' => 'bg-blue-100',     'text' => 'text-blue-800',      'border' => 'border-blue-300'],
-                                default              => ['label' => 'Team Member',         'icon' => '🤝', 'bg' => 'bg-slate-100',    'text' => 'text-slate-700',     'border' => 'border-slate-300'],
+                                'member'             => ['label' => 'Team Member',         'icon' => '🤝', 'bg' => 'bg-slate-100',    'text' => 'text-slate-700',     'border' => 'border-slate-300'],
+                                default              => [
+                                    'label'  => $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $userRole)),
+                                    'icon'   => $roleMeta['icon'] ?? '🏷️',
+                                    'bg'     => 'bg-amber-50',
+                                    'text'   => 'text-amber-900',
+                                    'border' => 'border-amber-300',
+                                ],
                             };
                         @endphp
                         <tr class="hover:bg-slate-50/70 transition-colors group">

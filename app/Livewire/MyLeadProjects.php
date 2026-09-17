@@ -185,8 +185,7 @@ class MyLeadProjects extends Component
             } elseif ($p->project_manager_id === $user->id) {
                 $userRoles[$p->id] = 'lead';
             } else {
-                $member = $p->members->firstWhere('id', $user->id);
-                $userRoles[$p->id] = $member?->pivot?->role ?? 'member';
+                $userRoles[$p->id] = $p->getUserRole($user) ?? 'member';
             }
         }
 

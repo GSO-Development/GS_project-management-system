@@ -101,6 +101,16 @@ class WbsItem extends Model
         return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function getAssigneeAttribute(): ?User
+    {
+        return $this->assignedUser;
+    }
+
     public function delayReporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'delay_reason_by');

@@ -795,8 +795,11 @@
         }
 
         const now = Date.now();
-        // Prevent duplicate toast if same message received within 1.5 seconds
-        if (lastToastMsg === message && (now - lastToastTime) < 1500) {
+        const normMsg = String(message).trim().toLowerCase();
+        const normLast = String(lastToastMsg).trim().toLowerCase();
+
+        // Prevent duplicate toast if same/similar message received within 2 seconds
+        if ((normLast === normMsg || (normLast.includes('unauthorized') && normMsg.includes('unauthorized'))) && (now - lastToastTime) < 2000) {
             return;
         }
         lastToastMsg = message;
@@ -810,13 +813,9 @@
             document.body.appendChild(container);
         }
 
-        // Remove any existing toasts so only 1 message displays at a time
+        // Remove any existing toasts immediately so only 1 message displays at a time
         const existingToasts = container.querySelectorAll('[data-toast]');
-        existingToasts.forEach(t => {
-            t.style.transform = 'translateX(120%)';
-            t.style.opacity = '0';
-            setTimeout(() => t.remove(), 250);
-        });
+        existingToasts.forEach(t => t.remove());
 
         const config = {
             success: {
@@ -1004,27 +1003,19 @@
         window.addEventListener('notify', (e) => handleToastEvent(e.detail));
     }
 
-    // 3. Flash session messages on load & livewire navigate
-    @if(session('success'))
-        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('success')), 'success'));
-        document.addEventListener('livewire:navigated', () => window.showToast(@json(session('success')), 'success'), { once: true });
-    @endif
-    @if(session('error'))
-        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('error')), 'error'));
-        document.addEventListener('livewire:navigated', () => window.showToast(@json(session('error')), 'error'), { once: true });
-    @endif
-    @if(session('warning'))
-        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('warning')), 'warning'));
-        document.addEventListener('livewire:navigated', () => window.showToast(@json(session('warning')), 'warning'), { once: true });
-    @endif
-    @if(session('info'))
-        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('info')), 'info'));
-        document.addEventListener('livewire:navigated', () => window.showToast(@json(session('info')), 'info'), { once: true });
-    @endif
-    @if(session('status'))
-        document.addEventListener('DOMContentLoaded', () => window.showToast(@json(session('status')), 'info'));
-        document.addEventListener('livewire:navigated', () => window.showToast(@json(session('status')), 'info'), { once: true });
-    @endif
+    // 3. Flash session messages on load & livewire navigate (guaranteed single run)
+    let __gsFlashShown = false;
+    function __gsShowFlashMessages() {
+        if (__gsFlashShown) return;
+        __gsFlashShown = true;
+        @if(session('success')) window.showToast(@json(session('success')), 'success'); @endif
+        @if(session('error')) window.showToast(@json(session('error')), 'error'); @endif
+        @if(session('warning')) window.showToast(@json(session('warning')), 'warning'); @endif
+        @if(session('info')) window.showToast(@json(session('info')), 'info'); @endif
+        @if(session('status')) window.showToast(@json(session('status')), 'info'); @endif
+    }
+    document.addEventListener('DOMContentLoaded', __gsShowFlashMessages);
+    document.addEventListener('livewire:navigated', __gsShowFlashMessages, { once: true });
 
     function appLayout() {
         return {
