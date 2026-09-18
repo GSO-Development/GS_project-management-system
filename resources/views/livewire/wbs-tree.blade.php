@@ -237,7 +237,11 @@
                             <label style="display: block; font-size: 10.5px; font-weight: 800; color: #334155; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em;">
                                 Assigned Member
                             </label>
-                            @if($this->project->userCan(auth()->user(), 'task.assign'))
+                            @php
+                                $usr = auth()->user();
+                                $canAssignMember = $usr?->isPmoAdmin() || $this->project->userCan($usr, 'task.assign');
+                            @endphp
+                            @if($canAssignMember)
                             <select wire:model="assigned_user_id" style="width: 100%; height: 35px; padding: 0 10px; border-radius: 9px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 11.5px; font-weight: 600; color: #0f172a; outline: none;">
                                 <option value="">-- Unassigned --</option>
                                 @foreach($projectMembers as $m)

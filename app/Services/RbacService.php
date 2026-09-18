@@ -204,6 +204,7 @@ class RbacService
                 'task.edit' => 'Edit Task',
                 'task.edit_assigned' => 'Edit Assigned Task',
                 'task.delete' => 'Delete Task',
+                'task.assign' => 'Assign Team Members',
                 'task.change_status' => 'Update Task Status',
                 'task.create_subtask' => 'Create Subtask',
                 'task.log_daily' => 'Daily Progress Log',
@@ -353,7 +354,7 @@ class RbacService
             'super_admin', 'pmo_admin' => Permission::pluck('name')->toArray(),
             'lead', 'project_manager' => [
                 'project_details.view', 'project_details.edit', 'budget.edit',
-                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.change_status', 'task.create_subtask', 'task.log_daily',
+                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.change_status', 'task.create_subtask', 'task.log_daily',
                 'team.view', 'team.add', 'team.remove',
             ],
             'member', 'team_member' => [

@@ -350,7 +350,8 @@ class WbsTree extends Component
             }
         }
 
-        $canAssign = $this->project->userCan(auth()->user(), 'task.assign');
+        $usr = auth()->user();
+        $canAssign = $usr?->isPmoAdmin() || $this->project->userCan($usr, 'task.assign');
         $assigneeId = $canAssign ? ($this->assigned_user_id ?: null) : ($this->editingItemId ? WbsItem::find($this->editingItemId)?->assigned_user_id : null);
 
         // Auto-sync progress & status
