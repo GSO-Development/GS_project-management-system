@@ -779,16 +779,23 @@ class WbsTree extends Component
 
         $allProjectItems = WbsItem::with(['risks', 'children'])->where('project_id', $this->project->id)->get();
         
-        // Calculate status statistics across all items in the project
+        // Scope for status statistics: filter by user if 'mine' or if user can only view assigned tasks
+        if ($this->assigneeFilter === 'mine' || !$canViewAllTasks) {
+            $scopedProjectItems = $allProjectItems->where('assigned_user_id', $user->id);
+        } else {
+            $scopedProjectItems = $allProjectItems;
+        }
+
+        // Calculate status statistics across scoped items for the current user view
         $statusStats = [
-            'total'       => $allProjectItems->count(),
+            'total'       => $scopedProjectItems->count(),
             'in_progress' => 0,
             'at_risk'     => 0,
             'blocked'     => 0,
             'completed'   => 0,
         ];
 
-        foreach ($allProjectItems as $item) {
+        foreach ($scopedProjectItems as $item) {
             $st = $item->status?->value ?? 'not_started';
             if (isset($statusStats[$st])) {
                 $statusStats[$st]++;
@@ -810,11 +817,27 @@ class WbsTree extends Component
             });
         }
 
+        // Filter out child items whose parent or ancestor is already present in the result list.
+        // This prevents duplicate rendering of child tasks (both under their parent and at the root level).
+        $allProjectItemsKeyed = $allProjectItems->keyBy('id');
+        $wbsItemIds = $wbsItems->pluck('id')->toBase();
+
+        $topLevelWbsItems = $wbsItems->filter(function ($item) use ($wbsItemIds, $allProjectItemsKeyed) {
+            $curr = $item;
+            while ($curr && $curr->parent_id) {
+                if ($wbsItemIds->contains($curr->parent_id)) {
+                    return false;
+                }
+                $curr = $allProjectItemsKeyed->get($curr->parent_id);
+            }
+            return true;
+        });
+
         // Paginate top-level WBS items
         $currentPage = $this->getPage();
         $paginatedWbsItems = new \Illuminate\Pagination\LengthAwarePaginator(
-            $wbsItems->forPage($currentPage, $this->perPage)->values(),
-            $wbsItems->count(),
+            $topLevelWbsItems->forPage($currentPage, $this->perPage)->values(),
+            $topLevelWbsItems->count(),
             $this->perPage,
             $currentPage,
             ['path' => request()->url(), 'query' => request()->query()]
