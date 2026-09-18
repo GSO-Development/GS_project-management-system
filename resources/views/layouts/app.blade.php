@@ -837,11 +837,8 @@
 
     <script>
     // ═══════════════════════════════════════════════════════════════════════════
-    // UNIVERSAL GS NEXUSPM TOAST NOTIFICATION ENGINE (Single Active Toast Mode)
+    // UNIVERSAL GS NEXUSPM TOAST NOTIFICATION ENGINE (Single Active Toast & Deduplicated Mode)
     // ═══════════════════════════════════════════════════════════════════════════
-    let lastToastMsg = '';
-    let lastToastTime = 0;
-
     window.showToast = function (message, type = 'success', duration = 4000) {
         if (!message) return;
 
@@ -855,16 +852,21 @@
         if (!message) return;
 
         const now = Date.now();
-        const lastToastKey = sessionStorage.getItem('__gs_last_toast_key');
-        const lastToastTime = parseInt(sessionStorage.getItem('__gs_last_toast_time') || '0', 10);
+        const currentKey = (type || 'success') + ':' + message.toLowerCase();
 
-        const currentKey = type + ':' + message.toLowerCase();
+        const lastMemKey = window.__gsLastToastKey || '';
+        const lastMemTime = window.__gsLastToastTime || 0;
+        const lastSesKey = sessionStorage.getItem('__gs_last_toast_key') || '';
+        const lastSesTime = parseInt(sessionStorage.getItem('__gs_last_toast_time') || '0', 10);
 
-        // Deduplication: Ignore if identical/similar toast was shown within the last 3 seconds
-        if ((lastToastKey === currentKey || (lastToastKey && lastToastKey.includes('unauthorized') && currentKey.includes('unauthorized'))) && (now - lastToastTime) < 3000) {
+        // Deduplication: Ignore if identical toast was triggered within the last 2.5 seconds
+        if ((lastMemKey === currentKey && (now - lastMemTime) < 2500) ||
+            (lastSesKey === currentKey && (now - lastSesTime) < 2500)) {
             return;
         }
 
+        window.__gsLastToastKey = currentKey;
+        window.__gsLastToastTime = now;
         try {
             sessionStorage.setItem('__gs_last_toast_key', currentKey);
             sessionStorage.setItem('__gs_last_toast_time', now.toString());
@@ -876,6 +878,14 @@
             container.id = 'toast-container';
             container.style.cssText = 'position:fixed; bottom:28px; right:28px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);';
             document.body.appendChild(container);
+        }
+
+        // DOM Text Deduplication: Check if identical text is currently visible
+        const existingTexts = container.querySelectorAll('[data-toast-text]');
+        for (let el of existingTexts) {
+            if (el.textContent.trim().toLowerCase() === message.toLowerCase()) {
+                return;
+            }
         }
 
         // Remove any existing toasts immediately so ONLY 1 toast is visible on screen
@@ -977,6 +987,7 @@
         titleEl.textContent = c.title;
 
         const textEl = document.createElement('p');
+        textEl.setAttribute('data-toast-text', '');
         textEl.style.cssText = 'font-size: 12.5px; font-weight: 700; color: #0f172a; line-height: 1.4; margin: 0; word-break: break-word; font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;';
         textEl.textContent = message;
 
@@ -1032,9 +1043,13 @@
     };
 
     window.toast = window.showToast;
+    window.__gsShowToastMaster = window.showToast;
 
-    // Single unified event listener (avoids 4x duplication)
-    function handleToastEvent(payload) {
+    // Single unified event listener (prevents Livewire 3 DOM bubbling duplicates)
+    function handleToastEvent(payload, evt) {
+        if (evt && evt.__gsToastHandled) return;
+        if (evt) evt.__gsToastHandled = true;
+
         if (!payload) return;
 
         if (typeof payload === 'string') {
@@ -1064,8 +1079,8 @@
     // Bind once globally
     if (!window.__gsToastBound) {
         window.__gsToastBound = true;
-        window.addEventListener('toast', (e) => handleToastEvent(e.detail));
-        window.addEventListener('notify', (e) => handleToastEvent(e.detail));
+        window.addEventListener('toast', (e) => handleToastEvent(e.detail, e));
+        window.addEventListener('notify', (e) => handleToastEvent(e.detail, e));
     }
 
     // 3. Flash session messages on load & livewire navigate (guaranteed single run)

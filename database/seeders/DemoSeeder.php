@@ -102,16 +102,19 @@ class DemoSeeder extends Seeder
         // -------------------------------------------------------
         $gsoptSub = Subsidiary::where('code', 'GSOPT')->first() ?? Subsidiary::first();
 
+        $superAdminEmail    = config('app.super_admin_email', 'superadmin@georgesteuart.com');
+        $superAdminPassword = config('app.super_admin_password', 'Password@123');
+
         $admin = User::firstOrCreate(
-            ['email' => 'superadmin@georgesteuart.com'],
+            ['email' => $superAdminEmail],
             [
-                'name' => 'Super Administrator',
-                'password' => Hash::make('Password@123'),
-                'phone_number' => '+94 11 234 5678',
-                'subsidiary_id' => $gsoptSub?->id,
-                'is_active' => true,
+                'name'                 => 'Super Administrator',
+                'password'             => Hash::make($superAdminPassword),
+                'phone_number'         => '+94 11 234 5678',
+                'subsidiary_id'        => $gsoptSub?->id,
+                'is_active'            => true,
                 'must_change_password' => false,
-                'email_verified_at' => now(),
+                'email_verified_at'    => now(),
             ]
         );
 
@@ -120,7 +123,7 @@ class DemoSeeder extends Seeder
         }
 
         $this->command->info('✅ Subsidiaries seeded: ' . count($subsidiariesData));
-        $this->command->info('✅ Super Admin ready: superadmin@georgesteuart.com / Password@123');
+        $this->command->info('✅ Super Admin ready: ' . $superAdminEmail . ' / ' . $superAdminPassword);
         $this->command->info('ℹ️  All other users will register via Microsoft Azure SSO login.');
     }
 }

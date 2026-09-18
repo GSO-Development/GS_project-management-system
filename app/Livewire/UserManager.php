@@ -6,7 +6,9 @@ use App\Models\ActivityLog;
 use App\Models\Subsidiary;
 use App\Models\User;
 use App\Services\AzureGraphService;
+use App\Services\PmoAdminGuard;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Permission\Models\Role;
@@ -24,6 +26,7 @@ class UserManager extends Component
     // Modal state
     public bool $showModal = false;
     public ?int $editingId = null;
+    public bool $isEditingLastAdmin = false;
 
     // Creation type: 'system' | 'azure'
     public string $creationType = 'system';
@@ -55,7 +58,7 @@ class UserManager extends Component
 
         return [
             'name'          => 'required|string|max:255',
-            'email'         => 'required|email|max:255|unique:users,email,' . ($this->editingId ?? 'NULL'),
+            'email'         => ['required', 'email', 'max:255', Rule::unique('users', 'email')->whereNull('deleted_at')->ignore($this->editingId)],
             'password'      => 'nullable|min:8',
             'phone_number'  => 'nullable|string|max:50',
             'subsidiary_id' => 'nullable',
@@ -119,10 +122,21 @@ class UserManager extends Component
         if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
 
         $targetIds = array_diff($this->selectedUsers, [(string)auth()->id(), auth()->id()]);
-        User::whereIn('id', $targetIds)->update(['is_active' => false]);
-        $count = count($targetIds);
+        $partition = PmoAdminGuard::partitionBatch(array_values($targetIds));
+        $safeIds   = $partition['safe'];
+        $blockedCount = count($partition['blocked']);
+
+        User::whereIn('id', $safeIds)->update(['is_active' => false]);
+        $count = count($safeIds);
         $this->clearSelection();
-        $this->dispatch('toast', message: "{$count} user(s) disabled successfully.", type: 'warning');
+
+        if ($blockedCount > 0 && $count === 0) {
+            $this->dispatch('toast', message: 'Cannot disable the only remaining PMO Admin. At least one PMO Admin must remain active.', type: 'error');
+        } elseif ($blockedCount > 0) {
+            $this->dispatch('toast', message: "{$count} user(s) disabled. The last PMO Admin was protected.", type: 'info');
+        } else {
+            $this->dispatch('toast', message: "{$count} user(s) disabled successfully.", type: 'warning');
+        }
     }
 
     public function batchMakeAdmin(): void
@@ -142,23 +156,25 @@ class UserManager extends Component
     {
         if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
 
-        $users = User::whereIn('id', $this->selectedUsers)->get();
-        $count = 0;
-        $protectedCount = 0;
-        foreach ($users as $u) {
-            if ($u->email === 'superadmin@georgesteuart.com') {
-                $protectedCount++;
-                continue;
-            }
+        $partition    = PmoAdminGuard::partitionBatch($this->selectedUsers);
+        $safeIds      = $partition['safe'];
+        $blockedCount = count($partition['blocked']);
+        $count        = 0;
+
+        foreach ($safeIds as $id) {
+            $u = User::find($id);
+            if (!$u) continue;
             $u->removeRole('super_admin');
             $u->removeRole('pmo_admin');
             $count++;
         }
+
         $this->clearSelection();
-        if ($protectedCount > 0 && $count === 0) {
-            $this->dispatch('toast', message: 'Master PMO Administrator role (superadmin@georgesteuart.com) is protected and cannot be changed.', type: 'error');
-        } elseif ($protectedCount > 0) {
-            $this->dispatch('toast', message: "{$count} user(s) set to Regular User role. Master PMO Admin was protected.", type: 'info');
+
+        if ($blockedCount > 0 && $count === 0) {
+            $this->dispatch('toast', message: 'Cannot demote the only remaining PMO Admin. At least one PMO Admin must exist in the system.', type: 'error');
+        } elseif ($blockedCount > 0) {
+            $this->dispatch('toast', message: "{$count} user(s) set to Regular User. The last PMO Admin was protected.", type: 'info');
         } else {
             $this->dispatch('toast', message: "{$count} user(s) set to Regular User role.", type: 'success');
         }
@@ -168,33 +184,34 @@ class UserManager extends Component
     {
         if (!$this->isAuthorized() || empty($this->selectedUsers)) return;
 
-        $targetIds = array_diff($this->selectedUsers, [(string)auth()->id(), auth()->id()]);
-        $count = 0;
-        $blockedCount = 0;
-        foreach ($targetIds as $id) {
+        // Remove self from selection
+        $targetIds    = array_diff($this->selectedUsers, [(string) auth()->id(), auth()->id()]);
+        $partition    = PmoAdminGuard::partitionBatch(array_values($targetIds));
+        $safeIds      = $partition['safe'];
+        $blockedCount = count($partition['blocked']);
+        $count        = 0;
+
+        foreach ($safeIds as $id) {
             $user = User::find($id);
-            if ($user) {
-                if ($user->email === 'superadmin@georgesteuart.com') {
-                    $blockedCount++;
-                    continue;
-                }
-                \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
-                    \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
-                    \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
-                    \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
-                    $user->projects()->detach();
-                    $user->is_active = false;
-                    $user->save();
-                    $user->delete();
-                });
-                $count++;
-            }
+            if (!$user) continue;
+            \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+                \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
+                \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
+                \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
+                $user->projects()->detach();
+                $user->is_active = false;
+                $user->save();
+                $user->delete();
+            });
+            $count++;
         }
+
         $this->clearSelection();
+
         if ($blockedCount > 0 && $count === 0) {
-            $this->dispatch('toast', message: 'Master PMO Administrator account (superadmin@georgesteuart.com) is core protected and cannot be deleted.', type: 'error');
+            $this->dispatch('toast', message: 'Cannot delete the only remaining PMO Admin. At least one PMO Admin must always exist in the system.', type: 'error');
         } elseif ($blockedCount > 0) {
-            $this->dispatch('toast', message: "{$count} user(s) deleted. Master PMO Admin account was protected from deletion.", type: 'info');
+            $this->dispatch('toast', message: "{$count} user(s) deleted. The last PMO Admin was protected from deletion.", type: 'info');
         } else {
             $this->dispatch('toast', message: "{$count} user(s) deleted successfully.", type: 'info');
         }
@@ -258,6 +275,17 @@ class UserManager extends Component
         $this->phone_number       = $user['phone'] ?? $user['mobilePhone'] ?? null;
         $this->azureSearchResults = [];
         $this->azureSearchQuery   = $user['displayName'] ?? $user['name'] ?? '';
+
+        $existingUser = User::withTrashed()->where('azure_id', $user['id'] ?? '')->first()
+            ?? User::withTrashed()->where('email', $this->email)->first();
+        if ($existingUser) {
+            $this->isEditingLastAdmin = PmoAdminGuard::isLastAdmin($existingUser);
+            if ($existingUser->isPmoAdmin()) {
+                $this->role = 'super_admin';
+            }
+        } else {
+            $this->isEditingLastAdmin = false;
+        }
 
         // Auto-resolve subsidiary from Azure AD department, company, or email domain
         $resolvedId = $this->resolveSubsidiaryFromAzureUser($user);
@@ -326,6 +354,7 @@ class UserManager extends Component
         $this->name               = '';
         $this->email              = '';
         $this->phone_number       = null;
+        $this->isEditingLastAdmin = false;
     }
 
     // ---------------------------------------------------------------
@@ -340,7 +369,7 @@ class UserManager extends Component
         }
 
         $this->reset([
-            'editingId', 'name', 'email', 'password', 'phone_number',
+            'editingId', 'isEditingLastAdmin', 'name', 'email', 'password', 'phone_number',
             'subsidiary_id', 'role', 'is_active',
             'creationType', 'azureSearchQuery', 'azureSearchResults', 'selectedAzureUser',
         ]);
@@ -348,6 +377,7 @@ class UserManager extends Component
         $this->role      = 'regular_user';
         $this->is_active = true;
         $this->creationType = 'system';
+        $this->isEditingLastAdmin = false;
 
         $firstSub = Subsidiary::first();
         if ($firstSub) {
@@ -365,16 +395,17 @@ class UserManager extends Component
             return;
         }
 
-        $this->editingId      = $user->id;
-        $this->name           = $user->name;
-        $this->email          = $user->email;
-        $this->password       = '';
-        $this->phone_number   = $user->phone_number;
-        $this->subsidiary_id  = $user->subsidiary_id;
-        $this->role           = $user->hasRole('super_admin') ? 'super_admin' : 'regular_user';
-        $this->is_active      = (bool) $user->is_active;
-        $this->creationType   = 'system'; // Edit always uses system form
-        $this->selectedAzureUser = null;
+        $this->editingId          = $user->id;
+        $this->isEditingLastAdmin = PmoAdminGuard::isLastAdmin($user);
+        $this->name               = $user->name;
+        $this->email              = $user->email;
+        $this->password           = '';
+        $this->phone_number       = $user->phone_number;
+        $this->subsidiary_id      = $user->subsidiary_id;
+        $this->role               = $user->isPmoAdmin() ? 'super_admin' : 'regular_user';
+        $this->is_active          = (bool) $user->is_active;
+        $this->creationType       = 'system'; // Edit always uses system form
+        $this->selectedAzureUser  = null;
 
         $this->resetValidation();
         $this->showModal = true;
@@ -403,11 +434,22 @@ class UserManager extends Component
             // --- Azure User provisioning ---
             $azureId = $this->selectedAzureUser['id'];
 
-            $existingUser = User::where('azure_id', $azureId)->first()
-                ?? User::where('email', $this->email)->first();
+            $existingUser = User::withTrashed()->where('azure_id', $azureId)->first()
+                ?? User::withTrashed()->where('email', $this->email)->first();
 
             $targetRoles = ($this->role === 'super_admin') ? ['super_admin'] : [];
             if ($existingUser) {
+                // Guard: prevent demotion or deactivation of the last PMO Admin
+                if (PmoAdminGuard::isLastAdmin($existingUser) && ($this->role !== 'super_admin' || !$this->is_active)) {
+                    $this->dispatch('toast',
+                        message: 'Cannot change the role or disable the only remaining PMO Admin in the system. Add another PMO Admin first.',
+                        type: 'error'
+                    );
+                    return;
+                }
+                if ($existingUser->trashed()) {
+                    $existingUser->restore();
+                }
                 // Update existing user
                 $existingUser->update([
                     'azure_id'      => $azureId,
@@ -449,20 +491,34 @@ class UserManager extends Component
             if (!empty($this->password)) {
                 $data['password'] = Hash::make($this->password);
             } elseif (!$this->editingId) {
-                $data['password'] = Hash::make('Password@123');
+                $data['password'] = Hash::make(config('app.super_admin_password', 'Password@123'));
             }
 
             if ($this->editingId) {
                 $user = User::findOrFail($this->editingId);
-                // Protect superadmin@georgesteuart.com role from being changed
-                if ($user->email === 'superadmin@georgesteuart.com') {
-                    $this->role = 'super_admin';
+
+                // Guard: prevent demotion or deactivation of the last PMO Admin
+                if (PmoAdminGuard::isLastAdmin($user) && ($this->role !== 'super_admin' || !$this->is_active)) {
+                    $this->dispatch('toast',
+                        message: 'Cannot change the role or disable the only remaining PMO Admin in the system. Add another PMO Admin first.',
+                        type: 'error'
+                    );
+                    return;
                 }
+
                 $user->update($data);
                 $action = 'updated_user';
             } else {
-                $data['must_change_password'] = true;
-                $user = User::create($data);
+                $trashedUser = User::onlyTrashed()->where('email', trim($this->email))->first();
+                if ($trashedUser) {
+                    $trashedUser->restore();
+                    $data['must_change_password'] = false;
+                    $trashedUser->update($data);
+                    $user = $trashedUser;
+                } else {
+                    $data['must_change_password'] = true;
+                    $user = User::create($data);
+                }
                 $action = 'created_user';
             }
 
@@ -495,6 +551,16 @@ class UserManager extends Component
         }
 
         $user = User::findOrFail($userId);
+
+        // Guard: prevent disabling the last active PMO Admin
+        if ($user->is_active && PmoAdminGuard::isLastAdmin($user)) {
+            $this->dispatch('toast',
+                message: 'Cannot disable the only remaining PMO Admin. At least one active PMO Admin must always exist in the system.',
+                type: 'error'
+            );
+            return;
+        }
+
         $user->is_active = !$user->is_active;
         $user->save();
 
@@ -515,8 +581,12 @@ class UserManager extends Component
 
         $user = User::findOrFail($id);
 
-        if ($user->email === 'superadmin@georgesteuart.com') {
-            $this->dispatch('toast', message: 'Master PMO Administrator account (superadmin@georgesteuart.com) is core protected and cannot be deleted.', type: 'error');
+        // Guard: prevent deletion of the last PMO Admin
+        if (PmoAdminGuard::isLastAdmin($user)) {
+            $this->dispatch('toast',
+                message: 'Cannot delete the only remaining PMO Admin. Add another PMO Admin first.',
+                type: 'error'
+            );
             return;
         }
 

@@ -124,4 +124,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Super Administrator Email
+    |--------------------------------------------------------------------------
+    |
+    | The email address used to seed the initial Super Administrator account.
+    | This should be set in the .env file (SUPER_ADMIN_EMAIL). The seeder
+    | reads this value so the email is never hardcoded in PHP source files.
+    |
+    */
+
+    'super_admin_email' => env('SUPER_ADMIN_EMAIL', 'superadmin@georgesteuart.com'),
+    'super_admin_password' => env('SUPER_ADMIN_PASSWORD', 'Password@123'),
+
 ];

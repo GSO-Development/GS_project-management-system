@@ -48,8 +48,8 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($user->email === 'superadmin@georgesteuart.com') {
-            return back()->withErrors(['password' => 'Master PMO Administrator account is core protected and cannot be deleted.'], 'userDeletion');
+        if (\App\Services\PmoAdminGuard::isLastAdmin($user)) {
+            return back()->withErrors(['password' => 'Cannot delete the only remaining PMO Admin. At least one PMO Admin must exist in the system.'], 'userDeletion');
         }
 
         Auth::logout();
