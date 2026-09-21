@@ -30,50 +30,39 @@
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP HEADER & MULTI-PROJECT CONTROLS
+         1. TOP HEADER & CONTROLS (Executive Modern Design)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-2.5 flex-wrap">
-                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Tasks
-                </h1>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200/80">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                Tasks
+            </h1>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200/70">
                     {{ $activeProjectsCount }} {{ Str::plural('Project', $activeProjectsCount) }}
                 </span>
-                @if($taskScope === 'pm_projects')
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-200/80 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
-                        <span>Project Manager Scope</span>
-                    </span>
-                @endif
                 @if(($dueTodayCount + $overdueCount) > 0)
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200/80 flex items-center gap-1.5">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200/80">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                         <span>{{ $dueTodayCount + $overdueCount }} Urgent</span>
                     </span>
                 @endif
             </div>
-            @if($taskScope === 'pm_projects')
-                <p class="text-xs text-slate-500 font-medium mt-1">
-                    Showing all {{ $totalCount }} tasks across the {{ $managedProjectsCount }} {{ Str::plural('project', $managedProjectsCount) }} where you are designated Project Manager.
-                </p>
-            @endif
         </div>
 
-        <!-- Right: Scope Switcher + View Mode Switcher -->
-        <div class="flex items-center gap-2.5 flex-shrink-0 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+        <!-- Controls: Scope + View Mode Switchers -->
+        <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
             @if($isProjectManager)
-                <!-- Project Manager Scope Segmented Control Button -->
-                <div class="inline-flex p-1 rounded-xl border border-slate-200/80 bg-slate-100/80 shadow-2xs">
+                <!-- Scope Switcher -->
+                <div class="inline-flex p-1 rounded-xl border border-slate-200/90 bg-slate-100/80 shadow-2xs">
                     <button 
                         wire:click="setTaskScope('assigned')" 
                         type="button" 
                         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $taskScope === 'assigned' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900' }}"
-                        title="View tasks directly assigned to me"
+                        title="View tasks assigned to me"
                     >
-                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <span>Assigned to Me</span>
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <span>My Tasks</span>
                         <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $taskScope === 'assigned' ? 'bg-slate-100 text-slate-700' : 'bg-slate-200/80 text-slate-600' }}">
                             {{ $myAssignedCount }}
                         </span>
@@ -82,9 +71,9 @@
                         wire:click="setTaskScope('pm_projects')" 
                         type="button" 
                         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $taskScope === 'pm_projects' ? 'bg-[#c3122e] text-white shadow-2xs font-bold' : 'text-slate-600 hover:text-[#c3122e]' }}"
-                        title="View all tasks across all projects where I am the Project Manager"
+                        title="View all managed project tasks"
                     >
-                        <svg class="w-3.5 h-3.5 {{ $taskScope === 'pm_projects' ? 'text-white' : 'text-slate-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <svg class="w-3.5 h-3.5 {{ $taskScope === 'pm_projects' ? 'text-white' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         <span>Managed Projects</span>
                         <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $taskScope === 'pm_projects' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600' }}">
                             {{ $pmProjectsTasksCount }}
@@ -93,33 +82,33 @@
                 </div>
             @endif
 
-            <!-- View Mode Switcher -->
-            <div class="inline-flex p-1 rounded-xl border border-slate-200/80 bg-slate-100/80 shadow-2xs">
+            <!-- View Switcher -->
+            <div class="inline-flex p-1 rounded-xl border border-slate-200/90 bg-slate-100/80 shadow-2xs">
                 <button 
                     wire:click="setViewMode('table')" 
                     type="button" 
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900' }}"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900' }}"
                     title="Table View"
                 >
-                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                     <span>Table</span>
                 </button>
                 <button 
                     wire:click="setViewMode('kanban')" 
                     type="button" 
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'kanban' ? 'bg-white text-[#c3122e] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900' }}"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'kanban' ? 'bg-white text-[#c3122e] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900' }}"
                     title="Kanban Board"
                 >
-                    <svg class="w-3.5 h-3.5 {{ $viewMode === 'kanban' ? 'text-[#c3122e]' : 'text-slate-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
                     <span>Kanban</span>
                 </button>
                 <button 
                     wire:click="setViewMode('timeline')" 
                     type="button" 
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'timeline' ? 'bg-white text-[#c3122e] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900' }}"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'timeline' ? 'bg-white text-[#c3122e] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900' }}"
                     title="Schedule View"
                 >
-                    <svg class="w-3.5 h-3.5 {{ $viewMode === 'timeline' ? 'text-[#c3122e]' : 'text-slate-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span>Schedule</span>
                 </button>
             </div>
@@ -127,104 +116,108 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         2. CLEAN FILTER & NAVIGATION TOOLBAR (Table & Kanban Views)
+         2. PREVIEW / TOOLBAR CARD (Table & Kanban Views)
          ═══════════════════════════════════════════════════════════════ -->
     @if($viewMode !== 'timeline')
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden mb-6">
-        <!-- Row 1: Primary Status Segment Tabs (Top Level Hierarchy) -->
-        <div class="px-5 pt-3 pb-0 border-b border-slate-100 flex items-center justify-between gap-4 overflow-x-auto scrollbar-none bg-white">
-            <div class="flex items-center gap-5 sm:gap-6">
-                <!-- All Tasks -->
-                <button wire:click="clearFilters" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'all' && $dueDateFilter === 'all' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>All Tasks</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $totalCount > 0 ? 'bg-slate-100 text-slate-700' : 'bg-slate-50 text-slate-400' }}">
-                        {{ $totalCount }}
-                    </span>
-                </button>
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-3.5 sm:p-4 space-y-3.5 mb-6">
+        <!-- Row 1: Status Filter Segmented Pill Bar -->
+        <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+            <!-- All Tasks -->
+            <button wire:click="clearFilters" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $statusFilter === 'all' && $dueDateFilter === 'all' ? 'bg-slate-900 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                <span>All Tasks</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $statusFilter === 'all' && $dueDateFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">
+                    {{ $totalCount }}
+                </span>
+            </button>
 
-                <!-- Due Today -->
-                <button wire:click="setDueDateFilter('today'); $set('statusFilter', 'all')" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $dueDateFilter === 'today' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>Due Today</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $dueTodayCount > 0 ? 'bg-amber-100/80 text-amber-800' : 'bg-slate-100 text-slate-400' }}">
+            <!-- Due Today -->
+            <button wire:click="setDueDateFilter('today'); $set('statusFilter', 'all')" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $dueDateFilter === 'today' ? 'bg-amber-500 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900' }}">
+                <span>Due Today</span>
+                @if($dueTodayCount > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $dueDateFilter === 'today' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
                         {{ $dueTodayCount }}
                     </span>
-                </button>
+                @endif
+            </button>
 
-                <!-- Overdue -->
-                <button wire:click="setDueDateFilter('overdue'); $set('statusFilter', 'all')" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $dueDateFilter === 'overdue' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>Overdue</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center justify-center leading-none {{ $overdueCount > 0 ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' : 'bg-slate-100 text-slate-400' }}">
+            <!-- Overdue -->
+            <button wire:click="setDueDateFilter('overdue'); $set('statusFilter', 'all')" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $dueDateFilter === 'overdue' ? 'bg-[#c3122e] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-rose-50 hover:text-[#c3122e]' }}">
+                <span>Overdue</span>
+                @if($overdueCount > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $dueDateFilter === 'overdue' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
                         {{ $overdueCount }}
                     </span>
-                </button>
+                @endif
+            </button>
 
-                <!-- Not Started -->
-                <button wire:click="$set('statusFilter', 'not_started'); $set('dueDateFilter', 'all')" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'not_started' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>Not Started</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $notStartedCount > 0 ? 'bg-slate-100 text-slate-700' : 'bg-slate-50 text-slate-400' }}">
+            <!-- Not Started -->
+            <button wire:click="$set('statusFilter', 'not_started'); $set('dueDateFilter', 'all')" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $statusFilter === 'not_started' ? 'bg-slate-700 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                <span>Not Started</span>
+                @if($notStartedCount > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $statusFilter === 'not_started' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">
                         {{ $notStartedCount }}
                     </span>
-                </button>
+                @endif
+            </button>
 
-                <!-- In Progress -->
-                <button wire:click="$set('statusFilter', 'in_progress'); $set('dueDateFilter', 'all')" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'in_progress' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>In Progress</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $inProgressCount > 0 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-400' }}">
+            <!-- In Progress -->
+            <button wire:click="$set('statusFilter', 'in_progress'); $set('dueDateFilter', 'all')" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $statusFilter === 'in_progress' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-900' }}">
+                <span>In Progress</span>
+                @if($inProgressCount > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $statusFilter === 'in_progress' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
                         {{ $inProgressCount }}
                     </span>
-                </button>
+                @endif
+            </button>
 
-                <!-- Blocked -->
-                <button wire:click="$set('statusFilter', 'blocked'); $set('dueDateFilter', 'all')" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'blocked' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>Blocked</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $blockedCount > 0 ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-400' }}">
+            <!-- Blocked -->
+            <button wire:click="$set('statusFilter', 'blocked'); $set('dueDateFilter', 'all')" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $statusFilter === 'blocked' ? 'bg-rose-700 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-900' }}">
+                <span>Blocked</span>
+                @if($blockedCount > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $statusFilter === 'blocked' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
                         {{ $blockedCount }}
                     </span>
-                </button>
+                @endif
+            </button>
 
-                <!-- Completed -->
-                <button wire:click="$set('statusFilter', 'completed'); $set('dueDateFilter', 'all')" type="button"
-                        class="pb-3 pt-1 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-b-2 whitespace-nowrap -mb-[1px] {{ $statusFilter === 'completed' ? 'border-[#c3122e] text-slate-900 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                    <span>Completed</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center justify-center leading-none {{ $completedCount > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-400' }}">
+            <!-- Completed -->
+            <button wire:click="$set('statusFilter', 'completed'); $set('dueDateFilter', 'all')" type="button"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap {{ $statusFilter === 'completed' ? 'bg-emerald-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                <span>Completed</span>
+                @if($completedCount > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $statusFilter === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
                         {{ $completedCount }}
                     </span>
-                </button>
-            </div>
-
-            <!-- Right Quick Counter / View Indicator -->
-            <div class="hidden sm:flex items-center gap-2 pb-2.5 text-xs text-slate-500 font-medium">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100/90 text-slate-600 text-xs font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>{{ $paginatedTasks->total() }} Assigned</span>
-                </span>
-            </div>
+                @endif
+            </button>
         </div>
 
-        <!-- Row 2: Secondary Refinement Toolbar (Search + Filters + Reset) -->
-        <div class="p-3.5 sm:p-4 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <!-- Left: Search Input -->
-            <div class="relative flex-1 max-w-md">
+        <div class="h-px bg-slate-100 w-full"></div>
+
+        <!-- Row 2: Combined Filter Row (Search + Select Dropdowns) -->
+        <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2.5">
+            <!-- Search Input (Fills remaining horizontal space) -->
+            <div class="relative flex-1 min-w-[200px]">
                 <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search tasks by title, code..."
-                       class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200/90 hover:border-slate-300 focus:border-[#c3122e] rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 shadow-2xs transition-all">
+                       class="w-full pl-10 pr-4 py-2 bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-slate-300 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none shadow-2xs transition-all">
             </div>
 
-            <!-- Right: Filter Select Dropdowns + Reset -->
-            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <!-- Filter Dropdowns -->
+            <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
                 <!-- Project ▾ -->
-                <div class="relative min-w-[155px] max-w-[220px]">
+                <div class="relative flex-1 sm:flex-initial min-w-[145px]">
                     <select wire:model.live="projectFilter"
-                            class="w-full appearance-none bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
-                        <option value="all">Project: All</option>
+                            class="w-full appearance-none bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
+                        <option value="all">All Projects</option>
                         @foreach($myProjects as $p)
                             <option value="{{ $p->id }}">{{ $p->code }} - {{ $p->name }}</option>
                         @endforeach
@@ -234,10 +227,10 @@
 
                 @if($taskScope === 'pm_projects' && $availableAssignees->isNotEmpty())
                     <!-- Assignee ▾ -->
-                    <div class="relative min-w-[145px] max-w-[200px]">
+                    <div class="relative flex-1 sm:flex-initial min-w-[135px]">
                         <select wire:model.live="assigneeFilter"
-                                class="w-full appearance-none bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
-                            <option value="all">Assignee: All</option>
+                                class="w-full appearance-none bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
+                            <option value="all">All Assignees</option>
                             <option value="unassigned">Unassigned</option>
                             @foreach($availableAssignees as $member)
                                 <option value="{{ $member->id }}">{{ $member->name }}</option>
@@ -248,10 +241,10 @@
                 @endif
 
                 <!-- Due ▾ -->
-                <div class="relative min-w-[125px]">
+                <div class="relative flex-1 sm:flex-initial min-w-[125px]">
                     <select wire:model.live="dueDateFilter"
-                            class="w-full appearance-none bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
-                        <option value="all">Due: Any Time</option>
+                            class="w-full appearance-none bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer shadow-2xs transition-colors truncate">
+                        <option value="all">All Dates</option>
                         <option value="today">Due Today</option>
                         <option value="overdue">Overdue</option>
                         <option value="this_week">This Week</option>
@@ -260,14 +253,16 @@
                 </div>
 
                 <!-- Reset Button -->
-                <button wire:click="clearFilters" type="button" 
-                        class="bg-white border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs flex-shrink-0"
-                        title="Reset All Filters">
-                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    <span>Reset</span>
-                </button>
+                @if($search || $projectFilter !== 'all' || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all')
+                    <button wire:click="clearFilters" type="button" 
+                            class="bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-slate-700 rounded-xl px-3 py-2 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs flex-shrink-0"
+                            title="Reset Filters">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Reset</span>
+                    </button>
+                @endif
             </div>
         </div>
     </div>
