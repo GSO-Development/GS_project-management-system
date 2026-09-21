@@ -189,4 +189,31 @@ class RbacTest extends TestCase
         // task.create is checked -> must return true
         $this->assertTrue($pm->hasProjectPermission('task.create', $project));
     }
+
+    public function test_project_manager_task_assign_permission_toggle()
+    {
+        $pm = User::create([
+            'name' => 'PM Assign Test',
+            'email' => 'pm_assign_test@nexuspm.local',
+            'password' => bcrypt('secret'),
+        ]);
+        $project = $this->createProject(['project_manager_id' => $pm->id]);
+
+        $role = Role::firstOrCreate(['name' => 'lead', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'task.assign', 'guard_name' => 'web']);
+        
+        // Exclude task.assign
+        $role->syncPermissions(['project_details.view', 'task.view', 'task.create']);
+        RbacService::clearCache();
+
+        // task.assign is unchecked -> must return false
+        $this->assertFalse($project->userCan($pm, 'task.assign'));
+
+        // Grant task.assign
+        $role->givePermissionTo('task.assign');
+        RbacService::clearCache();
+
+        // task.assign is checked -> must return true
+        $this->assertTrue($project->userCan($pm, 'task.assign'));
+    }
 }
