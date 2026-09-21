@@ -21,75 +21,42 @@
 
                 <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
 
-                <!-- Status Filter Pills (Apple/Linear-style Segmented Group) -->
-                <div class="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 gap-0.5 text-xs">
-                    <!-- My Tasks -->
-                    <button 
-                        wire:click="setAssigneeFilter('{{ $assigneeFilter === 'mine' ? 'all' : 'mine' }}')" 
-                        type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap {{ $assigneeFilter === 'mine' ? 'bg-[#c3122e] text-white shadow-xs font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
-                        title="Show tasks assigned to me in this project"
-                    >
-                        <span>👤 My Tasks</span>
-                    </button>
+                <!-- Status & Assignee Filter Dropdowns -->
+                <div class="flex items-center gap-2 flex-wrap text-xs">
+                    <!-- Assignee Filter Dropdown -->
+                    <div class="relative inline-flex items-center">
+                        <select 
+                            wire:model.live="assigneeFilter"
+                            wire:change="setAssigneeFilter($event.target.value)" 
+                            class="text-xs font-extrabold rounded-xl px-3 py-1.5 pr-8 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 appearance-none border {{ $assigneeFilter === 'mine' ? 'bg-rose-50 text-[#c3122e] border-rose-200 shadow-2xs' : 'bg-slate-100/90 hover:bg-slate-200/70 text-slate-700 border-slate-200/80' }}"
+                            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2364748b\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2.2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 9px center; background-size: 11px;"
+                        >
+                            <option value="all" class="text-slate-800 bg-white font-semibold">👥 All Tasks</option>
+                            <option value="mine" class="text-[#c3122e] bg-white font-bold">👤 My Tasks</option>
+                        </select>
+                    </div>
 
-                    <!-- All -->
-                    <button 
-                        wire:click="setStatusFilter('all')" 
-                        type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap {{ $statusFilter === 'all' && $assigneeFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
-                    >
-                        <span>All</span>
-                        <span class="font-mono text-[11px] opacity-75 ml-0.5">({{ $statusStats['total'] }})</span>
-                    </button>
-
-                    <!-- In Progress -->
-                    <button 
-                        wire:click="setStatusFilter('in_progress')" 
-                        type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'in_progress' ? 'bg-white text-blue-700 shadow-xs border border-blue-200 font-black' : 'text-slate-500 hover:text-blue-700' }}"
-                        title="In Progress Tasks"
-                    >
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>In Progress</span>
-                        <span class="font-mono text-[11px] font-extrabold text-blue-600">({{ $statusStats['in_progress'] }})</span>
-                    </button>
-
-                    <!-- At Risk -->
-                    <button 
-                        wire:click="setStatusFilter('at_risk')" 
-                        type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'at_risk' ? 'bg-white text-amber-800 shadow-xs border border-amber-200 font-black' : 'text-slate-500 hover:text-amber-800' }}"
-                        title="At Risk Tasks"
-                    >
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        <span>At Risk</span>
-                        <span class="font-mono text-[11px] font-extrabold text-amber-700">({{ $statusStats['at_risk'] }})</span>
-                    </button>
-
-                    <!-- Blocked -->
-                    <button 
-                        wire:click="setStatusFilter('blocked')" 
-                        type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'blocked' ? 'bg-white text-rose-700 shadow-xs border border-rose-200 font-black' : 'text-slate-500 hover:text-rose-700' }}"
-                        title="Blocked Tasks"
-                    >
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                        <span>Blocked</span>
-                        <span class="font-mono text-[11px] font-extrabold text-rose-600">({{ $statusStats['blocked'] }})</span>
-                    </button>
-
-                    <!-- Completed -->
-                    <button 
-                        wire:click="setStatusFilter('completed')" 
-                        type="button" 
-                        class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap {{ $statusFilter === 'completed' ? 'bg-white text-emerald-800 shadow-xs border border-emerald-200 font-black' : 'text-slate-500 hover:text-emerald-800' }}"
-                        title="Completed Tasks"
-                    >
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>Done</span>
-                        <span class="font-mono text-[11px] font-extrabold text-emerald-700">({{ $statusStats['completed'] }})</span>
-                    </button>
+                    <!-- Status Filter Dropdown -->
+                    <div class="relative inline-flex items-center">
+                        <select 
+                            wire:model.live="statusFilter"
+                            wire:change="setStatusFilter($event.target.value)" 
+                            class="text-xs font-extrabold rounded-xl px-3 py-1.5 pr-8 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 appearance-none border 
+                            @if($statusFilter === 'in_progress') bg-blue-50 text-blue-700 border-blue-200 shadow-2xs
+                            @elseif($statusFilter === 'at_risk') bg-amber-50 text-amber-800 border-amber-200 shadow-2xs
+                            @elseif($statusFilter === 'blocked') bg-rose-50 text-rose-700 border-rose-200 shadow-2xs
+                            @elseif($statusFilter === 'completed') bg-emerald-50 text-emerald-800 border-emerald-200 shadow-2xs
+                            @else bg-slate-100/90 hover:bg-slate-200/70 text-slate-800 border-slate-200/80
+                            @endif"
+                            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2364748b\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2.2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 9px center; background-size: 11px;"
+                        >
+                            <option value="all" class="text-slate-800 bg-white font-semibold">⚡ All Statuses ({{ $statusStats['total'] }})</option>
+                            <option value="in_progress" class="text-blue-700 bg-white font-bold">🔵 In Progress ({{ $statusStats['in_progress'] }})</option>
+                            <option value="at_risk" class="text-amber-800 bg-white font-bold">🟠 At Risk ({{ $statusStats['at_risk'] }})</option>
+                            <option value="blocked" class="text-rose-700 bg-white font-bold">🔴 Blocked ({{ $statusStats['blocked'] }})</option>
+                            <option value="completed" class="text-emerald-800 bg-white font-bold">🟢 Done ({{ $statusStats['completed'] }})</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

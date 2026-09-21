@@ -61,6 +61,7 @@ class AuditLogObserver
             'Comment'             => $eventType === 'create' ? 'added_comment' : ($eventType === 'update' ? 'updated_comment' : 'deleted_comment'),
             'User'                => $eventType === 'create' ? 'created_user' : ($eventType === 'update' ? 'updated_user' : 'deleted_user'),
             'Subsidiary'          => $eventType === 'create' ? 'created_subsidiary' : ($eventType === 'update' ? 'updated_subsidiary' : 'deleted_subsidiary'),
+            'ApprovalRequest'     => $eventType === 'create' ? 'submitted_approval_request' : ($eventType === 'update' ? 'updated_approval_request' : 'deleted_approval_request'),
             default               => strtolower($eventType . '_' . preg_replace('/(?<!^)[A-Z]/', '_$0', $baseName)),
         };
 
@@ -71,6 +72,7 @@ class AuditLogObserver
             'Comment'                                       => 'projects',
             'User'                                          => 'users',
             'Subsidiary'                                    => 'subsidiaries',
+            'ApprovalRequest'                               => 'approvals',
             default                                         => 'general',
         };
 

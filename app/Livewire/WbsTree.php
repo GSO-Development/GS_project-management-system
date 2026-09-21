@@ -742,9 +742,19 @@ class WbsTree extends Component
         $this->resetPage();
     }
 
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function setAssigneeFilter(string $filter)
     {
         $this->assigneeFilter = in_array($filter, ['all', 'mine']) ? $filter : 'all';
+        $this->resetPage();
+    }
+
+    public function updatedAssigneeFilter(): void
+    {
         $this->resetPage();
     }
 

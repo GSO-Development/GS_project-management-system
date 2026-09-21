@@ -38,6 +38,7 @@ class ApprovalManager extends Component
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedTypeFilter()   { $this->resetPage(); }
     public function updatedScopeFilter()  { $this->resetPage(); }
+    public function updatedProjectId()    { $this->wbsItemId = null; }
 
     public function openCreateModal(): void
     {
@@ -626,10 +627,11 @@ class ApprovalManager extends Component
                   });
             })->get();
 
-        $isPmOrAdmin = $user->hasRole('super_admin') || ($this->projectId && Project::where('id', $this->projectId)->where('project_manager_id', $user->id)->exists());
+        $isPmOrAdmin = $user->hasRole('super_admin') || $user->isPmoAdmin() || ($this->projectId && Project::where('id', $this->projectId)->where('project_manager_id', $user->id)->exists());
         $userWbsTasks = $this->projectId
             ? WbsItem::where('project_id', $this->projectId)
                 ->when(!$isPmOrAdmin, fn($q) => $q->where('assigned_user_id', $user->id))
+                ->orderBy('wbs_code')
                 ->get()
             : collect();
 

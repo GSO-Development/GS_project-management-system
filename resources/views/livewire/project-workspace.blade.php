@@ -644,7 +644,6 @@
                     'kanban'    => ['Kanban', 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7'],
                     'team'      => ['Team Roster', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
                     'updates'   => ['Status Updates', 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'],
-                    'approvals' => ['Approvals', 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
                     'risks'     => ['Risks & Blockers', 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
                 ] as $tabKey => [$tabLabel, $tabIcon])
                     <button
@@ -661,18 +660,6 @@
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono {{ $activeTab === $tabKey ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60' }} shadow-2xs">
                                 {{ $project->members->count() }}
                             </span>
-                        @endif
-                        @if($tabKey === 'approvals')
-                            @php
-                                $pendingProjectApprovals = $project->approvalRequests->where('status', \App\Enums\ApprovalStatus::PENDING)->count();
-                                $isPendingPmAcceptance = !$project->isPmAccepted() && $project->project_manager_id === auth()->id();
-                                $approvalsTabCount = $pendingProjectApprovals + ($isPendingPmAcceptance ? 1 : 0);
-                            @endphp
-                            @if($approvalsTabCount > 0)
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $activeTab === $tabKey ? 'bg-white text-[#c3122e]' : 'bg-[#c3122e] text-white' }} shadow-2xs animate-pulse">
-                                    {{ $approvalsTabCount }}
-                                </span>
-                            @endif
                         @endif
                         @if($tabKey === 'risks' && $project->risks->count() > 0)
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $activeTab === $tabKey ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 border border-amber-200/60' }} shadow-2xs">
@@ -1071,7 +1058,7 @@
 
             <!-- 2. Risk Register Form Card -->
             @if($project->userCan(auth()->user(), 'risk.create'))
-            <div class="card p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+            <div id="risk-create-card" class="card p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
                 <div class="flex items-center gap-3 pb-4 mb-6 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-black text-sm shadow-2xs">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1166,12 +1153,24 @@
 
             <!-- 3. Risk Log List Card -->
             <div class="card p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
                     <h3 class="font-black text-slate-900 text-base">Project Risk Register Log</h3>
-                    <a href="{{ route('risks.index', ['project' => $project->id]) }}" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-[#c3122e] bg-[#fdf4f4] border border-[#faeaea] hover:bg-[#faeaea] transition-all flex items-center gap-1.5">
-                        <span>Open Executive Risk Matrix &amp; Hub</span>
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
+                    <div class="flex items-center gap-2">
+                        @if($project->userCan(auth()->user(), 'risk.create'))
+                            <button 
+                                type="button" 
+                                onclick="document.getElementById('risk-create-card')?.scrollIntoView({ behavior: 'smooth' })" 
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a50e26] transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>Log Project Risk</span>
+                            </button>
+                        @endif
+                        <a href="{{ route('risks.index', ['project' => $project->id]) }}" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-[#c3122e] bg-[#fdf4f4] border border-[#faeaea] hover:bg-[#faeaea] transition-all flex items-center gap-1.5">
+                            <span>Open Executive Risk Matrix &amp; Hub</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="space-y-4">

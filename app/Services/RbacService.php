@@ -219,6 +219,23 @@ class RbacService
                 'team.remove' => 'Remove Project Member',
             ],
         ],
+        'risk' => [
+            'key' => 'risk',
+            'name' => 'Risks & Blockers',
+            'icon' => '⚠️',
+            'permissions' => [
+                'risk.view' => 'View Risks & Blockers',
+                'risk.create' => 'Report / Log Risk',
+                'risk.edit' => 'Edit Risk Details & Mitigation',
+                'risk.delete' => 'Delete Risk',
+                'risk.assign' => 'Assign Risk Owner',
+                'risk.escalate' => 'Escalate Risk',
+                'risk.resolve' => 'Resolve / Close Risk',
+                'blocker.create' => 'Log Blocker Item',
+                'blocker.edit' => 'Edit Blocker Details',
+                'blocker.resolve' => 'Resolve Blocker Item',
+            ],
+        ],
     ];
 
     /**
@@ -355,18 +372,21 @@ class RbacService
                 'project_details.view', 'project_details.edit', 'budget.edit',
                 'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.change_status', 'task.create_subtask', 'task.log_daily',
                 'team.view', 'team.add', 'team.remove',
+                'risk.view', 'risk.create', 'risk.edit', 'risk.delete', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
             ],
             'member', 'team_member' => [
-                // WBS & Tasks permissions only
+                // WBS & Tasks permissions only + Risk logging
                 'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.log_daily',
+                'risk.view', 'risk.create', 'blocker.create',
             ],
             'collaborator' => [
-                // WBS & Tasks permissions only
+                // WBS & Tasks permissions only + Risk logging
                 'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.log_daily',
+                'risk.view', 'risk.create', 'blocker.create',
             ],
             'sponsor' => [
-                // WBS & Tasks permissions only
-                'task.view', 'task.view_all', 'task.view_assigned',
+                // WBS & Tasks & Risk view permissions
+                'task.view', 'task.view_all', 'task.view_assigned', 'risk.view',
             ],
             'owner' => [
                 // WBS & Tasks permissions only

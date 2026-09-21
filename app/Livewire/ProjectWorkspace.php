@@ -875,7 +875,7 @@ class ProjectWorkspace extends Component
     {
         $this->project = $project;
         if (request()->has('tab')) {
-            $validTabs = ['wbs', 'kanban', 'team', 'updates', 'risks', 'approvals'];
+            $validTabs = ['wbs', 'kanban', 'team', 'updates', 'risks'];
             $requestedTab = (string) request()->query('tab', 'wbs');
             if (in_array($requestedTab, $validTabs)) {
                 $this->activeTab = $requestedTab;
@@ -971,7 +971,10 @@ class ProjectWorkspace extends Component
     public function addRisk()
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'risk.create'), 403, 'You do not have permission to create risks.');
+        if (!$this->project->userCan($user, 'risk.create')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to create risks.', type: 'error');
+            return;
+        }
 
         $this->validate([
             'riskTitle' => 'required|string|max:255',
@@ -1017,7 +1020,10 @@ class ProjectWorkspace extends Component
     public function openEditRiskModal(int $riskId)
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'risk.edit'), 403, 'You do not have permission to edit risks.');
+        if (!$this->project->userCan($user, 'risk.edit')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to edit risks.', type: 'error');
+            return;
+        }
 
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
@@ -1038,7 +1044,10 @@ class ProjectWorkspace extends Component
     public function updateRisk()
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'risk.edit'), 403, 'You do not have permission to edit risks.');
+        if (!$this->project->userCan($user, 'risk.edit')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to edit risks.', type: 'error');
+            return;
+        }
 
         $this->validate([
             'riskTitle' => 'required|string|max:255',
@@ -1093,7 +1102,10 @@ class ProjectWorkspace extends Component
     public function updateRiskStatus(int $riskId, string $status)
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'risk.resolve') && !$this->project->userCan($user, 'risk.edit'), 403, 'Unauthorized.');
+        if (!$this->project->userCan($user, 'risk.resolve') && !$this->project->userCan($user, 'risk.edit')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to update status of this risk.', type: 'error');
+            return;
+        }
 
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
@@ -1123,7 +1135,10 @@ class ProjectWorkspace extends Component
     public function deleteRisk(int $riskId)
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'risk.delete'), 403, 'You do not have permission to delete risks.');
+        if (!$this->project->userCan($user, 'risk.delete')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to delete risks.', type: 'error');
+            return;
+        }
 
         $risk = ProjectRisk::where('project_id', $this->project->id)->where('id', $riskId)->first();
         if ($risk) {
@@ -1146,7 +1161,10 @@ class ProjectWorkspace extends Component
     public function openResolveBlockerModal(int $blockerId)
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+        if (!$this->project->userCan($user, 'blocker.resolve')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to resolve blockers.', type: 'error');
+            return;
+        }
 
         $this->selectedBlockerId = $blockerId;
         $this->blockerResolutionInput = '';
@@ -1156,7 +1174,10 @@ class ProjectWorkspace extends Component
     public function saveBlockerResolution()
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'blocker.resolve'), 403, 'You do not have permission to resolve blockers.');
+        if (!$this->project->userCan($user, 'blocker.resolve')) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to resolve blockers.', type: 'error');
+            return;
+        }
 
         $this->validate([
             'blockerResolutionInput' => 'required|string|min:3',

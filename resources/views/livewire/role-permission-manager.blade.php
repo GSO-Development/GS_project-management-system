@@ -102,49 +102,30 @@
     <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
         
         <!-- Table Top Control Bar -->
-        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-rose-50 text-[#c3122e] flex items-center justify-center font-bold text-sm border border-rose-200 shadow-2xs">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3.5 min-w-0">
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 text-[#c3122e] flex items-center justify-center font-bold text-sm border border-rose-200/80 shadow-2xs shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-black text-slate-900 text-sm sm:text-base tracking-tight">Role Access Governance Matrix</h3>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-[#c3122e] border border-rose-200">
-                            {{ count($roles) }} Roles Active
-                        </span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Granular capability privileges across active project governance modules</p>
+                <div class="flex items-center gap-2.5 flex-wrap min-w-0">
+                    <h3 class="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight truncate">Role Access Governance Matrix</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80 shadow-2xs shrink-0">
+                        {{ count($roles) }} Roles Active
+                    </span>
                 </div>
             </div>
 
-            <!-- Legend & Search -->
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                <!-- Legend Badges -->
-                <div class="flex items-center gap-1.5 flex-wrap text-[10px] font-black">
-                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Full Access</span>
-                    <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">View Only</span>
-                    <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">Assigned Only</span>
-                    <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">Custom</span>
-                    <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">No Access</span>
-                </div>
-
-                <!-- Search Input -->
-                <div class="relative w-full sm:w-56">
-                    <input 
-                        type="text" 
-                        wire:model.live.debounce.250ms="searchRole" 
-                        placeholder="Search roles..." 
-                        class="w-full text-xs font-semibold rounded-xl border border-slate-300 pl-8 pr-3 py-2 bg-white focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e] shadow-2xs"
-                        style="border: 1px solid #cbd5e1;"
-                    >
-                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </div>
-
+            <!-- Search Control -->
+            <div class="relative w-full sm:w-64 max-w-xs shrink-0">
+                <input 
+                    type="text" 
+                    wire:model.live.debounce.250ms="searchRole" 
+                    placeholder="Search roles..." 
+                    class="w-full text-xs font-semibold rounded-xl border border-slate-300/90 pl-8 pr-7 py-2 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/15 shadow-2xs transition-all"
+                >
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 @if($searchRole)
-                    <button wire:click="$set('searchRole', '')" class="text-xs font-bold text-[#c3122e] hover:underline cursor-pointer flex-shrink-0">
-                        Reset
-                    </button>
+                    <button wire:click="$set('searchRole', '')" type="button" class="absolute right-2.5 top-2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer">✕</button>
                 @endif
             </div>
         </div>

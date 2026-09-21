@@ -194,6 +194,8 @@ class AuditLogViewer extends Component
                     $liveModels[$type] = WbsItem::whereIn('id', $idList)->get(['id', 'title', 'wbs_code'])->keyBy('id');
                 } elseif ($type === Role::class) {
                     $liveModels[$type] = Role::whereIn('id', $idList)->get(['id', 'name'])->keyBy('id');
+                } elseif ($type === \App\Models\ApprovalRequest::class) {
+                    $liveModels[$type] = \App\Models\ApprovalRequest::whereIn('id', $idList)->get(['id', 'request_type', 'reason'])->keyBy('id');
                 }
             } catch (\Throwable $e) {
                 // Graceful fallback

@@ -514,148 +514,136 @@
         <div class="space-y-4">
             
             <!-- ── 1. CLEAN GANTT CONTROL & FILTER TOOLBAR ── -->
-            <div class="bg-white border border-slate-200/80 shadow-2xs rounded-3xl p-4 sm:p-5 space-y-3.5">
+            <div class="bg-white border border-slate-200/90 shadow-2xs rounded-3xl p-4 space-y-3 font-sans">
                 
                 <!-- Row 1: Timeline Navigation, Scale Zoom, Date Span & Status Legend -->
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                     
-                    <!-- Left: Navigation + Zoom + Date Range Chip -->
-                    <div class="flex items-center gap-2.5 flex-wrap">
+                    <!-- Left: Navigation Group & Date Span Indicator -->
+                    <div class="flex items-center gap-2.5 flex-wrap min-w-0">
                         
                         <!-- Date Navigation Buttons (< Prev, Today, Next >) -->
-                        <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-2xs p-0.5 shrink-0">
-                            <button wire:click="ganttPrev" type="button" class="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Shift 1 Month Earlier">
+                        <div class="inline-flex items-center rounded-xl border border-slate-200/90 bg-slate-50/80 p-0.5 shrink-0 shadow-2xs">
+                            <button wire:click="ganttPrev" type="button" class="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Shift 1 Month Earlier">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                                 <span>Prev</span>
                             </button>
-                            <button wire:click="ganttToday" type="button" class="px-2.5 py-1.5 text-slate-700 hover:text-[#c3122e] hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border-x border-slate-100" title="Center Timeline on Current Month">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                            <button wire:click="ganttToday" type="button" class="px-3 py-1.5 text-slate-800 hover:text-[#c3122e] hover:bg-white rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 border-x border-slate-200/60" title="Center Timeline on Current Month">
+                                <span class="w-2 h-2 rounded-full bg-[#c3122e] animate-pulse"></span>
                                 <span>Today</span>
                             </button>
-                            <button wire:click="ganttNext" type="button" class="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Shift 1 Month Later">
+                            <button wire:click="ganttNext" type="button" class="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1" title="Shift 1 Month Later">
                                 <span>Next</span>
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
 
+                        <!-- Date Span Chip with Calendar Icon -->
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/70 border border-slate-200/80 text-xs text-slate-700 shrink-0 font-medium">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span class="font-bold text-slate-900 font-mono">{{ $ganttTimeline['start']->format('M d, Y') }}</span>
+                            <span class="text-slate-400">→</span>
+                            <span class="font-bold text-slate-900 font-mono">{{ $ganttTimeline['end']->format('M d, Y') }}</span>
+                            <span class="px-1.5 py-0.2 rounded-md bg-white border border-slate-200 text-[10.5px] font-bold text-slate-500 font-mono">{{ $ganttTimeline['total_days'] }}d</span>
+                        </div>
+
                         <!-- Horizon switcher (Auto / 3M / 6M / 12M) -->
-                        <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold shrink-0">
+                        <div class="inline-flex p-0.5 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs font-bold shrink-0">
                             <button wire:click="setGanttTimeframe('auto')" type="button"
-                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === 'auto' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === 'auto' ? 'bg-white text-slate-900 shadow-xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}"
                                     title="Auto fit timeline to project start and deadline dates">
                                 Auto
                             </button>
                             <button wire:click="setGanttTimeframe('3m')" type="button"
-                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '3m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '3m' ? 'bg-white text-slate-900 shadow-xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}">
                                 3M
                             </button>
                             <button wire:click="setGanttTimeframe('6m')" type="button"
-                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '6m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '6m' ? 'bg-white text-slate-900 shadow-xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}">
                                 6M
                             </button>
                             <button wire:click="setGanttTimeframe('12m')" type="button"
-                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '12m' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900' }}">
+                                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $ganttTimeframe === '12m' ? 'bg-white text-slate-900 shadow-xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}">
                                 12M
                             </button>
-                        </div>
-
-                        <!-- Date Span Details -->
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 shrink-0">
-                            <span class="text-slate-800 font-mono font-bold">{{ $ganttTimeline['start']->format('M d, Y') }}</span>
-                            <span class="text-slate-400">→</span>
-                            <span class="text-slate-800 font-mono font-bold">{{ $ganttTimeline['end']->format('M d, Y') }}</span>
-                            <span class="text-slate-400 font-normal">({{ $ganttTimeline['total_days'] }}d)</span>
                         </div>
 
                     </div>
 
                     <!-- Right: Modern Status Legend Indicators -->
-                    <div class="flex items-center gap-3 text-xs font-semibold text-slate-600 overflow-x-auto scrollbar-none py-0.5 shrink-0">
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-xs"></span>
+                    <div class="flex items-center gap-2 text-[11px] font-bold text-slate-600 flex-wrap shrink-0">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                             <span>On Track</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 shadow-xs"></span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                             <span>At Risk</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shrink-0 shadow-xs"></span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70">
+                            <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
                             <span>Delayed</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2.5 h-2.5 bg-purple-600 rotate-45 shrink-0 rounded-xs"></span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70">
+                            <span class="w-2 h-2 bg-purple-600 rotate-45 rounded-xs"></span>
                             <span>Milestone</span>
                         </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-3.5 h-0.5 bg-rose-500 shrink-0"></span>
-                            <span class="text-rose-600 font-bold text-[11px]">Today</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50/80 border border-rose-200/60 text-[#c3122e]">
+                            <span class="w-3 h-0.5 bg-[#c3122e]"></span>
+                            <span class="font-extrabold">Today</span>
                         </span>
                     </div>
 
                 </div>
 
-                <!-- Row 2: Search, Dropdown Filters & Expand/Collapse Deliverables Switch -->
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                    
-                    <!-- Left: Search Box + Dropdown Filters -->
-                    <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-                        <!-- Search Box -->
-                        <div class="relative w-full sm:w-56 shrink-0">
-                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search projects…"
-                                   class="w-full pl-8.5 pr-3 py-1.5 bg-slate-50/90 border border-slate-200/90 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all">
-                        </div>
-
-                        <!-- Subsidiary Select -->
-                        <select wire:model.live="subsidiaryFilter" 
-                                class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer max-w-[160px] truncate shrink-0">
-                            <option value="all">🏢 All Subsidiaries</option>
-                            @foreach($subsidiaries as $sub)
-                                <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                            @endforeach
-                        </select>
-
-                        <!-- Status Select -->
-                        <select wire:model.live="statusFilter" 
-                                class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer shrink-0">
-                            <option value="all">🚦 Status: All</option>
-                            <option value="on_track">🟢 On Track</option>
-                            <option value="at_risk">🟡 At Risk</option>
-                            <option value="delayed">🔴 Delayed</option>
-                        </select>
-
-                        <!-- PM Select -->
-                        <select wire:model.live="pmFilter" 
-                                class="custom-select px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-1.5 focus:ring-slate-400 transition-all cursor-pointer max-w-[155px] truncate shrink-0">
-                            <option value="all">👤 Manager: All</option>
-                            @foreach($pms as $pm)
-                                <option value="{{ $pm->id }}">{{ $pm->name }}</option>
-                            @endforeach
-                        </select>
-
-                        @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $pmFilter !== 'all')
-                            <button wire:click="resetFilters" type="button" title="Reset all filters"
-                                    class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:text-[#c3122e] hover:border-rose-200 transition-all flex items-center gap-1 cursor-pointer shadow-2xs shrink-0">
-                                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                <span>Reset</span>
-                            </button>
+                <!-- Row 2: Search & Dropdown Filters -->
+                <div class="pt-3 border-t border-slate-100 flex items-center gap-2.5 flex-wrap">
+                    <!-- Search Box -->
+                    <div class="relative w-64 max-w-full shrink-0">
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search projects..."
+                               class="w-full pl-8.5 pr-8 py-2 bg-slate-50/90 border border-slate-200/90 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all">
+                        @if($search)
+                            <button wire:click="$set('search', '')" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer">✕</button>
                         @endif
                     </div>
 
-                    <!-- Right: Expand / Collapse Deliverables Toggle -->
-                    <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold items-center shrink-0 self-start lg:self-auto">
-                        <button wire:click="expandAllGanttProjects" type="button" class="px-3 py-1 rounded-lg text-slate-600 hover:text-[#c3122e] hover:bg-white transition-all cursor-pointer" title="Expand all project deliverables">
-                            Expand All
-                        </button>
-                        <span class="text-slate-300 font-normal">|</span>
-                        <button wire:click="collapseAllGanttProjects" type="button" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Collapse all deliverables">
-                            Collapse All
-                        </button>
-                    </div>
+                    <!-- Subsidiary Select -->
+                    <select wire:model.live="subsidiaryFilter" 
+                            class="custom-select px-3 py-2 bg-white border border-slate-200/90 rounded-xl text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all cursor-pointer max-w-[180px] truncate shrink-0">
+                        <option value="all">🏢 All Subsidiaries</option>
+                        @foreach($subsidiaries as $sub)
+                            <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                        @endforeach
+                    </select>
 
+                    <!-- Status Select -->
+                    <select wire:model.live="statusFilter" 
+                            class="custom-select px-3 py-2 bg-white border border-slate-200/90 rounded-xl text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all cursor-pointer shrink-0">
+                        <option value="all">🚦 Status: All</option>
+                        <option value="on_track">🟢 On Track</option>
+                        <option value="at_risk">🟡 At Risk</option>
+                        <option value="delayed">🔴 Delayed</option>
+                    </select>
+
+                    <!-- PM Select -->
+                    <select wire:model.live="pmFilter" 
+                            class="custom-select px-3 py-2 bg-white border border-slate-200/90 rounded-xl text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all cursor-pointer max-w-[165px] truncate shrink-0">
+                        <option value="all">👤 Manager: All</option>
+                        @foreach($pms as $pm)
+                            <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                        @endforeach
+                    </select>
+
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $pmFilter !== 'all')
+                        <button wire:click="resetFilters" type="button" title="Reset all filters"
+                                class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:text-[#c3122e] hover:border-rose-200 transition-all flex items-center gap-1 cursor-pointer shadow-2xs shrink-0">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span>Reset</span>
+                        </button>
+                    @endif
                 </div>
 
             </div>

@@ -136,7 +136,10 @@ class RiskBlockerManager extends Component
         ]);
 
         $project = Project::findOrFail($this->riskProjectId);
-        abort_if(!$project->userCan(auth()->user(), 'risk.create') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to create risks for this project.');
+        if (!$project->userCan(auth()->user(), 'risk.create') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to create risks for this project.', type: 'error');
+            return;
+        }
 
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
         $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
@@ -174,7 +177,10 @@ class RiskBlockerManager extends Component
     public function openEditRiskModal(int $riskId)
     {
         $risk = ProjectRisk::findOrFail($riskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to edit this risk.');
+        if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to edit this risk.', type: 'error');
+            return;
+        }
 
         $this->editingRiskId = $risk->id;
         $this->riskProjectId = $risk->project_id;
@@ -205,7 +211,10 @@ class RiskBlockerManager extends Component
         ]);
 
         $risk = ProjectRisk::findOrFail($this->editingRiskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to edit this risk.');
+        if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to edit this risk.', type: 'error');
+            return;
+        }
 
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
         $impScores = ['low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
@@ -249,7 +258,10 @@ class RiskBlockerManager extends Component
     public function updateRiskStatus(int $riskId, string $status)
     {
         $risk = ProjectRisk::findOrFail($riskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'Unauthorized.');
+        if (!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to update status of this risk.', type: 'error');
+            return;
+        }
 
         $risk->status = $status;
         $risk->save();
@@ -276,7 +288,10 @@ class RiskBlockerManager extends Component
     public function deleteRisk(int $riskId)
     {
         $risk = ProjectRisk::findOrFail($riskId);
-        abort_if(!$risk->project?->userCan(auth()->user(), 'risk.delete') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to delete this risk.');
+        if (!$risk->project?->userCan(auth()->user(), 'risk.delete') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to delete this risk.', type: 'error');
+            return;
+        }
 
         $wbsId = $risk->wbs_item_id;
         $risk->delete();
@@ -347,7 +362,10 @@ class RiskBlockerManager extends Component
     public function openResolveBlockerModal(int $blockerId)
     {
         $blocker = TaskBlocker::findOrFail($blockerId);
-        abort_if(!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to resolve blockers.');
+        if (!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to resolve blockers.', type: 'error');
+            return;
+        }
 
         $this->selectedBlockerId = $blockerId;
         $this->blockerResolutionInput = '';
@@ -361,7 +379,10 @@ class RiskBlockerManager extends Component
         ]);
 
         $blocker = TaskBlocker::findOrFail($this->selectedBlockerId);
-        abort_if(!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1, 403, 'You do not have permission to resolve blockers.');
+        if (!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+            $this->dispatch('toast', message: '🔒 You do not have permission to resolve blockers.', type: 'error');
+            return;
+        }
 
         $blocker->resolution = $this->blockerResolutionInput;
         $blocker->resolved_by = auth()->id();

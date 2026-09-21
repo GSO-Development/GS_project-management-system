@@ -1081,6 +1081,32 @@
         window.__gsToastBound = true;
         window.addEventListener('toast', (e) => handleToastEvent(e.detail, e));
         window.addEventListener('notify', (e) => handleToastEvent(e.detail, e));
+
+        // Intercept Livewire 3 HTTP 403 Forbidden exceptions globally and present executive Toast popups instead of white 403 pages
+        document.addEventListener('livewire:init', () => {
+            if (window.Livewire) {
+                window.Livewire.hook('request', ({ fail }) => {
+                    fail(({ status, content, preventDefault }) => {
+                        if (status === 403) {
+                            preventDefault();
+                            let message = 'You do not have permission to perform this action.';
+                            try {
+                                if (content) {
+                                    const match = content.match(/<div class="[^"]*message[^"]*"[^>]*>\s*([^<]+)\s*<\/div>/i) 
+                                               || content.match(/403\s*\|\s*([^<]+)/i)
+                                               || content.match(/"message"\s*:\s*"([^"]+)"/i);
+                                    if (match && match[1]) {
+                                        message = match[1].trim();
+                                    }
+                                }
+                            } catch(err) {}
+
+                            window.showToast('🔒 Access Restricted: ' + message, 'error');
+                        }
+                    });
+                });
+            }
+        });
     }
 
     // 3. Flash session messages on load & livewire navigate (guaranteed single run)

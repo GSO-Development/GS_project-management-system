@@ -54,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Comment::observe(\App\Observers\AuditLogObserver::class);
         \App\Models\User::observe(\App\Observers\AuditLogObserver::class);
         \App\Models\Subsidiary::observe(\App\Observers\AuditLogObserver::class);
+        \App\Models\ApprovalRequest::observe(\App\Observers\AuditLogObserver::class);
 
         // Register Microsoft Azure Socialite Provider
         Event::listen(function (SocialiteWasCalled $event) {

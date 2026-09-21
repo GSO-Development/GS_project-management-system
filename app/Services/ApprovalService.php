@@ -34,6 +34,14 @@ class ApprovalService
             throw new InvalidArgumentException("Users cannot approve their own requests.");
         }
 
+        $project = $request->project;
+        $isRequesterPm = ($project && $project->project_manager_id === $request->requested_by);
+        $isReviewerPmoOrSuper = $reviewer->hasRole('super_admin') || $reviewer->isPmoAdmin();
+
+        if ($isRequesterPm && !$isReviewerPmoOrSuper) {
+            throw new InvalidArgumentException("Approval requests submitted by Project Managers must be reviewed by PMO Admin or Super Admin.");
+        }
+
         DB::transaction(function () use ($request, $reviewer, $comment) {
             $project = $request->project;
 
@@ -158,6 +166,14 @@ class ApprovalService
     {
         if ($request->requested_by === $reviewer->id && !$reviewer->hasRole('super_admin')) {
             throw new InvalidArgumentException("Users cannot reject their own requests.");
+        }
+
+        $project = $request->project;
+        $isRequesterPm = ($project && $project->project_manager_id === $request->requested_by);
+        $isReviewerPmoOrSuper = $reviewer->hasRole('super_admin') || $reviewer->isPmoAdmin();
+
+        if ($isRequesterPm && !$isReviewerPmoOrSuper) {
+            throw new InvalidArgumentException("Approval requests submitted by Project Managers must be reviewed by PMO Admin or Super Admin.");
         }
 
         $request->update([

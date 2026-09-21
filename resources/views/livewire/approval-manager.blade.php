@@ -13,18 +13,7 @@
             </h1>
         </div>
 
-        <!-- Right Side: Primary Action -->
-        <div class="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto">
-            <button
-                wire:click="openCreateModal"
-                type="button"
-                class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer w-full sm:w-auto"
-                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
-            >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>Submit Approval Request</span>
-            </button>
-        </div>
+
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
