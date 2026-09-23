@@ -671,7 +671,7 @@
                     </div>
                     <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded" style="background: white; border: 1px solid #e9e4e4; color: #9c9090;">⌘K</kbd>
                 </button>
-                <div x-show="searchOpen" @click.away="searchOpen = false" class="absolute left-0 top-full mt-2 w-[480px] z-50">
+                <div x-show="searchOpen" @click.away="searchOpen = false" class="absolute left-0 top-full mt-2 w-[92vw] sm:w-[480px] max-w-lg z-50">
                     @livewire('global-search')
                 </div>
             </div>

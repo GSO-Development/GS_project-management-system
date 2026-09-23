@@ -199,8 +199,9 @@
                 <div class="py-2.5 text-slate-400">Sat</div>
             </div>
 
-            <!-- Calendar Days Grid -->
-            <div class="grid grid-cols-7 divide-x divide-y divide-slate-100 bg-slate-100/30">
+            <!-- Calendar Days Grid (Responsive Touch Scrollable Container) -->
+            <div class="w-full overflow-x-auto scrollbar-thin">
+                <div class="grid grid-cols-7 divide-x divide-y divide-slate-100 bg-slate-100/30 min-w-[600px] sm:min-w-0">
                 @foreach($weeks as $week)
                     @foreach($week as $day)
                         @php
