@@ -251,7 +251,7 @@
                                 </div>
                             </div>
                             <div class="w-full {{ $hColor['barBg'] }} h-2 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full {{ $hColor['bar'] }} transition-all duration-500" style="width: {{ max(2, $project->overall_progress) }}%"></div>
+                                <div class="h-full rounded-full {{ $hColor['bar'] }} transition-all duration-500" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
                             </div>
                         </div>
 
@@ -425,7 +425,7 @@
                                 <td class="py-4 px-4 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
                                         <div style="width: 130px; height: 8px; background-color: #edebe7; border-radius: 9999px; overflow: hidden; flex-shrink: 0;">
-                                            <div style="width: {{ max(4, $prog) }}%; height: 100%; border-radius: 9999px; background-color: {{ $isDelayed ? '#be123c' : '#10b981' }}; transition: width 0.3s;"></div>
+                                            <div style="width: {{ min(100, max(0, $prog)) }}%; height: 100%; border-radius: 9999px; background-color: {{ $isDelayed ? '#be123c' : '#10b981' }}; transition: width 0.3s;"></div>
                                         </div>
                                         <span class="font-medium font-mono text-xs text-slate-700">{{ $prog }}%</span>
                                     </div>

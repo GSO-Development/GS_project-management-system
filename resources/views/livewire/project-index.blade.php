@@ -413,7 +413,7 @@
                                             <span class="text-slate-400 font-semibold">{{ $project->wbsItems->count() }} Tasks</span>
                                         </div>
                                         <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress == 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#c3122e] to-rose-500' }}" style="width: {{ max(2, $project->overall_progress) }}%"></div>
+                                            <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress == 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#c3122e] to-rose-500' }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
                                         </div>
                                     </div>
                                 </td>

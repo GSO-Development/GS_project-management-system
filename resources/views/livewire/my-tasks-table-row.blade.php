@@ -160,7 +160,7 @@
     <td class="py-3 px-4 align-middle whitespace-nowrap min-w-[130px]">
         <div class="flex items-center gap-2">
             <div class="w-16 sm:w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                <div class="h-full rounded-full transition-all duration-300 {{ $task->progress >= 100 ? 'bg-emerald-500' : ($task->progress >= 50 ? 'bg-blue-500' : ($task->progress > 0 ? 'bg-amber-500' : 'bg-slate-300')) }}" style="width: {{ max(2, $task->progress) }}%;"></div>
+                <div class="h-full rounded-full transition-all duration-300 {{ $task->progress >= 100 ? 'bg-emerald-500' : ($task->progress >= 50 ? 'bg-blue-500' : ($task->progress > 0 ? 'bg-amber-500' : 'bg-slate-300')) }}" style="width: {{ min(100, max(0, $task->progress)) }}%;"></div>
             </div>
             <span class="font-mono text-xs font-bold text-slate-600 w-7">{{ $task->progress }}%</span>
         </div>

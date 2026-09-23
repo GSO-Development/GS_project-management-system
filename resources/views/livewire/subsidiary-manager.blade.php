@@ -20,8 +20,8 @@
         </div>
     </div>
 
-    <!-- 5 Key Summary Cards Bar -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <!-- 4 Key Summary Cards Bar -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-4 mb-6">
         <!-- Total Subsidiaries -->
         <div class="card p-4 flex items-center justify-between">
             <div>
@@ -69,18 +69,6 @@
             </div>
             <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </div>
-        </div>
-
-        <!-- Avg. Project Progress -->
-        <div class="card p-4 flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-slate-500">Avg. Project Progress</span>
-                <div class="text-2xl font-extrabold text-slate-900 mt-1">{{ $avgProgress }}%</div>
-                <div class="text-[10px] font-semibold text-slate-400 mt-1">Organization average</div>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e]">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
         </div>
     </div>

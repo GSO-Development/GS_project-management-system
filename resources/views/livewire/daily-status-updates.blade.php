@@ -31,6 +31,9 @@
                 <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                     Daily Status Updates
                 </h1>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black text-white bg-[#c3122e] shadow-2xs flex items-center justify-center shrink-0" title="Total Status Updates">
+                    {{ $totalUpdatesCount }}
+                </span>
                 <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-[#c3122e] bg-rose-50 border border-rose-200/70 flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>{{ $updatedTodayCount }} Logged Today</span>

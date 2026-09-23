@@ -953,7 +953,7 @@ class ProjectWorkspace extends Component
             'statusSummary' => 'required|string',
         ]);
 
-        ProjectStatusUpdate::create([
+        $statusUpdate = ProjectStatusUpdate::create([
             'project_id' => $this->project->id,
             'title' => $this->statusTitle,
             'summary' => $this->statusSummary,
@@ -961,8 +961,44 @@ class ProjectWorkspace extends Component
             'next_steps' => $this->nextSteps,
             'current_progress' => $this->project->overall_progress,
             'updated_status' => $this->project->status,
-            'created_by' => auth()->id(),
+            'created_by' => $user->id,
         ]);
+
+        try {
+            $recipients = collect();
+            if ($this->project->project_manager_id === $user->id || $user->hasRole('super_admin')) {
+                foreach ($this->project->members()->where('users.id', '!=', $user->id)->get() as $m) {
+                    $recipients->push($m);
+                }
+            } else {
+                if ($this->project->projectManager && $this->project->projectManager->id !== $user->id) {
+                    $recipients->push($this->project->projectManager);
+                }
+            }
+
+            $superAdmins = \App\Models\User::where(function($q) {
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin']))
+                  ->orWhere('email', 'admin@nexuspm.local')
+                  ->orWhere('id', 1);
+            })->where('id', '!=', $user->id)->get();
+
+            foreach ($superAdmins as $admin) {
+                $recipients->push($admin);
+            }
+
+            foreach ($recipients->unique('id') as $recipient) {
+                $recipient->notify(new \App\Notifications\DailyUpdateNotification(
+                    updateTitle: $this->statusTitle,
+                    reporterName: $user->name,
+                    projectName: $this->project->name,
+                    url: route('daily-updates.index', ['project' => $this->project->id, 'update' => $statusUpdate->id]),
+                    actionType: 'daily_update',
+                    summary: \Illuminate\Support\Str::limit($this->statusSummary, 120)
+                ));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to dispatch daily update notification from workspace: ' . $e->getMessage());
+        }
 
         $this->reset(['statusTitle', 'statusSummary', 'workCompleted', 'nextSteps']);
         $this->dispatch('toast', message: 'Daily status update published successfully!', type: 'success');

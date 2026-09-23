@@ -211,7 +211,7 @@
                                         <span>{{ $p->wbsItems->count() }} Tasks</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full transition-all duration-500 bg-[#c3122e]" style="width:{{ max(2, $progress) }}%;"></div>
+                                        <div class="h-full rounded-full transition-all duration-500 bg-[#c3122e]" style="width:{{ min(100, max(0, $progress)) }}%;"></div>
                                     </div>
                                 </div>
                             </td>

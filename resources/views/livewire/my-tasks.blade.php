@@ -442,7 +442,7 @@
                                     </span>
                                     <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                         <div class="h-full rounded-full transition-all duration-300" 
-                                             style="width: {{ max(4, $task->progress) }}%; background-color: {{ $barColor }};"></div>
+                                             style="width: {{ min(100, max(0, $task->progress)) }}%; background-color: {{ $barColor }};"></div>
                                     </div>
                                 </td>
 

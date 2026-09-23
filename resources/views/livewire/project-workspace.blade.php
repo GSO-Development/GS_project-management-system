@@ -2938,7 +2938,7 @@
 
                     <!-- Visual Progress Bar -->
                     <div class="w-full h-2.5 bg-slate-200/80 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                        <div class="h-full bg-gradient-to-r from-emerald-500 via-[#c3122e] to-[#8b0d1f] rounded-full transition-all duration-500 shadow-2xs" style="width: {{ max(3, $project->overall_progress) }}%;"></div>
+                        <div class="h-full bg-gradient-to-r from-emerald-500 via-[#c3122e] to-[#8b0d1f] rounded-full transition-all duration-500 shadow-2xs" style="width: {{ min(100, max(0, $project->overall_progress)) }}%;"></div>
                     </div>
 
                     <!-- Template Blueprint Field Box -->

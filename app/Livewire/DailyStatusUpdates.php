@@ -54,23 +54,50 @@ class DailyStatusUpdates extends Component
     public ?int $historyProjectId = null;
     public ?int $selectedHistoryUpdateId = null;
 
+    public function markProjectUpdatesAsRead(?int $projectId = null, ?int $updateId = null): void
+    {
+        $user = auth()->user();
+        if (!$user) return;
+
+        $user->unreadNotifications()
+            ->where(function($q) {
+                $q->where('type', DailyUpdateNotification::class)
+                  ->orWhere('type', 'App\\Notifications\\DailyUpdateNotification');
+            })
+            ->get()
+            ->filter(function($n) use ($projectId, $updateId) {
+                $url = $n->data['url'] ?? '';
+                if ($updateId && (str_contains($url, "update={$updateId}") || str_contains($url, "update%3D{$updateId}"))) {
+                    return true;
+                }
+                if ($projectId && (str_contains($url, "project={$projectId}") || str_contains($url, "project%3D{$projectId}"))) {
+                    return true;
+                }
+                if (!$projectId && !$updateId) {
+                    return true;
+                }
+                return false;
+            })
+            ->each(fn($n) => $n->markAsRead());
+    }
+
     public function openHistoryModal(int $projectId, ?int $updateId = null)
     {
         $this->historyProjectId = $projectId;
         $this->selectedHistoryUpdateId = $updateId;
         $this->showHistoryModal = true;
 
-        $user = auth()->user();
-        if ($user) {
-            $user->unreadNotifications()
-                ->where('type', DailyUpdateNotification::class)
-                ->update(['read_at' => now()]);
-        }
+        $this->markProjectUpdatesAsRead($projectId, $updateId);
     }
 
     public function selectHistoryUpdate(int $updateId)
     {
         $this->selectedHistoryUpdateId = $updateId;
+
+        $update = ProjectStatusUpdate::find($updateId);
+        if ($update) {
+            $this->markProjectUpdatesAsRead($update->project_id, $updateId);
+        }
     }
 
     public function closeHistoryModal()
@@ -101,15 +128,11 @@ class DailyStatusUpdates extends Component
             $this->openStatusUpdateModal($projectId, $taskId);
         } elseif ($projectId) {
             $this->openHistoryModal($projectId, $updateId);
+        } elseif ($updateId) {
+            $this->markProjectUpdatesAsRead(null, $updateId);
         }
-
-        // Mark unread daily update notifications as read when visiting page
-        $user = auth()->user();
-        if ($user) {
-            $user->unreadNotifications()
-                ->where('type', DailyUpdateNotification::class)
-                ->update(['read_at' => now()]);
-        }
+        
+        // Unread notifications stay unread on general page view until user specifically opens or inspects the update/log.
     }
 
     public function isSuperAdminUser(?User $user = null): bool
@@ -245,7 +268,12 @@ class DailyStatusUpdates extends Component
             }
 
             // Also notify super admins
-            $superAdmins = User::role('super_admin')->where('id', '!=', $user->id)->get();
+            $superAdmins = User::where(function($q) {
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin']))
+                  ->orWhere('email', 'admin@nexuspm.local')
+                  ->orWhere('id', 1);
+            })->where('id', '!=', $user->id)->get();
+
             foreach ($superAdmins as $admin) {
                 $recipients->push($admin);
             }
@@ -289,25 +317,32 @@ class DailyStatusUpdates extends Component
             'content' => $content,
         ]);
 
+        $this->markProjectUpdatesAsRead($update->project_id, $updateId);
+
         // ═══════════════════════════════════════════════════════════════
-        // DISPATCH COMMENT NOTIFICATIONS
+        // DISPATCH COMMENT NOTIFICATIONS (SUPERADMIN <-> PM RECIPROCALLY)
         // ═══════════════════════════════════════════════════════════════
         try {
             $commentRecipients = collect();
 
-            // Notify original update author if different from commenter
+            // 1. Notify original update author if different from commenter (e.g. PM who wrote the update)
             if ($update->created_by && $update->created_by !== $user->id) {
                 $creator = User::find($update->created_by);
                 if ($creator) $commentRecipients->push($creator);
             }
 
-            // If commenter is not PM, notify the PM
+            // 2. If commenter is not PM, notify the Project Manager of the project
             if ($update->project && $update->project->projectManager && $update->project->projectManager->id !== $user->id) {
                 $commentRecipients->push($update->project->projectManager);
             }
 
-            // Also notify super admins
-            $superAdmins = User::role('super_admin')->where('id', '!=', $user->id)->get();
+            // 3. Always notify all Super Admins (unless commenter is super admin)
+            $superAdmins = User::where(function($q) {
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin']))
+                  ->orWhere('email', 'admin@nexuspm.local')
+                  ->orWhere('id', 1);
+            })->where('id', '!=', $user->id)->get();
+
             foreach ($superAdmins as $admin) {
                 $commentRecipients->push($admin);
             }

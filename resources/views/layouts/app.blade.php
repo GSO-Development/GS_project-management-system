@@ -171,7 +171,10 @@
                 $unreadDailyUpdatesCount = 0;
                 if ($user) {
                     $unreadDailyUpdatesCount = $user->unreadNotifications()
-                        ->where('type', \App\Notifications\DailyUpdateNotification::class)
+                        ->where(function($q) {
+                            $q->where('type', \App\Notifications\DailyUpdateNotification::class)
+                              ->orWhere('type', 'App\\Notifications\\DailyUpdateNotification');
+                        })
                         ->count();
                 }
             @endphp
