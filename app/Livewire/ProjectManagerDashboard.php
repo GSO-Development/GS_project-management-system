@@ -716,17 +716,11 @@ class ProjectManagerDashboard extends Component
         });
         $tasksDueSoonCount = $tasksDueSoon->count();
 
-        // Overdue tasks: for PMs leading projects, across project tasks; for regular users, strictly tasks assigned to them
-        $isLeadingProjects = Project::where('project_manager_id', $user->id)->exists();
-        if ($isLeadingProjects) {
-            $overdueTasksCount = $allProjectTasks->filter(function($t) {
-                return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
-            })->count();
-        } else {
-            $overdueTasksCount = $myAssignedTasks->filter(function($t) {
-                return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
-            })->count();
-        }
+        // Overdue tasks: always count only tasks directly assigned to the current user.
+        // This keeps the KPI card consistent with the "My Tasks → Overdue" filter.
+        $overdueTasksCount = $myAssignedTasks->filter(function($t) {
+            return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
+        })->count();
 
         // New projects this week count
         $newProjectsThisWeekCount = $myProjects->filter(function($p) {

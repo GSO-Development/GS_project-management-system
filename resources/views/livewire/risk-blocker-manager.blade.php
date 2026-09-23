@@ -38,64 +38,97 @@
     <!-- ═══════════════════════════════════════════════════════════════
          2. KPI SUMMARY METRICS (4 Clean Modern Cards)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
         <!-- Active Project Risks -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
-            <div class="min-w-0">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block truncate">Project Risks</span>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">{{ $totalRisksCount }}</span>
-                    <span class="text-xs font-semibold {{ $openRisksCount > 0 ? 'text-amber-600' : 'text-slate-400' }}">({{ $openRisksCount }} active)</span>
+        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
+            <div>
+                <div class="h-1 bg-gradient-to-r from-amber-500 to-amber-400 w-full"></div>
+                <div class="p-3.5 sm:p-4 pb-2">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Project Risks</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ $totalRisksCount }}</div>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5 truncate">Across {{ $projects->count() }} projects</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
+                <div class="text-[11px] font-semibold {{ $openRisksCount > 0 ? 'text-amber-600' : 'text-slate-400' }} truncate">
+                    {{ $openRisksCount }} active • {{ $projects->count() }} projects
+                </div>
             </div>
         </div>
 
         <!-- High Threat Risks -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
-            <div class="min-w-0">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block truncate">High Threats</span>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-2xl font-black {{ $criticalHighRiskCount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">{{ $criticalHighRiskCount }}</span>
-                    <span class="text-xs font-semibold text-rose-500">Critical / High</span>
+        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
+            <div>
+                <div class="h-1 bg-gradient-to-r from-rose-500 to-rose-400 w-full"></div>
+                <div class="p-3.5 sm:p-4 pb-2">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">High Threats</span>
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black {{ $criticalHighRiskCount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight leading-none mb-1">{{ $criticalHighRiskCount }}</div>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5 truncate">Score &ge; 6 / 12</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
+                <div class="text-[11px] font-semibold text-rose-500 truncate">
+                    Critical / High (Score ≥ 6/12)
+                </div>
             </div>
         </div>
 
         <!-- Pending Task Blockers -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
-            <div class="min-w-0">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block truncate">Task Blockers</span>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-2xl font-black {{ $openBlockersCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} tracking-tight">{{ $openBlockersCount }}</span>
-                    <span class="text-xs font-semibold {{ $openBlockersCount > 0 ? 'text-rose-500' : 'text-slate-400' }}">Pending</span>
+        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
+            <div>
+                <div class="h-1 bg-gradient-to-r from-orange-500 to-orange-400 w-full"></div>
+                <div class="p-3.5 sm:p-4 pb-2">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Task Blockers</span>
+                        <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black {{ $openBlockersCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} tracking-tight leading-none mb-1">{{ $openBlockersCount }}</div>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5 truncate">Execution impediments</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
+                <div class="text-[11px] font-semibold {{ $openBlockersCount > 0 ? 'text-rose-500' : 'text-slate-400' }} truncate">
+                    Execution impediments
+                </div>
             </div>
         </div>
 
         <!-- Resolved Blockers -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
-            <div class="min-w-0">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block truncate">Resolved</span>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-2xl font-black text-emerald-600 tracking-tight">{{ $resolvedBlockersCount }}</span>
-                    <span class="text-xs font-semibold text-emerald-600">Cleared</span>
+        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
+            <div>
+                <div class="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 w-full"></div>
+                <div class="p-3.5 sm:p-4 pb-2">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Resolved</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black text-emerald-600 tracking-tight leading-none mb-1">{{ $resolvedBlockersCount }}</div>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5 truncate">Unblocked deliverables</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
+                <div class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 truncate">
+                    <svg class="w-3 h-3 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Unblocked deliverables</span>
+                </div>
             </div>
         </div>
     </div>
@@ -228,61 +261,67 @@
                         $threatBadge = 'bg-rose-50 text-rose-700 border-rose-200/80';
                         $threatDot = 'bg-rose-500';
                         $threatLabel = 'Critical Threat';
+                        $borderAccent = 'border-l-rose-500';
                     } elseif ($score >= 6) {
                         $threatBadge = 'bg-orange-50 text-orange-700 border-orange-200/80';
                         $threatDot = 'bg-orange-500';
                         $threatLabel = 'High Threat';
+                        $borderAccent = 'border-l-orange-500';
                     } elseif ($score >= 4) {
                         $threatBadge = 'bg-amber-50 text-amber-800 border-amber-200/80';
                         $threatDot = 'bg-amber-500';
                         $threatLabel = 'Medium Threat';
+                        $borderAccent = 'border-l-amber-500';
                     } else {
                         $threatBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
                         $threatDot = 'bg-emerald-500';
                         $threatLabel = 'Low Threat';
+                        $borderAccent = 'border-l-emerald-500';
                     }
                 @endphp
 
-                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all p-5 sm:p-6 space-y-3.5">
+                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all border-l-4 {{ $borderAccent }} p-5 sm:p-6 space-y-3.5">
                     <!-- Top Row: Project & Context Info on Left, Threat Pill & Actions on Right -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-2 flex-wrap">
                             <!-- Project Badge -->
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800">
                                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 <span>{{ $r->project->name ?? 'Project' }}</span>
                             </span>
 
                             <!-- Category Badge -->
-                            <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-200/70">
-                                {{ $r->category }}
-                            </span>
+                            @if($r->category)
+                                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
+                                    {{ $r->category }}
+                                </span>
+                            @endif
 
                             <!-- Scope Task (if linked) -->
                             @if($r->wbsItem)
                                 <span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                    <span>Task: {{ $r->wbsItem->title }} ({{ $r->wbsItem->wbs_code }})</span>
+                                    <span>Task: <strong class="font-semibold text-slate-700">{{ $r->wbsItem->title }}</strong> ({{ $r->wbsItem->wbs_code }})</span>
                                 </span>
                             @endif
                         </div>
 
                         <!-- Right Side: Threat Score Pill & Action Buttons -->
                         <div class="flex items-center gap-2 flex-shrink-0 self-start sm:self-center">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border {{ $threatBadge }}">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border {{ $threatBadge }} shadow-2xs">
                                 <span class="w-1.5 h-1.5 rounded-full {{ $threatDot }}"></span>
                                 <span>{{ $threatLabel }}</span>
                                 <span class="text-slate-300 font-normal">&bull;</span>
-                                <span class="font-bold">{{ $score }}/12</span>
+                                <span class="font-black">{{ $score }}/12</span>
                             </div>
 
                             <select
                                 wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)"
-                                class="text-xs font-semibold rounded-lg px-2.5 py-1 border transition-all cursor-pointer shadow-2xs
-                                    {{ $r->status === 'open' ? 'bg-amber-50 text-amber-800 border-amber-200' : '' }}
-                                    {{ $r->status === 'monitoring' ? 'bg-sky-50 text-sky-800 border-sky-200' : '' }}
-                                    {{ $r->status === 'mitigated' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : '' }}
-                                    {{ $r->status === 'closed' ? 'bg-slate-50 text-slate-600 border-slate-200' : '' }}"
+                                class="text-xs font-bold rounded-lg px-2.5 py-1 border transition-all cursor-pointer shadow-2xs
+                                    {{ $r->status === 'open' ? 'bg-amber-50 text-amber-800 border-amber-200/90' : '' }}
+                                    {{ $r->status === 'monitoring' ? 'bg-sky-50 text-sky-800 border-sky-200/90' : '' }}
+                                    {{ $r->status === 'mitigated' ? 'bg-emerald-50 text-emerald-800 border-emerald-200/90' : '' }}
+                                    {{ $r->status === 'closed' ? 'bg-slate-50 text-slate-600 border-slate-200/90' : '' }}"
                             >
                                 <option value="open" @selected($r->status === 'open')>Open</option>
                                 <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
@@ -311,23 +350,28 @@
 
                     <!-- Middle: Title & Description -->
                     <div class="space-y-1">
-                        <h3 class="text-base font-bold text-slate-900 tracking-tight leading-snug">{{ $r->title }}</h3>
+                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight leading-snug">{{ $r->title }}</h3>
                         <p class="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">{{ $r->description }}</p>
                     </div>
 
                     <!-- Matrix Factors (Probability & Impact) -->
-                    <div class="text-[11px] text-slate-500 font-medium flex items-center gap-3">
-                        <span>Probability: <strong class="text-slate-700 font-semibold">{{ ucfirst($r->probability) }}</strong></span>
-                        <span class="text-slate-300">&bull;</span>
-                        <span>Impact: <strong class="text-slate-700 font-semibold">{{ ucfirst($r->impact) }}</strong></span>
+                    <div class="text-[11.5px] text-slate-500 font-medium flex items-center gap-3">
+                        <span class="inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/60">
+                            <span class="text-slate-400">Probability:</span>
+                            <strong class="text-slate-800 font-bold">{{ ucfirst($r->probability) }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/60">
+                            <span class="text-slate-400">Impact:</span>
+                            <strong class="text-slate-800 font-bold">{{ ucfirst($r->impact) }}</strong>
+                        </span>
                     </div>
 
                     <!-- Mitigation & Contingency Strategy Plans -->
                     @if($r->mitigation_plan || $r->contingency_plan)
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
                             @if($r->mitigation_plan)
-                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1">
-                                    <div class="font-semibold text-slate-700 flex items-center gap-1.5 text-[11px]">
+                                <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 text-xs space-y-1">
+                                    <div class="font-bold text-slate-700 flex items-center gap-1.5 text-[11px]">
                                         <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                                         <span>Mitigation Strategy</span>
                                     </div>
@@ -336,8 +380,8 @@
                             @endif
 
                             @if($r->contingency_plan)
-                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1">
-                                    <div class="font-semibold text-slate-700 flex items-center gap-1.5 text-[11px]">
+                                <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 text-xs space-y-1">
+                                    <div class="font-bold text-slate-700 flex items-center gap-1.5 text-[11px]">
                                         <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>Contingency Plan</span>
                                     </div>
@@ -348,9 +392,9 @@
                     @endif
 
                     <!-- Footer: Owner & Timestamp -->
-                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-2.5 border-t border-slate-100">
                         <div class="flex items-center gap-2">
-                            <div class="w-5 h-5 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[9.5px]">
+                            <div class="w-6 h-6 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[10px] shadow-2xs">
                                 {{ strtoupper(substr($r->owner->name ?? 'P', 0, 1)) }}
                             </div>
                             <span>Owner: <strong class="text-slate-700 font-semibold">{{ $r->owner->name ?? 'Project Manager' }}</strong></span>
@@ -392,9 +436,15 @@
                         'medium' => 'bg-amber-50 text-amber-800 border-amber-200/80',
                         default => 'bg-slate-50 text-slate-600 border-slate-200/70',
                     };
+                    $sevBorder = match($b->severity) {
+                        'critical' => 'border-l-rose-500',
+                        'high' => 'border-l-orange-500',
+                        'medium' => 'border-l-amber-500',
+                        default => 'border-l-slate-400',
+                    };
                 @endphp
 
-                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all p-5 sm:p-6 space-y-3.5">
+                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all border-l-4 {{ $sevBorder }} p-5 sm:p-6 space-y-3.5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-2 flex-wrap">
                             <!-- Project Badge -->

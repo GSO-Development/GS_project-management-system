@@ -46,13 +46,6 @@
                     <span>New Project</span>
                 </a>
             @endif
-
-            <a href="{{ route('daily-updates.index') }}" 
-               wire:navigate.hover
-               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold {{ auth()->user()?->canCreateProject() ? 'text-slate-700 bg-white hover:bg-slate-50 border border-slate-200' : 'text-white bg-[#c3122e] hover:bg-[#a90f27]' }} shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer no-underline active:scale-98">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                <span>Daily Update</span>
-            </a>
         </div>
     </div>
 
@@ -79,134 +72,139 @@
     @endif
 
     {{-- ══════════════════════════════════════════════════════════ --}}
-    {{-- 2. TOP METRICS RIBBON (4 PASTEL CARDS)                     --}}
+    {{-- 2. KPI SUMMARY CARDS                                       --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {{-- 1. Total Projects (Soft Blush/Rose Tint) --}}
-        <div class="rounded-2xl border border-rose-100/80 bg-[#fef9f9] p-4.5 sm:p-5 shadow-2xs flex items-start justify-between hover:shadow-xs transition-shadow">
-            <div class="space-y-1">
-                <span class="text-xs font-semibold text-slate-500 block">Total Projects</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $myProjectsCount }}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+
+        {{-- 1. Total Projects --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all p-4 flex flex-col justify-between h-full">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Total Projects</span>
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                        </svg>
+                    </div>
                 </div>
-                <div class="text-xs font-semibold {{ $newProjectsThisWeekCount > 0 ? 'text-emerald-600' : 'text-slate-500' }} flex items-center gap-1 pt-0.5">
-                    @if($newProjectsThisWeekCount > 0)
-                        <span>+{{ $newProjectsThisWeekCount }} new this week</span>
-                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                    @else
-                        <span>{{ $inProgressProjectsCount }} in progress</span>
-                    @endif
-                </div>
+                <div class="text-2xl font-black text-slate-900 tracking-tight leading-none font-mono mb-2">{{ $myProjectsCount }}</div>
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-700 shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            <div class="flex items-center gap-1.5 text-xs font-semibold {{ $newProjectsThisWeekCount > 0 ? 'text-emerald-600' : 'text-slate-500' }}">
+                @if($newProjectsThisWeekCount > 0)
+                    <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-[10.5px] font-bold border border-emerald-200/60">
+                        <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                        +{{ $newProjectsThisWeekCount }} new this week
+                    </span>
+                @else
+                    <span class="text-[11px] text-slate-500 font-medium">{{ $inProgressProjectsCount }} in progress</span>
+                @endif
             </div>
         </div>
 
-        {{-- 2. My Project Roles (Soft Violet/Indigo Tint — Multi-Role Portfolio) --}}
-        <div class="rounded-2xl border border-indigo-100/80 bg-[#fbfaff] p-4.5 sm:p-5 shadow-2xs flex flex-col justify-between hover:shadow-xs transition-shadow">
-            <div class="flex items-start justify-between gap-2">
-                <div class="space-y-0.5">
-                    <span class="text-xs font-semibold text-slate-500 block">My Project Roles</span>
-                    <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-2">
-                        <span>{{ $distinctActiveRolesCount }}</span>
-                        <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">
-                            {{ Str::plural('Role', $distinctActiveRolesCount) }}
-                        </span>
-                    </div>
-                    <div class="text-[11px] font-semibold text-slate-400">
-                        Across {{ $myProjectsCount }} assigned {{ Str::plural('project', $myProjectsCount) }}
+        {{-- 2. My Project Roles --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all p-4 flex flex-col justify-between h-full">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">My Project Roles</span>
+                    <div class="w-8 h-8 rounded-xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
                     </div>
                 </div>
-                <div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-600 shrink-0" title="Project Roles Portfolio">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
+                <div class="mb-2">
+                    <div class="text-2xl font-black text-slate-900 tracking-tight leading-none font-mono mb-1">
+                        {{ $totalRoleAssignmentsCount }}
+                    </div>
+                    <div class="text-[11px] text-slate-500 font-semibold truncate">
+                        Across {{ $myProjectsCount }} {{ Str::plural('project', $myProjectsCount) }}
+                    </div>
                 </div>
             </div>
-
-            {{-- Interactive Role Badges / Pills --}}
-            <div class="flex items-center gap-1.5 flex-wrap pt-2.5 mt-1 border-t border-indigo-100/60">
+            <div class="flex items-center gap-1 flex-wrap">
                 @if($leadProjectsCount > 0)
-                    <a href="{{ route('projects.my-leads', ['role' => 'lead']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition-colors no-underline" title="View {{ $leadProjectsCount }} project(s) as Project Manager">
-                        <span>⭐</span>
-                        <span>{{ $leadProjectsCount }} PM</span>
+                    <a href="{{ route('projects.my-leads', ['role' => 'lead']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/80 transition-colors no-underline">
+                        ⭐ {{ $leadProjectsCount }} PM
                     </a>
                 @endif
                 @if($sponsorProjectsCount > 0)
-                    <a href="{{ route('projects.my-leads', ['role' => 'sponsor']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 transition-colors no-underline" title="View {{ $sponsorProjectsCount }} project(s) as Sponsor">
-                        <span>💼</span>
-                        <span>{{ $sponsorProjectsCount }} Sponsor</span>
+                    <a href="{{ route('projects.my-leads', ['role' => 'sponsor']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/80 transition-colors no-underline">
+                        💼 {{ $sponsorProjectsCount }} Sponsor
                     </a>
                 @endif
                 @if($ownerProjectsCount > 0)
-                    <a href="{{ route('projects.my-leads', ['role' => 'owner']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 transition-colors no-underline" title="View {{ $ownerProjectsCount }} project(s) as Owner">
-                        <span>🏛️</span>
-                        <span>{{ $ownerProjectsCount }} Owner</span>
+                    <a href="{{ route('projects.my-leads', ['role' => 'owner']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 transition-colors no-underline">
+                        🏛️ {{ $ownerProjectsCount }} Owner
                     </a>
                 @endif
                 @if($steeringCommitteeProjectsCount > 0)
-                    <a href="{{ route('projects.my-leads', ['role' => 'steering_committee']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 transition-colors no-underline" title="View {{ $steeringCommitteeProjectsCount }} project(s) in Steering Committee">
-                        <span>🎖️</span>
-                        <span>{{ $steeringCommitteeProjectsCount }} Committee</span>
+                    <a href="{{ route('projects.my-leads', ['role' => 'steering_committee']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 transition-colors no-underline">
+                        🎖️ {{ $steeringCommitteeProjectsCount }} Committee
                     </a>
                 @endif
                 @if($coreMemberProjectsCount > 0)
-                    <a href="{{ route('projects.my-leads', ['role' => 'member']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 transition-colors no-underline" title="View {{ $coreMemberProjectsCount }} project(s) as Core Team Member">
-                        <span>🤝</span>
-                        <span>{{ $coreMemberProjectsCount }} Member</span>
+                    <a href="{{ route('projects.my-leads', ['role' => 'member']) }}" wire:navigate.hover class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition-colors no-underline">
+                        🤝 {{ $coreMemberProjectsCount }} Member
                     </a>
                 @endif
                 @if($totalRoleAssignmentsCount === 0)
-                    <span class="text-[11px] font-medium text-slate-400">No active project roles</span>
+                    <span class="text-[10.5px] text-slate-400 font-medium">No active roles</span>
                 @endif
             </div>
         </div>
 
-        {{-- 3. My Tasks (Soft Emerald Tint) --}}
-        <div class="rounded-2xl border border-emerald-100/80 bg-[#f8fdfa] p-4.5 sm:p-5 shadow-2xs flex items-start justify-between hover:shadow-xs transition-shadow">
-            <div class="space-y-1">
-                <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-500 hover:text-slate-900 block transition-colors">
-                    My Tasks
-                </a>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="hover:text-[#c3122e] transition-colors">
-                        {{ $myAssignedTasksCount }}
+        {{-- 3. My Tasks --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all p-4 flex flex-col justify-between h-full">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block hover:text-slate-600 transition-colors truncate">My Tasks</a>
+                    <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="w-8 h-8 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 hover:scale-105 transition-transform">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     </a>
                 </div>
-                <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1 pt-0.5">
-                    @if($completedTodayCount > 0)
-                        <span>+ {{ $completedTodayCount }} completed today</span>
-                    @else
-                        <span>Assigned to you</span>
-                    @endif
+                <div class="text-2xl font-black text-slate-900 tracking-tight leading-none font-mono mb-2">
+                    <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="hover:text-emerald-600 transition-colors">{{ $myAssignedTasksCount }}</a>
                 </div>
             </div>
-            <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0 hover:scale-105 transition-transform" title="Go to My Tasks">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            </a>
-        </div>
-
-        {{-- 4. Overdue (Soft Amber/Orange Tint) --}}
-        <div class="rounded-2xl border border-amber-100/80 bg-[#fffbf6] p-4.5 sm:p-5 shadow-2xs flex items-start justify-between hover:shadow-xs transition-shadow">
-            <div class="space-y-1">
-                <span class="text-xs font-semibold text-slate-500 block">Overdue</span>
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {{ $overdueTasksCount }}
-                </div>
-                @if($overdueTasksCount > 0)
-                    <div class="text-xs font-bold text-rose-600 flex items-center gap-1 pt-0.5">
-                        <span>• Needs attention</span>
-                    </div>
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                @if($completedTodayCount > 0)
+                    <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-[10.5px] font-bold border border-emerald-200/60">
+                        +{{ $completedTodayCount }} completed today
+                    </span>
                 @else
-                    <div class="text-xs font-semibold text-emerald-600 flex items-center gap-1 pt-0.5">
-                        <span>✓ All on schedule</span>
-                    </div>
+                    <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Assigned to you
+                    </span>
                 @endif
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+
+        {{-- 4. Overdue --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all p-4 flex flex-col justify-between h-full">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Overdue</span>
+                    <div class="w-8 h-8 rounded-xl {{ $overdueTasksCount > 0 ? 'bg-rose-50 border border-rose-100 text-rose-500' : 'bg-emerald-50/70 border border-emerald-100 text-emerald-600' }} flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+                <div class="text-2xl font-black tracking-tight leading-none font-mono mb-2 {{ $overdueTasksCount > 0 ? 'text-rose-600' : 'text-slate-900' }}">{{ $overdueTasksCount }}</div>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs font-semibold">
+                @if($overdueTasksCount > 0)
+                    <span class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 px-2 py-0.5 rounded-md text-[10.5px] font-bold border border-rose-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        Needs attention
+                    </span>
+                @else
+                    <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        All on schedule
+                    </span>
+                @endif
             </div>
         </div>
 
@@ -555,18 +553,27 @@
         <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Clean Card Header --}}
-                <div class="flex items-center justify-between mb-4 pb-1 border-b border-slate-100">
-                    <div class="flex items-center gap-2">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Project Risks</h2>
                         @if($openRisks->count() > 0)
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
                                 {{ $openRisks->count() }} {{ Str::plural('Risk', $openRisks->count()) }}
+                            </span>
+                        @else
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                0 Risks
                             </span>
                         @endif
                     </div>
-                    <a href="{{ route('risks.index') }}" wire:navigate.hover class="text-xs font-semibold text-amber-600/90 hover:text-amber-700 flex items-center gap-1 transition-colors no-underline">
-                        <span>View all</span>
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    <a href="{{ route('risks.index') }}" wire:navigate.hover class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-rose-50 hover:bg-rose-100/90 border border-rose-200/70 transition-all shadow-2xs no-underline active:scale-95">
+                        <span>View All</span>
+                        <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
 
@@ -576,7 +583,7 @@
                         @php
                             $score = (int) $risk->risk_score;
                             $level = $score >= 9 ? 'Critical' : ($score >= 6 ? 'High' : ($score >= 3 ? 'Medium' : 'Low'));
-                            $dotColor = $score >= 9 ? 'bg-rose-500' : ($score >= 6 ? 'bg-orange-500' : ($score >= 3 ? 'bg-amber-500' : 'bg-emerald-500'));
+                            $borderAccent = $score >= 9 ? 'border-l-rose-500' : ($score >= 6 ? 'border-l-orange-500' : ($score >= 3 ? 'border-l-amber-500' : 'border-l-emerald-500'));
                             $levelBadge = match($level) {
                                 'Critical' => 'bg-rose-50 text-rose-700 border-rose-200/80',
                                 'High'     => 'bg-orange-50 text-orange-700 border-orange-200/80',
@@ -584,75 +591,72 @@
                                 'Low'      => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
                             };
                         @endphp
-                        <div class="p-3.5 rounded-xl bg-slate-50/60 border border-slate-100 hover:border-slate-200 hover:bg-white transition-all">
+                        <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/70 border-l-4 {{ $borderAccent }} hover:border-slate-300 hover:bg-white transition-all shadow-2xs">
                             <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-start gap-2.5 min-w-0">
-                                    <span class="w-2 h-2 rounded-full {{ $dotColor }} mt-1.5 shrink-0"></span>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
-                                                {{ $risk->title }}
-                                            </h4>
-                                            @if($risk->category)
-                                                <span class="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 border border-slate-200/60">
-                                                    {{ $risk->category }}
-                                                </span>
-                                            @endif
-                                        </div>
+                                <div class="min-w-0 space-y-1.5">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="text-sm font-bold text-slate-900 leading-snug">
+                                            {{ $risk->title }}
+                                        </h4>
+                                        @if($risk->category)
+                                            <span class="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-600">
+                                                {{ $risk->category }}
+                                            </span>
+                                        @endif
+                                    </div>
 
-                                        <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                                            @if($risk->project)
-                                                <a href="{{ route('projects.show', $risk->project_id) }}" wire:navigate.hover class="font-semibold text-slate-700 hover:text-[#c3122e] transition-colors">
-                                                    {{ $risk->project->name }}
-                                                </a>
-                                            @endif
-                                            @if($risk->wbsItem)
-                                                <span class="text-slate-300">•</span>
-                                                <span>Task: <strong class="font-medium text-slate-600">{{ $risk->wbsItem->title }}</strong></span>
-                                            @endif
-                                            @if($risk->owner)
-                                                <span class="text-slate-300">•</span>
-                                                <span>Owner: <strong class="font-medium text-slate-600">{{ $risk->owner->name }}</strong></span>
-                                            @endif
-                                        </div>
+                                    <div class="text-[11.5px] text-slate-500 flex items-center gap-2 flex-wrap font-medium">
+                                        @if($risk->project)
+                                            <a href="{{ route('projects.show', $risk->project_id) }}" wire:navigate.hover class="font-bold text-slate-700 hover:text-[#c3122e] transition-colors">
+                                                {{ $risk->project->name }}
+                                            </a>
+                                        @endif
+                                        @if($risk->wbsItem)
+                                            <span class="text-slate-300">•</span>
+                                            <span>Task: <strong class="font-semibold text-slate-700">{{ $risk->wbsItem->title }}</strong></span>
+                                        @endif
+                                        @if($risk->owner)
+                                            <span class="text-slate-300">•</span>
+                                            <span>Owner: <strong class="font-semibold text-slate-700">{{ $risk->owner->name }}</strong></span>
+                                        @endif
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border {{ $levelBadge }}">
+                                <div class="shrink-0">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg border {{ $levelBadge }} shadow-2xs">
                                         {{ $level }}
                                     </span>
                                 </div>
                             </div>
 
                             @if(!empty($risk->mitigation_plan))
-                                <div class="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-1.5">
-                                    <span class="font-semibold text-slate-600 shrink-0">Mitigation:</span>
+                                <div class="mt-2.5 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 flex items-center gap-1.5">
+                                    <span class="font-bold text-slate-700 shrink-0">Mitigation:</span>
                                     <span class="italic truncate text-slate-600">{{ $risk->mitigation_plan }}</span>
                                 </div>
                             @endif
                         </div>
                     @empty
                         <div class="py-10 text-center text-xs text-slate-400 font-medium flex flex-col items-center justify-center gap-2">
-                            <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            <span>No open risks across your assigned projects</span>
+                            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-1">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <span class="font-semibold text-slate-600 text-sm">No Active Risks</span>
+                            <span class="text-slate-400 text-xs">All assigned projects are currently running risk-free.</span>
                         </div>
                     @endforelse
                 </div>
             </div>
 
-            {{-- Footer Action Link --}}
+            {{-- Clean Footer Info Bar --}}
             <div class="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                 <span class="text-slate-400 font-medium flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Live risk synchronization across assigned projects</span>
                 </span>
-                <a href="{{ route('risks.index') }}" wire:navigate.hover class="font-bold text-[#8b0d1f] hover:text-[#c3122e] hover:underline flex items-center gap-1 transition-colors">
-                    <span>View Risks</span>
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
+                <span class="text-[11px] font-semibold text-slate-400">Auto-synced</span>
             </div>
         </div>
 

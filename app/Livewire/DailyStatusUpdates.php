@@ -59,6 +59,13 @@ class DailyStatusUpdates extends Component
         $this->historyProjectId = $projectId;
         $this->selectedHistoryUpdateId = $updateId;
         $this->showHistoryModal = true;
+
+        $user = auth()->user();
+        if ($user) {
+            $user->unreadNotifications()
+                ->where('type', DailyUpdateNotification::class)
+                ->update(['read_at' => now()]);
+        }
     }
 
     public function selectHistoryUpdate(int $updateId)
@@ -94,6 +101,14 @@ class DailyStatusUpdates extends Component
             $this->openStatusUpdateModal($projectId, $taskId);
         } elseif ($projectId) {
             $this->openHistoryModal($projectId, $updateId);
+        }
+
+        // Mark unread daily update notifications as read when visiting page
+        $user = auth()->user();
+        if ($user) {
+            $user->unreadNotifications()
+                ->where('type', DailyUpdateNotification::class)
+                ->update(['read_at' => now()]);
         }
     }
 
@@ -291,6 +306,12 @@ class DailyStatusUpdates extends Component
                 $commentRecipients->push($update->project->projectManager);
             }
 
+            // Also notify super admins
+            $superAdmins = User::role('super_admin')->where('id', '!=', $user->id)->get();
+            foreach ($superAdmins as $admin) {
+                $commentRecipients->push($admin);
+            }
+
             $commentRecipients = $commentRecipients->unique('id');
 
             foreach ($commentRecipients as $recipient) {
@@ -323,6 +344,28 @@ class DailyStatusUpdates extends Component
 
         $update->delete();
         $this->dispatch('toast', message: 'Status update removed.', type: 'info');
+    }
+
+    public function deleteComment(int $commentId)
+    {
+        $user = auth()->user();
+        $comment = Comment::findOrFail($commentId);
+
+        $isAuthor = ($comment->user_id === $user->id);
+        $isSuperAdmin = $this->isSuperAdminUser($user);
+
+        $isPm = false;
+        if ($comment->commentable instanceof ProjectStatusUpdate && $comment->commentable->project) {
+            $isPm = ($comment->commentable->project->project_manager_id === $user->id);
+        }
+
+        if (!$isAuthor && !$isSuperAdmin && !$isPm) {
+            $this->dispatch('toast', message: 'Unauthorized to delete this comment.', type: 'error');
+            return;
+        }
+
+        $comment->delete();
+        $this->dispatch('toast', message: 'Feedback comment removed successfully.', type: 'info');
     }
 
     protected function getAccessibleProjects()

@@ -11,88 +11,97 @@
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 Approval Workflows
             </h1>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">Review, sign off, and manage project governance requests at a glance.</p>
         </div>
-
 
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
          2. FILTERS & METRICS TOOLBAR
          ═══════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xs mb-6 p-4 sm:p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto flex-1 max-w-3xl">
-            {{-- Scope Filter --}}
-            <div class="flex flex-col">
-                <label class="text-[10px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Scope</label>
-                <div class="relative">
-                    <select wire:model.live="scopeFilter" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer">
-                        <option value="all">🌐 All Accessible Requests</option>
-                        <option value="my_requests">👤 My Submitted Requests</option>
-                    </select>
-                </div>
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs mb-6 p-4 sm:p-4.5 space-y-4">
+        <!-- Row 1: KPI Summary Counters + Search -->
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            {{-- Search Bar --}}
+            <div class="relative flex-1 min-w-[240px]">
+                <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search project, code, requester..." 
+                       class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 placeholder-slate-400 transition-all shadow-2xs">
             </div>
 
-            {{-- Status Filter --}}
-            <div class="flex flex-col">
-                <label class="text-[10px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Status</label>
-                <div class="relative">
-                    <select wire:model.live="statusFilter" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer">
-                        <option value="all">📋 All Statuses</option>
-                        <option value="pending">⏳ Pending Review</option>
-                        <option value="approved">✅ Approved</option>
-                        <option value="rejected">❌ Rejected</option>
-                        <option value="revision_required">🔄 Revision Required</option>
-                        <option value="cancelled">🚫 Cancelled</option>
-                    </select>
-                </div>
-            </div>
-
-            {{-- Request Type Filter --}}
-            <div class="flex flex-col">
-                <label class="text-[10px] uppercase font-black text-slate-400 ml-1 mb-1 tracking-wider">Request Type</label>
-                <div class="relative">
-                    <select wire:model.live="typeFilter" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer">
-                        <option value="all">📂 All Request Types</option>
-                        @foreach(\App\Enums\ApprovalType::cases() as $t)
-                            <option value="{{ $t->value }}">{{ $t->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            {{-- Summary KPI Badges --}}
+            <div class="flex items-center gap-2 text-xs flex-wrap shrink-0">
+                @php
+                    $user = auth()->user();
+                    $baseQuery = \App\Models\ApprovalRequest::query();
+                    if ($scopeFilter === 'my_requests') {
+                        $baseQuery->where('requested_by', $user->id);
+                    } elseif (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+                        $baseQuery->where(function($q) use ($user) {
+                            $q->where('requested_by', $user->id)
+                              ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
+                              ->orWhere(function($memberQuery) use ($user) {
+                                  $memberQuery->whereHas('project.members', fn($mq) => $mq->where('users.id', $user->id))
+                                              ->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                              });
+                        });
+                    }
+                    $pendingCount  = (clone $baseQuery)->where('status','pending')->count();
+                    $approvedCount = (clone $baseQuery)->where('status','approved')->count();
+                    $rejectedCount = (clone $baseQuery)->where('status','rejected')->count();
+                @endphp
+                <button wire:click="$set('statusFilter', 'pending')" type="button" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 {{ $pendingCount > 0 ? 'animate-pulse' : '' }}"></span>
+                    <span>{{ $pendingCount }} Pending</span>
+                </button>
+                <button wire:click="$set('statusFilter', 'approved')" type="button" class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>{{ $approvedCount }} Approved</span>
+                </button>
+                <button wire:click="$set('statusFilter', 'rejected')" type="button" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100/80 border border-rose-200/90 text-rose-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span>{{ $rejectedCount }} Rejected</span>
+                </button>
             </div>
         </div>
 
-        {{-- Summary KPI Badges --}}
-        <div class="flex items-center gap-2 text-xs flex-wrap w-full lg:w-auto justify-start lg:justify-end">
-            @php
-                $user = auth()->user();
-                $baseQuery = \App\Models\ApprovalRequest::query();
-                if ($scopeFilter === 'my_requests') {
-                    $baseQuery->where('requested_by', $user->id);
-                } elseif (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-                    $baseQuery->where(function($q) use ($user) {
-                        $q->where('requested_by', $user->id)
-                          ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
-                          ->orWhere(function($memberQuery) use ($user) {
-                              $memberQuery->whereHas('project.members', fn($mq) => $mq->where('users.id', $user->id))
-                                          ->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
-                          });
-                    });
-                }
-                $pendingCount  = (clone $baseQuery)->where('status','pending')->count();
-                $approvedCount = (clone $baseQuery)->where('status','approved')->count();
-                $rejectedCount = (clone $baseQuery)->where('status','rejected')->count();
-            @endphp
-            <div class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200/90 text-amber-900 font-black flex items-center gap-2 shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-amber-500 {{ $pendingCount > 0 ? 'animate-pulse' : '' }}"></span>
-                <span>{{ $pendingCount }} Pending</span>
+        <div class="h-px bg-slate-100 w-full"></div>
+
+        <!-- Row 2: Select Filters -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {{-- Scope Filter --}}
+            <div class="relative">
+                <select wire:model.live="scopeFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
+                    <option value="all">🌐 All Accessible Requests</option>
+                    <option value="my_requests">👤 My Requests</option>
+                </select>
+                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </div>
-            <div class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200/90 text-emerald-900 font-black flex items-center gap-2 shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>{{ $approvedCount }} Approved</span>
+
+            {{-- Status Filter --}}
+            <div class="relative">
+                <select wire:model.live="statusFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
+                    <option value="all">📋 All Statuses</option>
+                    <option value="pending">⏳ Pending Review</option>
+                    <option value="approved">✅ Approved</option>
+                    <option value="rejected">❌ Rejected</option>
+                    <option value="revision_required">🔄 Revision Required</option>
+                    <option value="cancelled">🚫 Cancelled</option>
+                </select>
+                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </div>
-            <div class="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-900 font-black flex items-center gap-2 shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                <span>{{ $rejectedCount }} Rejected</span>
+
+            {{-- Request Type Filter --}}
+            <div class="relative">
+                <select wire:model.live="typeFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
+                    <option value="all">📂 All Request Types</option>
+                    @foreach(\App\Enums\ApprovalType::cases() as $t)
+                        <option value="{{ $t->value }}">{{ $t->label() }}</option>
+                    @endforeach
+                </select>
+                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </div>
         </div>
     </div>
@@ -100,19 +109,17 @@
     {{-- ═══════════════════════════════════════════════════════════════
          3. APPROVAL REQUESTS TABLE
          ═══════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden mb-6">
-        <div class="overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse min-w-[1050px]">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden mb-6">
+        <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                        <th class="py-4 px-5 min-w-[220px]">Project &amp; Subsidiary</th>
-                        <th class="py-4 px-4 min-w-[190px]">Request Type &amp; Details</th>
-                        <th class="py-4 px-4 min-w-[140px]">Requested By</th>
-                        <th class="py-4 px-4 min-w-[180px]">Reason / Justification</th>
-                        <th class="py-4 px-4 min-w-[150px]">Reviewed / Signed By</th>
-                        <th class="py-4 px-4 min-w-[120px]">Submitted</th>
-                        <th class="py-4 px-4 min-w-[110px]">Status</th>
-                        <th class="py-4 px-5 text-right whitespace-nowrap min-w-[150px]">Actions</th>
+                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        <th class="py-3.5 pl-6 pr-4 min-w-[210px]">Project &amp; Subsidiary</th>
+                        <th class="py-3.5 px-4 min-w-[170px]">Request Type</th>
+                        <th class="py-3.5 px-4 min-w-[110px]">Submitted</th>
+                        <th class="py-3.5 px-4 min-w-[105px]">Status</th>
+                        <th class="py-3.5 px-4 min-w-[150px]">Reviewed / Signed By</th>
+                        <th class="py-3.5 pl-4 pr-6 text-right whitespace-nowrap min-w-[110px]">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
@@ -140,7 +147,6 @@
                                 'deadline_extension' => isset($rv['new_deadline']) ? 'New date: ' . \Carbon\Carbon::parse($rv['new_deadline'])->format('M d, Y') : null,
                                 'budget_change' => isset($rv['new_budget']) ? 'New budget: Rs. ' . number_format($rv['new_budget'], 0) : null,
                                 'scope_change' => isset($rv['scope_description']) ? \Illuminate\Support\Str::limit($rv['scope_description'], 35) : null,
-                                'new_project_plan' => 'PM Review & Workspace Setup',
                                 default => null,
                             };
                         @endphp
@@ -170,7 +176,7 @@
                                 </div>
                             </td>
 
-                            {{-- 2. Request Type & Details --}}
+                            {{-- 2. Request Type --}}
                             <td class="py-4 px-4">
                                 <div class="space-y-1">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black {{ $typeBadge['bg'] }} {{ $typeBadge['text'] }} border {{ $typeBadge['border'] }} whitespace-nowrap shadow-2xs">
@@ -185,26 +191,29 @@
                                 </div>
                             </td>
 
-                            {{-- 3. Requested By --}}
-                            <td class="py-4 px-4">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-[10px] font-black flex-shrink-0 shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                                        {{ strtoupper(substr($req->requester->name ?? 'U', 0, 1)) }}
-                                    </div>
-                                    <div class="min-w-0">
-                                        <span class="text-xs text-slate-900 font-black block truncate">{{ $req->requester->name ?? '—' }}</span>
-                                        @if($req->requested_by === auth()->id())
-                                            <span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-rose-50 text-[#c3122e] border border-rose-200">You</span>
-                                        @else
-                                            <span class="text-[10px] text-slate-400 font-medium block">PMO Admin</span>
-                                        @endif
-                                    </div>
-                                </div>
+                            {{-- 3. Submitted Date --}}
+                            <td class="py-4 px-4 text-xs text-slate-800 font-extrabold whitespace-nowrap">
+                                <div>{{ $req->created_at->format('M d, Y') }}</div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $req->created_at->diffForHumans() }}</div>
                             </td>
 
-                            {{-- 4. Reason / Justification --}}
-                            <td class="py-4 px-4 text-xs text-slate-600 max-w-xs">
-                                <p class="line-clamp-2 leading-relaxed font-medium" title="{{ $req->reason }}">{{ $req->reason }}</p>
+                            {{-- 4. Status --}}
+                            <td class="py-4 px-4">
+                                @php
+                                    $statusColors = [
+                                        'pending'           => ['bg' => 'bg-amber-50',   'text' => 'text-amber-800',  'border' => 'border-amber-300',   'dot' => 'bg-amber-500 animate-pulse'],
+                                        'approved'          => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-300', 'dot' => 'bg-emerald-500'],
+                                        'rejected'          => ['bg' => 'bg-rose-50',    'text' => 'text-rose-800',   'border' => 'border-rose-300',    'dot' => 'bg-rose-500'],
+                                        'revision_required' => ['bg' => 'bg-cyan-50',    'text' => 'text-cyan-800',   'border' => 'border-cyan-300',    'dot' => 'bg-cyan-500'],
+                                        'cancelled'         => ['bg' => 'bg-slate-100',  'text' => 'text-slate-600',  'border' => 'border-slate-300',   'dot' => 'bg-slate-400'],
+                                        'draft'             => ['bg' => 'bg-slate-50',   'text' => 'text-slate-500',  'border' => 'border-slate-200',   'dot' => 'bg-slate-400'],
+                                    ];
+                                    $sc = $statusColors[$req->status->value] ?? ['bg' => 'bg-slate-50', 'text' => 'text-slate-500', 'border' => 'border-slate-200', 'dot' => 'bg-slate-400'];
+                                @endphp
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black {{ $sc['bg'] }} {{ $sc['text'] }} border {{ $sc['border'] }} whitespace-nowrap shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $sc['dot'] }}"></span>
+                                    <span>{{ $req->status->label() }}</span>
+                                </span>
                             </td>
 
                             {{-- 5. Reviewed / Signed By --}}
@@ -229,32 +238,7 @@
                                 @endif
                             </td>
 
-                            {{-- 6. Submitted Date --}}
-                            <td class="py-4 px-4 text-xs text-slate-800 font-extrabold whitespace-nowrap">
-                                <div>{{ $req->created_at->format('M d, Y') }}</div>
-                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $req->created_at->diffForHumans() }}</div>
-                            </td>
-
-                            {{-- 7. Status --}}
-                            <td class="py-4 px-4">
-                                @php
-                                    $statusColors = [
-                                        'pending'           => ['bg' => 'bg-amber-50',   'text' => 'text-amber-800',  'border' => 'border-amber-300',   'dot' => 'bg-amber-500 animate-pulse'],
-                                        'approved'          => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-300', 'dot' => 'bg-emerald-500'],
-                                        'rejected'          => ['bg' => 'bg-rose-50',    'text' => 'text-rose-800',   'border' => 'border-rose-300',    'dot' => 'bg-rose-500'],
-                                        'revision_required' => ['bg' => 'bg-cyan-50',    'text' => 'text-cyan-800',   'border' => 'border-cyan-300',    'dot' => 'bg-cyan-500'],
-                                        'cancelled'         => ['bg' => 'bg-slate-100',  'text' => 'text-slate-600',  'border' => 'border-slate-300',   'dot' => 'bg-slate-400'],
-                                        'draft'             => ['bg' => 'bg-slate-50',   'text' => 'text-slate-500',  'border' => 'border-slate-200',   'dot' => 'bg-slate-300'],
-                                    ];
-                                    $sc = $statusColors[$req->status->value] ?? ['bg' => 'bg-slate-50', 'text' => 'text-slate-500', 'border' => 'border-slate-200', 'dot' => 'bg-slate-400'];
-                                @endphp
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black {{ $sc['bg'] }} {{ $sc['text'] }} border {{ $sc['border'] }} whitespace-nowrap shadow-2xs">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $sc['dot'] }}"></span>
-                                    <span>{{ $req->status->label() }}</span>
-                                </span>
-                            </td>
-
-                            {{-- 8. Actions --}}
+                            {{-- 6. Actions --}}
                             <td class="py-3.5 px-5 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-2">
                                     @if($req->status->value === 'pending')
@@ -320,7 +304,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-16 bg-white">
+                            <td colspan="6" class="text-center py-16 bg-white">
                                 <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center mx-auto mb-3 shadow-xs">
                                     <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>

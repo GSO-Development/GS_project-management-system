@@ -19,6 +19,7 @@ class ApprovalManager extends Component
     public string $statusFilter = 'all';
     public string $typeFilter   = 'all';
     public string $scopeFilter  = 'all'; // 'all' or 'my_requests'
+    public string $search       = '';
 
     // Review Modal (Admin / PM)
     public bool   $showReviewModal     = false;
@@ -38,6 +39,7 @@ class ApprovalManager extends Component
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedTypeFilter()   { $this->resetPage(); }
     public function updatedScopeFilter()  { $this->resetPage(); }
+    public function updatedSearch()       { $this->resetPage(); }
     public function updatedProjectId()    { $this->wbsItemId = null; }
 
     public function openCreateModal(): void
@@ -589,6 +591,20 @@ class ApprovalManager extends Component
 
         if ($this->typeFilter !== 'all') {
             $query->where('request_type', $this->typeFilter);
+        }
+
+        if (trim($this->search) !== '') {
+            $term = '%' . trim($this->search) . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereHas('project', function ($pq) use ($term) {
+                    $pq->where('name', 'like', $term)
+                       ->orWhere('code', 'like', $term);
+                })
+                ->orWhereHas('requester', function ($rq) use ($term) {
+                    $rq->where('name', 'like', $term);
+                })
+                ->orWhere('reason', 'like', $term);
+            });
         }
 
         $requests = $query->paginate(10);
