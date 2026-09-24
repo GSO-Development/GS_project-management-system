@@ -301,16 +301,16 @@
             </div>
 
             <div class="w-full overflow-x-auto scrollbar-thin">
-                <table class="w-full text-left border-collapse table-fixed min-w-[920px]">
+                <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
                     <thead>
                         <tr class="bg-slate-50/90 border-b border-slate-200/80 text-[10.5px] font-extrabold text-slate-400 uppercase tracking-wider select-none">
-                            <th class="py-3.5 pl-6 pr-3 w-[24%]">Project</th>
-                            <th class="py-3.5 px-3 w-[15%]">Subsidiary</th>
-                            <th class="py-3.5 px-3 w-[16%]">Project Manager</th>
-                            <th class="py-3.5 px-3 w-[12%]">Status</th>
-                            <th class="py-3.5 px-3 w-[11%]">Progress</th>
-                            <th class="py-3.5 px-3 w-[12%] whitespace-nowrap">Deadline</th>
-                            <th class="py-3.5 pl-2 pr-6 text-right w-[10%] whitespace-nowrap">Action</th>
+                            <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[30%] sm:w-[26%] lg:w-[24%]">Project</th>
+                            <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Subsidiary</th>
+                            <th class="py-3.5 px-3 w-[20%] sm:w-[18%] lg:w-[16%]">Project Manager</th>
+                            <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden sm:table-cell">Status</th>
+                            <th class="py-3.5 px-3 w-[14%] lg:w-[11%] hidden lg:table-cell">Progress</th>
+                            <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden xl:table-cell whitespace-nowrap">Deadline</th>
+                            <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[14%] sm:w-[12%] lg:w-[10%] whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -318,17 +318,17 @@
                             <tr class="hover:bg-slate-50/70 transition-colors duration-100 group">
 
                                 <!-- Project Name & Code & Priority -->
-                                <td class="py-4 pl-6 pr-3 align-middle">
+                                <td class="py-3 pl-5 sm:pl-6 pr-3 align-middle">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                        <div class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                                             {{ strtoupper(substr($project->name, 0, 1)) }}
                                         </div>
-                                        <div class="min-w-0 space-y-1">
+                                        <div class="min-w-0 space-y-0.5">
                                             <a href="{{ route('projects.show', $project->id) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $project->name }}">
                                                 {{ $project->name }}
                                             </a>
                                             <div class="flex items-center gap-1.5 whitespace-nowrap">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
+                                                <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
                                                     {{ $project->code }}
                                                 </span>
                                                 @php
@@ -339,7 +339,7 @@
                                                         default              => ['dot' => 'bg-slate-300', 'bg' => 'bg-slate-100 text-slate-600 border-slate-200'],
                                                     };
                                                 @endphp
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold border {{ $priorityCfg['bg'] }} capitalize whitespace-nowrap shrink-0 shadow-2xs">
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9.5px] font-bold border {{ $priorityCfg['bg'] }} capitalize whitespace-nowrap shrink-0 shadow-2xs">
                                                     <span class="w-1.5 h-1.5 rounded-full {{ $priorityCfg['dot'] }}"></span>
                                                     {{ $project->priority->label() }}
                                                 </span>
@@ -349,9 +349,9 @@
                                 </td>
 
                                 <!-- Subsidiary -->
-                                <td class="py-4 px-3 align-middle">
-                                    <div class="flex items-center gap-2.5 text-slate-700 min-w-0">
-                                        <div class="w-7 h-7 rounded-lg bg-slate-100/80 border border-slate-200/80 flex items-center justify-center text-slate-500 shrink-0 shadow-2xs">
+                                <td class="py-3 px-3 hidden md:table-cell align-middle">
+                                    <div class="flex items-center gap-2 text-slate-700 min-w-0">
+                                        <div class="w-6.5 h-6.5 rounded-lg bg-slate-100/80 border border-slate-200/80 flex items-center justify-center text-slate-500 shrink-0 shadow-2xs">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                             </svg>
@@ -363,7 +363,7 @@
                                 </td>
 
                                 <!-- Project Manager -->
-                                <td class="py-4 px-3 align-middle">
+                                <td class="py-3 px-3 align-middle">
                                     @if($project->projectManager)
                                         @php
                                             $pmName = $project->projectManager->name;
@@ -372,8 +372,8 @@
                                                 ? strtoupper(substr($pmParts[0], 0, 1) . substr($pmParts[count($pmParts) - 1], 0, 1))
                                                 : strtoupper(substr($pmName, 0, 2));
                                         @endphp
-                                        <div class="flex items-center gap-2.5 min-w-0">
-                                            <div class="w-7 h-7 rounded-full bg-slate-900 text-white font-black text-[9.5px] flex items-center justify-center shrink-0 border border-slate-700 shadow-2xs">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div class="w-6.5 h-6.5 rounded-full bg-slate-900 text-white font-black text-[9.5px] flex items-center justify-center shrink-0 border border-slate-700 shadow-2xs">
                                                 {{ $pmInitials }}
                                             </div>
                                             <span class="text-xs font-bold text-slate-900 leading-snug truncate" title="{{ $pmName }}">
@@ -386,7 +386,7 @@
                                 </td>
 
                                 <!-- Status -->
-                                <td class="py-4 px-3 align-middle">
+                                <td class="py-3 px-3 hidden sm:table-cell align-middle">
                                     @php
                                         $stConfig = match($project->status->value) {
                                             'completed'    => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500'],
@@ -399,31 +399,31 @@
                                             default        => ['cls' => 'bg-slate-100 text-slate-500 border-slate-200',         'dot' => 'bg-slate-400'],
                                         };
                                     @endphp
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border {{ $stConfig['cls'] }} whitespace-nowrap shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold border {{ $stConfig['cls'] }} whitespace-nowrap shadow-2xs">
                                         <span class="w-1.5 h-1.5 rounded-full {{ $stConfig['dot'] }} flex-shrink-0"></span>
                                         {{ $project->status->label() }}
                                     </span>
                                 </td>
 
                                 <!-- Progress -->
-                                <td class="py-4 px-3 align-middle">
-                                    <div class="space-y-1.5 w-28">
-                                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                                <td class="py-3 px-3 hidden lg:table-cell align-middle">
+                                    <div class="space-y-1 w-full min-w-[135px] max-w-[180px]">
+                                        <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
                                             <span class="font-mono text-slate-900 font-black">{{ $project->overall_progress }}%</span>
-                                            <span class="text-slate-400 font-semibold">{{ $project->wbsItems->count() }} Tasks</span>
+                                            <span class="text-slate-400 text-[9.5px] font-medium truncate pl-1">{{ $project->wbsItems->count() }} Tasks</span>
                                         </div>
-                                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
                                             <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress == 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#c3122e] to-rose-500' }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Deadline -->
-                                <td class="py-4 px-3 align-middle whitespace-nowrap">
+                                <td class="py-3 px-3 hidden xl:table-cell align-middle whitespace-nowrap">
                                     @if($project->deadline)
                                         @php $isOverdue = $project->deadline->isPast() && $project->overall_progress < 100; @endphp
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-6.5 h-6.5 rounded-lg {{ $isOverdue ? 'bg-rose-100 text-rose-600 border-rose-200' : 'bg-slate-100 text-slate-500 border-slate-200/60' }} border flex items-center justify-center shrink-0">
+                                        <div class="flex items-center gap-1.5">
+                                            <div class="w-6 h-6 rounded-lg {{ $isOverdue ? 'bg-rose-100 text-rose-600 border-rose-200' : 'bg-slate-100 text-slate-500 border-slate-200/60' }} border flex items-center justify-center shrink-0">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                 </svg>
@@ -438,7 +438,7 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="py-4 pl-2 pr-6 align-middle text-right whitespace-nowrap">
+                                <td class="py-3 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
                                     <div class="inline-flex items-center justify-end gap-1">
                                         <!-- View -->
                                         <a

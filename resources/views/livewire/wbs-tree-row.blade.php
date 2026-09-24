@@ -75,14 +75,14 @@
 
 <tr class="transition-colors duration-150 group border-b border-slate-100/90 hover:bg-slate-50/60 {{ $levelConfig['rowBg'] }}">
     <!-- 1. TASK NUMBER (#) -->
-    <td class="py-3.5 pl-4 pr-1 text-left whitespace-nowrap align-middle" style="width: 48px;">
+    <td class="py-3.5 pl-5 pr-2 text-left whitespace-nowrap align-middle w-12 shrink-0">
         <span class="font-mono text-xs font-bold text-slate-400 group-hover:text-slate-800 transition-colors">
             #{{ $wbsCode }}
         </span>
     </td>
 
     <!-- 2. TASK DELIVERABLE (Clean Modern Tree Hierarchy) -->
-    <td class="py-3.5 px-3 align-middle">
+    <td class="py-3.5 px-3 align-middle min-w-[220px]">
         <div class="flex items-center gap-2.5" style="padding-left: {{ ($level - 1) * 20 }}px;">
 
             {{-- Expand / Collapse Button or Tree Spacer --}}
@@ -164,7 +164,7 @@
     </td>
 
     <!-- 3. ASSIGNED TO -->
-    <td class="py-3.5 px-3 text-xs align-middle" style="width: 195px;">
+    <td class="py-3.5 px-3 text-xs align-middle min-w-[170px] w-44">
         @php
             $effectiveAssignee = $item->assignedUser ?? $item->assignee;
             $childAssignees = collect();
@@ -201,7 +201,7 @@
     </td>
 
     <!-- 4. START SCHEDULE -->
-    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 130px;">
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap min-w-[125px] w-32">
         @if($item->start_date)
             <div class="flex flex-col leading-tight">
                 <span class="font-semibold text-slate-700 text-xs">{{ $item->start_date->format('M d, Y') }}</span>
@@ -213,7 +213,7 @@
     </td>
 
     <!-- 5. TARGET DEADLINE (Clear Date, Time & Overdue Indicator) -->
-    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap" style="width: 135px;">
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap min-w-[125px] w-32">
         @if($item->end_date)
             <div class="flex flex-col leading-tight">
                 <span class="text-xs {{ $isOverdue ? 'font-bold text-rose-600' : 'font-semibold text-slate-800' }}">
@@ -234,20 +234,20 @@
     </td>
 
     <!-- 6. PROGRESS (Refined Bar + %) -->
-    <td class="py-3.5 px-2 text-xs align-middle whitespace-nowrap" style="width: 120px;">
-        <div class="flex items-center gap-2">
-            <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-[0.5px] flex items-center shrink-0">
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap min-w-[125px] w-32">
+        <div class="flex items-center gap-2.5">
+            <div class="min-w-[70px] flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-[0.5px] flex items-center shrink-0">
                 <div 
                     class="h-full rounded-full transition-all duration-300"
                     style="width: {{ $progressVal }}%; {{ $progressBarColor }}"
                 ></div>
             </div>
-            <span class="text-xs font-bold font-mono {{ $progressVal === 100 ? 'text-emerald-600' : 'text-slate-600' }} tabular-nums w-8 text-right">{{ $progressVal }}%</span>
+            <span class="text-xs font-bold font-mono {{ $progressVal === 100 ? 'text-emerald-600' : 'text-slate-600' }} tabular-nums w-8 text-right shrink-0">{{ $progressVal }}%</span>
         </div>
     </td>
 
     <!-- 7. STATUS (Modern Interactive Dropdown) -->
-    <td class="py-3.5 px-3 align-middle whitespace-nowrap" style="width: 145px;">
+    <td class="py-3.5 px-3 align-middle whitespace-nowrap min-w-[140px] w-36">
         <div class="relative inline-block w-full max-w-[140px]">
             @php
                 $currentStatus = is_object($item->status) ? $item->status->value : $item->status;
@@ -288,7 +288,7 @@
     </td>
 
     <!-- 8. ACTIONS (Compact Kebab ⋮ Menu) -->
-    <td class="py-3.5 pr-4 pl-1 text-center align-middle whitespace-nowrap" style="width: 50px;">
+    <td class="py-3.5 pr-5 pl-2 text-center align-middle whitespace-nowrap w-12 shrink-0">
         @php
             $isAssignedUser = auth()->check() && $item->assigned_user_id === auth()->id();
             $canLogDaily = auth()->check() && ($isPmoAdmin || ($item->project && $item->project->userCan(auth()->user(), 'task.log_daily', $item)));

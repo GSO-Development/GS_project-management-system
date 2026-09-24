@@ -115,7 +115,6 @@
                 <thead>
                     <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                         <th class="py-3.5 pl-6 pr-4 min-w-[210px]">Project &amp; Subsidiary</th>
-                        <th class="py-3.5 px-4 min-w-[170px]">Request Type</th>
                         <th class="py-3.5 px-4 min-w-[110px]">Submitted</th>
                         <th class="py-3.5 px-4 min-w-[105px]">Status</th>
                         <th class="py-3.5 px-4 min-w-[150px]">Reviewed / Signed By</th>
@@ -130,18 +129,6 @@
                             $projectName = $req->project->name ?? ($rv['project_name'] ?? 'Project');
                             $projectCode = $req->project->code ?? ($rv['project_code'] ?? null);
                             $subsidiaryName = $req->project?->subsidiary?->name ?? null;
-
-                            $typeBadge = match($req->request_type->value) {
-                                'new_project_plan'   => ['icon' => '⭐', 'label' => 'Project Manager Assignment', 'bg' => 'bg-rose-50',    'text' => 'text-[#c3122e]', 'border' => 'border-rose-200'],
-                                'deadline_extension' => ['icon' => '📅', 'label' => 'Deadline Extension',        'bg' => 'bg-blue-50',    'text' => 'text-blue-800',  'border' => 'border-blue-200'],
-                                'budget_change'      => ['icon' => '💰', 'label' => 'Budget Change',             'bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-200'],
-                                'scope_change'       => ['icon' => '📝', 'label' => 'Scope Change',              'bg' => 'bg-amber-50',   'text' => 'text-amber-800', 'border' => 'border-amber-200'],
-                                'wbs_baseline'       => ['icon' => '📋', 'label' => 'Milestone Baseline',        'bg' => 'bg-purple-50',  'text' => 'text-purple-800','border' => 'border-purple-200'],
-                                'project_completion' => ['icon' => '✅', 'label' => 'Project Completion',        'bg' => 'bg-emerald-50', 'text' => 'text-emerald-800','border' => 'border-emerald-200'],
-                                'project_cancellation'=>['icon' => '🚫', 'label' => 'Project Cancellation',       'bg' => 'bg-slate-100',  'text' => 'text-slate-800', 'border' => 'border-slate-300'],
-                                'updated_wbs_plan'   => ['icon' => '🔄', 'label' => 'WBS Revision Plan',         'bg' => 'bg-violet-50',  'text' => 'text-violet-800','border' => 'border-violet-200'],
-                                default              => ['icon' => '📌', 'label' => $req->request_type->label(), 'bg' => 'bg-slate-50',   'text' => 'text-slate-800', 'border' => 'border-slate-200'],
-                            };
 
                             $subDetail = match($req->request_type->value) {
                                 'deadline_extension' => isset($rv['new_deadline']) ? 'New date: ' . \Carbon\Carbon::parse($rv['new_deadline'])->format('M d, Y') : null,
@@ -173,21 +160,6 @@
                                             @endif
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-
-                            {{-- 2. Request Type --}}
-                            <td class="py-4 px-4">
-                                <div class="space-y-1">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black {{ $typeBadge['bg'] }} {{ $typeBadge['text'] }} border {{ $typeBadge['border'] }} whitespace-nowrap shadow-2xs">
-                                        <span>{{ $typeBadge['icon'] }}</span>
-                                        <span>{{ $typeBadge['label'] }}</span>
-                                    </span>
-                                    @if($subDetail)
-                                        <div class="text-[10px] font-bold text-slate-500 font-mono pl-1">
-                                            ↳ {{ $subDetail }}
-                                        </div>
-                                    @endif
                                 </div>
                             </td>
 
@@ -304,7 +276,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-16 bg-white">
+                            <td colspan="5" class="text-center py-16 bg-white">
                                 <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center mx-auto mb-3 shadow-xs">
                                     <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>

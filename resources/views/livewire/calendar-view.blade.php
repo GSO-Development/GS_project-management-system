@@ -13,47 +13,61 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & CORPORATE ACTION BAR
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4">
-        <!-- Left: Clean Title & Month Indicator -->
-        <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+    <!-- ═══════════════════════════════════════════════════════════════
+         1. TOP HEADER & CORPORATE ACTION BAR
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
+        <!-- Left: Title, Interactive Month Navigator & Today Jump -->
+        <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap shrink-0">
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 Corporate Calendar
             </h1>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>{{ $currentDate->format('F Y') }}</span>
-            </span>
-        </div>
 
-        <!-- Right: Navigator, View Switcher & Actions -->
-        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap xl:flex-nowrap">
-            <!-- Period Navigator -->
-            <div class="inline-flex items-center p-0.5 rounded-xl border border-slate-200 bg-white shadow-2xs">
-                <button wire:click="prevPeriod" type="button" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer" title="Previous Period">
+            <!-- Interactive Month Navigation Pill -->
+            <div class="inline-flex items-center p-0.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+                <!-- Previous Month Button -->
+                <button
+                    wire:click="prevPeriod"
+                    type="button"
+                    class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-[#c3122e] hover:bg-rose-50/80 active:scale-95 transition-all cursor-pointer"
+                    title="Previous Month/Period"
+                >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button wire:click="today" type="button" class="px-3 py-1 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all cursor-pointer">
-                    Today
-                </button>
-                <button wire:click="nextPeriod" type="button" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer" title="Next Period">
+
+                <!-- Month Badge -->
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-black bg-rose-50 text-[#c3122e] border border-rose-100/90 shadow-2xs select-none whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>{{ $currentDate->format('F Y') }}</span>
+                </span>
+
+                <!-- Next Month Button -->
+                <button
+                    wire:click="nextPeriod"
+                    type="button"
+                    class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-[#c3122e] hover:bg-rose-50/80 active:scale-95 transition-all cursor-pointer"
+                    title="Next Month/Period"
+                >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
 
-            <!-- Live Microsoft 365 Sync Button -->
+            <!-- Today Button -->
             <button
-                wire:click="refreshCalendarSchedule"
+                wire:click="today"
                 type="button"
-                class="p-1.5 px-2.5 rounded-xl border border-sky-200 bg-sky-50 text-[#0078d4] hover:bg-sky-100 hover:border-sky-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                title="Sync and Refresh Live Microsoft 365 Outlook Schedules"
+                class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+                title="Jump to Today's Date"
             >
-                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-                <span class="hidden sm:inline">Sync Outlook</span>
-                <svg wire:loading.class="animate-spin" class="w-3 h-3 text-[#0078d4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Today</span>
             </button>
+        </div>
 
+        <!-- Right: View Switcher & Primary Action Button -->
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
             <!-- View Switcher -->
-            <div class="inline-flex p-0.5 rounded-xl border border-slate-200 bg-slate-100/90 shadow-2xs text-xs font-bold">
+            <div class="inline-flex p-0.5 rounded-xl border border-slate-200 bg-slate-100/90 shadow-2xs text-xs font-bold shrink-0 whitespace-nowrap">
                 <button wire:click="setViewMode('calendar')" type="button" class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900' }}">
                     Month
                 </button>
@@ -68,15 +82,15 @@
                 </button>
             </div>
 
-            <!-- Schedule Event Button (PMO Admin or PM only) -->
+            <!-- Schedule Event Button -->
             @if($canCreate)
                 <button
                     wire:click="openCreateEventModal"
                     type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer transition-all shadow-xs shrink-0 hover:brightness-105 active:scale-95"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer transition-all shadow-xs shrink-0 whitespace-nowrap hover:brightness-105 active:scale-95"
                     style="background: linear-gradient(135deg, #c3122e 0%, #9e0e24 100%);"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>Schedule Event</span>
                 </button>
             @endif
@@ -88,7 +102,7 @@
          ═══════════════════════════════════════════════════════════════ -->
     <div class="cal-glass-card p-2.5 sm:p-3 space-y-2.5">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
-            <!-- Left: Scope Switcher & Category Filter Pills -->
+            <!-- Left: Scope Switcher, Sync Outlook & Category Filter Pills -->
             <div class="flex items-center gap-2 flex-wrap">
                 <!-- Scope Switcher -->
                 <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold shrink-0">
@@ -99,6 +113,18 @@
                         My Assigned
                     </button>
                 </div>
+
+                <!-- Live Microsoft 365 Sync Button -->
+                <button
+                    wire:click="refreshCalendarSchedule"
+                    type="button"
+                    class="p-1 px-2.5 rounded-xl border border-sky-200 bg-sky-50 text-[#0078d4] hover:bg-sky-100 hover:border-sky-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
+                    title="Sync and Refresh Live Microsoft 365 Outlook Schedules"
+                >
+                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                    <span class="hidden sm:inline">Sync Outlook</span>
+                    <svg wire:loading.class="animate-spin" class="w-3 h-3 text-[#0078d4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
 
                 <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
 

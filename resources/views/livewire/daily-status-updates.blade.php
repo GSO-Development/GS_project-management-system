@@ -235,15 +235,15 @@
         </div>
 
         <div class="w-full overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse table-fixed min-w-[950px]">
+            <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
                 <thead>
                     <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        <th class="py-3.5 pl-6 pr-3 w-[26%]">Project &amp; Code</th>
-                        <th class="py-3.5 px-3 w-[17%]">Subsidiary</th>
-                        <th class="py-3.5 px-3 w-[17%]">Project Manager</th>
-                        <th class="py-3.5 px-3 w-[22%]">Latest Status Log</th>
-                        <th class="py-3.5 px-3 w-[10%]">Last Logged</th>
-                        <th class="py-3.5 pl-2 pr-6 text-right whitespace-nowrap w-[8%]">Actions</th>
+                        <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[26%] sm:w-[20%] lg:w-[18%]">Project &amp; Code</th>
+                        <th class="py-3.5 px-3 w-[16%] lg:w-[14%] hidden md:table-cell">Subsidiary</th>
+                        <th class="py-3.5 px-3 w-[18%] sm:w-[16%] lg:w-[14%]">Project Manager</th>
+                        <th class="py-3.5 px-3 w-[38%] sm:w-[34%] lg:w-[34%]">Latest Status Log</th>
+                        <th class="py-3.5 px-3 w-[10%] hidden lg:table-cell">Last Logged</th>
+                        <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right whitespace-nowrap w-[18%] sm:w-[14%] lg:w-[10%]">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -265,7 +265,7 @@
 
                         <tr class="hover:bg-slate-50/70 transition-colors group">
                             <!-- Project Code & Name -->
-                            <td class="py-3.5 pl-6 pr-3 align-middle">
+                            <td class="py-3.5 pl-5 sm:pl-6 pr-3 align-middle">
                                 <div class="space-y-1 min-w-0">
                                     <a href="{{ route('projects.show', $project) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors block leading-snug truncate group-hover:text-[#c3122e]" title="{{ $project->name }}">
                                         {{ $project->name }}
@@ -282,7 +282,7 @@
                             </td>
 
                             <!-- Subsidiary Name -->
-                            <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                            <td class="py-3.5 px-3 hidden md:table-cell align-middle whitespace-nowrap">
                                 @if($subsidiary)
                                     <div class="flex items-center gap-2 text-slate-700 min-w-0">
                                         <div class="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 text-slate-400 border border-slate-200/60">
@@ -326,7 +326,7 @@
                             </td>
 
                             <!-- Last Log Date -->
-                            <td class="py-3.5 px-3 align-middle text-slate-600 font-semibold whitespace-nowrap" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            <td class="py-3.5 px-3 hidden lg:table-cell align-middle text-slate-600 font-semibold whitespace-nowrap" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                                 @if($update)
                                     <div class="flex items-center gap-1.5 text-xs text-slate-700 font-bold">
                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -338,7 +338,7 @@
                             </td>
 
                             <!-- Actions -->
-                            <td class="py-3.5 pl-2 pr-5 align-middle text-right whitespace-nowrap">
+                            <td class="py-3.5 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-2">
                                     @if(!$isSuperAdmin)
                                         <button

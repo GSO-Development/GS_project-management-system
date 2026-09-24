@@ -77,28 +77,18 @@
         </div>
 
         <!-- ── STREAMLINED RESPONSIVE TREE TABLE ── -->
-        <div class="overflow-x-auto overflow-y-visible">
-            <table class="w-full text-left border-collapse min-w-[1060px]" style="table-layout: fixed;">
-                <colgroup>
-                    <col style="width: 48px;">
-                    <col style="min-width: 280px;">
-                    <col style="width: 195px;">
-                    <col style="width: 130px;">
-                    <col style="width: 135px;">
-                    <col style="width: 120px;">
-                    <col style="width: 145px;">
-                    <col style="width: 50px;">
-                </colgroup>
-                <thead class="bg-slate-50/70 border-b border-slate-200/80 select-none">
-                    <tr class="text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">
-                        <th class="py-3.5 pl-4 pr-1 text-left" style="width: 48px;">#</th>
-                        <th class="py-3.5 px-3 text-left">Task Deliverable</th>
-                        <th class="py-3.5 px-3 text-left" style="width: 195px;">Assigned To</th>
-                        <th class="py-3.5 px-3 text-left" style="width: 130px;">Start Schedule</th>
-                        <th class="py-3.5 px-3 text-left" style="width: 135px;">Target Deadline</th>
-                        <th class="py-3.5 px-2 text-left" style="width: 120px;">Progress</th>
-                        <th class="py-3.5 px-3 text-left" style="width: 145px;">Status</th>
-                        <th class="py-3.5 pr-4 pl-1 text-center" style="width: 50px;">Action</th>
+        <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[760px] lg:min-w-full text-xs">
+                <thead class="bg-slate-50/80 border-b border-slate-200/80 select-none">
+                    <tr class="text-slate-400 text-[10.5px] font-extrabold uppercase tracking-wider" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        <th class="py-3.5 pl-5 pr-2 text-left w-12 shrink-0">#</th>
+                        <th class="py-3.5 px-3 text-left min-w-[220px]">Task Deliverable</th>
+                        <th class="py-3.5 px-3 text-left min-w-[170px] w-44">Assigned To</th>
+                        <th class="py-3.5 px-3 text-left min-w-[125px] w-32">Start Schedule</th>
+                        <th class="py-3.5 px-3 text-left min-w-[125px] w-32">Target Deadline</th>
+                        <th class="py-3.5 px-3 text-left min-w-[125px] w-32">Progress</th>
+                        <th class="py-3.5 px-3 text-left min-w-[140px] w-36">Status</th>
+                        <th class="py-3.5 pr-5 pl-2 text-center w-12 shrink-0">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-slate-100">

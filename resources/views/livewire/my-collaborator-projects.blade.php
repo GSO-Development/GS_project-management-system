@@ -125,16 +125,16 @@
     @if($projects->count() > 0)
     <div class="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm mb-6">
         <div class="overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse table-fixed min-w-[950px]">
+            <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                        <th class="py-4 pl-6 pr-3 w-[28%]">Project &amp; Code</th>
-                        <th class="py-4 px-3 w-[15%] hidden md:table-cell">Project Leader</th>
-                        <th class="py-4 px-3 w-[15%] hidden md:table-cell">Subsidiary</th>
-                        <th class="py-4 px-3 w-[11%] hidden lg:table-cell">Delivery Status</th>
-                        <th class="py-4 px-3 w-[10%] hidden lg:table-cell">Progress</th>
-                        <th class="py-4 px-3 w-[9%] hidden xl:table-cell">Timeline</th>
-                        <th class="py-4 pl-2 pr-6 text-right w-[12%]">Action</th>
+                        <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[35%] sm:w-[30%] lg:w-[26%]">Project &amp; Code</th>
+                        <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Project Leader</th>
+                        <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Subsidiary</th>
+                        <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Delivery Status</th>
+                        <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Progress</th>
+                        <th class="py-3.5 px-3 w-[11%] hidden xl:table-cell">Timeline</th>
+                        <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[20%] sm:w-[16%] lg:w-[14%]">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
@@ -154,21 +154,21 @@
                         @endphp
                         <tr class="hover:bg-slate-50/70 transition-colors group">
                             <!-- Project Name & Code -->
-                            <td class="py-4 pl-6 pr-3 align-middle">
+                            <td class="py-3 pl-5 sm:pl-6 pr-3 align-middle">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                    <div class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                                         {{ strtoupper(substr($p->name, 0, 1)) }}
                                     </div>
-                                    <div class="min-w-0 space-y-1">
+                                    <div class="min-w-0 space-y-0.5">
                                         <a href="{{ route('projects.show', $p) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $p->name }}">
                                             {{ $p->name }}
                                         </a>
                                         <div class="flex items-center gap-2 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
+                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
                                                 {{ $p->code }}
                                             </span>
                                             @if($p->members && $p->members->count() > 0)
-                                                <span class="text-[10.5px] font-medium text-slate-400 whitespace-nowrap shrink-0">
+                                                <span class="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
                                                     • {{ $p->members->count() }} {{ Str::plural('Member', $p->members->count()) }}
                                                 </span>
                                             @endif
@@ -178,9 +178,9 @@
                             </td>
 
                             <!-- Project Leader -->
-                            <td class="py-4 px-4 hidden md:table-cell align-middle">
+                            <td class="py-3 px-3 hidden md:table-cell align-middle">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-200 font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                                    <div class="w-6.5 h-6.5 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-200 font-black text-[9.5px] flex items-center justify-center flex-shrink-0">
                                         {{ strtoupper(substr($p->projectManager->name ?? 'L', 0, 1)) }}
                                     </div>
                                     <span class="text-xs font-bold text-slate-800 truncate max-w-[120px]">{{ $p->projectManager->name ?? '—' }}</span>
@@ -188,15 +188,15 @@
                             </td>
 
                             <!-- Subsidiary -->
-                            <td class="py-4 px-4 hidden md:table-cell align-middle">
+                            <td class="py-3 px-3 hidden md:table-cell align-middle">
                                 <span class="text-xs text-slate-700 font-bold flex items-center gap-1.5">
-                                    <span class="text-slate-400">🏢</span>
+                                    <span class="text-slate-400 text-xs">🏢</span>
                                     <span class="truncate max-w-[150px]">{{ $p->subsidiary->name ?? 'George Steuart' }}</span>
                                 </span>
                             </td>
 
                             <!-- Delivery Status -->
-                            <td class="py-4 px-4 hidden lg:table-cell align-middle">
+                            <td class="py-3 px-3 hidden lg:table-cell align-middle">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} border {{ $statusConfig['border'] }} whitespace-nowrap shrink-0">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
                                     <span>{{ $statusConfig['label'] }}</span>
@@ -204,31 +204,31 @@
                             </td>
 
                             <!-- Progress Bar -->
-                            <td class="py-4 px-4 hidden lg:table-cell align-middle">
-                                <div class="space-y-1.5 w-28">
-                                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                            <td class="py-3 px-3 hidden lg:table-cell align-middle">
+                                <div class="space-y-1 w-full min-w-[135px] max-w-[180px]">
+                                    <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
                                         <span class="font-mono text-slate-900 font-black">{{ $progress }}%</span>
-                                        <span>{{ $p->wbsItems->count() }} Tasks</span>
+                                        <span class="text-slate-400 text-[9.5px] font-medium truncate pl-1">{{ $p->wbsItems->count() }} Tasks</span>
                                     </div>
-                                    <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
                                         <div class="h-full rounded-full transition-all duration-500 bg-[#c3122e]" style="width:{{ min(100, max(0, $progress)) }}%;"></div>
                                     </div>
                                 </div>
                             </td>
 
                             <!-- Timeline & Deadline -->
-                            <td class="py-4 px-4 hidden xl:table-cell align-middle">
-                                <div class="space-y-1">
-                                    <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
-                                        <span class="text-slate-400">📅</span>
+                            <td class="py-3 px-3 hidden xl:table-cell align-middle">
+                                <div class="flex flex-col justify-center gap-0.5">
+                                    <div class="text-xs font-bold text-slate-800 flex items-center gap-1 whitespace-nowrap">
+                                        <span class="text-slate-400 text-[11px]">📅</span>
                                         <span>{{ $p->deadline ? $p->deadline->format('M d, Y') : 'No Deadline' }}</span>
                                     </div>
                                     @if($isOverdue)
-                                        <span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-50 text-rose-600 border border-rose-200 whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-50 text-rose-600 border border-rose-200 whitespace-nowrap w-max">
                                             ⚠️ {{ abs($daysLeft) }}d overdue
                                         </span>
                                     @elseif($daysLeft !== null && $daysLeft >= 0)
-                                        <span class="inline-block text-[10px] font-bold text-slate-400 font-mono whitespace-nowrap">
+                                        <span class="inline-block text-[9.5px] font-bold text-slate-400 font-mono whitespace-nowrap">
                                             {{ $daysLeft }}d left
                                         </span>
                                     @endif
@@ -236,14 +236,14 @@
                             </td>
 
                             <!-- Action -->
-                            <td class="py-4 pl-2 pr-6 text-right align-middle">
+                            <td class="py-3 pl-2 pr-5 sm:pr-6 text-right align-middle">
                                 <a
                                     href="{{ route('projects.show', $p) }}"
-                                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-white shadow-md shadow-rose-950/20 hover:scale-105 transition-all duration-200 no-underline cursor-pointer whitespace-nowrap shrink-0"
+                                    class="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black text-white shadow-2xs shadow-rose-950/20 hover:scale-[1.02] transition-all duration-200 no-underline cursor-pointer whitespace-nowrap shrink-0"
                                     style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
                                 >
                                     <span>Open Workspace</span>
-                                    <span>➔</span>
+                                    <span class="text-[10px]">➔</span>
                                 </a>
                             </td>
                         </tr>
