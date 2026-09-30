@@ -31,11 +31,11 @@
 
         /* Smooth SPA Instant Page Transitions */
         @keyframes gsPageFadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
+            0% { opacity: 0; transform: translateY(4px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
         main > div {
-            animation: gsPageFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: gsPageFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         /* Livewire 3 Navigation Progress Bar — George Steuart Signature */
         .livewire-progress-bar {
@@ -44,6 +44,10 @@
             box-shadow: 0 0 12px rgba(195, 18, 46, 0.65) !important;
             z-index: 999999 !important;
         }
+        /* Clean Soft-Card UI overrides */
+        .bg-white { background-color: #ffffff !important; }
+        .bg-gray-50, .bg-slate-50 { background-color: #f9f9f7 !important; }
+        .bg-gray-100, .bg-slate-100 { background-color: #eff0ec !important; }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -53,17 +57,17 @@
     <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.15/dist/docx-preview.min.js"></script>
 </head>
-<body style="background:#f7f4f4; font-family:'Inter',system-ui,sans-serif;">
+<body style="background:#eff0ec; font-family:'Inter',system-ui,sans-serif;">
 
     <!-- =================== SIDEBAR =================== -->
     <aside
         id="app-sidebar"
-        class="fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all duration-300 overflow-hidden bg-white select-none"
-        style="border-color: #e9e4e4; box-shadow: 2px 0 16px rgba(0,0,0,0.03);"
+        class="fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 overflow-hidden select-none"
+        style="background: #ffffff; border-right: 1px solid #e8e9e4; box-shadow: 2px 0 12px rgba(0,0,0,0.05);"
         :class="{
             'w-64': !sidebarCollapsed && !mobileSidebarOpen,
             'w-[72px]': sidebarCollapsed && !mobileSidebarOpen,
-            'w-72 sm:w-80 shadow-2xl z-50': mobileSidebarOpen,
+            'w-72 sm:w-80 z-50': mobileSidebarOpen,
             '-translate-x-full lg:translate-x-0': !mobileSidebarOpen,
             'translate-x-0': mobileSidebarOpen
         }"
@@ -72,7 +76,8 @@
         <div class="h-1 flex-shrink-0" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, #c3122e 100%);"></div>
 
         <!-- Brand & Logo Header (Matches topnav height 64px) -->
-        <div class="h-16 flex items-center flex-shrink-0 transition-all border-b border-slate-200/80"
+        <div class="h-16 flex items-center flex-shrink-0 transition-all"
+             style="border-bottom: 1px solid #e8e9e4;"
              :class="{ 'justify-center px-2': sidebarCollapsed && !mobileSidebarOpen, 'justify-between px-4': !sidebarCollapsed || mobileSidebarOpen }">
             <a href="{{ route('dashboard') }}" 
                wire:navigate.hover 
@@ -111,7 +116,7 @@
         </div>
 
         <!-- Navigation Links Body -->
-        <nav class="flex-1 overflow-y-auto py-3 space-y-0.5 scrollbar-none transition-all"
+        <nav class="flex-1 overflow-y-auto py-3 space-y-1 scrollbar-none transition-all"
              :class="{ 'px-2': sidebarCollapsed && !mobileSidebarOpen, 'px-3': !sidebarCollapsed || mobileSidebarOpen }">
 
             @php
@@ -461,22 +466,23 @@
         <!-- Bottom: User Profile Card & Collapse Toggle -->
         <div class="p-3 flex-shrink-0 space-y-2 border-t border-slate-200/80 bg-white">
             <!-- User Profile Card -->
-            <div class="transition-all rounded-2xl"
+            <div class="transition-all rounded-xl"
                  :class="{
                      'p-1 flex items-center justify-center': sidebarCollapsed && !mobileSidebarOpen,
-                     'p-2.5 bg-slate-50 border border-slate-200/90 shadow-2xs hover:border-slate-300': !sidebarCollapsed || mobileSidebarOpen
+                     'p-2.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 border border-slate-200/80 shadow-2xs': !sidebarCollapsed || mobileSidebarOpen
                  }">
                 <div class="flex items-center gap-2.5 min-w-0 w-full" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                     <!-- Circular Avatar -->
                     <a href="{{ route('profile.edit') }}" 
                        wire:navigate.hover
                        @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                       class="flex-shrink-0" 
+                       class="relative flex-shrink-0 group" 
                        title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
-                        <div class="w-8.5 h-8.5 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-2xs transition-transform hover:scale-105" 
-                             style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-extrabold text-xs shadow-xs ring-2 ring-rose-100 group-hover:ring-rose-300 transition-all transform group-hover:scale-105" 
+                             style="background: linear-gradient(135deg, #c3122e 0%, #99001a 100%);">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         </div>
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
                     </a>
 
                     <!-- User Name & Email -->
@@ -488,7 +494,7 @@
                            title="{{ auth()->user()->name }}">
                             {{ auth()->user()->name }}
                         </a>
-                        <span class="text-[11px] text-slate-400 truncate block leading-tight font-medium mt-0.5" title="{{ auth()->user()->email }}">
+                        <span class="text-[10.5px] text-slate-400 truncate block leading-tight font-medium mt-0.5" title="{{ auth()->user()->email }}">
                             {{ auth()->user()->email }}
                         </span>
                     </div>
@@ -497,7 +503,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="flex-shrink-0 ml-auto" x-show="!sidebarCollapsed || mobileSidebarOpen">
                         @csrf
                         <button type="submit" 
-                                class="w-7 h-7 rounded-lg text-slate-400 hover:text-[#c3122e] hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer" 
+                                class="w-8 h-8 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 text-slate-400 hover:text-[#c3122e] flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:shadow-xs" 
                                 title="Sign Out">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -510,12 +516,12 @@
             <!-- Desktop Collapse / Expand Toggle Button -->
             <button @click="sidebarCollapsed = !sidebarCollapsed" 
                     type="button"
-                    class="hidden lg:flex items-center justify-center w-full py-1.5 px-2 rounded-xl text-slate-400 hover:text-[#c3122e] hover:bg-rose-50/60 transition-all cursor-pointer gap-1.5" 
+                    class="hidden lg:flex items-center justify-center w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 text-slate-500 hover:text-slate-800 transition-all duration-200 cursor-pointer gap-2 group shadow-2xs" 
                     :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
-                <svg class="w-3.5 h-3.5 transition-transform duration-300" :class="{ 'rotate-180': sidebarCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform duration-300" :class="{ 'rotate-180': sidebarCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                 </svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="text-[9.5px] tracking-wider uppercase font-extrabold text-slate-400">Collapse</span>
+                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="text-[10px] tracking-wider uppercase font-extrabold text-slate-400 group-hover:text-slate-700 transition-colors">Collapse</span>
             </button>
         </div>
     </aside>
@@ -538,11 +544,11 @@
     <!-- =================== TOP NAV =================== -->
     <header
         class="fixed top-0 right-0 z-30 flex items-center gap-3 h-16 transition-all duration-300"
-        style="background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); border-bottom: 1px solid #e9e4e4; box-shadow: 0 1px 8px rgba(195,18,46,0.06);"
+        style="background: #ffffff; border-bottom: 1px solid #e8e9e4; box-shadow: 0 2px 10px rgba(0,0,0,0.06);"
         :class="{ 'left-0 lg:left-64': !sidebarCollapsed, 'left-0 lg:left-[72px]': sidebarCollapsed }"
     >
         <!-- Accent bar below topnav -->
-        <div class="absolute bottom-0 left-0 right-0 h-0.5" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, transparent 100%); opacity: 0.4;"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-0.5" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, transparent 100%); opacity: 0.6; box-shadow: 0 0 6px rgba(195,18,46,0.3);"></div>
 
         <div class="px-3 sm:px-6 w-full flex items-center justify-between">
             <!-- Left: Mobile toggle + Breadcrumbs -->
@@ -664,12 +670,12 @@
 
             <!-- Center Search -->
             <div x-data="{ searchOpen: false }" class="relative flex-1 max-w-md mx-4 hidden sm:block">
-                <button @click="searchOpen = !searchOpen" data-search-trigger class="w-full flex items-center justify-between gap-2 rounded-xl px-3.5 py-2 text-xs text-left transition-all cursor-pointer" style="border: 1px solid #e9e4e4; background: #faf9f9; color: #9c9090; box-shadow: 0 1px 4px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#c3122e'; this.style.background='#fff';" onmouseout="this.style.borderColor='#e9e4e4'; this.style.background='#faf9f9';">
+                <button @click="searchOpen = !searchOpen" data-search-trigger class="w-full flex items-center justify-between gap-2 rounded-xl px-3.5 py-2 text-xs text-left transition-all cursor-pointer" style="background: #f9f9f7; color: #8a8a8a; border: 1px solid #e8e9e4; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" onmouseover="this.style.borderColor='#c3122e'; this.style.color='#c3122e'; this.style.background='#fff';" onmouseout="this.style.borderColor='#e8e9e4'; this.style.color='#8a8a8a'; this.style.background='#f9f9f7';">
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span>Search projects, codes, managers...</span>
                     </div>
-                    <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded" style="background: white; border: 1px solid #e9e4e4; color: #9c9090;">⌘K</kbd>
+                    <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded" style="background: #f0f0ec; border: 1px solid #e8e9e4; color: #9898a2;">⌘K</kbd>
                 </button>
                 <div x-show="searchOpen" @click.away="searchOpen = false" class="absolute left-0 top-full mt-2 w-[92vw] sm:w-[480px] max-w-lg z-50">
                     @livewire('global-search')

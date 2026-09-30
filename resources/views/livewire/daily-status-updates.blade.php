@@ -43,160 +43,110 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         2. KPI METRICS SUMMARY (CLEAN MODERN CARDS)
+         2. KPI METRICS SUMMARY (Sleek Executive Cards)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         <!-- 1. Logged Today -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Logged Today</span>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ $updatedTodayCount }}</div>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Logged Today</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Active updates</span>
-                </div>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $updatedTodayCount }}</div>
         </div>
 
         <!-- 2. Task Logs -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-rose-500 to-rose-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Task Logs</span>
-                        <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-[#c3122e] shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ $taskUpdatesCount }}</div>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Task Logs</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
                 </div>
             </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold text-slate-400 truncate">
-                    WBS item updates
-                </div>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $taskUpdatesCount }}</div>
         </div>
 
         <!-- 3. Project Summaries -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-amber-500 to-amber-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Project Summaries</span>
-                        <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ $projectUpdatesCount }}</div>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Project Summaries</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
                 </div>
             </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold text-slate-400 truncate">
-                    Overall status logs
-                </div>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $projectUpdatesCount }}</div>
         </div>
 
         <!-- 4. Pending Review -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 {{ $uncommentedUpdatesCount > 0 ? 'bg-gradient-to-r from-indigo-500 to-indigo-400' : 'bg-gradient-to-r from-emerald-500 to-emerald-400' }} w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Pending Review</span>
-                        <div class="w-8 h-8 rounded-lg {{ $uncommentedUpdatesCount > 0 ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500' }} flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black tracking-tight leading-none mb-1 {{ $uncommentedUpdatesCount > 0 ? 'text-indigo-600' : 'text-slate-900' }}">{{ $uncommentedUpdatesCount }}</div>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Pending Review</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl {{ $uncommentedUpdatesCount > 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600' }} flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                    </svg>
                 </div>
             </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                @if($uncommentedUpdatesCount > 0)
-                    <div class="text-[11px] font-semibold text-indigo-600 truncate">Awaiting feedback</div>
-                @else
-                    <div class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1.5">
-                        <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span>All reviewed</span>
-                    </div>
-                @endif
-            </div>
+            <div class="text-lg sm:text-2xl font-black font-mono leading-none {{ $uncommentedUpdatesCount > 0 ? 'text-indigo-600' : 'text-slate-900' }}">{{ $uncommentedUpdatesCount }}</div>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         3. CONTROLS, SEARCH & FILTER TOOLBAR
+         3. CONTROLS, SEARCH & FILTER TOOLBAR (INLINE CLEAN)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/90 shadow-2xs">
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <!-- Search Box -->
-            <div class="relative flex-1 min-w-[220px]">
-                <input
-                    type="text"
-                    wire:model.live.debounce.300ms="searchQuery"
-                    placeholder="Search project, task, reporter, or keywords..."
-                    class="w-full h-10 text-xs font-semibold pl-9 pr-8 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all placeholder:text-slate-400"
-                >
-                <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                @if($searchQuery)
-                    <button type="button" wire:click="$set('searchQuery', '')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
-                @endif
-            </div>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <!-- Search Box -->
+        <div class="relative flex-1 min-w-[220px]">
+            <input
+                type="text"
+                wire:model.live.debounce.300ms="searchQuery"
+                placeholder="Search project, task, reporter, or keywords..."
+                class="w-full h-9 text-xs font-medium pl-9 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all placeholder:text-slate-400"
+            >
+            <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            @if($searchQuery)
+                <button type="button" wire:click="$set('searchQuery', '')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            @endif
+        </div>
 
-            <!-- Project Selector Dropdown -->
-            <div class="relative min-w-[220px] sm:max-w-xs">
-                <select
-                    wire:model.live="selectedProjectId"
-                    class="no-native-arrow w-full h-10 text-xs font-bold pl-3 pr-8 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800 shadow-2xs"
-                >
-                    <option value="">🌐 All Accessible Projects</option>
-                    @foreach($accessibleProjects as $p)
-                        <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code }})</option>
-                    @endforeach
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                </div>
+        <!-- Project Selector Dropdown -->
+        <div class="relative min-w-[200px] sm:max-w-xs">
+            <select
+                wire:model.live="selectedProjectId"
+                class="no-native-arrow w-full h-9 text-xs font-semibold pl-3.5 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800"
+            >
+                <option value="">🌐 All Accessible Projects</option>
+                @foreach($accessibleProjects as $p)
+                    <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code }})</option>
+                @endforeach
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </div>
+        </div>
 
-            <!-- Date Filter Dropdown -->
-            <div class="relative min-w-[140px]">
-                <select
-                    wire:model.live="dateFilter"
-                    class="no-native-arrow w-full h-10 text-xs font-bold pl-3 pr-8 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800 shadow-2xs"
-                >
-                    <option value="all">📅 All Time</option>
-                    <option value="today">Today</option>
-                    <option value="this_week">This Week</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                </div>
+        <!-- Date Filter Dropdown -->
+        <div class="relative min-w-[130px]">
+            <select
+                wire:model.live="dateFilter"
+                class="no-native-arrow w-full h-9 text-xs font-semibold pl-3.5 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800"
+            >
+                <option value="all">📅 All Time</option>
+                <option value="today">Today</option>
+                <option value="this_week">This Week</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </div>
         </div>
     </div>

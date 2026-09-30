@@ -404,11 +404,14 @@
             </div>
 
             <!-- Footer Buttons -->
-            <div style="padding: 14px 24px; background: #f8fafc; border-t: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
-                <button wire:click="cancelCascade" type="button" style="padding: 8px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+            <div style="padding: 14px 24px; background: #f8fafc; border-t: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                <button wire:click="cancelCascade" type="button" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                     Cancel Date Change
                 </button>
-                <button wire:click="confirmCascadeOnly" type="button" style="padding: 8px 22px; border-radius: 10px; border: none; background: linear-gradient(135deg, #c3122e 0%, #99001a 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(195, 18, 46, 0.3); transition: all 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1.0'">
+                <button wire:click="confirmThisTaskOnly" type="button" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #94a3b8; background: #f1f5f9; color: #334155; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" title="Keep new date for this task only without rescheduling dependent tasks">
+                    Update This Task Only
+                </button>
+                <button wire:click="confirmCascadeOnly" type="button" style="padding: 8px 20px; border-radius: 10px; border: none; background: linear-gradient(135deg, #c3122e 0%, #99001a 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(195, 18, 46, 0.3); transition: all 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1.0'">
                     Confirm & Cascade Schedule
                 </button>
             </div>

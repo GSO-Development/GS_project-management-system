@@ -59,7 +59,7 @@
             <button 
                 type="button" 
                 @if($tile['action']) wire:click="{!! $tile['action'] !!}" @endif
-                class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-[#c3122e] border-[#c3122e] bg-[#fdf4f4]/40 shadow-xs' : 'shadow-2xs ' . $tile['border'] }}"
+                class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-slate-800 border-slate-800 bg-slate-50/50 shadow-sm' : 'shadow-2xs ' . $tile['border'] }}"
             >
                 <div class="flex items-center justify-between gap-1 mb-1 sm:mb-2.5">
                     <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">{{ $tile['label'] }}</span>
@@ -155,24 +155,19 @@
                         <tr class="hover:bg-slate-50/70 transition-colors group">
                             <!-- Project Name & Code -->
                             <td class="py-3 pl-5 sm:pl-6 pr-3 align-middle">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                                        {{ strtoupper(substr($p->name, 0, 1)) }}
-                                    </div>
-                                    <div class="min-w-0 space-y-0.5">
-                                        <a href="{{ route('projects.show', $p) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $p->name }}">
-                                            {{ $p->name }}
-                                        </a>
-                                        <div class="flex items-center gap-2 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
-                                                {{ $p->code }}
+                                <div class="min-w-0 space-y-0.5">
+                                    <a href="{{ route('projects.show', $p) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $p->name }}">
+                                        {{ $p->name }}
+                                    </a>
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
+                                            {{ $p->code }}
+                                        </span>
+                                        @if($p->members && $p->members->count() > 0)
+                                            <span class="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
+                                                • {{ $p->members->count() }} {{ Str::plural('Member', $p->members->count()) }}
                                             </span>
-                                            @if($p->members && $p->members->count() > 0)
-                                                <span class="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
-                                                    • {{ $p->members->count() }} {{ Str::plural('Member', $p->members->count()) }}
-                                                </span>
-                                            @endif
-                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>

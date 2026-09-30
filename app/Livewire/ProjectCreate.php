@@ -11,14 +11,10 @@ use App\Models\Subsidiary;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
-use Livewire\WithFileUploads;
-use App\Services\ProjectDetailExtractor;
 use App\Services\RbacService;
 
 class ProjectCreate extends Component
 {
-    use WithFileUploads;
-
     // Step Wizard state
     public int $currentStep = 1;
 
@@ -50,12 +46,6 @@ class ProjectCreate extends Component
     public ?int $selected_template_id = null;
     public bool $showManualDatesModal = false;
     public ?string $calculatedDeadline = null;
-
-    // Charter Extractor properties
-    public $charterFile;
-    public ?array $extractedData = null;
-    public ?string $rawTextPreview = null;
-    public bool $showExtractor = false;
 
     public function mount()
     {
@@ -340,49 +330,6 @@ class ProjectCreate extends Component
         }
     }
 
-    public function updatedCharterFile()
-    {
-        $this->validate([
-            'charterFile' => 'required|file|max:10240|mimes:txt,json,docx,pdf',
-        ]);
-
-        $filePath = $this->charterFile->getRealPath();
-        $originalName = $this->charterFile->getClientOriginalName();
-
-        $this->extractedData = ProjectDetailExtractor::extract($filePath, $originalName);
-        $this->rawTextPreview = $this->extractedData['raw_text'] ?? '';
-
-        if (!empty($this->extractedData['name'])) {
-            $this->name = $this->extractedData['name'];
-        }
-        if (!empty($this->extractedData['description'])) {
-            $this->description = $this->extractedData['description'];
-        }
-        if (!empty($this->extractedData['start_date'])) {
-            $this->start_date = $this->extractedData['start_date'];
-        }
-        if (!empty($this->extractedData['deadline'])) {
-            $this->deadline = $this->extractedData['deadline'];
-        }
-        if (!empty($this->extractedData['subsidiary_id'])) {
-            $this->subsidiary_id = $this->extractedData['subsidiary_id'];
-            $this->generateCode();
-        }
-        if (!empty($this->extractedData['project_manager_id'])) {
-            $this->project_manager_id = $this->extractedData['project_manager_id'];
-        }
-        if (!empty($this->extractedData['participant_ids'])) {
-            $this->selected_participant_ids = array_map('strval', $this->extractedData['participant_ids']);
-        }
-
-        $this->dispatch('toast', message: 'Charter file parsed and pre-filled successfully!', type: 'success');
-    }
-
-    public function clearCharterFile()
-    {
-        $this->reset(['charterFile', 'extractedData', 'rawTextPreview']);
-        $this->dispatch('toast', message: 'Charter cleared. You can edit fields manually.', type: 'info');
-    }
 
     public function save()
     {

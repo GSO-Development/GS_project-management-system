@@ -71,7 +71,9 @@ class WbsTree extends Component
     {
         $user = auth()->user();
         if (!$user) return false;
-        return $user->isPmoAdmin();
+        return $user->isPmoAdmin()
+            || $this->project->project_manager_id === $user->id
+            || $this->project->userCan($user, 'task.edit');
     }
 
     public function getCanCreateTasksProperty(): bool
@@ -79,6 +81,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
+            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.create');
     }
 
@@ -87,6 +90,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
+            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.create_subtask')
             || $this->project->userCan($user, 'task.create');
     }
@@ -96,6 +100,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
+            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.edit')
             || $this->project->userCan($user, 'task.edit_assigned');
     }
@@ -105,6 +110,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user) return false;
         return $user->isPmoAdmin() 
+            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.delete');
     }
 
@@ -113,6 +119,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || !$item) return false;
         if ($user->isPmoAdmin()) return true;
+        if ($this->project->project_manager_id === $user->id) return true;
         if ($this->project->userCan($user, 'task.edit')) return true;
         if ($item->assigned_user_id === $user->id && $this->project->userCan($user, 'task.edit_assigned')) return true;
         return false;
@@ -123,6 +130,7 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || !$item) return false;
         if ($user->isPmoAdmin()) return true;
+        if ($this->project->project_manager_id === $user->id) return true;
         if ($this->project->userCan($user, 'task.delete')) return true;
         return false;
     }
@@ -250,7 +258,7 @@ class WbsTree extends Component
             $this->assigned_user_id = auth()->id();
             $this->start_date = $this->project->start_date ? $this->project->start_date->toDateString() : now()->toDateString();
             $this->start_time = '08:30';
-            $this->end_date = null;
+            $this->end_date = $this->start_date;
             $this->end_time = '17:30';
             $this->updateDefaultTitle();
         }
@@ -260,6 +268,13 @@ class WbsTree extends Component
         $this->progress = 0;
         $this->weight = 1.0;
         $this->showItemModal = true;
+    }
+
+    public function updatedStartDate($value): void
+    {
+        if ($value && (!$this->end_date || $this->end_date < $value)) {
+            $this->end_date = $value;
+        }
     }
 
     public function setTimePreset(string $preset): void
@@ -339,6 +354,10 @@ class WbsTree extends Component
             } else {
                 abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
             }
+        }
+
+        if ($this->start_date && $this->end_date && $this->end_date < $this->start_date) {
+            $this->end_date = $this->start_date;
         }
 
         $this->validate();

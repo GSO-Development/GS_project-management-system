@@ -34,65 +34,48 @@
     <!-- ═══════════════════════════════════════════════════════════════
          2. KPI SUMMARY METRICS (1 Clean Responsive Row)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <!-- System Governance Roles -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
-            <div class="min-w-0">
-                <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">System Governance</p>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">2</span>
-                    <span class="text-[11px] sm:text-xs font-semibold text-rose-600">Admin Roles</span>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">SYSTEM GOVERNANCE</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-rose-50 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">Super Admin &bull; PMO Admin</p>
             </div>
-            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 sm:w-5.5 sm:h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">2</div>
         </div>
 
         <!-- Project Leadership Roles -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
-            <div class="min-w-0">
-                <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Project Leadership</p>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">4</span>
-                    <span class="text-[11px] sm:text-xs font-semibold text-amber-600">Executive Roles</span>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">PROJECT LEADERSHIP</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">PM, Sponsor, Owner, Board</p>
             </div>
-            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 sm:w-5.5 sm:h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">4</div>
         </div>
 
         <!-- Squad & Collaborator Roles -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
-            <div class="min-w-0">
-                <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Delivery Squad</p>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">{{ max(0, $totalRolesCount - 6) + 2 }}</span>
-                    <span class="text-[11px] sm:text-xs font-semibold text-blue-600">Squad Roles</span>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">DELIVERY SQUAD</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">Team members &amp; custom roles</p>
             </div>
-            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 sm:w-5.5 sm:h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ max(0, $totalRolesCount - 6) + 2 }}</div>
         </div>
 
-        <!-- Granular Rights Count -->
-        <div class="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all hover:shadow-md">
-            <div class="min-w-0">
-                <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">Access Controls</p>
-                <div class="flex items-baseline gap-1.5 mt-1">
-                    <span class="text-xl sm:text-2xl font-black text-emerald-600 font-mono">{{ $totalPermsCount }}</span>
-                    <span class="text-[11px] sm:text-xs font-bold text-emerald-600">Permissions</span>
+        <!-- Access Controls / Permissions -->
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">ACCESS CONTROLS</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">Across {{ count($allModules) }} functional modules</p>
             </div>
-            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 sm:w-5.5 sm:h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $totalPermsCount }}</div>
         </div>
     </div>
 

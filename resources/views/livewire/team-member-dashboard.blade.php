@@ -139,46 +139,46 @@
     {{-- ══════════════════════════════════════
          KPI STATS ROW
          ══════════════════════════════════════ --}}
-    <div class="ud-a2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
         @php
         $stats = [
             [
                 'num'  => $totalCount,
-                'lbl'  => 'Total Tasks',
+                'lbl'  => 'TOTAL TASKS',
                 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-                'bg'   => '#f8fafc', 'iconBg' => '#f1f5f9', 'iconC' => '#64748b', 'numC' => '#0f172a', 'lblC' => '#64748b',
+                'iconBg' => 'bg-slate-100 text-slate-600',
             ],
             [
                 'num'  => $inProgress->count(),
-                'lbl'  => 'In Progress',
+                'lbl'  => 'IN PROGRESS',
                 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z',
-                'bg'   => '#fffbeb', 'iconBg' => '#fef3c7', 'iconC' => '#d97706', 'numC' => '#92400e', 'lblC' => '#d97706',
+                'iconBg' => 'bg-amber-50 text-amber-600',
             ],
             [
                 'num'  => $dueToday->count(),
-                'lbl'  => 'Due Today',
+                'lbl'  => 'DUE TODAY',
                 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-                'bg'   => '#fff7ed', 'iconBg' => '#fed7aa', 'iconC' => '#ea580c', 'numC' => '#9a3412', 'lblC' => '#ea580c',
+                'iconBg' => 'bg-rose-50 text-[#c3122e]',
             ],
             [
                 'num'  => $completed->count(),
-                'lbl'  => 'Completed',
+                'lbl'  => 'COMPLETED',
                 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-                'bg'   => '#f0fdf4', 'iconBg' => '#d1fae5', 'iconC' => '#059669', 'numC' => '#065f46', 'lblC' => '#059669',
+                'iconBg' => 'bg-emerald-50 text-emerald-600',
             ],
         ];
         @endphp
         @foreach($stats as $s)
-        <div class="ud-stat" style="background:{{ $s['bg'] }};border-color:{{ $s['iconBg'] }};">
-            <div>
-                <p style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:{{ $s['lblC'] }};margin-bottom:6px;">{{ $s['lbl'] }}</p>
-                <p style="font-size:28px;font-weight:900;color:{{ $s['numC'] }};line-height:1;font-family:monospace;">{{ $s['num'] }}</p>
+        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">{{ $s['lbl'] }}</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl {{ $s['iconBg'] }} flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $s['icon'] }}"/>
+                    </svg>
+                </div>
             </div>
-            <div style="width:42px;height:42px;border-radius:13px;background:{{ $s['iconBg'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="{{ $s['iconC'] }}" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $s['icon'] }}"/>
-                </svg>
-            </div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $s['num'] }}</div>
         </div>
         @endforeach
     </div>

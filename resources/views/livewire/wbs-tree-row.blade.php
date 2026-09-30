@@ -67,10 +67,11 @@
     $cleanTitle = str_replace(['???', '??'], '–', $item->title);
     $usr = auth()->user();
     $isPmoAdmin = $usr?->isPmoAdmin();
-    $canCreateTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.create')));
-    $canEditTaskRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned'))));
-    $canDeleteTaskRow = $isPmoAdmin || ($item->project && $item->project->userCan($usr, 'task.delete'));
-    $canChangeStatusRow = $isPmoAdmin || ($item->project && ($item->project->userCan($usr, 'task.change_status') || $item->assigned_user_id === $usr?->id));
+    $isProjectPm = $usr && $item->project && $item->project->project_manager_id === $usr->id;
+    $canCreateTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.create')));
+    $canEditTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned'))));
+    $canDeleteTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.delete'));
+    $canChangeStatusRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.change_status') || $item->assigned_user_id === $usr?->id));
 @endphp
 
 <tr class="transition-colors duration-150 group border-b border-slate-100/90 hover:bg-slate-50/60 {{ $levelConfig['rowBg'] }}">

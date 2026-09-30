@@ -122,6 +122,13 @@ class GanttChart extends Component
                           $rq->whereIn('status', ['open', 'active', 'identified']);
                       });
                 });
+            } elseif ($this->statusFilter === 'milestone') {
+                $query->where(function ($q) {
+                    $q->where('is_milestone', true)
+                      ->orWhere('item_type', 'milestone');
+                });
+            } elseif ($this->statusFilter === 'task') {
+                $query->where('item_type', 'task');
             } else {
                 $query->where('status', $this->statusFilter);
             }

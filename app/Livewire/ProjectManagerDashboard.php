@@ -586,7 +586,7 @@ class ProjectManagerDashboard extends Component
             if ($p->project_manager_id === $user->id) {
                 $p->user_assigned_role = 'lead';
                 $p->user_role_label = 'Project Manager';
-                $p->user_role_short = 'Lead PM';
+                $p->user_role_short = 'PM';
                 $p->user_role_icon = '⭐';
                 $p->user_role_badge = 'bg-amber-50 text-amber-800 border-amber-200/80';
             } else {
@@ -623,7 +623,7 @@ class ProjectManagerDashboard extends Component
         $roleBreakdown = [
             'lead' => [
                 'label' => 'Project Manager',
-                'short' => 'Lead PM',
+                'short' => 'PM',
                 'icon'  => '⭐',
                 'count' => $leadProjectsCount,
                 'bg'    => 'bg-amber-50 text-amber-800 border-amber-200/80',
