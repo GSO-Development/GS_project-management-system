@@ -404,11 +404,11 @@
                                              $mDisplayLabel = $m['short_label'];
                                         }
                                     @endphp
-                                    <div class="border-r border-slate-200/70 flex items-center justify-center text-center h-full px-1 overflow-hidden relative {{ $m['is_current'] ? 'bg-rose-50/70 font-bold text-[#c3122e] border-b-2 border-b-[#c3122e]' : 'text-slate-600 font-semibold' }}" style="width: {{ $m['width_pct'] }}%;" title="{{ $m['label'] }}">
+                                    <div class="border-r border-slate-200/70 flex items-center justify-center text-center h-full px-1 overflow-hidden relative {{ $m['is_current'] ? 'bg-rose-50/80 font-extrabold text-[#c3122e] border-b-[3.5px] border-b-[#c3122e]' : 'text-slate-600 font-semibold' }}" style="width: {{ $m['width_pct'] }}%;" title="{{ $m['label'] }}">
                                         <div class="flex items-center gap-1.5 text-xs tracking-tight whitespace-nowrap">
                                             <span>{{ $mDisplayLabel }}</span>
                                             @if($m['is_current'])
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e] animate-pulse flex-shrink-0" title="Current Month"></span>
+                                                <span class="w-2 h-2 rounded-full bg-[#c3122e] animate-pulse flex-shrink-0 shadow-xs" title="Current Month"></span>
                                             @endif
                                         </div>
                                     </div>
@@ -505,40 +505,43 @@
 
                                         <!-- Red Vertical Today Line -->
                                         @if($ganttTimeline['today_visible'])
-                                            <div class="absolute top-0 bottom-0 pointer-events-none z-5 flex flex-col items-center" 
+                                            <div class="absolute top-0 bottom-0 pointer-events-none z-10 flex flex-col items-center" 
                                                  style="left: {{ $ganttTimeline['today_pct'] }}%;">
-                                                <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-60"></div>
+                                                <div class="w-[2px] h-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"></div>
                                             </div>
                                         @endif
 
                                         @if($gp['is_out_of_bounds'])
                                             @if($gp['left_pct'] <= 0)
-                                                <div class="absolute left-3 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/80 border border-slate-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                                <div class="absolute left-3 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
                                                     <span>Ended {{ $gp['end_date']->format('M d') }} ({{ $gp['progress'] }}%)</span>
                                                 </div>
                                             @else
-                                                <div class="absolute right-3 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/80 border border-slate-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                                <div class="absolute right-3 z-10 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 font-semibold bg-slate-100/90 border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
                                                     <span>Starts {{ $gp['start_date']->format('M d') }}</span>
                                                 </div>
                                             @endif
                                         @else
-                                            <!-- Clean Floating Capsule Bar -->
-                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
-                                               class="absolute h-9.5 rounded-full transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer z-10 text-white no-underline hover:scale-[1.01] hover:brightness-105"
-                                               style="left: {{ $barLeftPct }}%; width: {{ $barWidthPct }}%; {{ $barBgStyle }}"
-                                               title="{{ $proj->name }} • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
-                                                
-                                                @if($gp['progress'] > 0)
-                                                    <div class="absolute inset-y-0 left-0 bg-white/20 rounded-l-full pointer-events-none transition-all"
-                                                         style="width: {{ $gp['progress'] }}%;"></div>
-                                                @endif
+                                            <!-- Full-width Outer Track Container for modern Gantt look -->
+                                            <div class="w-full h-9 rounded-xl bg-slate-100/70 border border-slate-200/60 flex items-center relative overflow-hidden px-0.5 mx-3 shadow-inner">
+                                                <!-- Modern Capsule Bar -->
+                                                <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
+                                                   class="absolute h-full rounded-lg transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer z-20 text-white no-underline hover:brightness-105 shadow-xs"
+                                                   style="left: {{ $barLeftPct }}%; width: {{ $barWidthPct }}%; {{ $barBgStyle }}"
+                                                   title="{{ $proj->name }} • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
+                                                    
+                                                    @if($gp['progress'] > 0)
+                                                        <div class="absolute inset-y-0 left-0 bg-white/25 rounded-l-lg pointer-events-none transition-all"
+                                                             style="width: {{ $gp['progress'] }}%;"></div>
+                                                    @endif
 
-                                                <!-- Date Range & Percentage -->
-                                                <div class="flex items-center justify-center gap-1.5 px-3.5 w-full text-white font-bold text-xs whitespace-nowrap overflow-hidden select-none pointer-events-none drop-shadow-xs">
-                                                    <span>{{ $dateRangeLabel }}</span>
-                                                    <span class="opacity-95 font-extrabold">({{ $gp['progress'] }}%)</span>
-                                                </div>
-                                            </a>
+                                                    <!-- Date Range & Percentage -->
+                                                    <div class="flex items-center justify-center gap-1.5 px-3.5 w-full text-white font-extrabold text-[11.5px] tracking-tight whitespace-nowrap overflow-hidden select-none pointer-events-none drop-shadow-xs">
+                                                        <span>{{ $dateRangeLabel }}</span>
+                                                        <span class="opacity-95 font-mono text-xs font-black">({{ $gp['progress'] }}%)</span>
+                                                    </div>
+                                                </a>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
@@ -578,7 +581,7 @@
                                                 </span>
                                             </div>
 
-                                            <div class="flex-1 min-w-[1060px] relative h-[36px] flex items-center px-0">
+                                            <div class="flex-1 min-w-[1060px] relative h-[38px] flex items-center px-0">
                                                 <div class="absolute inset-0 flex pointer-events-none">
                                                     @foreach($ganttTimeline['months'] as $m)
                                                         <div class="border-r border-slate-100/60 h-full {{ $m['is_current'] ? 'bg-rose-50/10' : '' }}" style="width: {{ $m['width_pct'] }}%;"></div>
@@ -586,11 +589,13 @@
                                                 </div>
 
                                                 @if(!$task['is_out_of_bounds'])
-                                                    <div class="absolute h-6 rounded-full text-white flex items-center justify-between px-2.5 text-[10px] font-bold shadow-2xs"
-                                                         style="left: {{ $tLeftPct }}%; width: {{ $tWidthPct }}%; {{ $tBarBgStyle }}"
-                                                         title="{{ $task['title'] }} • {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }}">
-                                                        <span class="truncate">{{ $task['title'] }}</span>
-                                                        <span class="font-mono ml-1 opacity-90">{{ $task['progress'] }}%</span>
+                                                    <div class="w-full h-6.5 rounded-lg bg-slate-100/60 border border-slate-200/50 flex items-center relative overflow-hidden px-0.5 mx-3">
+                                                        <div class="absolute h-full rounded-md text-white flex items-center justify-between px-2.5 text-[10px] font-bold shadow-2xs"
+                                                             style="left: {{ $tLeftPct }}%; width: {{ $tWidthPct }}%; {{ $tBarBgStyle }}"
+                                                             title="{{ $task['title'] }} • {{ $task['start_date']->format('M d') }} – {{ $task['end_date']->format('M d') }}">
+                                                            <span class="truncate">{{ $task['title'] }}</span>
+                                                            <span class="font-mono ml-1 opacity-90">{{ $task['progress'] }}%</span>
+                                                        </div>
                                                     </div>
                                                 @endif
                                             </div>

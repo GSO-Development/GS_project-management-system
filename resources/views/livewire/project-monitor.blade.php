@@ -624,11 +624,11 @@
                                             $mDisplayLabel = $m['short_label'];
                                         }
                                     @endphp
-                                    <div class="border-r border-slate-200/80 flex items-center justify-center text-center h-full px-1 overflow-hidden relative {{ $m['is_current'] ? 'bg-rose-50/80 font-black text-[#c3122e] border-b-2 border-b-[#c3122e]' : 'text-slate-700 font-bold' }}" style="width: {{ $m['width_pct'] }}%;" title="{{ $m['label'] }}">
+                                    <div class="border-r border-slate-200/80 flex items-center justify-center text-center h-full px-1 overflow-hidden relative {{ $m['is_current'] ? 'bg-rose-50/80 font-black text-[#c3122e] border-b-[3.5px] border-b-[#c3122e]' : 'text-slate-700 font-bold' }}" style="width: {{ $m['width_pct'] }}%;" title="{{ $m['label'] }}">
                                         <div class="flex items-center gap-1.5 text-xs tracking-tight whitespace-nowrap">
                                             <span>{{ $mDisplayLabel }}</span>
                                             @if($m['is_current'])
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e] animate-pulse flex-shrink-0" title="Current Month"></span>
+                                                <span class="w-2 h-2 rounded-full bg-[#c3122e] animate-pulse flex-shrink-0 shadow-xs" title="Current Month"></span>
                                             @endif
                                         </div>
                                     </div>
@@ -731,11 +731,11 @@
                                             @endforeach
                                         </div>
 
-                                        <!-- Vertical Red TODAY Line (Subtle background indicator, z-5) -->
+                                        <!-- Vertical Red TODAY Line (Subtle background indicator, z-10) -->
                                         @if($ganttTimeline['today_visible'])
-                                            <div class="absolute top-0 bottom-0 pointer-events-none z-5 flex flex-col items-center" 
+                                            <div class="absolute top-0 bottom-0 pointer-events-none z-10 flex flex-col items-center" 
                                                  style="left: {{ $ganttTimeline['today_pct'] }}%;">
-                                                <div class="w-px h-full bg-rose-500 border-l border-dashed border-rose-500 opacity-60"></div>
+                                                <div class="w-[2px] h-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"></div>
                                             </div>
                                         @endif
 
