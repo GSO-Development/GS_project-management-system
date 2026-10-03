@@ -187,12 +187,12 @@
         <div class="w-full overflow-x-auto scrollbar-thin">
             <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[26%] sm:w-[20%] lg:w-[18%]">Project &amp; Code</th>
+                    <tr class="bg-slate-50/70 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[26%] sm:w-[22%] lg:w-[20%]">Project &amp; Code</th>
                         <th class="py-3.5 px-3 w-[16%] lg:w-[14%] hidden md:table-cell">Subsidiary</th>
-                        <th class="py-3.5 px-3 w-[18%] sm:w-[16%] lg:w-[14%]">Project Manager</th>
-                        <th class="py-3.5 px-3 w-[38%] sm:w-[34%] lg:w-[34%]">Latest Status Log</th>
-                        <th class="py-3.5 px-3 w-[10%] hidden lg:table-cell">Last Logged</th>
+                        <th class="py-3.5 px-3 w-[18%] sm:w-[16%] lg:w-[15%]">Project Manager</th>
+                        <th class="py-3.5 px-3 w-[36%] sm:w-[32%] lg:w-[31%]">Latest Status Log</th>
+                        <th class="py-3.5 px-3 w-[12%] hidden lg:table-cell">Last Logged</th>
                         <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right whitespace-nowrap w-[18%] sm:w-[14%] lg:w-[10%]">Actions</th>
                     </tr>
                 </thead>
@@ -213,15 +213,15 @@
                                 : strtoupper(substr($pmName, 0, 2));
                         @endphp
 
-                        <tr class="hover:bg-slate-50/70 transition-colors group">
+                        <tr class="hover:bg-slate-50/80 transition-colors group">
                             <!-- Project Code & Name -->
                             <td class="py-3.5 pl-5 sm:pl-6 pr-3 align-middle">
                                 <div class="space-y-1 min-w-0">
-                                    <a href="{{ route('projects.show', $project) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors block leading-snug truncate group-hover:text-[#c3122e]" title="{{ $project->name }}">
+                                    <a href="{{ route('projects.show', $project) }}" class="font-bold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors block leading-snug truncate group-hover:text-[#c3122e]" title="{{ $project->name }}">
                                         {{ $project->name }}
                                     </a>
                                     <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <span class="px-1.5 py-0.5 rounded-md text-[9.5px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80 shrink-0 leading-none shadow-2xs">
+                                        <span class="px-2 py-0.5 rounded-md text-[9.5px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/90 shrink-0 leading-none shadow-2xs">
                                             {{ $project->code ?? 'PRJ-' . $project->id }}
                                         </span>
                                         <span class="text-[10.5px] text-slate-400 font-medium whitespace-nowrap">
@@ -235,12 +235,12 @@
                             <td class="py-3.5 px-3 hidden md:table-cell align-middle whitespace-nowrap">
                                 @if($subsidiary)
                                     <div class="flex items-center gap-2 text-slate-700 min-w-0">
-                                        <div class="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 text-slate-400 border border-slate-200/60">
+                                        <div class="w-5.5 h-5.5 rounded-md bg-slate-100/80 flex items-center justify-center shrink-0 text-slate-400 border border-slate-200/60">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                             </svg>
                                         </div>
-                                        <span class="font-bold text-xs text-slate-800 truncate" title="{{ $subsidiary->name }}">{{ $subsidiary->name }}</span>
+                                        <span class="font-semibold text-xs text-slate-700 truncate" title="{{ $subsidiary->name }}">{{ $subsidiary->name }}</span>
                                     </div>
                                 @else
                                     <span class="text-slate-400 font-medium italic text-xs">—</span>
@@ -250,12 +250,11 @@
                             <!-- Project Manager -->
                             <td class="py-3.5 px-3 align-middle whitespace-nowrap">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <div class="w-6.5 h-6.5 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-[9.5px] shrink-0 border border-slate-700 shadow-2xs">
+                                    <div class="w-6.5 h-6.5 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[9.5px] shrink-0 border border-slate-700/80 shadow-2xs">
                                         {{ $pmInitials }}
                                     </div>
                                     <div class="min-w-0 flex items-center gap-1.5">
-                                        <span class="font-bold text-slate-900 truncate text-xs" title="{{ $pmName }}">{{ $pmName }}</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">PM</span>
+                                        <span class="font-semibold text-slate-800 truncate text-xs" title="{{ $pmName }}">{{ $pmName }}</span>
                                     </div>
                                 </div>
                             </td>
@@ -264,7 +263,7 @@
                             <td class="py-3.5 px-3 align-middle">
                                 @if($update)
                                     <div class="min-w-0">
-                                        <p class="text-xs text-slate-900 font-bold leading-snug truncate bg-slate-50/90 px-3 py-1.5 rounded-lg border border-slate-200/80 shadow-2xs" title="{{ $update->summary }}">
+                                        <p class="text-xs text-slate-800 font-medium leading-snug truncate bg-slate-50/80 px-3 py-1.5 rounded-lg border border-slate-200/70 shadow-2xs" title="{{ $update->summary }}">
                                             "{{ $update->summary }}"
                                         </p>
                                     </div>
@@ -276,9 +275,9 @@
                             </td>
 
                             <!-- Last Log Date -->
-                            <td class="py-3.5 px-3 hidden lg:table-cell align-middle text-slate-600 font-semibold whitespace-nowrap" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            <td class="py-3.5 px-3 hidden lg:table-cell align-middle text-slate-500 font-medium whitespace-nowrap" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                                 @if($update)
-                                    <div class="flex items-center gap-1.5 text-xs text-slate-700 font-bold">
+                                    <div class="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>{{ $update->created_at->diffForHumans() }}</span>
                                     </div>
@@ -290,27 +289,24 @@
                             <!-- Actions -->
                             <td class="py-3.5 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-2">
-                                    @if(!$isSuperAdmin)
-                                        <button
-                                            wire:click="openStatusUpdateModal({{ $project->id }})"
-                                            type="button"
-                                            class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00f26] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                                        >
-                                            + Log Update
-                                        </button>
-                                    @endif
+                                    <button
+                                        wire:click="openStatusUpdateModal({{ $project->id }})"
+                                        type="button"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                        <span>Log Update</span>
+                                    </button>
 
                                     <!-- View History Modal Trigger -->
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
                                         type="button"
-                                        class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-[#c3122e] hover:text-white border border-slate-200/80 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs group-hover:shadow-xs"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 transition-all cursor-pointer shadow-2xs"
                                         title="View status logs history for {{ $project->name }}"
                                     >
-                                        <span>Updates ({{ $allUpdatesCount }})</span>
-                                        <svg class="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                                        </svg>
+                                        <span>Updates</span>
+                                        <span class="px-1.5 py-0.2 rounded-md bg-white text-slate-700 text-[10px] font-bold border border-slate-200/60">{{ $allUpdatesCount }}</span>
                                     </button>
                                 </div>
                             </td>

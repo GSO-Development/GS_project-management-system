@@ -123,13 +123,18 @@
                             $userRole  = $userRoles[$p->id] ?? 'member';
 
                             $statusConfig = match($p->status->value) {
-                                'in_progress' => ['dot' => 'bg-blue-600',   'text' => 'text-blue-700',   'bg' => 'bg-blue-50',   'border' => 'border-blue-200',   'label' => 'In Progress'],
-                                'completed'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'label' => 'Completed'],
-                                'delayed'     => ['dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50',    'border' => 'border-rose-200',    'label' => 'Delayed'],
-                                'on_hold'     => ['dot' => 'bg-amber-500',   'text' => 'text-amber-800',   'bg' => 'bg-amber-50',   'border' => 'border-amber-200',   'label' => 'On Hold'],
-                                'cancelled'   => ['dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50',    'border' => 'border-rose-200',    'label' => 'Cancelled'],
-                                default       => ['dot' => 'bg-slate-400',   'text' => 'text-slate-700',   'bg' => 'bg-slate-50',   'border' => 'border-slate-200',   'label' => $p->status->label()],
+                                'in_progress'  => ['dot' => 'bg-blue-600',   'text' => 'text-blue-700',   'bg' => 'bg-blue-50',   'border' => 'border-blue-200',   'bar' => 'bg-blue-500',   'label' => 'In Progress'],
+                                'completed'    => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'bar' => 'bg-emerald-500', 'label' => 'Completed'],
+                                'at_risk'      => ['dot' => 'bg-amber-500',  'text' => 'text-amber-800',  'bg' => 'bg-amber-50',  'border' => 'border-amber-200',  'bar' => 'bg-amber-500',  'label' => 'At Risk'],
+                                'delayed'      => ['dot' => 'bg-rose-500',   'text' => 'text-rose-700',   'bg' => 'bg-rose-50',   'border' => 'border-rose-200',   'bar' => 'bg-rose-500',   'label' => 'Delayed'],
+                                'planning'     => ['dot' => 'bg-sky-500',    'text' => 'text-sky-700',    'bg' => 'bg-sky-50',    'border' => 'border-sky-200',    'bar' => 'bg-sky-500',    'label' => 'Planning'],
+                                'under_review' => ['dot' => 'bg-purple-500', 'text' => 'text-purple-700', 'bg' => 'bg-purple-50', 'border' => 'border-purple-200', 'bar' => 'bg-purple-500', 'label' => 'Under Review'],
+                                'on_hold'      => ['dot' => 'bg-amber-500',  'text' => 'text-amber-800',  'bg' => 'bg-amber-50',  'border' => 'border-amber-200',  'bar' => 'bg-amber-500',  'label' => 'On Hold'],
+                                'cancelled'    => ['dot' => 'bg-rose-500',   'text' => 'text-rose-700',   'bg' => 'bg-rose-50',   'border' => 'border-rose-200',   'bar' => 'bg-rose-500',   'label' => 'Cancelled'],
+                                default        => ['dot' => 'bg-slate-400',  'text' => 'text-slate-700',  'bg' => 'bg-slate-50',  'border' => 'border-slate-200',  'bar' => 'bg-slate-400',  'label' => $p->status->label()],
                             };
+
+                            $progressBarColor = ($progress >= 100) ? 'bg-emerald-500' : $statusConfig['bar'];
 
                             $allRoles = \App\Services\RbacService::getAllRoles();
                             $roleMeta = $allRoles[$userRole] ?? null;
@@ -210,7 +215,7 @@
                                         <span class="text-slate-400 text-[9.5px] font-medium truncate pl-1">{{ $p->wbsItems->count() }} Tasks</span>
                                     </div>
                                     <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                                        <div class="h-full rounded-full transition-all duration-500" style="width:{{ min(100, max(0, $progress)) }}%; background: linear-gradient(90deg, #c3122e, #e02d4b);"></div>
+                                        <div class="h-full rounded-full transition-all duration-500 {{ $progressBarColor }}" style="width:{{ min(100, max(0, $progress)) }}%;"></div>
                                     </div>
                                 </div>
                             </td>
@@ -240,10 +245,9 @@
                                     </button>
                                 @else
                                     <a href="{{ route('projects.show', $p) }}"
-                                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black text-white shadow-2xs shadow-rose-950/20 hover:scale-[1.02] transition-all duration-200 no-underline whitespace-nowrap shrink-0"
-                                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                        class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-[#c3122e] hover:text-white border border-slate-200 shadow-2xs transition-all duration-150 no-underline whitespace-nowrap shrink-0 active:scale-98 group">
                                         <span>Open Workspace</span>
-                                        <span class="text-[10px]">➔</span>
+                                        <span class="text-[10px] text-slate-400 group-hover:text-white transition-colors">➔</span>
                                     </a>
                                 @endif
                             </td>

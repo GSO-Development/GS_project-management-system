@@ -31,6 +31,7 @@ class ProjectIndex extends Component
     public string $statusFilter = 'all';
     public string $priorityFilter = 'all';
     public string $healthFilter = 'all';
+    public string $roleFilter = 'all';
     public int $perPage = 10;
     public bool $showMoreFilters = false;
 
@@ -82,6 +83,7 @@ class ProjectIndex extends Component
         'statusFilter' => ['except' => 'all'],
         'priorityFilter' => ['except' => 'all'],
         'healthFilter' => ['except' => 'all'],
+        'roleFilter' => ['except' => 'all'],
         'stuckTypeFilter' => ['except' => 'all'],
     ];
 
@@ -123,6 +125,7 @@ class ProjectIndex extends Component
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedPriorityFilter() { $this->resetPage(); }
     public function updatedHealthFilter() { $this->resetPage(); }
+    public function updatedRoleFilter() { $this->resetPage(); }
     public function updatedStuckTypeFilter() { $this->resetPage(); }
     public function updatedStuckProjectFilter() { $this->resetPage(); }
     public function updatedStuckAssigneeFilter() { $this->resetPage(); }
@@ -315,6 +318,7 @@ class ProjectIndex extends Component
         $this->statusFilter = 'all';
         $this->priorityFilter = 'all';
         $this->healthFilter = 'all';
+        $this->roleFilter = 'all';
         $this->resetPage();
     }
 
@@ -738,6 +742,22 @@ class ProjectIndex extends Component
                 });
             } else {
                 $query->where('health', $this->healthFilter);
+            }
+        }
+
+        if ($this->roleFilter !== 'all') {
+            if ($this->roleFilter === 'project_manager') {
+                $query->where(fn($q) => $q->whereNotNull('project_manager_id')->orWhereHas('members', fn($mq) => $mq->whereIn('project_members.role', ['lead', 'project_manager'])));
+            } elseif ($this->roleFilter === 'steering_committee') {
+                $query->whereHas('members', fn($mq) => $mq->where('project_members.role', 'steering_committee'));
+            } elseif ($this->roleFilter === 'owner') {
+                $query->whereHas('members', fn($mq) => $mq->where('project_members.role', 'owner'));
+            } elseif ($this->roleFilter === 'sponsor') {
+                $query->whereHas('members', fn($mq) => $mq->where('project_members.role', 'sponsor'));
+            } elseif ($this->roleFilter === 'team_member') {
+                $query->where(fn($q) => $q->whereHas('members', fn($mq) => $mq->whereIn('project_members.role', ['member', 'team_member', 'participant']))->orWhereHas('wbsItems'));
+            } else {
+                $query->whereHas('members', fn($mq) => $mq->where('project_members.role', $this->roleFilter));
             }
         }
 

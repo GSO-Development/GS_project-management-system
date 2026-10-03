@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ showFilters: {{ ($statusFilter !== 'all' || $typeFilter !== 'all' || $scopeFilter !== 'all' || !empty($search)) ? 'true' : 'false' }} }">
     {{-- ══════════════════════════════════════════════════════
          APPROVAL WORKFLOWS — Governance & Team Request Desk
     ══════════════════════════════════════════════════════ --}}
@@ -14,94 +14,121 @@
             <p class="text-xs text-slate-500 font-medium mt-0.5">Review, sign off, and manage project governance requests at a glance.</p>
         </div>
 
+        <div class="flex items-center gap-2.5">
+            {{-- Filter Toggle Button --}}
+            <button @click="showFilters = !showFilters" type="button"
+                    class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <span>Filter</span>
+                @if($statusFilter !== 'all' || $typeFilter !== 'all' || $scopeFilter !== 'all' || !empty($search))
+                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                @endif
+            </button>
+        </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
          2. FILTERS & METRICS TOOLBAR
          ═══════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs mb-6 p-4 sm:p-4.5 space-y-4">
-        <!-- Row 1: KPI Summary Counters + Search -->
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-            {{-- Search Bar --}}
-            <div class="relative flex-1 min-w-[240px]">
-                <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search project, code, requester..." 
-                       class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 placeholder-slate-400 transition-all shadow-2xs">
+    <div x-show="showFilters" x-transition.origin.top.duration.200ms class="mb-6">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 sm:p-4.5 space-y-4">
+            <!-- Row 1: KPI Summary Counters + Search -->
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                {{-- Search Bar --}}
+                <div class="relative flex-1 min-w-[240px]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search project, code, requester..." 
+                           class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 placeholder-slate-400 transition-all shadow-2xs">
+                </div>
+
+                {{-- Summary KPI Badges --}}
+                <div class="flex items-center gap-2 text-xs flex-wrap shrink-0">
+                    @php
+                        $user = auth()->user();
+                        $baseQuery = \App\Models\ApprovalRequest::query();
+                        if ($scopeFilter === 'my_requests') {
+                            $baseQuery->where('requested_by', $user->id);
+                        } elseif (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+                            $baseQuery->where(function($q) use ($user) {
+                                $q->where('requested_by', $user->id)
+                                  ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
+                                  ->orWhere(function($memberQuery) use ($user) {
+                                      $memberQuery->whereHas('project.members', fn($mq) => $mq->where('users.id', $user->id))
+                                                  ->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                                  });
+                            });
+                        }
+                        $pendingCount  = (clone $baseQuery)->where('status','pending')->count();
+                        $approvedCount = (clone $baseQuery)->where('status','approved')->count();
+                        $rejectedCount = (clone $baseQuery)->where('status','rejected')->count();
+                    @endphp
+                    <button wire:click="$set('statusFilter', 'pending')" type="button" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 {{ $pendingCount > 0 ? 'animate-pulse' : '' }}"></span>
+                        <span>{{ $pendingCount }} Pending</span>
+                    </button>
+                    <button wire:click="$set('statusFilter', 'approved')" type="button" class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>{{ $approvedCount }} Approved</span>
+                    </button>
+                    <button wire:click="$set('statusFilter', 'rejected')" type="button" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100/80 border border-rose-200/90 text-rose-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                        <span>{{ $rejectedCount }} Rejected</span>
+                    </button>
+                </div>
             </div>
 
-            {{-- Summary KPI Badges --}}
-            <div class="flex items-center gap-2 text-xs flex-wrap shrink-0">
-                @php
-                    $user = auth()->user();
-                    $baseQuery = \App\Models\ApprovalRequest::query();
-                    if ($scopeFilter === 'my_requests') {
-                        $baseQuery->where('requested_by', $user->id);
-                    } elseif (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-                        $baseQuery->where(function($q) use ($user) {
-                            $q->where('requested_by', $user->id)
-                              ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
-                              ->orWhere(function($memberQuery) use ($user) {
-                                  $memberQuery->whereHas('project.members', fn($mq) => $mq->where('users.id', $user->id))
-                                              ->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
-                              });
-                        });
-                    }
-                    $pendingCount  = (clone $baseQuery)->where('status','pending')->count();
-                    $approvedCount = (clone $baseQuery)->where('status','approved')->count();
-                    $rejectedCount = (clone $baseQuery)->where('status','rejected')->count();
-                @endphp
-                <button wire:click="$set('statusFilter', 'pending')" type="button" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 {{ $pendingCount > 0 ? 'animate-pulse' : '' }}"></span>
-                    <span>{{ $pendingCount }} Pending</span>
-                </button>
-                <button wire:click="$set('statusFilter', 'approved')" type="button" class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>{{ $approvedCount }} Approved</span>
-                </button>
-                <button wire:click="$set('statusFilter', 'rejected')" type="button" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100/80 border border-rose-200/90 text-rose-900 font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
-                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <span>{{ $rejectedCount }} Rejected</span>
-                </button>
-            </div>
-        </div>
+            <div class="h-px bg-slate-100 w-full"></div>
 
-        <div class="h-px bg-slate-100 w-full"></div>
+            <!-- Row 2: Select Filters + Clear all -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                    {{-- Scope Filter --}}
+                    <div class="relative">
+                        <select wire:model.live="scopeFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
+                            <option value="all">🌐 All Accessible Requests</option>
+                            <option value="my_requests">👤 My Requests</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
 
-        <!-- Row 2: Select Filters -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {{-- Scope Filter --}}
-            <div class="relative">
-                <select wire:model.live="scopeFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
-                    <option value="all">🌐 All Accessible Requests</option>
-                    <option value="my_requests">👤 My Requests</option>
-                </select>
-                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
+                    {{-- Status Filter --}}
+                    <div class="relative">
+                        <select wire:model.live="statusFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
+                            <option value="all">📋 All Statuses</option>
+                            <option value="pending">⏳ Pending Review</option>
+                            <option value="approved">✅ Approved</option>
+                            <option value="rejected">❌ Rejected</option>
+                            <option value="revision_required">🔄 Revision Required</option>
+                            <option value="cancelled">🚫 Cancelled</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
 
-            {{-- Status Filter --}}
-            <div class="relative">
-                <select wire:model.live="statusFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
-                    <option value="all">📋 All Statuses</option>
-                    <option value="pending">⏳ Pending Review</option>
-                    <option value="approved">✅ Approved</option>
-                    <option value="rejected">❌ Rejected</option>
-                    <option value="revision_required">🔄 Revision Required</option>
-                    <option value="cancelled">🚫 Cancelled</option>
-                </select>
-                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
+                    {{-- Request Type Filter --}}
+                    <div class="relative">
+                        <select wire:model.live="typeFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
+                            <option value="all">📂 All Request Types</option>
+                            @foreach(\App\Enums\ApprovalType::cases() as $t)
+                                <option value="{{ $t->value }}">{{ $t->label() }}</option>
+                            @endforeach
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
 
-            {{-- Request Type Filter --}}
-            <div class="relative">
-                <select wire:model.live="typeFilter" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-3.5 pr-8 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none text-slate-800 transition-all cursor-pointer shadow-2xs appearance-none truncate">
-                    <option value="all">📂 All Request Types</option>
-                    @foreach(\App\Enums\ApprovalType::cases() as $t)
-                        <option value="{{ $t->value }}">{{ $t->label() }}</option>
-                    @endforeach
-                </select>
-                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                @if($statusFilter !== 'all' || $typeFilter !== 'all' || $scopeFilter !== 'all' || !empty($search))
+                    <button wire:click="clearFilters" type="button"
+                            class="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all cursor-pointer shrink-0 text-center flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        <span>Reset</span>
+                    </button>
+                @endif
             </div>
         </div>
     </div>

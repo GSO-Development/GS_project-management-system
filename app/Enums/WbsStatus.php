@@ -64,11 +64,20 @@ enum WbsStatus: string
         return match($this) {
             self::COMPLETED => 'bg-emerald-500',
             self::IN_PROGRESS => 'bg-blue-600',
-            self::AT_RISK => 'bg-amber-500',
+            self::AT_RISK, self::ON_HOLD => 'bg-amber-500',
             self::BLOCKED, self::CANCELLED => 'bg-rose-500',
-            self::ON_HOLD => 'bg-amber-500',
             self::UNDER_REVIEW => 'bg-purple-500',
             self::BACKLOG, self::NOT_STARTED => 'bg-slate-400',
         };
+    }
+
+    public static function selectableCases(): array
+    {
+        return [
+            self::NOT_STARTED,
+            self::IN_PROGRESS,
+            self::COMPLETED,
+            self::ON_HOLD,
+        ];
     }
 }

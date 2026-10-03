@@ -16,197 +16,195 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & CORPORATE ACTION BAR
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
-        <!-- Left: Title, Interactive Month Navigator & Today Jump -->
-        <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap shrink-0">
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                Corporate Calendar
-            </h1>
-
-            <!-- Interactive Month Navigation Pill -->
-            <div class="inline-flex items-center p-0.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
-                <!-- Previous Month Button -->
-                <button
-                    wire:click="prevPeriod"
-                    type="button"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-[#c3122e] hover:bg-rose-50/80 active:scale-95 transition-all cursor-pointer"
-                    title="Previous Month/Period"
-                >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-
-                <!-- Month Badge -->
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-black bg-rose-50 text-[#c3122e] border border-rose-100/90 shadow-2xs select-none whitespace-nowrap">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>{{ $currentDate->format('F Y') }}</span>
-                </span>
-
-                <!-- Next Month Button -->
-                <button
-                    wire:click="nextPeriod"
-                    type="button"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-[#c3122e] hover:bg-rose-50/80 active:scale-95 transition-all cursor-pointer"
-                    title="Next Month/Period"
-                >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-
-            <!-- Today Button -->
-            <button
-                wire:click="today"
-                type="button"
-                class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
-                title="Jump to Today's Date"
-            >
-                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                <span>Today</span>
-            </button>
-        </div>
-
-        <!-- Right: View Switcher & Primary Action Button -->
-        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
-            <!-- View Switcher -->
-            <div class="inline-flex p-0.5 rounded-xl border border-slate-200 bg-slate-100/90 shadow-2xs text-xs font-bold shrink-0 whitespace-nowrap">
-                <button wire:click="setViewMode('calendar')" type="button" class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900' }}">
-                    Month
-                </button>
-                <button wire:click="setViewMode('week')" type="button" class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $viewMode === 'week' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900' }}">
-                    Week
-                </button>
-                <button wire:click="setViewMode('day')" type="button" class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $viewMode === 'day' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900' }}">
-                    Day
-                </button>
-                <button wire:click="setViewMode('list')" type="button" class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $viewMode === 'list' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900' }}">
-                    Schedule
-                </button>
-            </div>
-
-            <!-- Schedule Event Button -->
-            @if($canCreate)
-                <button
-                    wire:click="openCreateEventModal"
-                    type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer transition-all shadow-xs shrink-0 whitespace-nowrap hover:brightness-105 active:scale-95"
-                    style="background: linear-gradient(135deg, #c3122e 0%, #9e0e24 100%);"
-                >
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Schedule Event</span>
-                </button>
-            @endif
-        </div>
-    </div>
-
     <!-- ═══════════════════════════════════════════════════════════════
-         2. UNIFIED CLEAN FILTER & SEARCH TOOLBAR
+         1. TOP HEADER & NAVIGATION TABS (Matching Uploaded Tasks UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="cal-glass-card p-2.5 sm:p-3 space-y-2.5">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
-            <!-- Left: Scope Switcher, Sync Outlook & Category Filter Pills -->
-            <div class="flex items-center gap-2 flex-wrap">
-                <!-- Scope Switcher -->
-                <div class="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold shrink-0">
-                    <button wire:click="setScope('all')" type="button" class="px-3 py-1 rounded-lg transition-all cursor-pointer {{ $scopeFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800' }}">
-                        All Events
-                    </button>
-                    <button wire:click="setScope('my_events')" type="button" class="px-3 py-1 rounded-lg transition-all cursor-pointer {{ $scopeFilter === 'my_events' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800' }}">
-                        My Assigned
-                    </button>
-                </div>
-
-                <!-- Live Microsoft 365 Sync Button -->
-                <button
-                    wire:click="refreshCalendarSchedule"
-                    type="button"
-                    class="p-1 px-2.5 rounded-xl border border-sky-200 bg-sky-50 text-[#0078d4] hover:bg-sky-100 hover:border-sky-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
-                    title="Sync and Refresh Live Microsoft 365 Outlook Schedules"
-                >
-                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-                    <span class="hidden sm:inline">Sync Outlook</span>
-                    <svg wire:loading.class="animate-spin" class="w-3 h-3 text-[#0078d4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                </button>
-
-                <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
-
-                <!-- Category Filter Pills with Live Counters -->
-                <div class="inline-flex items-center gap-1.5 flex-wrap">
-                    <!-- Meetings -->
-                    <button wire:click="toggleCategory('meeting')" type="button" class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border {{ $categoryFilter === 'meeting' ? 'bg-[#0078d4] text-white border-[#0078d4] shadow-2xs' : 'bg-slate-50/90 text-slate-700 hover:bg-sky-50/80 hover:text-sky-900 border-slate-200/80 hover:border-sky-200' }}">
-                        <span class="w-2 h-2 rounded-full {{ $categoryFilter === 'meeting' ? 'bg-white' : 'bg-[#0078d4]' }}"></span>
-                        <span>Meetings</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $categoryFilter === 'meeting' ? 'bg-sky-700 text-white' : 'bg-slate-200/80 text-slate-600' }}">{{ $meetingsCount }}</span>
-                    </button>
-
-                    <!-- Milestones -->
-                    <button wire:click="toggleCategory('milestone')" type="button" class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border {{ $categoryFilter === 'milestone' ? 'bg-purple-600 text-white border-purple-600 shadow-2xs' : 'bg-slate-50/90 text-slate-700 hover:bg-purple-50/80 hover:text-purple-900 border-slate-200/80 hover:border-purple-200' }}">
-                        <span class="w-2 h-2 rounded-full {{ $categoryFilter === 'milestone' ? 'bg-white' : 'bg-purple-500' }}"></span>
-                        <span>Milestones</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $categoryFilter === 'milestone' ? 'bg-purple-700 text-white' : 'bg-slate-200/80 text-slate-600' }}">{{ $milestonesCount }}</span>
-                    </button>
-
-                    <!-- Tasks -->
-                    <button wire:click="toggleCategory('task')" type="button" class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border {{ $categoryFilter === 'task' ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' : 'bg-slate-50/90 text-slate-700 hover:bg-emerald-50/80 hover:text-emerald-900 border-slate-200/80 hover:border-emerald-200' }}">
-                        <span class="w-2 h-2 rounded-full {{ $categoryFilter === 'task' ? 'bg-white' : 'bg-emerald-500' }}"></span>
-                        <span>Tasks</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $categoryFilter === 'task' ? 'bg-emerald-700 text-white' : 'bg-slate-200/80 text-slate-600' }}">{{ $tasksCount }}</span>
-                    </button>
-
-                    @if($categoryFilter !== 'all')
-                        <button wire:click="$set('categoryFilter', 'all')" type="button" class="px-2 py-1 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer flex items-center gap-1 transition-colors" title="Clear category filter">
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            <span>Clear</span>
-                        </button>
-                    @endif
-                </div>
+    <div x-data="{ showFilters: {{ ($subsidiaryFilter !== 'all' || $search !== '' || $categoryFilter !== 'all') ? 'true' : 'false' }} }" class="space-y-4 mb-5">
+        <!-- Top Row: Page Title, Project Filter & Action Controls -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Title -->
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Corporate Calendar
+                </h1>
             </div>
 
-            <!-- Right: Subsidiary, Project & Search -->
-            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                <!-- Subsidiary Filter Dropdown -->
-                <div class="relative min-w-[135px]">
-                    <select wire:model.live="subsidiaryFilter" class="w-full text-xs font-semibold rounded-xl pl-3 pr-7 py-1.5 border border-slate-200 bg-white hover:border-slate-300 focus:bg-white text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer appearance-none transition-colors shadow-2xs">
-                        <option value="all">All Subsidiaries</option>
-                        @foreach($subsidiaries as $sub)
-                            <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
-
+            <!-- Top Right Action Controls -->
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
                 <!-- Project Filter Dropdown -->
-                <div class="relative min-w-[155px] max-w-[220px]">
-                    <select wire:model.live="projectFilter" class="w-full text-xs font-semibold rounded-xl pl-3 pr-7 py-1.5 border border-slate-200 bg-white hover:border-slate-300 focus:bg-white text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer appearance-none transition-colors truncate shadow-2xs">
+                <div class="relative min-w-[170px] sm:min-w-[210px]">
+                    <select wire:model.live="projectFilter"
+                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all shadow-2xs truncate">
                         <option value="all">All Projects</option>
                         @foreach($projectsList as $proj)
                             <option value="{{ $proj->id }}">{{ $proj->name }} ({{ $proj->code }})</option>
                         @endforeach
                     </select>
-                    <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
+                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
                 </div>
 
-                <!-- Search Input -->
-                <div class="w-full sm:w-52 relative shrink-0">
-                    <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <input
-                        type="text"
-                        wire:model.live.debounce.250ms="search"
-                        placeholder="Search events..."
-                        class="w-full text-xs font-medium pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-slate-800 transition-all shadow-2xs"
+                <!-- Filter Toggle Button -->
+                <button @click="showFilters = !showFilters" type="button"
+                        class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    <span>Filter</span>
+                    @if($subsidiaryFilter !== 'all' || $search !== '' || $categoryFilter !== 'all')
+                        <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                    @endif
+                </button>
+
+                <!-- Schedule Event Primary Button -->
+                @if($canCreate)
+                    <button
+                        wire:click="openCreateEventModal"
+                        type="button"
+                        class="px-4 py-2 bg-[#c3122e] hover:bg-[#a00e25] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-[#c3122e]/20 cursor-pointer active:scale-95 shrink-0"
                     >
-                    @if($search)
-                        <button wire:click="$set('search', '')" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <svg class="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        <span>Schedule Event</span>
+                    </button>
+                @endif
+            </div>
+        </div>
+
+        <!-- View Tabs Line (Matching Uploaded Tasks UI Mockup with bottom border underline indicator) -->
+        <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
+            <!-- Left: Scope Tabs (All Events vs My Assigned) with Active Red Bottom Border Indicator -->
+            <div class="flex items-center gap-6 text-xs whitespace-nowrap">
+                <button wire:click="setScope('all')" type="button"
+                        class="{{ $scopeFilter === 'all' ? 'border-b-2 border-[#c3122e] text-[#c3122e] font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold border-b-2 border-transparent' }} py-2.5 px-1 flex items-center gap-2 cursor-pointer transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>All Events</span>
+                </button>
+
+                <button wire:click="setScope('my_events')" type="button"
+                        class="{{ $scopeFilter === 'my_events' ? 'border-b-2 border-[#c3122e] text-[#c3122e] font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold border-b-2 border-transparent' }} py-2.5 px-1 flex items-center gap-2 cursor-pointer transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span>My Assigned</span>
+                </button>
+            </div>
+
+            <!-- Right: Interactive Month Navigation Pill & Today Jump -->
+            <div class="flex items-center gap-2.5 shrink-0 py-1 flex-wrap sm:flex-nowrap">
+
+                <!-- Month Navigator Pill -->
+                <div class="inline-flex items-center p-0.5 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs">
+                    <button wire:click="prevPeriod" type="button"
+                        class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-600 hover:text-[#c3122e] hover:bg-white active:scale-95 transition-all cursor-pointer"
+                        title="Previous Month/Period">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-black text-[#c3122e] select-none whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>{{ $currentDate->format('F Y') }}</span>
+                    </span>
+
+                    <button wire:click="nextPeriod" type="button"
+                        class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-600 hover:text-[#c3122e] hover:bg-white active:scale-95 transition-all cursor-pointer"
+                        title="Next Month/Period">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <!-- Today Button -->
+                <button wire:click="today" type="button"
+                    class="px-2.5 py-1 rounded-xl text-xs font-extrabold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+                    title="Jump to Today's Date">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Today</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             2. UNIFIED CLEAN FILTER & SEARCH TOOLBAR (Collapsible)
+             ═══════════════════════════════════════════════════════════════ -->
+        <div x-show="showFilters" x-transition.origin.top.duration.200ms class="pt-2">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-3.5 sm:p-4">
+                <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 flex-1 flex-wrap">
+                        <!-- Search Input -->
+                        <div class="relative min-w-[200px] flex-1">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+                            </svg>
+                            <input
+                                type="text"
+                                wire:model.live.debounce.250ms="search"
+                                placeholder="Search events, meetings, milestones…"
+                                class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all"
+                            >
+                            @if($search)
+                                <button wire:click="$set('search', '')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            @endif
+                        </div>
+
+                        <!-- Subsidiary Filter Dropdown -->
+                        <div class="relative min-w-[150px]">
+                            <select wire:model.live="subsidiaryFilter" class="w-full appearance-none px-3.5 py-2 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 focus:bg-white focus:outline-none cursor-pointer truncate">
+                                <option value="all">All Subsidiaries</option>
+                                @foreach($subsidiaries as $sub)
+                                    <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                @endforeach
+                            </select>
+                            <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+
+                        <!-- Sync Outlook Button -->
+                        <button
+                            wire:click="refreshCalendarSchedule"
+                            type="button"
+                            class="px-3 py-2 rounded-xl border border-sky-200 bg-sky-50 text-[#0078d4] hover:bg-sky-100 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
+                            title="Sync and Refresh Live Microsoft 365 Outlook Schedules"
+                        >
+                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                            <span>Sync Outlook</span>
+                            <svg wire:loading.class="animate-spin" class="w-3 h-3 text-[#0078d4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+
+                        <div class="h-4 w-px bg-slate-200 hidden md:block"></div>
+
+                        <!-- Category Filter Pills with Live Counters -->
+                        <div class="inline-flex items-center gap-1.5 flex-wrap">
+                            <!-- Meetings -->
+                            <button wire:click="toggleCategory('meeting')" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border {{ $categoryFilter === 'meeting' ? 'bg-[#0078d4] text-white border-[#0078d4] shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-sky-50 hover:text-sky-900 border-slate-200' }}">
+                                <span class="w-2 h-2 rounded-full {{ $categoryFilter === 'meeting' ? 'bg-white' : 'bg-[#0078d4]' }}"></span>
+                                <span>Meetings</span>
+                                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $categoryFilter === 'meeting' ? 'bg-sky-700 text-white' : 'bg-slate-200/80 text-slate-600' }}">{{ $meetingsCount }}</span>
+                            </button>
+
+                            <!-- Milestones -->
+                            <button wire:click="toggleCategory('milestone')" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border {{ $categoryFilter === 'milestone' ? 'bg-purple-600 text-white border-purple-600 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-purple-50 hover:text-purple-900 border-slate-200' }}">
+                                <span class="w-2 h-2 rounded-full {{ $categoryFilter === 'milestone' ? 'bg-white' : 'bg-purple-500' }}"></span>
+                                <span>Milestones</span>
+                                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $categoryFilter === 'milestone' ? 'bg-purple-700 text-white' : 'bg-slate-200/80 text-slate-600' }}">{{ $milestonesCount }}</span>
+                            </button>
+
+                            <!-- Tasks -->
+                            <button wire:click="toggleCategory('task')" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border {{ $categoryFilter === 'task' ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border-slate-200' }}">
+                                <span class="w-2 h-2 rounded-full {{ $categoryFilter === 'task' ? 'bg-white' : 'bg-emerald-500' }}"></span>
+                                <span>Tasks</span>
+                                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $categoryFilter === 'task' ? 'bg-emerald-700 text-white' : 'bg-slate-200/80 text-slate-600' }}">{{ $tasksCount }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Clear All Filters Button -->
+                    @if($search || $subsidiaryFilter !== 'all' || $categoryFilter !== 'all')
+                        <button wire:click="$set('search', ''); $set('subsidiaryFilter', 'all'); $set('categoryFilter', 'all');" type="button" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span>Clear all</span>
                         </button>
                     @endif
                 </div>
             </div>
-        </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════

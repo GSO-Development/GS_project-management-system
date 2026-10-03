@@ -30,181 +30,188 @@
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP HEADER & SCOPE/VIEW CONTROLS (Clean Minimalist)
+         1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-        <div class="flex items-center gap-3">
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                Tasks
-            </h1>
-            @if($isProjectManager)
-                <!-- Scope Switcher Tabs -->
-                <div class="inline-flex p-1 rounded-xl border border-slate-200 bg-slate-100/70">
-                    <button 
-                        wire:click="setTaskScope('assigned')" 
-                        type="button" 
-                        class="px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer {{ $taskScope === 'assigned' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900' }}"
-                    >
+    <div x-data="{ showFilters: {{ ($search || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all') ? 'true' : 'false' }} }" class="space-y-4 mb-5">
+        <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Title -->
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Tasks
+                </h1>
+            </div>
+
+            <!-- Top Right Action Controls -->
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+                <!-- Project Filter Dropdown -->
+                <div class="relative min-w-[170px] sm:min-w-[210px]">
+                    <select wire:model.live="projectFilter"
+                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all shadow-2xs truncate">
+                        <option value="all">All Projects</option>
+                        @foreach($myProjects as $p)
+                            <option value="{{ $p->id }}">{{ $p->code }} - {{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+
+                <!-- Filter Toggle Button -->
+                <button @click="showFilters = !showFilters" type="button"
+                        class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    <span>Filter</span>
+                    @if($search || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all')
+                        <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                    @endif
+                </button>
+            </div>
+        </div>
+
+        <!-- View Tabs Line (Matching Uploaded UI Image with bottom border underline indicator) -->
+        <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
+            <div class="flex items-center gap-6 text-xs whitespace-nowrap">
+                <!-- Kanban View Tab -->
+                <button wire:click="setViewMode('kanban')" type="button"
+                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'kanban' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                    <span>Kanban View</span>
+                </button>
+
+                <!-- Table View Tab -->
+                <button wire:click="setViewMode('table')" type="button"
+                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                    <span>Table View</span>
+                </button>
+
+                <!-- Schedule View Tab -->
+                <button wire:click="setViewMode('timeline')" type="button"
+                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'timeline' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                    <span>Schedule</span>
+                </button>
+
+                @if($isProjectManager)
+                    <div class="h-4 w-px bg-slate-200 my-auto"></div>
+                    <!-- My Tasks Scope Tab -->
+                    <button wire:click="setTaskScope('assigned')" type="button"
+                            class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'assigned' ? 'border-slate-900 text-slate-900 font-bold' : 'border-transparent text-slate-400 hover:text-slate-700 font-semibold' }}">
                         <span>My Tasks</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $taskScope === 'assigned' ? 'bg-slate-100 text-slate-700' : 'bg-slate-200/80 text-slate-600' }}">
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                             {{ $myAssignedCount }}
                         </span>
                     </button>
-                    <button 
-                        wire:click="setTaskScope('pm_projects')" 
-                        type="button" 
-                        class="px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer {{ $taskScope === 'pm_projects' ? 'bg-[#c3122e] text-white shadow-2xs font-bold' : 'text-slate-600 hover:text-[#c3122e]' }}"
-                    >
+
+                    <!-- Managed Projects Scope Tab -->
+                    <button wire:click="setTaskScope('pm_projects')" type="button"
+                            class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'pm_projects' ? 'border-slate-900 text-slate-900 font-bold' : 'border-transparent text-slate-400 hover:text-slate-700 font-semibold' }}">
                         <span>Managed Projects</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold {{ $taskScope === 'pm_projects' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600' }}">
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                             {{ $pmProjectsTasksCount }}
                         </span>
                     </button>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
 
-        <!-- View Switcher -->
-        <div class="inline-flex p-1 rounded-xl border border-slate-200 bg-slate-100/70">
-            <button 
-                wire:click="setViewMode('table')" 
-                type="button" 
-                class="px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900' }}"
-            >
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                <span>Table</span>
-            </button>
-            <button 
-                wire:click="setViewMode('kanban')" 
-                type="button" 
-                class="px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'kanban' ? 'bg-white text-[#c3122e] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900' }}"
-            >
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-                <span>Kanban</span>
-            </button>
-            <button 
-                wire:click="setViewMode('timeline')" 
-                type="button" 
-                class="px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer {{ $viewMode === 'timeline' ? 'bg-white text-[#c3122e] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900' }}"
-            >
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                <span>Schedule</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         2. SINGLE INLINE SEARCH & FILTER BAR
-         ═══════════════════════════════════════════════════════════════ -->
-    @if($viewMode !== 'timeline')
-    <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2 mb-4">
-        <!-- Search Input -->
-        <div class="relative flex-1 min-w-[200px]">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search tasks by title, code..."
-                   class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none transition-all">
-        </div>
-
-        <!-- Filter Dropdowns -->
-        <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
-            <!-- Status Dropdown ▾ -->
-            <div class="relative flex-1 sm:flex-initial min-w-[130px]">
-                <select wire:model.live="statusFilter"
-                        class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
-                    <option value="all">All Statuses ({{ $totalCount }})</option>
-                    <option value="not_started">Not Started ({{ $notStartedCount }})</option>
-                    <option value="in_progress">In Progress ({{ $inProgressCount }})</option>
-                    <option value="blocked">Blocked ({{ $blockedCount }})</option>
-                    <option value="completed">Completed ({{ $completedCount }})</option>
-                </select>
-                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-
-            <!-- Project ▾ -->
-            <div class="relative flex-1 sm:flex-initial min-w-[130px]">
-                <select wire:model.live="projectFilter"
-                        class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
-                    <option value="all">All Projects</option>
-                    @foreach($myProjects as $p)
-                        <option value="{{ $p->id }}">{{ $p->code }} - {{ $p->name }}</option>
-                    @endforeach
-                </select>
-                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-
-            @if($taskScope === 'pm_projects' && $availableAssignees->isNotEmpty())
-                <!-- Assignee ▾ -->
-                <div class="relative flex-1 sm:flex-initial min-w-[130px]">
-                    <select wire:model.live="assigneeFilter"
-                            class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
-                        <option value="all">All Assignees</option>
-                        <option value="unassigned">Unassigned</option>
-                        @foreach($availableAssignees as $member)
-                            <option value="{{ $member->id }}">{{ $member->name }}</option>
-                        @endforeach
-                    </select>
-                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            @endif
-
-            <!-- Due Date ▾ -->
-            <div class="relative flex-1 sm:flex-initial min-w-[120px]">
-                <select wire:model.live="dueDateFilter"
-                        class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
-                    <option value="all">All Dates</option>
-                    <option value="today">Due Today</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="this_week">This Week</option>
-                </select>
-                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-
-            <!-- Clear Button -->
-            @if($search || $projectFilter !== 'all' || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all')
-                <button wire:click="clearFilters" type="button" 
-                        class="bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl px-3 py-2 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
-                        title="Reset Filters">
-                    <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        <!-- Filter Bar (Collapsible or visible when toggled) -->
+        <div x-show="showFilters" transition:enter="transition ease-out duration-200" transition:leave="transition ease-in duration-150" class="pt-1">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+                <!-- Search Input -->
+                <div class="relative flex-1 min-w-[200px]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <span>Clear</span>
-                </button>
-            @endif
+                    <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search tasks by title, code..."
+                           class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none transition-all">
+                </div>
+
+                <!-- Filter Dropdowns -->
+                <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                    <!-- Status Dropdown ▾ -->
+                    <div class="relative flex-1 sm:flex-initial min-w-[130px]">
+                        <select wire:model.live="statusFilter"
+                                class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
+                            <option value="all">All Statuses ({{ $totalCount }})</option>
+                            <option value="not_started">Not Started ({{ $notStartedCount }})</option>
+                            <option value="in_progress">In Progress ({{ $inProgressCount }})</option>
+                            <option value="blocked">Blocked ({{ $blockedCount }})</option>
+                            <option value="completed">Completed ({{ $completedCount }})</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    @if($taskScope === 'pm_projects' && $availableAssignees->isNotEmpty())
+                        <!-- Assignee ▾ -->
+                        <div class="relative flex-1 sm:flex-initial min-w-[130px]">
+                            <select wire:model.live="assigneeFilter"
+                                    class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
+                                <option value="all">All Assignees</option>
+                                <option value="unassigned">Unassigned</option>
+                                @foreach($availableAssignees as $member)
+                                    <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                @endforeach
+                            </select>
+                            <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    @endif
+
+                    <!-- Due Date ▾ -->
+                    <div class="relative flex-1 sm:flex-initial min-w-[120px]">
+                        <select wire:model.live="dueDateFilter"
+                                class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
+                            <option value="all">All Dates</option>
+                            <option value="today">Due Today</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="this_week">This Week</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <!-- Clear Button -->
+                    @if($search || $projectFilter !== 'all' || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all')
+                        <button wire:click="clearFilters" type="button" 
+                                class="bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl px-3 py-2 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                                title="Reset Filters">
+                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <span>Clear</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
-    @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
          3. CLEAN EXECUTIVE TABLE VIEW
          ═══════════════════════════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         3. CLEAN EXECUTIVE TABLE VIEW (Matching Example UI)
+         ═══════════════════════════════════════════════════════════════ -->
     @if($viewMode === 'table')
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
             <div class="w-full overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs table-fixed">
+                <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        <tr class="bg-slate-50/70 border-b border-slate-100 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            <th class="py-3.5 pl-5 pr-2 w-10 text-center">
+                                <input type="checkbox" disabled class="w-4 h-4 rounded border-slate-300 text-[#c3122e] opacity-40 cursor-not-allowed">
+                            </th>
+                            <th class="py-3.5 px-3 min-w-[200px]">Task</th>
+                            <th class="py-3.5 px-3 min-w-[150px]">Project</th>
                             @if($taskScope === 'pm_projects')
-                                <th class="py-3.5 pl-6 pr-3 w-[22%]">Task</th>
-                                <th class="py-3.5 px-3 w-[15%]">Project</th>
-                                <th class="py-3.5 px-3 w-[12%]">Assignee</th>
-                                <th class="py-3.5 px-3 w-[8%]">Priority</th>
-                                <th class="py-3.5 px-3 w-[9%]">Start Date</th>
-                                <th class="py-3.5 px-3 w-[10%]">Deadline</th>
-                                <th class="py-3.5 px-3 w-[8%]">Progress</th>
-                                <th class="py-3.5 px-3 w-[9%]">Status</th>
-                                <th class="py-3.5 pl-2 pr-5 text-right w-[7%] whitespace-nowrap">Actions</th>
-                            @else
-                                <th class="py-3.5 pl-6 pr-3 w-[26%]">Task</th>
-                                <th class="py-3.5 px-3 w-[18%]">Project</th>
-                                <th class="py-3.5 px-3 w-[9%]">Priority</th>
-                                <th class="py-3.5 px-3 w-[10%]">Start Date</th>
-                                <th class="py-3.5 px-3 w-[11%]">Deadline</th>
-                                <th class="py-3.5 px-3 w-[9%]">Progress</th>
-                                <th class="py-3.5 px-3 w-[10%]">Status</th>
-                                <th class="py-3.5 pl-2 pr-5 text-right w-[7%] whitespace-nowrap">Actions</th>
+                                <th class="py-3.5 px-3 min-w-[130px]">Assignee</th>
                             @endif
+                            <th class="py-3.5 px-3 min-w-[90px]">Priority</th>
+                            <th class="py-3.5 px-3 min-w-[100px]">Start Date</th>
+                            <th class="py-3.5 px-3 min-w-[120px]">Deadline</th>
+                            <th class="py-3.5 px-3 min-w-[90px]">Progress</th>
+                            <th class="py-3.5 px-3 min-w-[110px]">Status</th>
+                            <th class="py-3.5 pl-2 pr-5 text-right w-12 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white text-slate-700">
@@ -219,54 +226,74 @@
                                 $isCompleted = $task->status->value === 'completed';
                                 $isInProgress = $task->status->value === 'in_progress';
                                 $pLabel = $task->priority?->label() ?? 'Medium';
-                                
+                                $pLower = strtolower($pLabel);
+
                                 // Progress bar color
-                                if ($isOverdue || $isBlocked) {
-                                    $barColor = '#ef4444';
-                                } elseif ($isCompleted) {
-                                    $barColor = '#10b981';
+                                if ($isCompleted) {
+                                    $barColor = 'bg-emerald-500';
+                                } elseif ($isOverdue || $isBlocked) {
+                                    $barColor = 'bg-rose-500';
                                 } elseif ($isInProgress || $task->progress > 0) {
-                                    $barColor = '#f59e0b';
+                                    $barColor = 'bg-blue-500';
                                 } else {
-                                    $barColor = '#94a3b8';
+                                    $barColor = 'bg-slate-300';
                                 }
+
+                                // Status badge
+                                $stVal = is_object($task->status) ? $task->status->value : $task->status;
+                                $stLabel = match($stVal) {
+                                    'in_progress'  => 'In Progress',
+                                    'completed'    => 'Completed',
+                                    'under_review' => 'Under Review',
+                                    'blocked'      => 'Blocked',
+                                    'at_risk', 'on_hold' => 'At Risk',
+                                    default        => ($isOverdue ? 'Overdue' : ($isDueToday ? 'Due Today' : 'Not Started')),
+                                };
+                                $stBadgeClass = match($stVal) {
+                                    'in_progress'  => 'bg-blue-50 text-blue-700 border-blue-200/80',
+                                    'completed'    => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+                                    'under_review' => 'bg-sky-50 text-sky-700 border-sky-200/80',
+                                    'blocked'      => 'bg-rose-50 text-rose-700 border-rose-200/80',
+                                    'at_risk', 'on_hold' => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                                    default        => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200/80' : ($isDueToday ? 'bg-amber-50 text-amber-800 border-amber-200/80' : 'bg-slate-100 text-slate-600 border-slate-200')),
+                                };
                             @endphp
                             <tr class="hover:bg-slate-50/70 transition-colors group cursor-pointer" wire:click="openTaskDetail({{ $task->id }})">
-                                <!-- Task Column with Completion Checkbox -->
-                                <td class="py-3.5 pl-6 pr-3 align-middle" onclick="event.stopPropagation()">
-                                    <div class="flex items-start gap-3 min-w-0">
-                                        <!-- Quick Complete Toggle Circle -->
-                                        <button wire:click="toggleTaskComplete({{ $task->id }})" type="button"
-                                                class="w-4.5 h-4.5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 {{ $isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-[#c3122e] bg-white' }}"
-                                                title="{{ $isCompleted ? 'Mark incomplete' : 'Mark complete' }}">
-                                            @if($isCompleted)
-                                                <svg class="w-2.5 h-2.5 text-white stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            @endif
-                                        </button>
+                                <!-- Checkbox Column -->
+                                <td class="py-3.5 pl-5 pr-2 align-middle text-center" onclick="event.stopPropagation()">
+                                    <button wire:click="toggleTaskComplete({{ $task->id }})" type="button"
+                                            class="w-4.5 h-4.5 rounded-md border flex items-center justify-center transition-all cursor-pointer mx-auto {{ $isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-[#c3122e] bg-white' }}"
+                                            title="{{ $isCompleted ? 'Mark incomplete' : 'Mark complete' }}">
+                                        @if($isCompleted)
+                                            <svg class="w-3 h-3 text-white stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                        @endif
+                                    </button>
+                                </td>
 
-                                        <div class="min-w-0 space-y-1">
-                                            <span wire:click="openTaskDetail({{ $task->id }})" 
-                                                  class="font-extrabold text-xs sm:text-[13px] text-slate-900 block leading-snug cursor-pointer hover:text-[#c3122e] transition-colors truncate {{ $isCompleted ? 'line-through text-slate-400 font-normal' : '' }}" title="{{ $task->title }}">
-                                                {{ ucwords(strtolower($task->title)) }}
+                                <!-- Task Name & Code -->
+                                <td class="py-3.5 px-3 align-middle">
+                                    <div class="space-y-0.5 min-w-0">
+                                        <span wire:click="openTaskDetail({{ $task->id }})" 
+                                              class="font-bold text-xs sm:text-[13px] text-slate-900 block leading-snug cursor-pointer hover:text-[#c3122e] transition-colors truncate {{ $isCompleted ? 'line-through text-slate-400 font-normal' : '' }}" title="{{ $task->title }}">
+                                            {{ ucwords(strtolower($task->title)) }}
+                                        </span>
+                                        <div class="flex items-center gap-1.5 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9.5px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80 shrink-0 whitespace-nowrap leading-none">
+                                                {{ $task->project->code ?? 'PRJ' }}
                                             </span>
-                                            <div class="flex items-center gap-1.5 whitespace-nowrap">
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80 shrink-0 whitespace-nowrap leading-none shadow-2xs">
-                                                    {{ $task->project->code ?? 'PRJ' }}
-                                                </span>
-                                                <span class="text-slate-400 text-[10.5px] font-semibold whitespace-nowrap shrink-0">
-                                                    • WBS {{ $task->wbs_code ?? '1.0' }}
-                                                </span>
-                                            </div>
+                                            <span class="text-slate-400 text-[10.5px] font-semibold whitespace-nowrap shrink-0">
+                                                • WBS {{ $task->wbs_code ?? '1.0' }}
+                                            </span>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Project -->
-                                <td class="py-3.5 px-4 align-middle" onclick="event.stopPropagation()">
+                                <td class="py-3.5 px-3 align-middle" onclick="event.stopPropagation()">
                                     <a href="{{ route('projects.show', $task->project_id) }}" class="font-bold text-xs text-slate-900 hover:text-[#c3122e] block leading-snug transition-colors truncate max-w-[170px]" title="{{ $task->project->name ?? 'Project' }}">
-                                        {{ $task->project->name ?? 'System Integration' }}
+                                        {{ $task->project->name ?? 'Project' }}
                                     </a>
                                     <div class="text-[11px] text-slate-400 font-medium mt-0.5 truncate max-w-[170px]">
                                         {{ $task->project->subsidiary->name ?? 'George Steuart Group' }}
@@ -275,18 +302,13 @@
 
                                 @if($taskScope === 'pm_projects')
                                     <!-- Assignee -->
-                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap">
+                                    <td class="py-3.5 px-3 align-middle whitespace-nowrap">
                                         @if($task->assignedUser)
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-6.5 h-6.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-2xs">
-                                                    {{ strtoupper(substr($task->assignedUser->name, 0, 1)) }}
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-800 truncate max-w-[120px]" title="{{ $task->assignedUser->name }}">
-                                                    {{ $task->assignedUser->name }}
-                                                </span>
-                                            </div>
+                                            <span class="text-xs font-bold text-slate-800" title="{{ $task->assignedUser->name }}">
+                                                {{ $task->assignedUser->name }}
+                                            </span>
                                         @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200/60">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10.5px] font-medium bg-slate-100 text-slate-400 border border-slate-200/60">
                                                 Unassigned
                                             </span>
                                         @endif
@@ -294,103 +316,84 @@
                                 @endif
 
                                 <!-- Priority -->
-                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                    @if(strtolower($pLabel) === 'high' || strtolower($pLabel) === 'critical')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/70">
+                                <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                                    @if(in_array($pLower, ['high', 'urgent', 'critical']))
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             <span>High</span>
                                         </span>
-                                    @elseif(strtolower($pLabel) === 'medium')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/70">
+                                    @elseif($pLower === 'medium')
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600">
                                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                             <span>Medium</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             <span>Low</span>
                                         </span>
                                     @endif
                                 </td>
 
                                 <!-- Start Date -->
-                                <td class="py-3.5 px-4 align-middle whitespace-nowrap text-xs text-slate-600 font-medium">
+                                <td class="py-3.5 px-3 align-middle whitespace-nowrap text-xs text-slate-600 font-medium">
                                     {{ $task->start_date ? $task->start_date->format('M d, Y') : '—' }}
                                 </td>
 
                                 <!-- Deadline -->
-                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
+                                <td class="py-3.5 px-3 align-middle whitespace-nowrap">
                                     <span class="text-xs text-slate-900 font-semibold block leading-tight">
                                         {{ $task->end_date ? $task->end_date->format('M d, Y') : '—' }}
                                     </span>
                                     @if($isOverdue)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200/70 mt-0.5">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/70 mt-0.5">
                                             <svg class="w-3 h-3 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <span>Overdue</span>
                                         </span>
                                     @elseif($isDueToday)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/70 mt-0.5">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/70 mt-0.5">
                                             <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <span>Due today</span>
                                         </span>
                                     @elseif($task->end_date)
-                                        <span class="text-[10.5px] text-slate-400 font-medium mt-0.5 block">
+                                        <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">
                                             {{ max(1, (int)now()->diffInDays($task->end_date)) }}d left
                                         </span>
                                     @endif
                                 </td>
 
                                 <!-- Progress -->
-                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
+                                <td class="py-3.5 px-3 align-middle whitespace-nowrap">
                                     <span class="text-xs font-extrabold text-slate-800 block mb-1">
                                         {{ $task->progress }}%
                                     </span>
-                                    <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full transition-all duration-300" 
-                                             style="width: {{ min(100, max(0, $task->progress)) }}%; background-color: {{ $barColor }};"></div>
+                                    <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                                        <div class="h-full rounded-full transition-all duration-300 {{ $barColor }}" 
+                                             style="width: {{ min(100, max(0, $task->progress)) }}%;"></div>
                                     </div>
                                 </td>
 
                                 <!-- Status -->
-                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                    @if($isBlocked)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                            <span>Blocked</span>
-                                        </span>
-                                    @elseif($isOverdue)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                            <span>Overdue</span>
-                                        </span>
-                                    @elseif($isDueToday)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                            <span>Due Today</span>
-                                        </span>
-                                    @elseif($isInProgress)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                                            <span>In Progress</span>
-                                        </span>
-                                    @elseif($isCompleted)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span>Completed</span>
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/70">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                            <span>Not Started</span>
-                                        </span>
-                                    @endif
+                                <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                                    <div class="relative inline-block" onclick="event.stopPropagation()">
+                                        <select wire:change="updateStatus({{ $task->id }}, $event.target.value)" 
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs {{ $stBadgeClass }}"
+                                                style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;"
+                                                title="Update Task Status">
+                                            @foreach(\App\Enums\WbsStatus::cases() as $st)
+                                                <option value="{{ $st->value }}" @selected($stVal === $st->value) class="bg-white text-slate-900 font-semibold">
+                                                    {{ $st->label() }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </td>
 
-                                <!-- Actions -->
-                                <td class="py-3.5 pr-6 pl-4 align-middle text-right whitespace-nowrap relative" onclick="event.stopPropagation()">
+                                <!-- Actions (3-dots vertical icon button) -->
+                                <td class="py-3.5 pr-5 pl-2 align-middle text-right whitespace-nowrap relative" onclick="event.stopPropagation()">
                                     <div class="relative inline-block text-left" x-data="{ open: false }">
                                         <button @click.prevent.stop="open = !open" type="button" 
-                                                class="w-8 h-8 rounded-xl bg-slate-100/90 hover:bg-[#c3122e] text-slate-600 hover:text-white inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95" title="Task Options">
+                                                class="w-7 h-7 rounded-full bg-slate-100/80 hover:bg-[#c3122e] text-slate-500 hover:text-white inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95" title="Task Options">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                                             </svg>
@@ -432,7 +435,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $taskScope === 'pm_projects' ? 9 : 8 }}" class="py-16 text-center text-slate-400 font-medium">
+                                <td colspan="{{ $taskScope === 'pm_projects' ? 10 : 9 }}" class="py-16 text-center text-slate-400 font-medium">
                                     <div class="flex flex-col items-center gap-2.5">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-xl">
                                             📋
@@ -447,24 +450,31 @@
                 </table>
             </div>
 
-            <!-- Bottom Pagination -->
-            <div class="px-6 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex-1">
-                    {{ $paginatedTasks->links() }}
+            <!-- Bottom Pagination (Matching Example UI) -->
+            <div class="px-6 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-500 font-medium">
+                <div>
+                    Showing {{ $paginatedTasks->firstItem() ?? 0 }}–{{ $paginatedTasks->lastItem() ?? 0 }} of {{ $paginatedTasks->total() }} tasks
                 </div>
 
-                <!-- Per-page Selector -->
-                <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium flex-shrink-0 self-end sm:self-center">
-                    <span>Per page:</span>
-                    <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                    </select>
+                <div class="flex items-center gap-4">
+                    <div>
+                        {{ $paginatedTasks->links() }}
+                    </div>
+
+                    <!-- Per-page Selector -->
+                    <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium shrink-0">
+                        <span>Per page:</span>
+                        <select wire:model.live="perPage" class="text-xs font-bold py-1 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 outline-none">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
+
 
     <!-- ═══════════════════════════════════════════════════════════════
          5. VIEW MODE 2: CROSS-PROJECT KANBAN BOARD (TIME HORIZON & STATUS)

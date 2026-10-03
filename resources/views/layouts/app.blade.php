@@ -46,8 +46,8 @@
         }
         /* Clean Soft-Card UI overrides */
         .bg-white { background-color: #ffffff !important; }
-        .bg-gray-50, .bg-slate-50 { background-color: #f9f9f7 !important; }
-        .bg-gray-100, .bg-slate-100 { background-color: #eff0ec !important; }
+        .bg-gray-50, .bg-slate-50 { background-color: #f8fafc !important; }
+        .bg-gray-100, .bg-slate-100 { background-color: #f1f5f9 !important; }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -57,13 +57,13 @@
     <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.15/dist/docx-preview.min.js"></script>
 </head>
-<body style="background:#eff0ec; font-family:'Inter',system-ui,sans-serif;">
+<body style="background:#f8fafc; font-family:'Inter',system-ui,sans-serif;">
 
     <!-- =================== SIDEBAR =================== -->
     <aside
         id="app-sidebar"
         class="fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 overflow-hidden select-none"
-        style="background: #ffffff; border-right: 1px solid #e8e9e4; box-shadow: 2px 0 12px rgba(0,0,0,0.05);"
+        style="background: #ffffff; border-right: 1px solid #e2e8f0; box-shadow: 2px 0 12px rgba(0,0,0,0.03);"
         :class="{
             'w-64': !sidebarCollapsed && !mobileSidebarOpen,
             'w-[72px]': sidebarCollapsed && !mobileSidebarOpen,
@@ -77,7 +77,7 @@
 
         <!-- Brand & Logo Header (Matches topnav height 64px) -->
         <div class="h-16 flex items-center flex-shrink-0 transition-all"
-             style="border-bottom: 1px solid #e8e9e4;"
+             style="border-bottom: 1px solid #e2e8f0;"
              :class="{ 'justify-center px-2': sidebarCollapsed && !mobileSidebarOpen, 'justify-between px-4': !sidebarCollapsed || mobileSidebarOpen }">
             <a href="{{ route('dashboard') }}" 
                wire:navigate.hover 
@@ -544,7 +544,7 @@
     <!-- =================== TOP NAV =================== -->
     <header
         class="fixed top-0 right-0 z-30 flex items-center gap-3 h-16 transition-all duration-300"
-        style="background: #ffffff; border-bottom: 1px solid #e8e9e4; box-shadow: 0 2px 10px rgba(0,0,0,0.06);"
+        style="background: #ffffff; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 4px rgba(0,0,0,0.03);"
         :class="{ 'left-0 lg:left-64': !sidebarCollapsed, 'left-0 lg:left-[72px]': sidebarCollapsed }"
     >
         <!-- Accent bar below topnav -->

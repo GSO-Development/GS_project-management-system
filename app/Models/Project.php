@@ -72,30 +72,48 @@ class Project extends Model
 
     public function getComputedHealthAttribute(): string
     {
-        $statusVal = $this->status?->value ?? 'in_progress';
-        
+        $statusVal = is_object($this->status) ? $this->status->value : (string) ($this->status ?? 'in_progress');
+
         if ($statusVal === 'completed') {
             return 'completed';
         }
-        
-        $isOverdue = $this->deadline && \Carbon\Carbon::parse($this->deadline)->endOfDay()->isPast() && ($this->overall_progress ?? 0) < 100 && !in_array($statusVal, ['completed', 'cancelled']);
+
+        // Check if project deadline is overdue
+        $isOverdue = $this->deadline 
+            && \Carbon\Carbon::parse($this->deadline)->endOfDay()->isPast() 
+            && ($this->overall_progress ?? 0) < 100 
+            && !in_array($statusVal, ['completed', 'cancelled']);
+
         if ($statusVal === 'delayed' || $isOverdue) {
             return 'delayed';
         }
 
+        // Check if project has open risks or blocked tasks
         $hasOpenRisks = $this->relationLoaded('risks') 
             ? $this->risks->where('status', 'open')->isNotEmpty() 
             : $this->risks()->where('status', 'open')->exists();
-            
+
         $hasBlockedTasks = $this->relationLoaded('wbsItems')
             ? ($this->wbsItems->where('status', 'blocked')->isNotEmpty() || $this->wbsItems->some(fn($w) => $w->relationLoaded('blockers') && $w->blockers->where('status', 'open')->isNotEmpty()))
             : $this->wbsItems()->where('status', 'blocked')->exists();
 
-        if ($statusVal === 'at_risk' || $statusVal === 'on_hold' || $hasOpenRisks || $hasBlockedTasks) {
+        if ($statusVal === 'at_risk' || $hasOpenRisks || $hasBlockedTasks) {
             return 'at_risk';
         }
 
-        return 'on_track';
+        if ($statusVal === 'on_hold') {
+            return 'on_hold';
+        }
+
+        if ($statusVal === 'planning') {
+            return 'planning';
+        }
+
+        if ($statusVal === 'in_progress') {
+            return 'in_progress';
+        }
+
+        return 'in_progress';
     }
 
     public function isPmAccepted(): bool

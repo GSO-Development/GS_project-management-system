@@ -253,15 +253,47 @@
             @php
                 $currentStatus = is_object($item->status) ? $item->status->value : $item->status;
                 $stBadge = match($currentStatus) {
-                    'in_progress'  => ['bg' => 'bg-blue-50/90 text-blue-700 border-blue-200/90 hover:bg-blue-100/80 hover:border-blue-300', 'dot' => 'bg-blue-500'],
-                    'completed'    => ['bg' => 'bg-emerald-50/90 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/80 hover:border-emerald-300', 'dot' => 'bg-emerald-500'],
-                    'at_risk'      => ['bg' => 'bg-amber-50/90 text-amber-800 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300', 'dot' => 'bg-amber-500'],
-                    'under_review' => ['bg' => 'bg-purple-50/90 text-purple-700 border-purple-200/90 hover:bg-purple-100/80 hover:border-purple-300', 'dot' => 'bg-purple-500'],
-                    'blocked'      => ['bg' => 'bg-rose-50/90 text-rose-700 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300', 'dot' => 'bg-rose-500'],
-                    'on_hold'      => ['bg' => 'bg-amber-50/90 text-amber-800 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300', 'dot' => 'bg-amber-500'],
+                    'in_progress'  => [
+                        'bg' => 'bg-blue-50 text-blue-700 border-blue-200/90',
+                        'dot' => 'bg-blue-500',
+                        'style' => 'background-color: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important;'
+                    ],
+                    'completed'    => [
+                        'bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/90',
+                        'dot' => 'bg-emerald-500',
+                        'style' => 'background-color: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0 !important;'
+                    ],
+                    'at_risk'      => [
+                        'bg' => 'bg-amber-50 text-amber-800 border-amber-200/90',
+                        'dot' => 'bg-amber-500',
+                        'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'
+                    ],
+                    'under_review' => [
+                        'bg' => 'bg-purple-50 text-purple-700 border-purple-200/90',
+                        'dot' => 'bg-purple-500',
+                        'style' => 'background-color: #faf5ff !important; color: #6b21a8 !important; border-color: #e9d5ff !important;'
+                    ],
+                    'blocked'      => [
+                        'bg' => 'bg-rose-50 text-rose-700 border-rose-200/90',
+                        'dot' => 'bg-rose-500',
+                        'style' => 'background-color: #fff1f2 !important; color: #be123c !important; border-color: #fecdd3 !important;'
+                    ],
+                    'on_hold'      => [
+                        'bg' => 'bg-amber-50 text-amber-800 border-amber-200/90',
+                        'dot' => 'bg-amber-500',
+                        'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'
+                    ],
                     default        => ($isOverdue 
-                        ? ['bg' => 'bg-rose-50/90 text-rose-700 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300', 'dot' => 'bg-rose-500'] 
-                        : ['bg' => 'bg-slate-50 text-slate-600 border-slate-200/90 hover:bg-slate-100/90 hover:border-slate-300', 'dot' => 'bg-slate-400']),
+                        ? [
+                            'bg' => 'bg-rose-50 text-rose-700 border-rose-200/90',
+                            'dot' => 'bg-rose-500',
+                            'style' => 'background-color: #fff1f2 !important; color: #be123c !important; border-color: #fecdd3 !important;'
+                        ] 
+                        : [
+                            'bg' => 'bg-slate-100 text-slate-700 border-slate-200/90',
+                            'dot' => 'bg-slate-500',
+                            'style' => 'background-color: #f1f5f9 !important; color: #334155 !important; border-color: #cbd5e1 !important;'
+                        ]),
                 };
             @endphp
             <div class="relative flex items-center min-w-[130px] max-w-[150px]">
@@ -269,17 +301,17 @@
                 <select
                     wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
                     @if(!$canChangeStatusRow) disabled @endif
-                    class="text-xs font-bold rounded-full pl-7 pr-8 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs w-full truncate {{ $stBadge['bg'] }} {{ !$canChangeStatusRow ? 'opacity-70 cursor-not-allowed' : '' }}"
-                    style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important;"
+                    class="text-xs font-bold rounded-full pl-7 pr-8 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs w-full truncate {{ !$canChangeStatusRow ? 'opacity-70 cursor-not-allowed' : '' }}"
+                    style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important; {{ $stBadge['style'] }}"
                     title="{{ $canChangeStatusRow ? 'Update Task Status' : 'Status change disabled' }}"
                 >
                     <option value="not_started" @selected($currentStatus === 'not_started' || $currentStatus === 'backlog') class="bg-white text-slate-900 font-semibold">Not Started</option>
                     <option value="in_progress" @selected($currentStatus === 'in_progress') class="bg-white text-slate-900 font-semibold">In Progress</option>
-                    <option value="at_risk" @selected($currentStatus === 'at_risk') class="bg-white text-amber-700 font-bold">At Risk</option>
-                    <option value="under_review" @selected($currentStatus === 'under_review') class="bg-white text-purple-700 font-semibold">Review</option>
-                    <option value="blocked" @selected($currentStatus === 'blocked') class="bg-white text-rose-700 font-bold">Blocked</option>
+                    <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">Completed</option>
                     <option value="on_hold" @selected($currentStatus === 'on_hold') class="bg-white text-amber-700 font-semibold">On Hold</option>
-                    <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">Done</option>
+                    @if(!in_array($currentStatus, ['not_started', 'backlog', 'in_progress', 'completed', 'on_hold']))
+                        <option value="{{ $currentStatus }}" selected class="bg-white text-slate-900 font-semibold">{{ ucwords(str_replace('_', ' ', $currentStatus)) }}</option>
+                    @endif
                 </select>
                 <div class="pointer-events-none absolute right-2.5 text-current opacity-70 z-10 flex items-center">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>

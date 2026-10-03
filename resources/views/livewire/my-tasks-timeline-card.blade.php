@@ -41,7 +41,7 @@
         </span>
         <div class="flex items-center gap-1.5 flex-shrink-0">
             <select wire:change="updateStatus({{ $t->id }}, $event.target.value)" class="text-[9.5px] font-bold px-2 py-0.5 rounded-lg border border-slate-200 bg-white cursor-pointer shadow-2xs outline-none focus:border-[#c3122e] {{ $t->status->badgeClass() }}">
-                @foreach(\App\Enums\WbsStatus::cases() as $st)
+                @foreach(\App\Enums\WbsStatus::selectableCases() as $st)
                     <option value="{{ $st->value }}" {{ $t->status === $st ? 'selected' : '' }}>
                         {{ $st->label() }}
                     </option>

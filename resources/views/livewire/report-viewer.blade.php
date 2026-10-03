@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ showFilters: {{ ($subsidiaryFilter !== 'all' || $statusFilter !== 'all') ? 'true' : 'false' }} }">
     <!-- Clean Standard Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -18,7 +18,20 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2.5 flex-wrap">
+            <!-- Filter Toggle Button -->
+            <button @click="showFilters = !showFilters" type="button"
+                    class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <span>Filter</span>
+                @if($subsidiaryFilter !== 'all' || $statusFilter !== 'all')
+                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                @endif
+            </button>
+
+            <!-- Export PDF Button -->
             <a href="{{ route('reports.export-pdf', ['subsidiary' => $subsidiaryFilter, 'status' => $statusFilter]) }}" class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 no-underline cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span>Export PDF</span>
@@ -26,41 +39,43 @@
         </div>
     </div>
 
-    <!-- Filter Toolbar -->
-    <div class="card p-4 mb-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
-            <div class="flex items-center gap-3 flex-wrap">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Subsidiary</label>
-                    <select wire:model.live="subsidiaryFilter" class="form-select text-xs font-bold py-2 px-3 rounded-xl border-slate-200 text-slate-700 bg-slate-50 focus:bg-white focus:border-[#c3122e] outline-none">
-                        <option value="all">All Subsidiaries</option>
-                        @foreach($subsidiaries as $sub)
-                            <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->code }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Filter</label>
-                    <select wire:model.live="statusFilter" class="form-select text-xs font-bold py-2 px-3 rounded-xl border-slate-200 text-slate-700 bg-slate-50 focus:bg-white focus:border-[#c3122e] outline-none">
-                        <option value="all">All Statuses</option>
-                        @foreach(\App\Enums\ProjectStatus::cases() as $s)
-                            <option value="{{ $s->value }}">{{ $s->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                @if($subsidiaryFilter !== 'all' || $statusFilter !== 'all')
-                    <div class="self-end pb-0.5">
-                        <button wire:click="clearFilters" type="button" class="px-3 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-rose-200">
-                            Reset Filters
-                        </button>
+    <!-- Filter Toolbar (Collapsible) -->
+    <div x-show="showFilters" x-transition.origin.top.duration.200ms class="mb-6">
+        <div class="card p-4 bg-white border border-slate-200/90 rounded-2xl shadow-2xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Subsidiary</label>
+                        <select wire:model.live="subsidiaryFilter" class="form-select text-xs font-bold py-2 px-3 rounded-xl border-slate-200 text-slate-700 bg-slate-50 focus:bg-white focus:border-[#c3122e] outline-none cursor-pointer">
+                            <option value="all">All Subsidiaries</option>
+                            @foreach($subsidiaries as $sub)
+                                <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->code }})</option>
+                            @endforeach
+                        </select>
                     </div>
-                @endif
-            </div>
 
-            <div class="text-xs font-bold text-slate-500">
-                Total Projects: <span class="text-[#c3122e] font-black">{{ count($projects) }}</span>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Filter</label>
+                        <select wire:model.live="statusFilter" class="form-select text-xs font-bold py-2 px-3 rounded-xl border-slate-200 text-slate-700 bg-slate-50 focus:bg-white focus:border-[#c3122e] outline-none cursor-pointer">
+                            <option value="all">All Statuses</option>
+                            @foreach(\App\Enums\ProjectStatus::cases() as $s)
+                                <option value="{{ $s->value }}">{{ $s->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @if($subsidiaryFilter !== 'all' || $statusFilter !== 'all')
+                        <div class="self-end pb-0.5">
+                            <button wire:click="clearFilters" type="button" class="px-3 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-rose-200">
+                                Reset Filters
+                            </button>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="text-xs font-bold text-slate-500">
+                    Total Projects: <span class="text-[#c3122e] font-black">{{ count($projects) }}</span>
+                </div>
             </div>
         </div>
     </div>

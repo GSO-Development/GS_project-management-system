@@ -38,117 +38,158 @@
     @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP HEADER (PROJECTS DIRECTORY + VIEW SWITCHER)
+         1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                @if($viewMode === 'gantt')
-                    Portfolio Gantt Radar
-                @elseif($viewMode === 'stuck')
-                    Stuck &amp; Blocked Tasks Radar
-                @else
-                    Projects Directory
-                @endif
-            </h1>
-            @if($viewMode === 'stuck')
-                <p class="text-xs text-slate-500 mt-1 font-medium">Live governance radar for blocked deliverables, overdue items, and escalations</p>
-            @endif
-        </div>
+    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="space-y-4 mb-6">
+        <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Title -->
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Projects
+                </h1>
+            </div>
 
-        <!-- Right Side: View Mode Switcher + Primary New Project CTA -->
-        <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-            <!-- View Mode Switcher: Table vs Portfolio Gantt vs All Tasks -->
-            <div class="inline-flex p-1 rounded-xl border border-slate-200/80 bg-slate-100/90 shadow-2xs items-center gap-0.5 flex-nowrap min-w-max">
-                <button 
-                    wire:click="setViewMode('table')" 
-                    type="button" 
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
-                    title="Projects Table View"
-                >
-                    <svg class="w-3.5 h-3.5 {{ $viewMode === 'table' ? 'text-slate-800' : 'text-slate-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                    <span>Table</span>
+            <!-- Top Right Action Controls -->
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+                <!-- Subsidiary Filter Dropdown -->
+                <div class="relative min-w-[170px] sm:min-w-[210px]">
+                    <select wire:model.live="subsidiaryFilter"
+                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all shadow-2xs truncate">
+                        <option value="all">All Subsidiaries</option>
+                        @foreach($subsidiaries as $sub)
+                            <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                        @endforeach
+                    </select>
+                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+
+                <!-- Filter Toggle Button -->
+                <button @click="showFilters = !showFilters" type="button"
+                        class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    <span>Filter</span>
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all')
+                        <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                    @endif
                 </button>
 
-                <button 
-                    wire:click="setViewMode('gantt')" 
-                    type="button" 
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 {{ $viewMode === 'gantt' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60' }}"
-                    title="Master Portfolio Gantt Radar"
-                >
-                    <svg class="w-3.5 h-3.5 {{ $viewMode === 'gantt' ? 'text-[#c3122e]' : 'text-slate-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <!-- New Project CTA Button -->
+                @if(auth()->user()?->canCreateProject())
+                    <a href="{{ route('projects.create') }}"
+                       class="px-4 py-2 bg-[#c3122e] hover:bg-[#a00e25] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-[#c3122e]/20 cursor-pointer active:scale-95 shrink-0 no-underline">
+                        <svg class="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        <span>Add Project</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- View Tabs Line (Matching Uploaded UI Mockup with bottom border underline active indicator) -->
+        <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
+            <div class="flex items-center gap-6 text-xs whitespace-nowrap">
+                <!-- Table View Tab -->
+                <button wire:click="setViewMode('table')" type="button"
+                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                    <span>Table View</span>
+                </button>
+
+                <!-- Portfolio Gantt Tab -->
+                <button wire:click="setViewMode('gantt')" type="button"
+                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'gantt' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
                     <span>Portfolio Gantt</span>
                 </button>
 
-                <!-- All Tasks Button (Super Admin / PMO Admin) -->
                 @if(auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('pmo_admin'))
-                    <a 
-                        href="{{ route('all-tasks.index') }}" 
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 no-underline text-slate-600 hover:text-slate-900 hover:bg-white/60" 
-                        title="Organisation-wide Tasks &amp; Stuck Deliverables"
-                    >
-                        <svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    <!-- All Tasks Tab (Admin / PMO) -->
+                    <a href="{{ route('all-tasks.index') }}"
+                       class="py-3 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-900 font-semibold transition-all cursor-pointer flex items-center gap-1.5 no-underline">
                         <span>All Tasks</span>
                         @if($totalStuckTasksCount > 0)
-                            <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-rose-50 text-[#c3122e] border border-rose-200/70 leading-none" title="{{ $totalStuckTasksCount }} Stuck/Blocked Tasks">{{ $totalStuckTasksCount }}</span>
+                            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80">
+                                {{ $totalStuckTasksCount }}
+                            </span>
                         @endif
                     </a>
                 @endif
             </div>
-
-            <!-- Primary New Project CTA -->
-            @if(auth()->user()?->canCreateProject())
-                <a href="{{ route('projects.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm hover:shadow transition-all duration-150 cursor-pointer no-underline active:scale-98 flex-shrink-0">
-                    <svg class="w-3.5 h-3.5 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>New Project</span>
-                </a>
-            @endif
         </div>
+
+        <!-- Collapsible Search & Filter Bar -->
+        <div x-show="showFilters" transition:enter="transition ease-out duration-200" transition:leave="transition ease-in duration-150" class="pt-1">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+                <!-- Search Input -->
+                <div class="relative flex-1 min-w-[200px]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search projects by title, code, manager..."
+                           class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none transition-all">
+                </div>
+
+                <!-- Filter Dropdowns -->
+                <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                    <!-- Project Role Filter Dropdown -->
+                    <div class="relative flex-1 sm:flex-initial min-w-[150px]">
+                        <select wire:model.live="roleFilter"
+                                class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
+                            <option value="all">All Project Roles</option>
+                            <option value="project_manager">Project Manager</option>
+                            <option value="steering_committee">Steering Committee</option>
+                            <option value="owner">Project Owner</option>
+                            <option value="sponsor">Project Sponsor</option>
+                            <option value="team_member">Team Member</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="relative flex-1 sm:flex-initial min-w-[130px]">
+                        <select wire:model.live="statusFilter"
+                                class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
+                            <option value="all">All Statuses</option>
+                            @foreach(\App\Enums\ProjectStatus::cases() as $st)
+                                <option value="{{ $st->value }}">{{ $st->label() }}</option>
+                            @endforeach
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <!-- Priority Filter -->
+                    <div class="relative flex-1 sm:flex-initial min-w-[120px]">
+                        <select wire:model.live="priorityFilter"
+                                class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
+                            <option value="all">All Priorities</option>
+                            @foreach(\App\Enums\Priority::cases() as $pr)
+                                <option value="{{ $pr->value }}">{{ $pr->label() }}</option>
+                            @endforeach
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <!-- Clear Filters Button -->
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all' || $roleFilter !== 'all')
+                        <button type="button" wire:click="resetFilters"
+                                class="bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl px-3 py-2 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                                title="Reset Filters">
+                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <span>Clear</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         VIEW 1: PROJECTS DIRECTORY TABLE VIEW
-         ═══════════════════════════════════════════════════════════════ -->
-    <!-- ═══════════════════════════════════════════════════════════════
-         VIEW 1: PROJECTS DIRECTORY TABLE VIEW
-         ═══════════════════════════════════════════════════════════════ -->
     @if($viewMode === 'table')
-        {{-- ── Search & Filter Row ── --}}
-        <div class="flex flex-col sm:flex-row gap-2.5 mb-5">
-            {{-- Search Input --}}
-            <div class="relative flex-1">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </div>
-                <input
-                    wire:model.live.debounce.300ms="search"
-                    type="text"
-                    placeholder="Search projects, codes, managers..."
-                    class="w-full pl-10 pr-4 py-2 text-xs bg-white border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] text-slate-800 placeholder-slate-400 transition-all shadow-2xs"
-                >
-            </div>
-            {{-- Subsidiary Filter --}}
-            <div class="relative min-w-[170px]">
-                <select wire:model.live="subsidiaryFilter"
-                    class="w-full appearance-none bg-white border border-slate-200/80 text-slate-700 text-xs font-semibold py-2 pl-3.5 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all no-native-arrow truncate shadow-2xs">
-                    <option value="all">All Subsidiaries</option>
-                    @foreach($subsidiaries as $sub)
-                        <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                    @endforeach
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            </div>
-            {{-- Clear Filters Button --}}
-            @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all')
-                <button type="button" wire:click="resetFilters"
-                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 bg-white border border-rose-200 hover:bg-rose-50 transition-all cursor-pointer shrink-0 shadow-2xs">
-                    <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    Clear Filters
-                </button>
-            @endif
-        </div>
+        {{-- ── Projects Table Container ── --}}
 
         {{-- ── Projects Table Container ── --}}
         <div class="bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
@@ -246,7 +287,7 @@
                                             <span class="text-slate-400 text-[11px] font-medium truncate pl-1">{{ $project->wbsItems->count() }} Tasks</span>
                                         </div>
                                         <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-500 {{ $stConfig['bar'] }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
+                                            <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress >= 100 ? 'bg-emerald-500' : $stConfig['bar'] }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
                                         </div>
                                     </div>
                                 </td>
@@ -421,35 +462,47 @@
                             @forelse($ganttTimeline['projects'] as $gp)
                                 @php
                                     $proj = $gp['project'];
-                                    $health = $gp['health'] ?? ($proj->computed_health ?? 'on_track');
+                                    $health = $proj->computed_health ?? ($gp['health'] ?? 'in_progress');
                                     
                                     $hBadge = match($health) {
-                                        'delayed'   => 'bg-rose-50 text-rose-700 border-rose-200/80',
-                                        'at_risk'   => 'bg-amber-50 text-amber-800 border-amber-200/80',
-                                        'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-                                        default     => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+                                        'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+                                        'in_progress' => 'bg-blue-50 text-blue-700 border-blue-200/80',
+                                        'planning'    => 'bg-sky-50 text-sky-700 border-sky-200/80',
+                                        'at_risk'     => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                                        'delayed'     => 'bg-rose-50 text-rose-700 border-rose-200/80',
+                                        'on_hold'     => 'bg-slate-100 text-slate-600 border-slate-200/80',
+                                        default       => 'bg-blue-50 text-blue-700 border-blue-200/80',
                                     };
 
                                     $hDot = match($health) {
-                                        'delayed'   => 'bg-rose-500 animate-pulse',
-                                        'at_risk'   => 'bg-amber-500 animate-pulse',
-                                        'completed' => 'bg-emerald-500',
-                                        default     => 'bg-emerald-500',
+                                        'completed'   => 'bg-emerald-500',
+                                        'in_progress' => 'bg-blue-500 animate-pulse',
+                                        'planning'    => 'bg-sky-500',
+                                        'at_risk'     => 'bg-amber-500 animate-pulse',
+                                        'delayed'     => 'bg-rose-500 animate-pulse',
+                                        'on_hold'     => 'bg-slate-400',
+                                        default       => 'bg-blue-500',
                                     };
 
                                     $healthLabel = match($health) {
-                                        'delayed'   => 'Delayed',
-                                        'at_risk'   => 'At Risk',
-                                        'completed' => 'Completed',
-                                        default     => 'On Track',
+                                        'completed'   => 'Completed',
+                                        'in_progress' => 'In Progress',
+                                        'planning'    => 'Planning',
+                                        'at_risk'     => 'At Risk',
+                                        'delayed'     => 'Delayed',
+                                        'on_hold'     => 'On Hold',
+                                        default       => 'In Progress',
                                     };
                                     
                                     // Soft Modern Capsule Bar Styles
                                     $barBgStyle = match($health) {
-                                        'delayed'   => 'background: linear-gradient(135deg, #ef4444 0%, #c3122e 100%); box-shadow: 0 2px 10px rgba(195,18,46,0.22);',
-                                        'at_risk'   => 'background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 2px 10px rgba(217,119,6,0.22);',
-                                        'completed' => 'background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 2px 10px rgba(5,150,105,0.22);',
-                                        default     => 'background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 2px 10px rgba(5,150,105,0.22);',
+                                        'completed'   => 'background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 2px 10px rgba(5,150,105,0.22);',
+                                        'in_progress' => 'background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 2px 10px rgba(37,99,235,0.22);',
+                                        'planning'    => 'background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); box-shadow: 0 2px 10px rgba(2,132,199,0.22);',
+                                        'at_risk'     => 'background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 2px 10px rgba(217,119,6,0.22);',
+                                        'delayed'     => 'background: linear-gradient(135deg, #ef4444 0%, #c3122e 100%); box-shadow: 0 2px 10px rgba(195,18,46,0.22);',
+                                        'on_hold'     => 'background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); box-shadow: 0 2px 10px rgba(100,116,139,0.22);',
+                                        default       => 'background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 2px 10px rgba(37,99,235,0.22);',
                                     };
 
                                     $dateRangeLabel = $gp['start_date']->format('M d') . ' – ' . $gp['end_date']->format('M d');

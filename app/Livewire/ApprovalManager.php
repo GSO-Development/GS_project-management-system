@@ -42,6 +42,15 @@ class ApprovalManager extends Component
     public function updatedSearch()       { $this->resetPage(); }
     public function updatedProjectId()    { $this->wbsItemId = null; }
 
+    public function clearFilters(): void
+    {
+        $this->statusFilter = 'all';
+        $this->typeFilter   = 'all';
+        $this->scopeFilter  = 'all';
+        $this->search       = '';
+        $this->resetPage();
+    }
+
     public function openCreateModal(): void
     {
         $user = auth()->user();
