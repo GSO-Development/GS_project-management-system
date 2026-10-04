@@ -1,4 +1,4 @@
-<div class="space-y-6 pb-12">
+<div class="space-y-5 pb-12">
     <style>
         .daily-update-scroll::-webkit-scrollbar {
             width: 5px;
@@ -14,186 +14,154 @@
         .daily-update-scroll::-webkit-scrollbar-thumb:hover {
             background: #c3122e;
         }
-        .no-native-arrow {
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            appearance: none !important;
-            background-image: none !important;
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .filter-toolbar-enter {
+            animation: slideDownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP HEADER (DAILY STATUS UPDATES)
+         1. TOP HEADER & ACTION CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-100">
         <div>
             <div class="flex items-center gap-2.5 flex-wrap">
-                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                     Daily Status Updates
                 </h1>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-black text-white bg-[#c3122e] shadow-2xs flex items-center justify-center shrink-0" title="Total Status Updates">
-                    {{ $totalUpdatesCount }}
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold text-[#c3122e] bg-rose-50 border border-rose-200/60">
+                    {{ $totalUpdatesCount }} Total
                 </span>
-                <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-[#c3122e] bg-rose-50 border border-rose-200/70 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>{{ $updatedTodayCount }} Logged Today</span>
-                </span>
+                @if($updatedTodayCount > 0)
+                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>{{ $updatedTodayCount }} today</span>
+                    </span>
+                @endif
             </div>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">
+                Executive progress logs, deliverable updates &amp; team activity reports.
+            </p>
+        </div>
+
+        <!-- Top Right Action Controls -->
+        <div class="flex items-center gap-2">
+            <!-- Filter Toggle Button -->
+            <button wire:click="toggleFilters" type="button"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs' }}">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <span>Filter</span>
+                @if($hasActiveFilters)
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                @endif
+            </button>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         2. KPI METRICS SUMMARY (Sleek Executive Cards)
+         2. COLLAPSIBLE FILTER TOOLBAR
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
-        <!-- 1. Logged Today -->
-        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
-            <div class="flex items-center justify-between gap-1 mb-2">
-                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Logged Today</span>
-                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    @if($showFilters)
+        <div wire:key="daily-updates-filter-toolbar" class="pt-1 filter-toolbar-enter">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
+                {{-- Project Selector --}}
+                <div class="relative min-w-[170px] sm:min-w-[200px]">
+                    <select wire:model.live="selectedProjectId"
+                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all shadow-2xs truncate">
+                        <option value="">All Accessible Projects</option>
+                        @foreach($accessibleProjects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code }})</option>
+                        @endforeach
+                    </select>
+                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </div>
-            </div>
-            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $updatedTodayCount }}</div>
-        </div>
 
-        <!-- 2. Task Logs -->
-        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
-            <div class="flex items-center justify-between gap-1 mb-2">
-                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Task Logs</span>
-                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                {{-- Search Box --}}
+                <div class="relative flex-1 min-w-[200px]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
+                    <input wire:model.live.debounce.300ms="searchQuery" type="text"
+                           placeholder="Search project, task, reporter, blocker, keyword..."
+                           class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                    @if($searchQuery)
+                        <button type="button" wire:click="$set('searchQuery', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer text-xs font-bold">✕</button>
+                    @endif
                 </div>
-            </div>
-            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $taskUpdatesCount }}</div>
-        </div>
 
-        <!-- 3. Project Summaries -->
-        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
-            <div class="flex items-center justify-between gap-1 mb-2">
-                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Project Summaries</span>
-                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $projectUpdatesCount }}</div>
-        </div>
+                {{-- Filter Dropdowns --}}
+                <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                    {{-- Scope Filter Dropdown --}}
+                    <div class="relative flex-1 sm:flex-initial min-w-[130px]">
+                        <select wire:model.live="selectedScope"
+                                class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                            <option value="all">All Scopes</option>
+                            <option value="task">Task Logs</option>
+                            <option value="project">Project Summaries</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
 
-        <!-- 4. Pending Review -->
-        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition-all">
-            <div class="flex items-center justify-between gap-1 mb-2">
-                <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate">Pending Review</span>
-                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl {{ $uncommentedUpdatesCount > 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600' }} flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                    </svg>
+                    {{-- Date Filter Dropdown --}}
+                    <div class="relative flex-1 sm:flex-initial min-w-[120px]">
+                        <select wire:model.live="dateFilter"
+                                class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="this_week">This Week</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    {{-- Clear Filters Button --}}
+                    @if($hasActiveFilters)
+                        <button wire:click="clearFilters" type="button"
+                                class="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span>Clear</span>
+                        </button>
+                    @endif
                 </div>
             </div>
-            <div class="text-lg sm:text-2xl font-black font-mono leading-none {{ $uncommentedUpdatesCount > 0 ? 'text-indigo-600' : 'text-slate-900' }}">{{ $uncommentedUpdatesCount }}</div>
         </div>
-    </div>
+    @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
-         3. CONTROLS, SEARCH & FILTER TOOLBAR (INLINE CLEAN)
+         3. PROJECTS DAILY UPDATES MATRIX TABLE
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-        <!-- Search Box -->
-        <div class="relative flex-1 min-w-[220px]">
-            <input
-                type="text"
-                wire:model.live.debounce.300ms="searchQuery"
-                placeholder="Search project, task, reporter, or keywords..."
-                class="w-full h-9 text-xs font-medium pl-9 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all placeholder:text-slate-400"
-            >
-            <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            @if($searchQuery)
-                <button type="button" wire:click="$set('searchQuery', '')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
-            @endif
-        </div>
-
-        <!-- Project Selector Dropdown -->
-        <div class="relative min-w-[200px] sm:max-w-xs">
-            <select
-                wire:model.live="selectedProjectId"
-                class="no-native-arrow w-full h-9 text-xs font-semibold pl-3.5 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800"
-            >
-                <option value="">🌐 All Accessible Projects</option>
-                @foreach($accessibleProjects as $p)
-                    <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code }})</option>
-                @endforeach
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-        </div>
-
-        <!-- Date Filter Dropdown -->
-        <div class="relative min-w-[130px]">
-            <select
-                wire:model.live="dateFilter"
-                class="no-native-arrow w-full h-9 text-xs font-semibold pl-3.5 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800"
-            >
-                <option value="all">📅 All Time</option>
-                <option value="today">Today</option>
-                <option value="this_week">This Week</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         4. PROJECTS DAILY UPDATES MATRIX TABLE
-         ═══════════════════════════════════════════════════════════════ -->
-    <!-- ═══════════════════════════════════════════════════════════════
-         4. PROJECTS DAILY UPDATES MATRIX TABLE (PMO & TEAM MATRIX)
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="w-full rounded-2xl bg-white shadow-2xs border border-slate-200/80 overflow-hidden">
-        <!-- Table Title Header Bar -->
-        <div class="px-5 sm:px-6 py-4 border-b border-slate-200/80 bg-white flex items-center justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center shadow-2xs shrink-0">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Projects Daily Status Matrix
-                    </h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">
-                        Latest execution reports &amp; progress logs across active projects
-                    </p>
-                </div>
-            </div>
-
+    <div class="w-full rounded-2xl bg-white shadow-2xs border border-slate-200/90 overflow-hidden">
+        <!-- Section Bar -->
+        <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap bg-white">
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-slate-700 bg-slate-100/80 border border-slate-200/80">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>{{ count($groupedProjectUpdates) }} Active Projects</span>
+                <span class="text-sm font-bold text-slate-900" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Active Projects Matrix
+                </span>
+                <span class="px-2 py-0.2 rounded-md bg-slate-100 text-slate-600 font-mono text-[10.5px] font-bold">
+                    {{ count($groupedProjectUpdates) }} {{ Str::plural('Project', count($groupedProjectUpdates)) }}
                 </span>
             </div>
+            <span class="text-[11px] text-slate-400 font-medium">
+                Click on any project to view history or log an update
+            </span>
         </div>
 
-        <div class="w-full overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
+        <div>
+            <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="bg-slate-50/70 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[26%] sm:w-[22%] lg:w-[20%]">Project &amp; Code</th>
-                        <th class="py-3.5 px-3 w-[16%] lg:w-[14%] hidden md:table-cell">Subsidiary</th>
-                        <th class="py-3.5 px-3 w-[18%] sm:w-[16%] lg:w-[15%]">Project Manager</th>
-                        <th class="py-3.5 px-3 w-[36%] sm:w-[32%] lg:w-[31%]">Latest Status Log</th>
-                        <th class="py-3.5 px-3 w-[12%] hidden lg:table-cell">Last Logged</th>
-                        <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right whitespace-nowrap w-[18%] sm:w-[14%] lg:w-[10%]">Actions</th>
+                    <tr class="bg-slate-50/75 border-b border-slate-200/80 text-[10.5px] font-bold uppercase tracking-wider text-slate-500" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        <th class="py-3 pl-5 pr-3 w-[26%]">Project &amp; Code</th>
+                        <th class="py-3 px-3 w-[18%] hidden md:table-cell">Subsidiary</th>
+                        <th class="py-3 px-3 w-[16%]">Project Manager</th>
+                        <th class="py-3 px-3 w-[22%]">Latest Status</th>
+                        <th class="py-3 px-3 w-[10%] hidden lg:table-cell">Last Logged</th>
+                        <th class="py-3 pl-2 pr-5 text-right w-[8%] whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -213,18 +181,18 @@
                                 : strtoupper(substr($pmName, 0, 2));
                         @endphp
 
-                        <tr class="hover:bg-slate-50/80 transition-colors group">
+                        <tr class="hover:bg-slate-50/75 transition-colors group">
                             <!-- Project Code & Name -->
-                            <td class="py-3.5 pl-5 sm:pl-6 pr-3 align-middle">
-                                <div class="space-y-1 min-w-0">
-                                    <a href="{{ route('projects.show', $project) }}" class="font-bold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors block leading-snug truncate group-hover:text-[#c3122e]" title="{{ $project->name }}">
+                            <td class="py-3 pl-5 pr-3 align-middle">
+                                <div class="space-y-0.5 min-w-0">
+                                    <a href="{{ route('projects.show', $project) }}" class="font-bold text-xs text-slate-900 hover:text-[#c3122e] transition-colors block truncate" title="{{ $project->name }}">
                                         {{ $project->name }}
                                     </a>
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <span class="px-2 py-0.5 rounded-md text-[9.5px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/90 shrink-0 leading-none shadow-2xs">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-1.5 py-0.2 rounded text-[9.5px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
                                             {{ $project->code ?? 'PRJ-' . $project->id }}
                                         </span>
-                                        <span class="text-[10.5px] text-slate-400 font-medium whitespace-nowrap">
+                                        <span class="text-[10px] text-slate-400 font-medium">
                                             • {{ $allUpdatesCount }} {{ Str::plural('update', $allUpdatesCount) }}
                                         </span>
                                     </div>
@@ -232,93 +200,81 @@
                             </td>
 
                             <!-- Subsidiary Name -->
-                            <td class="py-3.5 px-3 hidden md:table-cell align-middle whitespace-nowrap">
+                            <td class="py-3 px-3 hidden md:table-cell align-middle">
                                 @if($subsidiary)
-                                    <div class="flex items-center gap-2 text-slate-700 min-w-0">
-                                        <div class="w-5.5 h-5.5 rounded-md bg-slate-100/80 flex items-center justify-center shrink-0 text-slate-400 border border-slate-200/60">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                            </svg>
-                                        </div>
-                                        <span class="font-semibold text-xs text-slate-700 truncate" title="{{ $subsidiary->name }}">{{ $subsidiary->name }}</span>
-                                    </div>
+                                    <span class="text-xs text-slate-600 font-medium truncate block" title="{{ $subsidiary->name }}">
+                                        {{ $subsidiary->name }}
+                                    </span>
                                 @else
-                                    <span class="text-slate-400 font-medium italic text-xs">—</span>
+                                    <span class="text-slate-400 font-light italic text-xs">—</span>
                                 @endif
                             </td>
 
                             <!-- Project Manager -->
-                            <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                            <td class="py-3 px-3 align-middle">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <div class="w-6.5 h-6.5 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[9.5px] shrink-0 border border-slate-700/80 shadow-2xs">
+                                    <div class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[9px] shrink-0">
                                         {{ $pmInitials }}
                                     </div>
-                                    <div class="min-w-0 flex items-center gap-1.5">
-                                        <span class="font-semibold text-slate-800 truncate text-xs" title="{{ $pmName }}">{{ $pmName }}</span>
-                                    </div>
+                                    <span class="font-medium text-slate-700 truncate text-xs" title="{{ $pmName }}">{{ $pmName }}</span>
                                 </div>
                             </td>
 
                             <!-- Latest Update Summary -->
-                            <td class="py-3.5 px-3 align-middle">
+                            <td class="py-3 px-3 align-middle">
                                 @if($update)
-                                    <div class="min-w-0">
-                                        <p class="text-xs text-slate-800 font-medium leading-snug truncate bg-slate-50/80 px-3 py-1.5 rounded-lg border border-slate-200/70 shadow-2xs" title="{{ $update->summary }}">
-                                            "{{ $update->summary }}"
-                                        </p>
+                                    <div class="min-w-0 flex items-center gap-1.5" title="{{ $update->summary }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $update->updated_status === 'completed' ? 'bg-emerald-500' : ($update->updated_status === 'on_hold' ? 'bg-amber-500' : 'bg-blue-500') }} shrink-0"></span>
+                                        <span class="text-xs text-slate-700 truncate block">"{{ $update->summary }}"</span>
                                     </div>
                                 @else
-                                    <div class="flex items-center gap-1.5 text-slate-400 italic text-xs font-medium">
-                                        <span>No status updates logged yet</span>
-                                    </div>
+                                    <span class="text-xs text-slate-400 italic">No updates logged yet</span>
                                 @endif
                             </td>
 
                             <!-- Last Log Date -->
-                            <td class="py-3.5 px-3 hidden lg:table-cell align-middle text-slate-500 font-medium whitespace-nowrap" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            <td class="py-3 px-3 hidden lg:table-cell align-middle text-slate-500 font-medium whitespace-nowrap">
                                 @if($update)
-                                    <div class="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
-                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span>{{ $update->created_at->diffForHumans() }}</span>
-                                    </div>
+                                    <span class="text-xs text-slate-500">{{ $update->created_at->diffForHumans() }}</span>
                                 @else
-                                    <span class="text-slate-300 font-light">—</span>
+                                    <span class="text-slate-300 font-mono">—</span>
                                 @endif
                             </td>
 
                             <!-- Actions -->
-                            <td class="py-3.5 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
-                                <div class="inline-flex items-center justify-end gap-2">
+                            <td class="py-3 pl-2 pr-5 align-middle text-right whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-1.5">
                                     <button
                                         wire:click="openStatusUpdateModal({{ $project->id }})"
                                         type="button"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e25] transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap"
                                     >
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                        <span>Log Update</span>
+                                        + Update
                                     </button>
 
-                                    <!-- View History Modal Trigger -->
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
                                         type="button"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 transition-all cursor-pointer shadow-2xs"
-                                        title="View status logs history for {{ $project->name }}"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200/80 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                                        title="View status logs history"
                                     >
-                                        <span>Updates</span>
-                                        <span class="px-1.5 py-0.2 rounded-md bg-white text-slate-700 text-[10px] font-bold border border-slate-200/60">{{ $allUpdatesCount }}</span>
+                                        Logs ({{ $allUpdatesCount }})
                                     </button>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-16 text-center text-xs font-bold text-slate-400 space-y-2">
-                                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400 shadow-inner mb-2">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                                </div>
-                                <p class="text-slate-600 font-black text-sm">No Projects Found</p>
-                                <p class="text-slate-400 font-medium text-xs">We couldn't find any projects matching your current query.</p>
+                            <td colspan="6" class="py-12 text-center text-xs text-slate-400 space-y-1">
+                                <p class="text-slate-600 font-bold text-sm">No Projects Found</p>
+                                <p class="text-slate-400 font-medium text-xs">No active projects match your filter query.</p>
+                                @if($hasActiveFilters)
+                                    <div class="pt-2">
+                                        <button wire:click="clearFilters" type="button" class="text-xs font-bold text-[#c3122e] underline cursor-pointer">
+                                            Clear all filters
+                                        </button>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @endforelse
@@ -327,9 +283,11 @@
         </div>
 
         <!-- Table Pagination Footer -->
-        <div class="px-6 py-4 bg-white border-t border-slate-100">
-            {{ $groupedProjectUpdates->links() }}
-        </div>
+        @if($groupedProjectUpdates->hasPages())
+            <div class="px-5 py-3 bg-white border-t border-slate-100">
+                {{ $groupedProjectUpdates->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════

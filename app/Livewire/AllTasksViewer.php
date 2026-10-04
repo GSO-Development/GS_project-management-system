@@ -15,6 +15,9 @@ class AllTasksViewer extends Component
     // View Mode: 'all' (All Tasks) | 'stuck' (Stuck & Blocked Radar)
     public string $viewMode       = 'all';
 
+    // Collapsible Filters State
+    public bool   $showFilters    = false;
+
     // All Tasks Filters
     public string $search         = '';
     public string $statusFilter   = 'all';
@@ -48,6 +51,24 @@ class AllTasksViewer extends Component
         } elseif ($s && in_array($s, ['completed', 'in_progress', 'on_hold', 'not_started', 'blocked', 'all'])) {
             $this->statusFilter = $s;
         }
+
+        if ($this->hasActiveFilters()) {
+            $this->showFilters = true;
+        }
+    }
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        if ($this->viewMode === 'all') {
+            return ($this->search !== '' || $this->statusFilter !== 'all' || $this->projectFilter !== 'all' || $this->priorityFilter !== 'all' || $this->sortBy !== 'end_date');
+        } else {
+            return ($this->search !== '' || $this->stuckProjectFilter !== 'all' || $this->projectFilter !== 'all' || $this->stuckAssigneeFilter !== 'all' || $this->stuckPriorityFilter !== 'all' || $this->stuckTypeFilter !== 'all');
+        }
     }
 
     public function setViewMode(string $mode): void
@@ -64,7 +85,7 @@ class AllTasksViewer extends Component
 
     public function resetStuckFilters(): void
     {
-        $this->reset(['search', 'stuckTypeFilter', 'stuckProjectFilter', 'stuckAssigneeFilter', 'stuckPriorityFilter']);
+        $this->reset(['search', 'stuckTypeFilter', 'stuckProjectFilter', 'stuckAssigneeFilter', 'stuckPriorityFilter', 'projectFilter']);
         $this->resetPage();
     }
 
@@ -79,7 +100,7 @@ class AllTasksViewer extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['search', 'statusFilter', 'projectFilter', 'priorityFilter']);
+        $this->reset(['search', 'statusFilter', 'projectFilter', 'priorityFilter', 'sortBy']);
         $this->resetPage();
     }
 
@@ -139,7 +160,8 @@ class AllTasksViewer extends Component
             if ($this->stuckTypeFilter === 'delay_reported' && empty($task->delay_reason)) return false;
             if ($this->stuckTypeFilter === 'on_hold' && $task->status?->value !== 'on_hold' && ($task->project?->status?->value ?? '') !== 'on_hold') return false;
 
-            if ($this->stuckProjectFilter !== 'all' && (string)$task->project_id !== $this->stuckProjectFilter) return false;
+            $selectedProject = ($this->stuckProjectFilter !== 'all') ? $this->stuckProjectFilter : $this->projectFilter;
+            if ($selectedProject !== 'all' && (string)$task->project_id !== $selectedProject) return false;
             if ($this->stuckAssigneeFilter !== 'all' && (string)$task->assigned_user_id !== $this->stuckAssigneeFilter) return false;
             if ($this->stuckPriorityFilter !== 'all' && strtolower($task->priority?->value ?? '') !== strtolower($this->stuckPriorityFilter)) return false;
 
@@ -206,6 +228,9 @@ class AllTasksViewer extends Component
             'stuckProjectsList',
             'stuckAssigneesList',
             'stuckTasks'
-        ));
+        ))->with([
+            'showFilters' => $this->showFilters,
+            'hasActiveFilters' => $this->hasActiveFilters(),
+        ]);
     }
 }

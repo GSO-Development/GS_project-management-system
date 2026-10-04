@@ -20,15 +20,21 @@
         border-radius: 14px;
         border: 1px solid #e2e8f0;
         background: #fff;
-        transition: border-color .15s, box-shadow .15s;
+        transition: all .15s ease;
         overflow: hidden;
     }
-    .ud-task:hover { border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+    .ud-task:hover { border-color: #fca5a5; box-shadow: 0 3px 10px rgba(195,18,46,.04); }
 
     /* ── Scrollable panels ── */
-    .ud-scroll { max-height: 236px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; }
-    .ud-scroll::-webkit-scrollbar { width: 3px; }
+    .ud-scroll { max-height: 250px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+    .ud-scroll::-webkit-scrollbar { width: 4px; }
     .ud-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+    .ud-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+    /* ── Range slider in crimson red ── */
+    input[type=range].ud-range {
+        accent-color: #c3122e;
+    }
 
     /* ── Select ── */
     .ud-sel {
@@ -39,34 +45,60 @@
     }
 
     /* ── Animations ── */
-    @keyframes ud-rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    .ud-a1 { animation: ud-rise .3s ease-out both; }
+    @keyframes ud-rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .ud-a1 { animation: ud-rise .3s cubic-bezier(0.16, 1, 0.3, 1) both; }
 </style>
 
-<div class="ud-root ud-a1 space-y-6 pb-10">
+<div class="ud-root ud-a1 space-y-6 max-w-[1600px] mx-auto pb-10">
 
     {{-- ══════════════════════════════════════
-         HERO HEADER
+         1. HERO HEADER (CLEAN & MINIMALIST)
          ══════════════════════════════════════ --}}
-    <div class="flex flex-wrap items-center justify-between gap-4">
+    @php
+        $hour = now()->hour;
+        $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+        $currentUser = auth()->user();
+        $userName = $currentUser->name ?? 'Team Member';
+        $firstName = explode(' ', $userName)[0];
+        $subsidiaryName = $currentUser->subsidiary?->name ?? 'George Steuart Group';
+    @endphp
 
-        {{-- Left: Greeting --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1 pb-1">
         <div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 17 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }} <span class="inline-block hover:scale-110 transition-transform cursor-default select-none">👋</span>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                {{ $greeting }}, {{ $firstName }} <span class="inline-block hover:scale-110 transition-transform cursor-default select-none">👋</span>
             </h1>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">{{ now()->format('l, F j, Y') }}</p>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                <span class="inline-flex items-center gap-1.5 font-semibold text-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>My Workspace</span>
+                </span>
+                <span class="text-slate-300">•</span>
+                <span class="font-medium text-slate-500">{{ now()->format('l, F j, Y') }}</span>
+                <span class="text-slate-300 hidden sm:inline">•</span>
+                <span class="font-medium text-slate-500 hidden sm:inline">{{ $subsidiaryName }}</span>
+            </div>
         </div>
 
-        {{-- Right: Quick links & completion gauge --}}
-        <div class="flex items-center gap-3 flex-wrap">
+        {{-- Right: Quick Navigation Actions with Red Brand Focus --}}
+        <div class="flex items-center gap-2.5 flex-wrap">
             <a href="{{ route('my-tasks.index') }}"
-               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] shadow-2xs transition-all no-underline">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+               wire:navigate.hover
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer no-underline active:scale-98">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 <span>Full Task Board</span>
             </a>
+
+            <a href="{{ route('daily-updates.index') }}"
+               wire:navigate.hover
+               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-[#c3122e] border border-slate-200 hover:border-rose-200 shadow-2xs transition-all no-underline">
+                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span>Daily Update</span>
+            </a>
+
             <a href="{{ route('calendar.index') }}"
-               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all no-underline">
+               wire:navigate.hover
+               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-[#c3122e] border border-slate-200 hover:border-rose-200 shadow-2xs transition-all no-underline">
                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 <span>Calendar</span>
             </a>
@@ -74,50 +106,78 @@
     </div>
 
     {{-- ══════════════════════════════════════
-         KPI STATS ROW
+         2. MINIMALIST KPI METRIC TILES
          ══════════════════════════════════════ --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        @php
-        $stats = [
-            [
-                'num'  => $totalCount,
-                'lbl'  => 'TOTAL TASKS',
-                'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-            ],
-            [
-                'num'  => $inProgress->count(),
-                'lbl'  => 'IN PROGRESS',
-                'icon' => 'M13 10V3L4 14h7v7l9-11h-7z',
-            ],
-            [
-                'num'  => $dueToday->count(),
-                'lbl'  => 'DUE TODAY',
-                'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-            ],
-            [
-                'num'  => $completed->count(),
-                'lbl'  => 'COMPLETED',
-                'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-            ],
-        ];
-        @endphp
-        @foreach($stats as $s)
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200">
+        {{-- Card 1: Total Tasks --}}
+        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group no-underline block">
             <div class="flex items-center justify-between gap-1 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">{{ $s['lbl'] }}</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">TOTAL TASKS</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $s['icon'] }}"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
                 </div>
             </div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono leading-none">{{ $s['num'] }}</div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $totalCount }}</span>
+                <span class="text-[11px] font-semibold text-slate-400">{{ $inProgress->count() }} Active</span>
+            </div>
+        </a>
+
+        {{-- Card 2: In Progress --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
+            <div class="flex items-center justify-between gap-1 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">IN PROGRESS</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $inProgress->count() }}</span>
+                <span class="text-[11px] font-semibold text-blue-600 font-mono">{{ $totalCount > 0 ? round(($inProgress->count() / $totalCount) * 100) : 0 }}% total</span>
+            </div>
         </div>
-        @endforeach
+
+        {{-- Card 3: Due Today / Urgent --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
+            <div class="flex items-center justify-between gap-1 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">DUE TODAY</span>
+                <div class="w-8 h-8 rounded-xl {{ $dueToday->count() > 0 ? 'bg-rose-50 text-[#c3122e] border-rose-200/70' : 'bg-slate-100/80 text-slate-600 border-slate-200/60' }} flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold {{ $dueToday->count() > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} tracking-tight font-mono">{{ $dueToday->count() }}</span>
+                <span class="text-[11px] font-semibold {{ $dueToday->count() > 0 ? 'text-rose-600' : 'text-slate-400' }}">
+                    {{ $dueToday->count() > 0 ? 'Attention Needed' : 'All Clear' }}
+                </span>
+            </div>
+        </div>
+
+        {{-- Card 4: Completed --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
+            <div class="flex items-center justify-between gap-1 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">COMPLETED</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $completed->count() }}</span>
+                <span class="text-[11px] font-semibold text-emerald-600 font-mono">{{ $completionPct }}% Rate</span>
+            </div>
+        </div>
     </div>
 
     {{-- ══════════════════════════════════════
-         2-COL: TODAY'S FOCUS + UPCOMING
+         3. 2-COL: TODAY'S FOCUS + UPCOMING
          ══════════════════════════════════════ --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
@@ -125,51 +185,55 @@
         <div class="ud-card overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 border border-slate-200/60 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-200/60 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div>
                         <h3 class="text-xs sm:text-sm font-bold text-slate-900 leading-none">Today's Focus</h3>
-                        <p class="text-[11px] font-medium text-slate-400 mt-0.5">{{ now()->format('F j') }} · Active &amp; Due</p>
+                        <p class="text-[11px] font-medium text-slate-400 mt-0.5">{{ now()->format('F j') }} · Active &amp; Due Items</p>
                     </div>
                 </div>
                 <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                     {{ $todayFocus->count() }}
                 </span>
             </div>
-            <div class="ud-scroll">
+            <div class="ud-scroll p-1">
                 @forelse($todayFocus as $dt)
                 @php
                     $isOv = $dt->end_date && $dt->end_date->lt(now()->today());
                     $isTd = $dt->end_date && $dt->end_date->isToday();
                     $badgeClass = $isOv
-                        ? 'bg-rose-50 text-rose-700 border-rose-200/60'
+                        ? 'bg-rose-50 text-[#c3122e] border-rose-200/80 font-bold'
                         : ($isTd
-                            ? 'bg-amber-50 text-amber-800 border-amber-200/60'
-                            : 'bg-blue-50 text-blue-700 border-blue-200/60');
+                            ? 'bg-amber-50 text-amber-800 border-amber-200/70 font-bold'
+                            : 'bg-blue-50 text-blue-700 border-blue-200/60 font-semibold');
                     $dLbl = $isOv ? 'Overdue' : ($isTd ? 'Due Today' : 'In Progress');
                 @endphp
-                <div class="flex items-center gap-3 p-3 border-b border-slate-100/80 hover:bg-slate-50/60 transition-colors">
-                    <span class="w-2 h-2 rounded-full {{ $isOv ? 'bg-rose-500 animate-pulse' : ($isTd ? 'bg-amber-500' : 'bg-blue-500') }} shrink-0"></span>
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-none">
+                    <span class="w-2 h-2 rounded-full {{ $isOv ? 'bg-[#c3122e] animate-pulse' : ($isTd ? 'bg-amber-500' : 'bg-blue-500') }} shrink-0"></span>
                     <div class="flex-1 min-w-0">
-                        <p class="text-xs font-bold text-slate-900 truncate" title="{{ $dt->title }}">{{ $dt->title }}</p>
-                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">{{ $dt->wbs_code }}{{ $dt->project ? ' · '.Str::limit($dt->project->name,20) : '' }}</p>
+                        <p class="text-xs font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors" title="{{ $dt->title }}">{{ $dt->title }}</p>
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">{{ $dt->wbs_code }}{{ $dt->project ? ' · '.Str::limit($dt->project->name,22) : '' }}</p>
                     </div>
-                    <div class="flex flex-col items-end gap-1 shrink-0">
-                        <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-md border {{ $badgeClass }}">{{ $dLbl }}</span>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <span class="text-[9.5px] px-2 py-0.5 rounded-md border {{ $badgeClass }}">{{ $dLbl }}</span>
                         <div class="flex items-center gap-1.5">
-                            <div class="w-12 h-1 bg-slate-200/60 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full bg-slate-700" style="width:{{ $dt->progress }}%;"></div>
+                            <div class="w-14 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full {{ $isOv ? 'bg-[#c3122e]' : 'bg-slate-700' }}" style="width:{{ $dt->progress }}%;"></div>
                             </div>
-                            <span class="text-[10px] font-mono font-bold text-slate-700">{{ $dt->progress }}%</span>
+                            <span class="text-[10px] font-mono font-bold text-slate-600">{{ $dt->progress }}%</span>
                         </div>
                     </div>
                 </div>
                 @empty
-                <div class="py-8 text-center space-y-1">
-                    <p class="text-xs font-semibold text-slate-500">🎉 All clear today! No urgent tasks.</p>
+                <div class="py-10 text-center space-y-1">
+                    <div class="w-9 h-9 mx-auto rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-sm mb-1">
+                        ✓
+                    </div>
+                    <p class="text-xs font-semibold text-slate-600">All clear today!</p>
+                    <p class="text-[11px] text-slate-400">No urgent or overdue tasks needing attention.</p>
                 </div>
                 @endforelse
             </div>
@@ -185,28 +249,28 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 leading-none">Upcoming</h3>
-                        <p class="text-[11px] font-medium text-slate-400 mt-0.5">Scheduled deadlines</p>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 leading-none">Upcoming Deadlines</h3>
+                        <p class="text-[11px] font-medium text-slate-400 mt-0.5">Scheduled project milestones</p>
                     </div>
                 </div>
                 <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                     {{ $upcoming->count() }}
                 </span>
             </div>
-            <div class="ud-scroll">
+            <div class="ud-scroll p-1">
                 @forelse($upcoming as $ud)
                 @php
                     $dl = $ud->end_date ? (int) now()->today()->diffInDays($ud->end_date, false) : null;
                 @endphp
-                <div class="flex items-center gap-3 p-3 border-b border-slate-100/80 hover:bg-slate-50/60 transition-colors">
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-none">
                     <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/80 flex flex-col items-center justify-center shrink-0">
-                        <span class="text-xs font-extrabold text-slate-800 font-mono leading-none">{{ $dl ?? '?' }}</span>
+                        <span class="text-xs font-extrabold text-slate-900 font-mono leading-none">{{ $dl ?? '?' }}</span>
                         <span class="text-[8px] font-bold uppercase text-slate-400">days</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-xs font-bold text-slate-900 truncate" title="{{ $ud->title }}">{{ $ud->title }}</p>
+                        <p class="text-xs font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors" title="{{ $ud->title }}">{{ $ud->title }}</p>
                         <p class="text-[11px] text-slate-400 font-medium mt-0.5">
-                            {{ $ud->project ? Str::limit($ud->project->name,20).' · ' : '' }}{{ $ud->end_date?->format('M d, Y') }}
+                            {{ $ud->project ? Str::limit($ud->project->name,22).' · ' : '' }}{{ $ud->end_date?->format('M d, Y') }}
                         </p>
                     </div>
                     <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-md border bg-slate-100 text-slate-600 border-slate-200 shrink-0">
@@ -214,8 +278,9 @@
                     </span>
                 </div>
                 @empty
-                <div class="py-8 text-center space-y-1">
+                <div class="py-10 text-center space-y-1">
                     <p class="text-xs font-semibold text-slate-500">📅 No upcoming deadlines</p>
+                    <p class="text-[11px] text-slate-400">Your scheduled tasks are well within deadlines.</p>
                 </div>
                 @endforelse
             </div>
@@ -223,7 +288,7 @@
     </div>
 
     {{-- ══════════════════════════════════════
-         MAIN: TASK LIST + SIDEBAR
+         4. MAIN: TASK LIST + SIDEBAR
          ══════════════════════════════════════ --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
@@ -231,10 +296,10 @@
         <div class="lg:col-span-8 space-y-3">
             <div class="flex items-center justify-between pb-1 border-b border-slate-100">
                 <div class="flex items-center gap-2">
-                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">My Assigned Tasks</h2>
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">My Assigned Tasks</h2>
                     <span class="text-xs font-bold font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">{{ $totalCount }}</span>
                 </div>
-                <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-400 hover:text-slate-800 flex items-center gap-1 transition-colors no-underline">
+                <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-400 hover:text-[#c3122e] flex items-center gap-1 transition-colors no-underline">
                     <span>View all</span>
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </a>
@@ -246,12 +311,15 @@
                 $isOv = $dl2 !== null && $dl2 < 0 && !in_array($task->status->value,['completed','cancelled']);
                 $isTd = $dl2 === 0 && !in_array($task->status->value,['completed','cancelled']);
 
-                $sc = match($task->status->value) {
-                    'in_progress'  => ['bar'=>'bg-blue-500',   'sbg'=>'bg-blue-50 text-blue-700 border-blue-200/60'],
-                    'completed'    => ['bar'=>'bg-emerald-500','sbg'=>'bg-emerald-50 text-emerald-700 border-emerald-200/60'],
-                    'blocked'      => ['bar'=>'bg-rose-500',   'sbg'=>'bg-rose-50 text-rose-700 border-rose-200/60'],
-                    'under_review' => ['bar'=>'bg-sky-500',    'sbg'=>'bg-sky-50 text-sky-700 border-sky-200/60'],
-                    default        => ['bar'=>'bg-slate-300',  'sbg'=>'bg-slate-100 text-slate-600 border-slate-200'],
+                $tmStVal = $task->status->value ?? (string) $task->status;
+                $tmStStyle = match($tmStVal) {
+                    'in_progress'  => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200/90', 'dot' => 'bg-blue-500', 'style' => 'background-color: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important;'],
+                    'completed'    => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/90', 'dot' => 'bg-emerald-500', 'style' => 'background-color: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0 !important;'],
+                    'at_risk'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90', 'dot' => 'bg-amber-500', 'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'],
+                    'under_review' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200/90', 'dot' => 'bg-purple-500', 'style' => 'background-color: #faf5ff !important; color: #6b21a8 !important; border-color: #e9d5ff !important;'],
+                    'blocked'      => ['bg' => 'bg-rose-50 text-[#c3122e] border-rose-200/90', 'dot' => 'bg-[#c3122e]', 'style' => 'background-color: #fff1f2 !important; color: #c3122e !important; border-color: #fecdd3 !important;'],
+                    'on_hold'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90', 'dot' => 'bg-amber-500', 'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'],
+                    default        => ['bg' => 'bg-slate-100 text-slate-700 border-slate-200/90', 'dot' => 'bg-slate-400', 'style' => 'background-color: #f1f5f9 !important; color: #334155 !important; border-color: #cbd5e1 !important;'],
                 };
             @endphp
 
@@ -265,46 +333,43 @@
                                 {{ $task->wbs_code }}
                             </span>
                             @if($isOv)
-                                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">⚠ {{ abs($dl2) }}d late</span>
+                                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e] animate-pulse"></span>
+                                    <span>{{ abs($dl2) }}d overdue</span>
+                                </span>
                             @elseif($isTd)
-                                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">⏰ Today</span>
+                                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/70">
+                                    ⏰ Due Today
+                                </span>
                             @endif
                         </div>
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate {{ $task->status->value==='completed' ? 'line-through text-slate-400' : '' }}" title="{{ $task->title }}">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors {{ $task->status->value==='completed' ? 'line-through text-slate-400' : '' }}" title="{{ $task->title }}">
                             {{ $task->title }}
                         </h3>
                         <div class="flex items-center gap-3 text-xs text-slate-400 font-medium mt-1">
-                            @if($task->project)<span class="truncate">📁 {{ $task->project->name }}</span>@endif
-                            @if($task->end_date)<span class="{{ $isOv ? 'text-rose-600 font-bold' : '' }}">📅 {{ $task->end_date->format('M d, Y') }}</span>@endif
+                            @if($task->project)
+                                <span class="truncate">📁 {{ $task->project->name }}</span>
+                            @endif
+                            @if($task->end_date)
+                                <span class="{{ $isOv ? 'text-[#c3122e] font-bold' : '' }}">📅 {{ $task->end_date->format('M d, Y') }}</span>
+                            @endif
                         </div>
                     </div>
 
-                    {{-- Controls --}}
+                    {{-- Controls: Progress slider & Status select --}}
                     <div class="flex items-center gap-3 shrink-0">
-                        {{-- Progress slider --}}
+                        {{-- Progress slider with red brand accent --}}
                         <div class="w-28 space-y-1">
                             <div class="flex justify-between text-[9.5px] font-bold text-slate-400">
                                 <span>PROGRESS</span>
-                                <span class="text-slate-800 font-mono">{{ $task->progress }}%</span>
+                                <span class="text-slate-900 font-mono">{{ $task->progress }}%</span>
                             </div>
                             <input type="range" min="0" max="100" step="5" value="{{ $task->progress }}"
                                    wire:change="updateTaskProgress({{ $task->id }}, $event.target.value)"
-                                   class="w-full accent-slate-700 cursor-pointer">
+                                   class="w-full ud-range cursor-pointer">
                         </div>
 
                         {{-- Status select --}}
-                        @php
-                            $tmStVal = $task->status->value ?? (string) $task->status;
-                            $tmStStyle = match($tmStVal) {
-                                'in_progress'  => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200/90', 'dot' => 'bg-blue-500', 'style' => 'background-color: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important;'],
-                                'completed'    => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200/90', 'dot' => 'bg-emerald-500', 'style' => 'background-color: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0 !important;'],
-                                'at_risk'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90', 'dot' => 'bg-amber-500', 'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'],
-                                'under_review' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200/90', 'dot' => 'bg-purple-500', 'style' => 'background-color: #faf5ff !important; color: #6b21a8 !important; border-color: #e9d5ff !important;'],
-                                'blocked'      => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/90', 'dot' => 'bg-rose-500', 'style' => 'background-color: #fff1f2 !important; color: #be123c !important; border-color: #fecdd3 !important;'],
-                                'on_hold'      => ['bg' => 'bg-amber-50 text-amber-800 border-amber-200/90', 'dot' => 'bg-amber-500', 'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'],
-                                default        => ['bg' => 'bg-slate-100 text-slate-700 border-slate-200/90', 'dot' => 'bg-slate-400', 'style' => 'background-color: #f1f5f9 !important; color: #334155 !important; border-color: #cbd5e1 !important;'],
-                            };
-                        @endphp
                         <div class="relative flex items-center">
                             <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full z-10 {{ $tmStStyle['dot'] }}"></span>
                             <select wire:change="updateTaskStatus({{ $task->id }}, $event.target.value)"
@@ -330,7 +395,7 @@
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
                 <h3 class="font-bold text-xs text-slate-800">No Tasks Assigned Yet</h3>
-                <p class="text-xs text-slate-400 font-medium max-w-sm mx-auto">Your Project Manager will assign tasks soon.</p>
+                <p class="text-xs text-slate-400 font-medium max-w-sm mx-auto">Your Project Manager will assign tasks to your workspace soon.</p>
             </div>
             @endforelse
         </div>
@@ -341,15 +406,15 @@
             {{-- Status Breakdown --}}
             <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Status Breakdown</h3>
-                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">{{ $completionPct }}%</span>
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Status Breakdown</h3>
+                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-rose-50 text-[#c3122e] border border-rose-200/60">{{ $completionPct }}% Complete</span>
                 </div>
                 @php
                     $bk = [
                         ['l'=>'Completed',   'n'=>$completed->count(),   'c'=>'bg-emerald-500'],
-                        ['l'=>'In Progress', 'n'=>$inProgress->count(),  'c'=>'bg-blue-500'],
-                        ['l'=>'Not Started', 'n'=>$myTasks->filter(fn($t)=>in_array($t->status->value,['not_started','backlog']))->count(), 'c'=>'bg-slate-400'],
-                        ['l'=>'Blocked',     'n'=>$blocked->count(),     'c'=>'bg-amber-500'],
+                        ['l'=>'In Progress', 'n'=>$inProgress->count(),  'c'=>'bg-[#c3122e]'],
+                        ['l'=>'Not Started', 'n'=>$myTasks->filter(fn($t)=>in_array($t->status->value,['not_started','backlog']))->count(), 'c'=>'bg-slate-300'],
+                        ['l'=>'Blocked',     'n'=>$blocked->count(),     'c'=>'bg-rose-500'],
                     ];
                 @endphp
                 <div class="space-y-3">
@@ -370,21 +435,23 @@
                 </div>
             </div>
 
-            {{-- Overdue Alert --}}
+            {{-- Overdue Alert Box in Crimson Red --}}
             @if($overdue->count() > 0)
-            <div class="bg-rose-50/50 border border-rose-200/80 rounded-2xl p-4 space-y-3">
+            <div class="bg-rose-50/60 border border-rose-200/90 rounded-2xl p-4 space-y-3 shadow-2xs">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div class="w-6 h-6 rounded-lg bg-rose-100 text-[#c3122e] flex items-center justify-center font-bold text-xs shrink-0">
+                            !
+                        </div>
                         <span class="text-xs font-bold text-rose-900">Overdue Tasks</span>
                     </div>
-                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-rose-600 text-white">{{ $overdue->count() }}</span>
+                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#c3122e] text-white shadow-2xs">{{ $overdue->count() }}</span>
                 </div>
                 <div class="space-y-2">
                     @foreach($overdue->take(3) as $ot)
                     @php $od = $ot->end_date ? abs((int) now()->today()->diffInDays($ot->end_date, false)) : 0; @endphp
-                    <div class="flex items-center gap-2 text-xs py-1 border-b border-rose-200/60 last:border-none">
-                        <span class="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-rose-200/60 text-rose-900 shrink-0">{{ $od }}d</span>
+                    <div class="flex items-center gap-2 text-xs py-1 border-b border-rose-200/50 last:border-none">
+                        <span class="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-white text-[#c3122e] border border-rose-200 shrink-0">{{ $od }}d late</span>
                         <div class="min-w-0 flex-1">
                             <p class="font-bold text-rose-900 truncate">{{ $ot->title }}</p>
                             <p class="text-[10px] text-rose-700/80 font-medium truncate">{{ $ot->project->name ?? '' }}</p>
@@ -395,7 +462,7 @@
             </div>
             @endif
 
-            {{-- Quick Links --}}
+            {{-- Quick Links Tiles --}}
             <div class="grid grid-cols-3 gap-2">
                 @php
                 $ql = [
@@ -406,13 +473,14 @@
                 @endphp
                 @foreach($ql as $q)
                 <a href="{{ $q['href'] }}"
-                   class="bg-white border border-slate-200/80 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center hover:border-slate-300 transition-all no-underline shadow-2xs">
-                    <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                   wire:navigate.hover
+                   class="bg-white border border-slate-200/80 hover:border-rose-200 hover:bg-rose-50/30 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center transition-all no-underline shadow-2xs group">
+                    <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 group-hover:bg-[#c3122e] group-hover:text-white transition-colors flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="{{ $q['ic'] }}"/>
                         </svg>
                     </div>
-                    <span class="text-[11px] font-bold text-slate-700 leading-tight">{{ $q['lbl'] }}</span>
+                    <span class="text-[11px] font-bold text-slate-700 group-hover:text-[#c3122e] transition-colors leading-tight">{{ $q['lbl'] }}</span>
                 </a>
                 @endforeach
             </div>

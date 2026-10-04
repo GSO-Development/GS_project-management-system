@@ -4,22 +4,23 @@
     .at-table-row:hover .at-task-title { color: #c3122e; }
     .at-status-dot { width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0; }
     .at-avatar { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
-    .at-filter-select {
-        appearance: none; -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 10px center; background-size: 11px;
-        padding-right: 30px !important;
-    }
     .kpi-tile { transition: all 0.15s ease; }
     .kpi-tile:hover { transform: translateY(-1px); }
     .kpi-tile.active { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+    @keyframes slideDownFade {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .filter-toolbar-enter {
+        animation: slideDownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
+         1. TOP HEADER & CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ showFilters: {{ ($search || $statusFilter !== 'all' || $projectFilter !== 'all' || $priorityFilter !== 'all') ? 'true' : 'false' }} }" class="space-y-4 mb-5">
-        <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
+    <div class="space-y-4 mb-5">
+        <!-- Top Row: Page Title & Action Controls -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Title -->
             <div>
@@ -45,13 +46,13 @@
                 </div>
 
                 <!-- Filter Toggle Button -->
-                <button @click="showFilters = !showFilters" type="button"
-                        class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                <button wire:click="toggleFilters" type="button"
+                        class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                     </svg>
                     <span>Filter</span>
-                    @if($search || $statusFilter !== 'all' || $projectFilter !== 'all' || $priorityFilter !== 'all')
+                    @if($hasActiveFilters)
                         <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
                     @endif
                 </button>
@@ -67,11 +68,11 @@
             </div>
         </div>
 
-        <!-- View Tabs Line (Matching Uploaded UI Mockup with crimson underline for active tab) -->
+        <!-- View Tabs Line (Crimson underline for active tab) -->
         <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
             <div class="flex items-center gap-6 text-xs whitespace-nowrap">
                 <!-- All Tasks View Tab -->
-                <button wire:click="setViewMode('all')" type="button"
+                <button wire:key="tab-all-tasks" wire:click="setViewMode('all')" type="button"
                         class="{{ $viewMode === 'all' ? 'border-b-2 border-[#c3122e] text-[#c3122e] font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold border-b-2 border-transparent' }} py-2.5 px-1 flex items-center gap-2 cursor-pointer transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
@@ -81,7 +82,7 @@
                 </button>
 
                 <!-- Stuck Tasks View Tab -->
-                <button wire:click="setViewMode('stuck')" type="button"
+                <button wire:key="tab-stuck-tasks" wire:click="setViewMode('stuck')" type="button"
                         class="{{ $viewMode === 'stuck' ? 'border-b-2 border-[#c3122e] text-[#c3122e] font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold border-b-2 border-transparent' }} py-2.5 px-1 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="w-2 h-2 rounded-full bg-rose-500 {{ $totalStuckTasksCount > 0 ? 'animate-pulse' : '' }}"></span>
                     <span>Stuck &amp; Blocked Tasks</span>
@@ -90,52 +91,144 @@
             </div>
         </div>
 
-        <!-- Filter Bar Collapsible Box (Alpine controlled via showFilters) -->
-        <div x-show="showFilters" x-transition.origin.top.duration.200ms class="pt-2">
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-3.5 sm:p-4">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5 flex-1 flex-wrap">
-                        {{-- Search --}}
-                        <div class="relative min-w-[200px] flex-1">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+        <!-- Collapsible Filter Toolbar (matching my-tasks design pattern) -->
+        @if($showFilters)
+            <div wire:key="filter-toolbar-{{ $viewMode }}" class="pt-1 filter-toolbar-enter">
+                @if($viewMode === 'all')
+                    <div wire:key="filter-bar-all-tasks" class="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+                        {{-- Search Input --}}
+                        <div class="relative flex-1 min-w-[200px]">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search tasks, projects, assignees…"
-                                class="w-full pl-9 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all" />
+                            <input wire:model.live.debounce.300ms="search" type="text"
+                                   placeholder="Search tasks by title, code, assignee..."
+                                   class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
                         </div>
-                        {{-- Priority Filter --}}
-                        <select wire:model.live="priorityFilter" class="at-filter-select px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 focus:bg-white focus:outline-none cursor-pointer">
-                            <option value="all">All Priorities</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                        {{-- Sort Filter --}}
-                        <select wire:model.live="sortBy" class="at-filter-select px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 focus:bg-white focus:outline-none cursor-pointer">
-                            <option value="end_date">Sort: Due Date</option>
-                            <option value="priority">Sort: Priority</option>
-                            <option value="project">Sort: Project</option>
-                            <option value="title">Sort: Title A–Z</option>
-                        </select>
+
+                        {{-- Filter Dropdowns --}}
+                        <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                            {{-- Status Dropdown --}}
+                            <div class="relative flex-1 sm:flex-initial min-w-[130px]">
+                                <select wire:model.live="statusFilter"
+                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                                    <option value="all">All Statuses ({{ $kpi['total'] }})</option>
+                                    <option value="not_started">Not Started ({{ $kpi['not_started'] }})</option>
+                                    <option value="in_progress">In Progress ({{ $kpi['in_progress'] }})</option>
+                                    <option value="on_hold">On Hold ({{ $kpi['on_hold'] }})</option>
+                                    <option value="blocked">Blocked ({{ $kpi['blocked'] }})</option>
+                                    <option value="completed">Completed ({{ $kpi['completed'] }})</option>
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Priority Dropdown --}}
+                            <div class="relative flex-1 sm:flex-initial min-w-[125px]">
+                                <select wire:model.live="priorityFilter"
+                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                                    <option value="all">All Priorities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Sort Dropdown --}}
+                            <div class="relative flex-1 sm:flex-initial min-w-[130px]">
+                                <select wire:model.live="sortBy"
+                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                                    <option value="end_date">Sort: Due Date</option>
+                                    <option value="priority">Sort: Priority</option>
+                                    <option value="project">Sort: Project</option>
+                                    <option value="title">Sort: Title A–Z</option>
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Clear Filters Button --}}
+                            @if($search !== '' || $statusFilter !== 'all' || $projectFilter !== 'all' || $priorityFilter !== 'all' || $sortBy !== 'end_date')
+                                <button wire:click="clearFilters" type="button"
+                                        class="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <span>Clear</span>
+                                </button>
+                            @endif
+                        </div>
                     </div>
-                    {{-- Clear Filters --}}
-                    @if($search || $statusFilter !== 'all' || $projectFilter !== 'all' || $priorityFilter !== 'all')
-                        <button wire:click="clearFilters" type="button" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            <span>Clear all</span>
-                        </button>
-                    @endif
-                </div>
+                @else
+                    <div wire:key="filter-bar-stuck-tasks" class="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+                        {{-- Search Input --}}
+                        <div class="relative flex-1 min-w-[200px]">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input wire:model.live.debounce.300ms="search" type="text"
+                                   placeholder="Search task, project, reason, or assignee..."
+                                   class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                        </div>
+
+                        {{-- Filter Dropdowns --}}
+                        <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                            {{-- Stuck Category Dropdown --}}
+                            <div class="relative flex-1 sm:flex-initial min-w-[135px]">
+                                <select wire:model.live="stuckTypeFilter"
+                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                                    <option value="all">All Stuck ({{ $totalStuckTasksCount }})</option>
+                                    <option value="blocked">Blocked Tasks ({{ $blockedTasksOnlyCount }})</option>
+                                    <option value="on_hold">On Hold ({{ $onHoldTasksCount }})</option>
+                                    <option value="overdue">Overdue Deliverables ({{ $overdueTasksOnlyCount }})</option>
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Assignee Dropdown --}}
+                            <div class="relative flex-1 sm:flex-initial min-w-[140px] max-w-[180px]">
+                                <select wire:model.live="stuckAssigneeFilter"
+                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                                    <option value="all">All Assignees</option>
+                                    @foreach($stuckAssigneesList as $sa)
+                                        <option value="{{ $sa->id }}">{{ $sa->name }}</option>
+                                    @endforeach
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Priority Dropdown --}}
+                            <div class="relative flex-1 sm:flex-initial min-w-[120px]">
+                                <select wire:model.live="stuckPriorityFilter"
+                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
+                                    <option value="all">All Priority</option>
+                                    <option value="critical">Critical</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Clear Filters Button --}}
+                            @if($search !== '' || $stuckTypeFilter !== 'all' || $stuckProjectFilter !== 'all' || $projectFilter !== 'all' || $stuckAssigneeFilter !== 'all' || $stuckPriorityFilter !== 'all')
+                                <button wire:click="resetStuckFilters" type="button"
+                                        class="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <span>Clear</span>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
-        </div>
+        @endif
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
          MODE 1: ALL TASKS DIRECTORY VIEW
          ═══════════════════════════════════════════════════════════════ --}}
     @if($viewMode === 'all')
-        {{-- KPI TILES --}}
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;">
+        <div wire:key="view-content-all-tasks" class="space-y-4">
+            {{-- KPI TILES --}}
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;">
             {{-- Total --}}
             <button wire:click="clearFilters" type="button"
                 class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='all' ? 'active border-slate-800' : 'bg-white border-slate-200 hover:border-slate-300' }}"
@@ -347,12 +440,13 @@
                 </div>
             @endif
         </div>
+        </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
          MODE 2: STUCK & BLOCKED TASKS RADAR VIEW
          ═══════════════════════════════════════════════════════════════ --}}
     @elseif($viewMode === 'stuck')
-        <div class="space-y-4">
+        <div wire:key="view-content-stuck-tasks" class="space-y-4">
             <!-- 1. 4 KPI Metric Cards -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
                 <!-- 1. Total Stuck -->
@@ -404,49 +498,7 @@
                 </button>
             </div>
 
-            <!-- 2. Search & Filter Bar -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-3.5 sm:p-4">
-                <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5 flex-1 flex-wrap">
-                        <div class="relative min-w-[240px] flex-1">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search task, project, reason, or assignee..."
-                                   class="w-full pl-9 pr-3 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/15 focus:border-[#c3122e] transition-all">
-                        </div>
-
-                        <select wire:model.live="stuckProjectFilter" class="at-filter-select px-3 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-100 focus:outline-none cursor-pointer max-w-[170px] truncate">
-                            <option value="all">All Projects</option>
-                            @foreach($stuckProjectsList as $sp)
-                                <option value="{{ $sp->id }}">{{ $sp->code }} - {{ $sp->name }}</option>
-                            @endforeach
-                        </select>
-
-                        <select wire:model.live="stuckAssigneeFilter" class="at-filter-select px-3 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-100 focus:outline-none cursor-pointer max-w-[160px] truncate">
-                            <option value="all">All Assignees</option>
-                            @foreach($stuckAssigneesList as $sa)
-                                <option value="{{ $sa->id }}">{{ $sa->name }}</option>
-                            @endforeach
-                        </select>
-
-                        <select wire:model.live="stuckPriorityFilter" class="at-filter-select px-3 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-100 focus:outline-none cursor-pointer">
-                            <option value="all">All Priority</option>
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-
-                    @if($search || $stuckTypeFilter !== 'all' || $stuckProjectFilter !== 'all' || $stuckAssigneeFilter !== 'all' || $stuckPriorityFilter !== 'all')
-                        <button wire:click="resetStuckFilters" type="button" class="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            <span>Clear Filters</span>
-                        </button>
-                    @endif
-                </div>
-            </div>
-
-            <!-- 3. Stuck Tasks Table -->
+            <!-- 2. Stuck Tasks Table -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div class="flex items-center gap-2">

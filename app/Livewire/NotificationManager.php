@@ -19,9 +19,24 @@ class NotificationManager extends Component
     public string $projectFilter = 'all'; // 'all' or project name/id
     public array $selectedIds = [];
     public bool $selectAll = false;
+    public bool $showFilters = false;
 
     // Active inspection modal
     public ?string $inspectingNotificationId = null;
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->categoryTab = 'all';
+        $this->statusFilter = 'all';
+        $this->projectFilter = 'all';
+        $this->resetPage();
+    }
 
     public function updatedSearch(): void
     {
@@ -346,6 +361,8 @@ class NotificationManager extends Component
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
+        $hasActiveFilters = !empty($this->search) || $this->categoryTab !== 'all' || $this->projectFilter !== 'all' || $this->statusFilter !== 'unread';
+
         return view('livewire.notification-manager', [
             'notifications'      => $paginatedNotifications,
             'projectsList'       => $projectsList,
@@ -356,6 +373,13 @@ class NotificationManager extends Component
             'approvalsCount'     => $approvalsCount,
             'taskCompletedCount' => $taskCompletedCount,
             'blockersCount'      => $blockersCount,
+            'hasActiveFilters'   => $hasActiveFilters,
+            'showFilters'        => $this->showFilters,
+            'statusFilter'       => $this->statusFilter,
+            'categoryTab'        => $this->categoryTab,
+            'projectFilter'      => $this->projectFilter,
+            'selectedIds'        => $this->selectedIds,
+            'search'             => $this->search,
         ]);
     }
 }

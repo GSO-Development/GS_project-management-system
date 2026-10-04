@@ -88,10 +88,10 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {{-- 1. Total Projects --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200">
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">TOTAL PROJECTS</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                     </svg>
@@ -104,10 +104,10 @@
         </div>
 
         {{-- 2. My Project Roles --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200">
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">PROJECT ROLES</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
@@ -120,10 +120,10 @@
         </div>
 
         {{-- 3. My Tasks --}}
-        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 no-underline group block">
+        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-rose-200 hover:bg-rose-50/20 transition-all duration-200 no-underline group block">
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">MY TASKS</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </div>
             </div>
@@ -134,16 +134,16 @@
         </a>
 
         {{-- 4. Overdue --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200">
+        <div class="bg-white rounded-2xl border {{ $overdueTasksCount > 0 ? 'border-rose-200/90 bg-rose-50/30' : 'border-slate-200/80' }} p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
             <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">OVERDUE</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0">
+                <span class="text-[10px] font-extrabold {{ $overdueTasksCount > 0 ? 'text-rose-500' : 'text-slate-400' }} uppercase tracking-wider block">OVERDUE</span>
+                <div class="w-8 h-8 rounded-xl {{ $overdueTasksCount > 0 ? 'bg-rose-100/80 text-[#c3122e] border-rose-200/70' : 'bg-slate-100/80 text-slate-600 border-slate-200/60' }} flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div class="flex items-baseline justify-between">
                 <span class="text-2xl sm:text-3xl font-extrabold {{ $overdueTasksCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} tracking-tight font-mono">{{ $overdueTasksCount }}</span>
-                <span class="text-[11px] font-semibold {{ $overdueTasksCount > 0 ? 'text-rose-600' : 'text-slate-400' }}">{{ $overdueTasksCount > 0 ? 'Action Required' : 'All Clear' }}</span>
+                <span class="text-[11px] font-bold {{ $overdueTasksCount > 0 ? 'text-[#c3122e]' : 'text-slate-400' }}">{{ $overdueTasksCount > 0 ? 'Action Required' : 'All Clear' }}</span>
             </div>
         </div>
 
@@ -497,48 +497,48 @@
                     @if(auth()->user()?->canCreateProject())
                         <a href="{{ route('projects.create') }}" 
                            wire:navigate.hover
-                           class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-slate-100 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
-                            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-sm mb-2 shadow-xs group-hover:bg-[#c3122e] transition-colors">
+                           class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-rose-50/30 hover:border-rose-200 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
+                            <div class="w-8 h-8 rounded-lg bg-[#c3122e] text-white flex items-center justify-center font-bold text-sm mb-2 shadow-2xs group-hover:bg-[#a80f27] transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                             </div>
-                            <span class="text-xs font-bold text-slate-800 leading-tight">Create Project</span>
+                            <span class="text-xs font-bold text-slate-800 group-hover:text-[#c3122e] transition-colors leading-tight">Create Project</span>
                         </a>
                     @else
                         <a href="{{ route('daily-updates.index') }}" 
                            wire:navigate.hover
-                           class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-slate-100 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
-                            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center mb-2 shadow-xs group-hover:bg-[#c3122e] transition-colors">
+                           class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-rose-50/30 hover:border-rose-200 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
+                            <div class="w-8 h-8 rounded-lg bg-[#c3122e] text-white flex items-center justify-center mb-2 shadow-2xs group-hover:bg-[#a80f27] transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </div>
-                            <span class="text-xs font-bold text-slate-800 leading-tight">Daily Update</span>
+                            <span class="text-xs font-bold text-slate-800 group-hover:text-[#c3122e] transition-colors leading-tight">Daily Update</span>
                         </a>
                     @endif
 
                     <a href="{{ route('my-tasks.index') }}" 
                        wire:navigate.hover
-                       class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-slate-100 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
-                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center font-bold text-sm mb-2 shadow-2xs group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                       class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-rose-50/30 hover:border-rose-200 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center font-bold text-sm mb-2 shadow-2xs group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                         </div>
-                        <span class="text-xs font-bold text-slate-800 leading-tight">My Tasks</span>
+                        <span class="text-xs font-bold text-slate-800 group-hover:text-[#c3122e] transition-colors leading-tight">My Tasks</span>
                     </a>
 
                     <a href="{{ route('calendar.index') }}" 
                        wire:navigate.hover
-                       class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-slate-100 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
-                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center mb-2 shadow-2xs group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                       class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-rose-50/30 hover:border-rose-200 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center mb-2 shadow-2xs group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <span class="text-xs font-bold text-slate-800 leading-tight">Calendar</span>
+                        <span class="text-xs font-bold text-slate-800 group-hover:text-[#c3122e] transition-colors leading-tight">Calendar</span>
                     </a>
 
                     <a href="{{ route('risks.index') }}" 
                        wire:navigate.hover
-                       class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-slate-100 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
-                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center mb-2 shadow-2xs group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                       class="rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-rose-50/30 hover:border-rose-200 p-3 flex flex-col items-center justify-center text-center group transition-all duration-150 no-underline shadow-2xs">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center mb-2 shadow-2xs group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
-                        <span class="text-xs font-bold text-slate-800 leading-tight">Risks Hub</span>
+                        <span class="text-xs font-bold text-slate-800 group-hover:text-[#c3122e] transition-colors leading-tight">Risks Hub</span>
                     </a>
 
                 </div>
@@ -553,41 +553,282 @@
 
     {{-- A. Review Project Assignment Modal --}}
     @if($showReviewModal && $reviewProject)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
-            <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-2xl p-6 sm:p-7 space-y-4 my-8 max-h-[90vh] flex flex-col">
+        @php
+            $wbsItems = $reviewWbsItems ?? ($reviewProject->wbsItems ?? collect());
+            $phases = $reviewPhases ?? $wbsItems->filter(fn($i) => ($i->item_type?->value === 'phase' || !$i->parent_id));
+            $milestonesCount = $reviewMilestonesCount ?? $wbsItems->where('is_milestone', true)->count();
+            $tasksCount = $wbsItems->filter(fn($i) => ($i->item_type?->value === 'task' || $i->parent_id))->count();
+            
+            $sponsors = $reviewSponsors ?? ($reviewProject->members ? $reviewProject->members->where('pivot.role', 'sponsor') : collect());
+            $owners = $reviewOwners ?? ($reviewProject->members ? $reviewProject->members->where('pivot.role', 'owner') : collect());
+            $committee = $reviewCommittee ?? ($reviewProject->members ? $reviewProject->members->where('pivot.role', 'steering_committee') : collect());
+            $members = $reviewMembers ?? ($reviewProject->members ? $reviewProject->members->where('pivot.role', 'member') : collect());
+            $customRoleMembers = $reviewProject->members ? $reviewProject->members->whereNotIn('pivot.role', ['sponsor', 'owner', 'steering_committee', 'member', 'lead']) : collect();
+            
+            $durationDays = $reviewDurationDays ?? (($reviewProject->start_date && $reviewProject->deadline) ? max(1, (int)$reviewProject->start_date->diffInDays($reviewProject->deadline)) : null);
+            $totalTeam = $reviewTotalTeam ?? (1 + $sponsors->count() + $owners->count() + $committee->count() + $members->count() + $customRoleMembers->count());
+            $requesterName = $reviewApproval->requester->name ?? ($reviewProject->creator->name ?? 'Super Administrator (PMO Admin)');
+        @endphp
+
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-md overflow-y-auto animate-fade-in">
+            <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-3xl p-5 sm:p-7 space-y-4 my-auto max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-lg shrink-0">
+                {{-- Header --}}
+                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 flex-shrink-0">
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-2xs">
                             ⭐
                         </div>
                         <div class="min-w-0">
-                            <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate tracking-tight">
-                                Project Leadership Sign-Off
-                            </h3>
-                            <span class="text-xs text-slate-400 font-medium block mt-0.5">
-                                {{ $reviewProject->name }} ({{ $reviewProject->code }})
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                                    Project Leadership Sign-Off
+                                </h3>
+                                <span class="px-2 py-0.5 rounded-md text-[10.5px] font-mono font-black bg-rose-50 text-[#c3122e] border border-rose-200">
+                                    {{ $reviewProject->code }}
+                                </span>
+                            </div>
+                            <span class="text-xs text-slate-500 font-medium block mt-0.5 truncate">
+                                {{ $reviewProject->subsidiary->name ?? 'George Steuart Group' }} · PMO Assigned Leadership
                             </span>
                         </div>
                     </div>
-                    <button wire:click="closeReviewModal" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors text-lg font-bold cursor-pointer shrink-0" title="Close">
+                    <button wire:click="closeReviewModal" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors text-xl font-bold flex items-center justify-center cursor-pointer shrink-0" title="Close">
                         &times;
                     </button>
                 </div>
 
+                {{-- Modal Body Container --}}
                 <div class="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
-                    <div class="p-4 rounded-2xl bg-slate-50/60 border border-slate-100 space-y-2 text-xs">
-                        <div class="flex justify-between items-center py-0.5">
-                            <span class="text-slate-500 font-medium">Project Name:</span>
-                            <span class="font-bold text-slate-900">{{ $reviewProject->name }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-0.5">
-                            <span class="text-slate-500 font-medium">Requested By:</span>
-                            <span class="font-bold text-slate-900">{{ $reviewApproval->requester->name ?? ($reviewProject->creator->name ?? 'PMO Admin') }}</span>
-                        </div>
-                    </div>
+                    @if(!$showRejectModal)
+                        {{-- 1. Project Title, Requester & Scope Card --}}
+                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Project Initiation Details</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-200">
+                                        {{ ucfirst($reviewProject->priority?->value ?? 'medium') }} Priority
+                                    </span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/70 text-slate-700">
+                                        {{ ucfirst(str_replace('_', ' ', $reviewProject->status?->value ?? 'planning')) }}
+                                    </span>
+                                </div>
+                            </div>
 
-                    @if($showRejectModal)
+                            <div>
+                                <h4 class="text-base font-extrabold text-slate-900 leading-snug" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                                    {{ $reviewProject->name }}
+                                </h4>
+                                <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mt-1">
+                                    <span>Requested By:</span>
+                                    <strong class="text-slate-900 font-bold">{{ $requesterName }}</strong>
+                                </div>
+                            </div>
+
+                            @if($reviewProject->description)
+                                <div class="pt-2 border-t border-slate-200/70">
+                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Scope &amp; Objectives</span>
+                                    <p class="text-xs text-slate-600 leading-relaxed font-medium bg-white p-3 rounded-xl border border-slate-200/60">
+                                        {{ $reviewProject->description }}
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- 2. Timeline & Schedule Parameters Grid (4 Cards) --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">📅 Start Date</span>
+                                <span class="font-mono font-black text-slate-900 block mt-1">
+                                    {{ $reviewProject->start_date ? $reviewProject->start_date->format('M d, Y') : 'Immediate' }}
+                                </span>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">🏁 Target Deadline</span>
+                                <span class="font-mono font-black text-slate-900 block mt-1">
+                                    {{ $reviewProject->deadline ? $reviewProject->deadline->format('M d, Y') : 'TBD' }}
+                                </span>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">⏳ Est. Duration</span>
+                                <span class="font-bold text-slate-900 block mt-1">
+                                    {{ $durationDays ? "{$durationDays} Days" : 'Flexible' }}
+                                </span>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">💰 Est. Budget</span>
+                                <span class="font-mono font-bold text-slate-900 block mt-1">
+                                    {{ $reviewProject->estimated_budget > 0 ? 'Rs. ' . number_format($reviewProject->estimated_budget, 0) : 'Not Specified' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- 3. WBS Breakdown & Execution Blueprint Section --}}
+                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                                        📋
+                                    </div>
+                                    <div>
+                                        <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">
+                                            WBS Structure &amp; Execution Blueprint
+                                        </h5>
+                                        <span class="text-[10px] text-slate-500 font-medium">
+                                            Blueprint: <strong class="text-indigo-900 font-bold">{{ $reviewProject->template?->name ?? ($reviewProject->wbs_breakdown_type === 'template' ? 'Standard Template Blueprint' : 'Custom Agile WBS') }}</strong>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                        {{ $wbsItems->count() }} Total Items
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-sky-50 text-sky-700 border border-sky-200">
+                                        {{ $phases->count() }} Phases
+                                    </span>
+                                    @if($milestonesCount > 0)
+                                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
+                                            🎯 {{ $milestonesCount }} Milestones
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- WBS Phases & Tasks Preview List --}}
+                            @if($wbsItems->count() > 0)
+                                <div class="max-h-48 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin rounded-xl bg-white p-2.5 border border-slate-200/70">
+                                    @foreach($wbsItems as $item)
+                                        @php
+                                            $isPhase = ($item->item_type?->value === 'phase' || !$item->parent_id);
+                                        @endphp
+                                        <div class="flex items-center justify-between gap-2 p-2 rounded-lg text-xs {{ $isPhase ? 'bg-slate-50 font-black text-slate-900 border border-slate-200/60' : 'pl-6 text-slate-700 font-medium' }}">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <span class="text-[10px] font-mono {{ $isPhase ? 'text-[#c3122e] font-black' : 'text-slate-400' }}">
+                                                    {{ $isPhase ? '📁 Phase:' : '↳ Task:' }}
+                                                </span>
+                                                <span class="truncate">{{ $item->title ?? ($item->name ?? 'Deliverable') }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 flex-shrink-0 text-[10px]">
+                                                @if($item->duration)
+                                                    <span class="text-slate-400 font-mono">{{ $item->duration }}d</span>
+                                                @endif
+                                                @if(!empty($item->is_milestone))
+                                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-purple-50 text-purple-800 border border-purple-200">Milestone</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="p-3.5 bg-white rounded-xl border border-slate-200/60 text-center text-xs font-semibold text-slate-500">
+                                    Custom Agile Workspace initialized. You can build and structure your WBS upon accepting leadership.
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- 4. Governance & Team Structure Section --}}
+                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-lg bg-rose-100 text-[#c3122e] flex items-center justify-center font-bold text-xs">
+                                        👥
+                                    </div>
+                                    <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">Governance &amp; Assigned Team Roster</h5>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black font-mono bg-rose-50 text-[#c3122e] border border-rose-200">
+                                    {{ $totalTeam }} Assigned
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                {{-- Project Manager Card (Self) --}}
+                                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border-2 border-[#c3122e]/40 shadow-2xs">
+                                    <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-[11px] flex-shrink-0 shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                                        {{ strtoupper(substr($reviewProject->projectManager->name ?? auth()->user()->name, 0, 1)) }}
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="text-xs font-black text-slate-900 block truncate">{{ $reviewProject->projectManager->name ?? auth()->user()->name }}</span>
+                                        <span class="text-[9.5px] text-[#c3122e] font-black uppercase">⭐ Designated Project Leader (You)</span>
+                                    </div>
+                                </div>
+
+                                {{-- Sponsors --}}
+                                @foreach($sponsors as $sp)
+                                    <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-amber-200 shadow-2xs">
+                                        <div class="w-8 h-8 rounded-xl bg-amber-500 text-white font-black text-[11px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                            {{ strtoupper(substr($sp->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-xs font-black text-slate-900 block truncate">{{ $sp->name }}</span>
+                                            <span class="text-[9.5px] text-amber-800 font-bold">💼 Project Sponsor</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                {{-- Owners --}}
+                                @foreach($owners as $ow)
+                                    <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs">
+                                        <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black text-[11px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                            {{ strtoupper(substr($ow->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-xs font-black text-slate-900 block truncate">{{ $ow->name }}</span>
+                                            <span class="text-[9.5px] text-emerald-800 font-bold">👑 Project Owner</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                {{-- Steering Committee --}}
+                                @foreach($committee as $cm)
+                                    <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-violet-200 shadow-2xs">
+                                        <div class="w-8 h-8 rounded-xl bg-violet-600 text-white font-black text-[11px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                            {{ strtoupper(substr($cm->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-xs font-black text-slate-900 block truncate">{{ $cm->name }}</span>
+                                            <span class="text-[9.5px] text-violet-800 font-bold">🏛️ Steering Committee</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                {{-- Core Members --}}
+                                @foreach($members as $mb)
+                                    <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-blue-200 shadow-2xs">
+                                        <div class="w-8 h-8 rounded-xl bg-blue-500 text-white font-black text-[11px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                            {{ strtoupper(substr($mb->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-xs font-black text-slate-900 block truncate">{{ $mb->name }}</span>
+                                            <span class="text-[9.5px] text-blue-700 font-bold">🤝 Team Member</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                {{-- Custom Roles --}}
+                                @foreach($customRoleMembers as $cr)
+                                    <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                                        <div class="w-8 h-8 rounded-xl bg-slate-700 text-white font-black text-[11px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                            {{ strtoupper(substr($cr->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-xs font-black text-slate-900 block truncate">{{ $cr->name }}</span>
+                                            <span class="text-[9.5px] text-slate-600 font-bold capitalize">{{ str_replace('_', ' ', $cr->pivot->role ?? 'Role') }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Previous Rejection Note (if any) --}}
+                        @if($reviewProject->isPmRejected())
+                            <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-wider block text-rose-700">Previously Reported Reason:</span>
+                                <p class="font-medium italic">"{{ $reviewProject->pm_rejection_reason }}"</p>
+                                <span class="text-[9.5px] text-rose-500 font-mono block">Declined on {{ $reviewProject->pm_rejected_at?->format('M d, Y h:i A') }}</span>
+                            </div>
+                        @endif
+                    @else
+                        {{-- Decline Reason Form --}}
                         <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-2.5">
                             <label class="text-xs font-bold text-rose-800 block">
                                 Reason for Declining Assignment: <span class="text-rose-600">*</span>
@@ -606,24 +847,25 @@
                     @endif
                 </div>
 
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100 flex-shrink-0 gap-3">
+                {{-- Action Footer --}}
+                <div class="flex items-center justify-between pt-3.5 border-t border-slate-100 flex-shrink-0 gap-3">
                     <div>
                         @if(!$showRejectModal)
                             <button
                                 wire:click="openRejectForm({{ $reviewProject->id }})"
                                 type="button"
-                                class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all border border-rose-200/60 cursor-pointer"
+                                class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all border border-rose-200/60 cursor-pointer active:scale-95"
                             >
                                 Decline Assignment
                             </button>
                         @endif
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2.5">
                         <button
                             wire:click="closeReviewModal"
                             type="button"
-                            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer"
+                            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer active:scale-95"
                         >
                             Cancel
                         </button>
@@ -631,14 +873,13 @@
                             <button
                                 wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)"
                                 type="button"
-                                class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a80f27] transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+                                class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a80f27] transition-all shadow-md shadow-[#c3122e]/20 flex items-center gap-2 cursor-pointer active:scale-95"
                             >
                                 <span>Accept &amp; Open Workspace &rarr;</span>
                             </button>
                         @endif
                     </div>
                 </div>
-
             </div>
         </div>
     @endif

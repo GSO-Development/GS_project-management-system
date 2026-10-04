@@ -23,11 +23,40 @@ class DailyStatusUpdates extends Component
     public string $searchQuery = '';
     public string $viewMode = 'table'; // 'table' or 'feed'
     public int $perPage = 10;
+    public bool $showFilters = false;
 
     public function updatedSearchQuery(): void { $this->resetPage(); }
     public function updatedSelectedProjectId(): void { $this->resetPage(); }
     public function updatedSelectedScope(): void { $this->resetPage(); }
     public function updatedDateFilter(): void { $this->resetPage(); }
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset(['searchQuery', 'selectedProjectId', 'selectedScope', 'dateFilter']);
+        $this->resetPage();
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        return (!empty(trim($this->searchQuery)) || $this->selectedProjectId !== null || $this->selectedScope !== 'all' || $this->dateFilter !== 'all');
+    }
+
+    public function filterByDate(string $filter): void
+    {
+        $this->dateFilter = ($this->dateFilter === $filter) ? 'all' : $filter;
+        $this->resetPage();
+    }
+
+    public function filterByScope(string $scope): void
+    {
+        $this->selectedScope = ($this->selectedScope === $scope) ? 'all' : $scope;
+        $this->resetPage();
+    }
 
     public function setViewMode(string $mode): void
     {
@@ -130,6 +159,10 @@ class DailyStatusUpdates extends Component
             $this->openHistoryModal($projectId, $updateId);
         } elseif ($updateId) {
             $this->markProjectUpdatesAsRead(null, $updateId);
+        }
+
+        if ($this->hasActiveFilters()) {
+            $this->showFilters = true;
         }
         
         // Unread notifications stay unread on general page view until user specifically opens or inspects the update/log.
@@ -406,6 +439,9 @@ class DailyStatusUpdates extends Component
     protected function getAccessibleProjects()
     {
         $user = auth()->user();
+        if (!$user) {
+            return collect();
+        }
         $query = Project::with(['subsidiary', 'projectManager']);
 
         // Super Admin sees ALL projects in the entire organization
@@ -529,7 +565,7 @@ class DailyStatusUpdates extends Component
         if ($this->updateProjectId) {
             $wbsQuery = WbsItem::where('project_id', $this->updateProjectId);
 
-            if (!$isSuperAdmin) {
+            if (!$isSuperAdmin && $user) {
                 $proj = Project::find($this->updateProjectId);
                 if ($proj && $proj->project_manager_id !== $user->id) {
                     $wbsQuery->where('assigned_user_id', $user->id);
@@ -546,7 +582,7 @@ class DailyStatusUpdates extends Component
         $taskUpdatesCount = $statusUpdates->whereNotNull('wbs_item_id')->count();
         $projectUpdatesCount = $statusUpdates->whereNull('wbs_item_id')->count();
         $updatedTodayCount = $statusUpdates->filter(fn($u) => $u->created_at->isToday())->count();
-        $myUpdatesCount = $statusUpdates->where('created_by', $user->id)->count();
+        $myUpdatesCount = $user ? $statusUpdates->where('created_by', $user->id)->count() : 0;
 
         // Pending feedback updates (no comments yet)
         $uncommentedUpdatesCount = $statusUpdates->filter(fn($u) => $u->comments->count() === 0)->count();
@@ -582,6 +618,8 @@ class DailyStatusUpdates extends Component
             'myUpdatesCount' => $myUpdatesCount,
             'uncommentedUpdatesCount' => $uncommentedUpdatesCount,
             'isSuperAdmin' => $isSuperAdmin,
+            'showFilters' => $this->showFilters,
+            'hasActiveFilters' => $this->hasActiveFilters(),
         ])->layout('layouts.app', ['title' => 'Daily Status Updates']);
     }
 }
