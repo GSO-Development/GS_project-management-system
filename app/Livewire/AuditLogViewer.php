@@ -29,6 +29,22 @@ class AuditLogViewer extends Component
     public string $viewMode = 'table'; // 'table' | 'timeline'
     public bool $autoRefresh = true;
     public string $diffViewMode = 'visual'; // 'visual' | 'json'
+    public bool $showFilters = false;
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        return !empty(trim($this->search))
+            || $this->moduleFilter !== 'all'
+            || $this->actionFilter !== 'all'
+            || $this->userFilter !== 'all'
+            || $this->dateFilter !== 'all'
+            || $this->quickTab !== 'all';
+    }
 
     // Detail Modal State
     public bool $showDetailModal = false;
@@ -506,6 +522,9 @@ class AuditLogViewer extends Component
         $logs = $this->buildQuery()->paginate($this->perPage);
         $resolvedRecords = $this->resolveRecordsMap($logs);
 
+        $hasActiveFilters = $this->hasActiveFilters();
+        $showFilters = $this->showFilters;
+
         return view('livewire.audit-log-viewer', compact(
             'logs',
             'resolvedRecords',
@@ -516,7 +535,9 @@ class AuditLogViewer extends Component
             'tabCounts',
             'usersList',
             'modulesList',
-            'actionsList'
+            'actionsList',
+            'hasActiveFilters',
+            'showFilters'
         ));
     }
 }

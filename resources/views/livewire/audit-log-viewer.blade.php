@@ -574,13 +574,28 @@
                     </div>
                 </div>
 
-                {{-- Export button --}}
-                <button wire:click="exportCsv" type="button" class="export-btn flex-shrink-0">
-                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    Export CSV
-                </button>
+                {{-- Header Actions: Filter & Export --}}
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    {{-- Filter Toggle Button --}}
+                    <button wire:click="toggleFilters" type="button"
+                            class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        <span>Filter</span>
+                        @if($hasActiveFilters)
+                            <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                        @endif
+                    </button>
+
+                    {{-- Export button --}}
+                    <button wire:click="exportCsv" type="button" class="export-btn flex-shrink-0">
+                        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export CSV
+                    </button>
+                </div>
             </div>
 
             {{-- KPI Metric Cards --}}
@@ -656,98 +671,99 @@
     {{-- ══════════════════════════════════════════════════════════
          2.  FILTER TOOLBAR
     ══════════════════════════════════════════════════════════ --}}
-    <div class="filter-toolbar p-3.5 mb-4">
-        <div class="flex flex-wrap items-center gap-2.5">
+    @if($showFilters)
+        <div class="filter-toolbar p-3.5 mb-4 animate-in fade-in duration-200">
+            <div class="flex flex-wrap items-center gap-2.5">
 
-            {{-- Search Input --}}
-            <div class="search-input-wrap shrink-0" style="flex: initial; min-width: 210px; max-width: 260px;">
-                <div style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;">
-                    <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
+                {{-- Search Input --}}
+                <div class="search-input-wrap shrink-0" style="flex: initial; min-width: 210px; max-width: 260px;">
+                    <div style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;">
+                        <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text"
+                           wire:model.live.debounce.300ms="search"
+                           placeholder="Search by action, actor, IP..."
+                           class="search-input">
+                    @if($search)
+                        <button wire:click="$set('search', '')"
+                                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94a3b8;cursor:pointer;background:none;border:none;padding:0;">
+                            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    @endif
                 </div>
-                <input type="text"
-                       wire:model.live.debounce.300ms="search"
-                       placeholder="Search by action, actor, IP..."
-                       class="search-input">
-                @if($search)
-                    <button wire:click="$set('search', '')"
-                            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94a3b8;cursor:pointer;background:none;border:none;padding:0;">
-                        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+
+                {{-- Filter controls (All in single row) --}}
+                <select wire:model.live="actionFilter" class="filter-select">
+                    <option value="all">All Actions</option>
+                    @foreach($actionsList as $act)
+                        <option value="{{ $act }}">{{ ucwords(str_replace('_', ' ', $act)) }}</option>
+                    @endforeach
+                </select>
+
+                <select wire:model.live="moduleFilter" class="filter-select">
+                    <option value="all">All Modules</option>
+                    @foreach($modulesList as $mod)
+                        <option value="{{ $mod }}">{{ ucwords(str_replace('_', ' ', $mod)) }}</option>
+                    @endforeach
+                </select>
+
+                <select wire:model.live="dateFilter" class="filter-select">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="7days">Last 7 Days</option>
+                    <option value="30days">Last 30 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+
+                {{-- Sort toggle --}}
+                <button wire:click="toggleSortOrder" type="button" class="sort-btn"
+                        title="{{ $sortOrder === 'desc' ? 'Newest first' : 'Oldest first' }}">
+                    <svg style="width:13px;height:13px;color:#64748b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        @if($sortOrder === 'desc')
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4"/>
+                        @else
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/>
+                        @endif
+                    </svg>
+                    <span style="font-size:11.5px;">{{ $sortOrder === 'desc' ? 'Newest' : 'Oldest' }}</span>
+                </button>
+
+                {{-- Per page --}}
+                <select wire:model.live="perPage" class="perpage-select">
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+
+                @if($search || $moduleFilter !== 'all' || $actionFilter !== 'all' || $dateFilter !== 'all' || $quickTab !== 'all')
+                    <button wire:click="resetFilters" type="button" class="reset-btn">
+                        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
+                        Reset
                     </button>
                 @endif
             </div>
 
-            {{-- Filter controls (All in single row) --}}
-            <select wire:model.live="actionFilter" class="filter-select">
-                <option value="all">All Actions</option>
-                @foreach($actionsList as $act)
-                    <option value="{{ $act }}">{{ ucwords(str_replace('_', ' ', $act)) }}</option>
-                @endforeach
-            </select>
-
-            <select wire:model.live="moduleFilter" class="filter-select">
-                <option value="all">All Modules</option>
-                @foreach($modulesList as $mod)
-                    <option value="{{ $mod }}">{{ ucwords(str_replace('_', ' ', $mod)) }}</option>
-                @endforeach
-            </select>
-
-            <select wire:model.live="dateFilter" class="filter-select">
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="7days">Last 7 Days</option>
-                <option value="30days">Last 30 Days</option>
-                <option value="this_month">This Month</option>
-                <option value="custom">Custom Range</option>
-            </select>
-
-            {{-- Sort toggle --}}
-            <button wire:click="toggleSortOrder" type="button" class="sort-btn"
-                    title="{{ $sortOrder === 'desc' ? 'Newest first' : 'Oldest first' }}">
-                <svg style="width:13px;height:13px;color:#64748b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                    @if($sortOrder === 'desc')
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4"/>
-                    @else
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/>
-                    @endif
-                </svg>
-                <span style="font-size:11.5px;">{{ $sortOrder === 'desc' ? 'Newest' : 'Oldest' }}</span>
-            </button>
-
-            {{-- Per page --}}
-            <select wire:model.live="perPage" class="perpage-select">
-                <option value="15">15</option>
-                <option value="30">30</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-
-            @if($search || $moduleFilter !== 'all' || $actionFilter !== 'all' || $dateFilter !== 'all' || $quickTab !== 'all')
-                <button wire:click="resetFilters" type="button" class="reset-btn">
-                    <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    Reset
-                </button>
+            {{-- Custom date range --}}
+            @if($dateFilter === 'custom')
+                <div class="flex items-center gap-3 mt-3 pt-3" style="border-top:1px solid #f1f5f9;">
+                    <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;">Range:</span>
+                    <input type="date" wire:model.live="startDate"
+                           style="padding:6px 10px;font-size:12px;font-weight:600;color:#374151;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;">
+                    <span style="font-size:12px;color:#94a3b8;font-weight:700;">→</span>
+                    <input type="date" wire:model.live="endDate"
+                           style="padding:6px 10px;font-size:12px;font-weight:600;color:#374151;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;">
+                </div>
             @endif
         </div>
-    </div>
-
-        {{-- Custom date range --}}
-        @if($dateFilter === 'custom')
-            <div class="flex items-center gap-3 mt-3 pt-3" style="border-top:1px solid #f1f5f9;">
-                <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;">Range:</span>
-                <input type="date" wire:model.live="startDate"
-                       style="padding:6px 10px;font-size:12px;font-weight:600;color:#374151;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;">
-                <span style="font-size:12px;color:#94a3b8;font-weight:700;">→</span>
-                <input type="date" wire:model.live="endDate"
-                       style="padding:6px 10px;font-size:12px;font-weight:600;color:#374151;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;">
-            </div>
-        @endif
-    </div>
+    @endif
 
 
     {{-- ══════════════════════════════════════════════════════════
