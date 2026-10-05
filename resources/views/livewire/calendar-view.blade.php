@@ -1,5 +1,28 @@
 <div class="space-y-4 sm:space-y-5 pb-16">
     <style>
+        /* ── Team Attendee list (Create + Edit modals) ── */
+        .att-list { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
+        .att-list-scroll { max-height: 260px; min-height: 120px; overflow-y: auto; }
+        .att-list-scroll.att-list-tall { max-height: 320px; }
+        .att-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) 22px; align-items: center; column-gap: 12px; padding: 10px 14px; cursor: pointer; user-select: none; background: #fff; border-left: 3px solid transparent; transition: background-color .15s ease, border-color .15s ease; }
+        .att-row + .att-row { border-top: 1px solid #f1f5f9; }
+        .att-row:hover { background: #f8fafc; }
+        .att-row.is-selected { background: #fff5f6; border-left-color: #c3122e; }
+        .att-row.is-selected:hover { background: #ffeef0; }
+        .att-avatar { width: 32px; height: 32px; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+        .att-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .att-name-line, .att-meta-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .att-name { font-size: 12.5px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .att-ms { width: 11px; height: 11px; flex-shrink: 0; }
+        .att-badge { flex-shrink: 0; max-width: 55%; padding: 1px 6px; border-radius: 5px; background: #f1f5f9; color: #475569; font-size: 9.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .att-email { font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .att-hidden { display: none !important; }
+        .att-check { width: 22px; height: 22px; border-radius: 9999px; border: 2px solid #cbd5e1; background: #fff; color: transparent; display: flex; align-items: center; justify-content: center; justify-self: end; transition: all .15s ease; }
+        .att-check svg { width: 11px; height: 11px; }
+        .att-row:hover .att-check { border-color: #94a3b8; }
+        .att-row.is-selected .att-check { background: #c3122e; border-color: #c3122e; color: #fff; box-shadow: 0 2px 6px rgba(195,18,46,.3); }
+        .att-empty { padding: 24px; text-align: center; color: #94a3b8; font-size: 12px; font-weight: 500; }
+
         .cal-glass-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,.03); }
         .cal-btn-outline { background: #ffffff; border: 1px solid #e2e8f0; color: #475569; font-weight: 700; transition: all .15s; }
         .cal-btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
@@ -697,22 +720,6 @@
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-100">
                     <div class="flex items-center gap-2">
-                        @if($selectedEvent['source_type'] === 'calendar_event')
-                            <a
-                                href="{{ route('calendar.export-ics', ['type' => 'event', 'id' => $selectedEvent['raw_id']]) }}"
-                                class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 no-underline"
-                            >
-                                Download .ICS
-                            </a>
-                        @elseif($selectedEvent['source_type'] === 'wbs_task')
-                            <a
-                                href="{{ route('calendar.export-ics', ['type' => 'task', 'id' => $selectedEvent['raw_id']]) }}"
-                                class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 no-underline"
-                            >
-                                Download .ICS
-                            </a>
-                        @endif
-
                         @if(!empty($selectedEvent['can_manage']))
                             @if($selectedEvent['source_type'] === 'calendar_event')
                                 <button
@@ -930,8 +937,8 @@
                             </div>
 
                             <!-- Attendee List Container -->
-                            <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-                                <div class="h-[320px] overflow-y-auto divide-y divide-slate-100 scrollbar-slim">
+                            <div class="att-list">
+                                <div class="att-list-scroll att-list-tall scrollbar-slim">
                                     @forelse($this->projectAttendees as $attendee)
                                         @php
                                             $isSelected = in_array((int)$attendee->id, array_map('intval', $newEventAttendees), true);
@@ -942,40 +949,27 @@
                                             $aColor = $avatarColors[$attendee->id % count($avatarColors)];
                                             $filterText = strtolower($attendee->name . ' ' . $attendee->email . ' ' . ($attendee->project_role_label ?? ''));
                                         @endphp
-                                        <div x-show="!attendeeSearch || {{ json_encode($filterText) }}.includes(attendeeSearch.toLowerCase())"
+                                        <div wire:key="new-att-{{ $attendee->id }}"
+                                             x-show="!attendeeSearch || {{ json_encode($filterText) }}.includes(attendeeSearch.toLowerCase())"
                                              wire:click="toggleAttendee({{ $attendee->id }})"
-                                             class="px-3.5 py-2 transition-colors cursor-pointer select-none flex items-center justify-between gap-3 {{ $isSelected ? 'bg-slate-50/70 hover:bg-slate-100/60' : 'hover:bg-slate-50 bg-white' }}">
-                                            <!-- Avatar & Info -->
-                                            <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                                <div class="w-7 h-7 rounded-full text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs" style="background:{{ $aColor }};">
-                                                    {{ $initials }}
+                                             class="att-row {{ $isSelected ? 'is-selected' : '' }}">
+                                            <div class="att-avatar" style="background:{{ $aColor }};">{{ $initials }}</div>
+                                            <div class="att-info">
+                                                <div class="att-name-line">
+                                                    <span class="att-name" title="{{ $attendee->name }}">{{ $attendee->name }}</span>
+                                                    <svg class="att-ms {{ $this->userHasAzureAccount($attendee) ? '' : 'att-hidden' }}" viewBox="0 0 23 23" fill="none"><title>Microsoft 365 Connected</title><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
                                                 </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                                        <span class="font-semibold text-slate-900 text-xs truncate">{{ $attendee->name }}</span>
-                                                        @if(!empty($attendee->project_role_label))
-                                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-500">{{ $attendee->project_role_label }}</span>
-                                                        @endif
-                                                        @if($this->userHasAzureAccount($attendee))
-                                                            <svg class="w-2.5 h-2.5 shrink-0" viewBox="0 0 23 23" fill="none" title="Microsoft 365 Connected"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-                                                        @endif
-                                                    </div>
-                                                    <span class="text-[11px] text-slate-400 truncate block">{{ $attendee->email }}</span>
+                                                <div class="att-meta-line">
+                                                    <span class="att-badge {{ empty($attendee->project_role_label) ? 'att-hidden' : '' }}">{{ $attendee->project_role_label ?? '' }}</span>
+                                                    <span class="att-email" title="{{ $attendee->email }}">{{ $attendee->email }}</span>
                                                 </div>
                                             </div>
-                                            <!-- Checkbox -->
-                                            <div class="shrink-0">
-                                                @if($isSelected)
-                                                    <div class="w-4.5 h-4.5 rounded-full bg-[#c3122e] text-white flex items-center justify-center shadow-xs">
-                                                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    </div>
-                                                @else
-                                                    <div class="w-4.5 h-4.5 rounded-full border border-slate-300 bg-white hover:border-slate-400 transition-colors"></div>
-                                                @endif
-                                            </div>
+                                            <span class="att-check">
+                                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            </span>
                                         </div>
                                     @empty
-                                        <div class="p-6 text-center text-slate-400 text-xs font-medium">
+                                        <div class="att-empty">
                                             No team members found for this project.
                                         </div>
                                     @endforelse
@@ -1374,33 +1368,38 @@
     <!-- ═══════════════════════════════════════════════════════════════
          8.5. MODAL: EDIT MEETING & RESCHEDULE MODAL
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ open: @entangle('showEditEventModal') }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto" style="display:none" x-cloak>
+    <div x-data="{ open: @entangle('showEditEventModal') }" 
+         x-init="$watch('open', val => { if (val) $nextTick(() => { if ($refs.editModalBody) $refs.editModalBody.scrollTop = 0; }) })"
+         x-show="open" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto" 
+         style="display:none" 
+         x-cloak>
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" @click="open = false; $wire.closeEditEventModal()"></div>
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" @click="open = false; $wire.closeEditEventModal()"></div>
 
         <!-- Modal Card -->
-        <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 w-full max-w-5xl z-10 my-auto flex flex-col max-h-[92vh] overflow-hidden transition-all duration-200">
+        <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-4xl lg:max-w-5xl z-10 my-auto flex flex-col max-h-[92vh] overflow-hidden transition-all duration-200">
 
             <!-- Clean Modal Header -->
-            <div class="px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#c3122e] flex items-center justify-center shrink-0 border border-rose-100/80">
+                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </div>
                     <div>
                         <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Edit Meeting &amp; Schedule</h2>
-                        <p class="text-[11px] text-slate-400 font-medium">
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">
                             Update meeting specifications, schedule dates, location, and attendee list
                         </p>
                     </div>
                 </div>
-                <button type="button" @click="open = false; $wire.closeEditEventModal()" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
+                <button type="button" @click="open = false; $wire.closeEditEventModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <!-- Scrollable Body Content (Executive 2-Column Corporate Grid) -->
-            <div class="flex-1 overflow-y-auto px-6 py-5 scrollbar-slim">
+            <!-- Scrollable Body Content -->
+            <div class="flex-1 overflow-y-auto px-6 py-5 scrollbar-slim" x-ref="editModalBody">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
                     <!-- Left Column: Meeting Specifications & Schedule (7 cols) -->
@@ -1471,19 +1470,19 @@
                         </div>
 
                         <!-- Date and All-Day Switch -->
-                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 shadow-2xs">
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 shadow-2xs">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    Date &amp; Time Schedule
+                                    <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    Schedule &amp; Timing
                                 </span>
                                 <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                                    <input type="checkbox" wire:model.live="editEventIsAllDay" class="rounded border-slate-300 text-[#c3122e] focus:ring-0 h-3.5 w-3.5 cursor-pointer">
+                                    <input type="checkbox" wire:model.live="editEventIsAllDay" class="rounded border-slate-300 text-[#c3122e] focus:ring-0 h-4 w-4 cursor-pointer">
                                     <span class="text-xs font-semibold text-slate-600">All-day event</span>
                                 </label>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">Start Date <span class="text-rose-500">*</span></label>
                                     <input type="date" wire:model="editEventDate"
@@ -1499,7 +1498,7 @@
                             </div>
 
                             @if(!$editEventIsAllDay)
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 border-t border-slate-200/60">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/60">
                                     <div>
                                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Start Time</label>
                                         <input type="time" wire:model="editEventStartTime"
@@ -1547,18 +1546,18 @@
                     </div>
 
                     <!-- Right Column: Project Team & Attendees (5 cols) -->
-                    <div class="lg:col-span-5 flex flex-col space-y-2.5" x-data="{ editAttendeeSearch: '' }">
-                        <div class="flex items-center justify-between">
+                    <div class="lg:col-span-5 flex flex-col space-y-3" x-data="{ editAttendeeSearch: '' }">
+                        <div class="flex items-center justify-between pb-0.5">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold text-slate-800">Team Attendees</span>
-                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-[#c3122e] border border-rose-100/60">
                                     {{ count($editEventAttendees) }}
                                 </span>
                             </div>
                             <div class="flex items-center gap-2 text-xs">
-                                <button type="button" wire:click="selectAllEditAttendees" class="text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer transition-colors">Select all</button>
+                                <button type="button" wire:click="selectAllEditAttendees" class="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer transition-colors">Select all</button>
                                 <span class="text-slate-300">·</span>
-                                <button type="button" wire:click="deselectAllEditAttendees" class="text-xs font-medium text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">Clear</button>
+                                <button type="button" wire:click="deselectAllEditAttendees" class="text-xs font-semibold text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">Clear</button>
                             </div>
                         </div>
 
@@ -1575,8 +1574,8 @@
                         </div>
 
                         <!-- Attendee List Container -->
-                        <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-                            <div class="h-[320px] overflow-y-auto divide-y divide-slate-100 scrollbar-slim">
+                        <div class="att-list">
+                            <div class="att-list-scroll scrollbar-slim">
                                 @forelse($this->editProjectAttendees as $attendee)
                                     @php
                                         $isSelected = in_array((int)$attendee->id, $editEventAttendees);
@@ -1587,40 +1586,27 @@
                                         $aColor = $avatarColors[$attendee->id % count($avatarColors)];
                                         $filterText = strtolower($attendee->name . ' ' . $attendee->email . ' ' . ($attendee->project_role_label ?? ''));
                                     @endphp
-                                    <div x-show="!editAttendeeSearch || {{ json_encode($filterText) }}.includes(editAttendeeSearch.toLowerCase())"
+                                    <div wire:key="edit-att-{{ $attendee->id }}"
+                                         x-show="!editAttendeeSearch || {{ json_encode($filterText) }}.includes(editAttendeeSearch.toLowerCase())"
                                          wire:click="toggleEditAttendee({{ $attendee->id }})"
-                                         class="px-3.5 py-2 transition-colors cursor-pointer select-none flex items-center justify-between gap-3 {{ $isSelected ? 'bg-slate-50/70 hover:bg-slate-100/60' : 'hover:bg-slate-50 bg-white' }}">
-                                        <!-- Avatar & Info -->
-                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                            <div class="w-7 h-7 rounded-full text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs" style="background:{{ $aColor }};">
-                                                {{ $initials }}
+                                         class="att-row {{ $isSelected ? 'is-selected' : '' }}">
+                                        <div class="att-avatar" style="background:{{ $aColor }};">{{ $initials }}</div>
+                                        <div class="att-info">
+                                            <div class="att-name-line">
+                                                <span class="att-name" title="{{ $attendee->name }}">{{ $attendee->name }}</span>
+                                                <svg class="att-ms {{ $this->userHasAzureAccount($attendee) ? '' : 'att-hidden' }}" viewBox="0 0 23 23" fill="none"><title>Microsoft 365 Connected</title><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
                                             </div>
-                                            <div class="min-w-0 flex-1">
-                                                <div class="flex items-center gap-1.5 flex-wrap">
-                                                    <span class="font-semibold text-slate-900 text-xs truncate">{{ $attendee->name }}</span>
-                                                    @if(!empty($attendee->project_role_label))
-                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-500">{{ $attendee->project_role_label }}</span>
-                                                    @endif
-                                                    @if($this->userHasAzureAccount($attendee))
-                                                        <svg class="w-2.5 h-2.5 shrink-0" viewBox="0 0 23 23" fill="none" title="Microsoft 365 Connected"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-                                                    @endif
-                                                </div>
-                                                <span class="text-[11px] text-slate-400 truncate block">{{ $attendee->email }}</span>
+                                            <div class="att-meta-line">
+                                                <span class="att-badge {{ empty($attendee->project_role_label) ? 'att-hidden' : '' }}">{{ $attendee->project_role_label ?? '' }}</span>
+                                                <span class="att-email" title="{{ $attendee->email }}">{{ $attendee->email }}</span>
                                             </div>
                                         </div>
-                                        <!-- Checkbox -->
-                                        <div class="shrink-0">
-                                            @if($isSelected)
-                                                <div class="w-4.5 h-4.5 rounded-full bg-[#c3122e] text-white flex items-center justify-center shadow-xs">
-                                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                </div>
-                                            @else
-                                                <div class="w-4.5 h-4.5 rounded-full border border-slate-300 bg-white hover:border-slate-400 transition-colors"></div>
-                                            @endif
-                                        </div>
+                                        <span class="att-check">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        </span>
                                     </div>
                                 @empty
-                                    <div class="p-6 text-center text-slate-400 text-xs font-medium">
+                                    <div class="att-empty">
                                         No team members found for this project.
                                     </div>
                                 @endforelse
@@ -1628,9 +1614,11 @@
                         </div>
 
                         <!-- Microsoft 365 Integration Note -->
-                        <div class="flex items-center gap-1.5 pt-1 text-[11px] text-slate-400">
-                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-                            <span>Updates will automatically synchronize across all member Outlook calendars.</span>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-2 shadow-2xs">
+                            <svg class="w-3.5 h-3.5 shrink-0 mt-0.5" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                            <span class="text-[11px] leading-snug text-slate-600">
+                                <span class="font-bold text-slate-700">Microsoft 365 Auto-Sync:</span> Updates will automatically synchronize across all member Outlook &amp; Teams calendars.
+                            </span>
                         </div>
                     </div>
 
@@ -1638,12 +1626,12 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-6 py-3.5 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
-                <button type="button" @click="open = false; $wire.closeEditEventModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer">
+            <div class="px-6 py-3.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between shrink-0">
+                <button type="button" @click="open = false; $wire.closeEditEventModal()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 border border-slate-200 bg-white shadow-2xs transition-colors cursor-pointer">
                     Cancel
                 </button>
 
-                <button type="button" wire:click="updateEvent" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#c3122e] hover:bg-[#a50f26] shadow-sm shadow-[#c3122e]/20 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-60">
+                <button type="button" wire:click="updateEvent" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#c3122e] hover:bg-[#a50f26] shadow-sm shadow-[#c3122e]/25 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-60">
                     <span wire:loading.remove wire:target="updateEvent" class="flex items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         Save Changes

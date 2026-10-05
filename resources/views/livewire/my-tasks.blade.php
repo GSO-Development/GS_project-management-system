@@ -524,7 +524,6 @@
                                     {{ $col['tasks']->count() }}
                                 </span>
                             </div>
-                            <button wire:click="openAddTaskModal('{{ $col['status'] }}')" type="button" class="w-6 h-6 rounded-lg bg-white hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-black shadow-2xs cursor-pointer flex-shrink-0 border border-slate-200" title="Add task to {{ $col['title'] }}">+</button>
                         </div>
 
                         <!-- Column Cards List -->

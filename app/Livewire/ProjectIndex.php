@@ -519,6 +519,9 @@ class ProjectIndex extends Component
             'user_agent' => request()->userAgent(),
         ]);
 
+        // Delete all associated approval requests
+        \App\Models\ApprovalRequest::where('project_id', $project->id)->delete();
+
         $project->delete();
 
         $this->cancelDelete();

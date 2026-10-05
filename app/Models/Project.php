@@ -70,6 +70,13 @@ class Project extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Project $project) {
+            ApprovalRequest::where('project_id', $project->id)->delete();
+        });
+    }
+
     public function getComputedHealthAttribute(): string
     {
         $statusVal = is_object($this->status) ? $this->status->value : (string) ($this->status ?? 'in_progress');

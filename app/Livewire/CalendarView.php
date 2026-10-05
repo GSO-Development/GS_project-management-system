@@ -1295,6 +1295,10 @@ class CalendarView extends Component
             $targetEmails[] = $user->email;
         }
 
+        if ($event->creator && !empty($event->creator->email)) {
+            $targetEmails[] = $event->creator->email;
+        }
+
         if (!empty($event->project_id)) {
             $project = $event->project ?: Project::find($event->project_id);
             if ($project && $project->projectManager && !empty($project->projectManager->email)) {
@@ -1312,6 +1316,8 @@ class CalendarView extends Component
         foreach ($targetEmails as $email) {
             AzureGraphService::deleteCalendarEvent($email, $event->microsoft_event_id);
         }
+
+        \Illuminate\Support\Facades\Cache::flush();
     }
 
     /**
@@ -1377,10 +1383,44 @@ class CalendarView extends Component
             'attendee_emails' => $attendeeEmails,
         ];
 
-        // 1. Primary sync via Microsoft Graph API for organizer (Exchange automatically distributes to all attendees)
+        // 1. If this event already has a Microsoft Graph event ID, UPDATE the existing event in-place
+        if (!empty($event->microsoft_event_id)) {
+            $candidateEmails = array_values(array_unique(array_filter([
+                $targetEmail,
+                $user->email,
+                ($event->creator && !empty($event->creator->email)) ? $event->creator->email : null,
+                ($event->project && $event->project->projectManager && !empty($event->project->projectManager->email)) ? $event->project->projectManager->email : null,
+                ...$attendeeEmails,
+            ])));
+
+            $updateResult = null;
+            foreach ($candidateEmails as $candEmail) {
+                $res = AzureGraphService::updateCalendarEvent($candEmail, $event->microsoft_event_id, $eventData);
+                if ($res && !empty($res['success'])) {
+                    $updateResult = $res;
+                    break;
+                }
+            }
+
+            if ($updateResult && !empty($updateResult['success'])) {
+                $event->update([
+                    'synced_to_microsoft_at' => now(),
+                ]);
+                \Illuminate\Support\Facades\Cache::flush();
+                return $updateResult;
+            }
+
+            // If update failed across candidates (e.g. event was manually deleted from Outlook),
+            // clean up the orphaned event ID across candidates before falling back to re-creating
+            foreach ($candidateEmails as $candEmail) {
+                AzureGraphService::deleteCalendarEvent($candEmail, $event->microsoft_event_id);
+            }
+        }
+
+        // 2. Primary sync via Microsoft Graph API for organizer (Exchange automatically distributes to all attendees)
         $result = AzureGraphService::createCalendarEvent($targetEmail, $eventData);
 
-        // 2. If primary organizer sync failed, attempt fallback sync with the first available attendee account
+        // 3. Fallback sync with the first available attendee account if primary organizer failed
         if ((!$result || empty($result['success'])) && !empty($attendeeEmails)) {
             foreach ($attendeeEmails as $attEmail) {
                 if ($attEmail !== $targetEmail) {
@@ -1398,6 +1438,7 @@ class CalendarView extends Component
                 'microsoft_event_id'    => $result['microsoft_event_id'],
                 'synced_to_microsoft_at' => now(),
             ]);
+            \Illuminate\Support\Facades\Cache::flush();
         }
 
         return $result;

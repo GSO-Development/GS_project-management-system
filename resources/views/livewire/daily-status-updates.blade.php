@@ -345,16 +345,21 @@
         </div>
 
         <!-- Table Pagination Footer -->
-        @if($groupedProjectUpdates->hasPages())
-            <div class="px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
-                <span class="text-xs text-slate-500 font-medium">
-                    Showing <strong class="text-slate-800">{{ $groupedProjectUpdates->firstItem() }}</strong> to <strong class="text-slate-800">{{ $groupedProjectUpdates->lastItem() }}</strong> of <strong class="text-slate-800">{{ $groupedProjectUpdates->total() }}</strong> projects
-                </span>
-                <div>
-                    {{ $groupedProjectUpdates->links() }}
-                </div>
+        <div class="px-6 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex-1 min-w-0">
+                {{ $groupedProjectUpdates->links() }}
             </div>
-        @endif
+
+            <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                <span class="text-xs text-slate-500 font-medium hidden sm:inline">Per page:</span>
+                <select wire:model.live="perPage" class="text-xs font-bold py-1.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 focus:outline-none focus:border-[#c3122e] transition-all cursor-pointer">
+                    <option value="5">5 per page</option>
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════

@@ -192,15 +192,4 @@
         @endforelse
     </div>
 
-    <!-- Add Task Button -->
-    <div class="p-2.5 border-t border-slate-200/70 bg-white rounded-b-2xl">
-        <button 
-            wire:click="openAddTaskModal('{{ $statusKey }}')" 
-            type="button" 
-            class="w-full py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
-        >
-            <span class="text-sm leading-none font-bold text-[#c3122e]">+</span>
-            <span>Add Task</span>
-        </button>
-    </div>
 </div>

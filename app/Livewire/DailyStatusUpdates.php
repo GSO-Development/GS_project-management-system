@@ -31,6 +31,7 @@ class DailyStatusUpdates extends Component
     public function updatedSelectedSubsidiaryId(): void { $this->resetPage(); }
     public function updatedSelectedScope(): void { $this->resetPage(); }
     public function updatedDateFilter(): void { $this->resetPage(); }
+    public function updatedPerPage(): void { $this->resetPage(); }
 
     public function toggleFilters(): void
     {
