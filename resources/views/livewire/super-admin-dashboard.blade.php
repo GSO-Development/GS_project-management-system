@@ -180,10 +180,6 @@
 
             <!-- Segmented Scale Switcher -->
             <div class="inline-flex p-1 rounded-xl bg-slate-100/80 border border-slate-200/60 text-xs font-bold items-center shrink-0">
-                <button wire:click="setTimelineScale('today')" type="button"
-                        class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $timelineScale === 'today' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}">
-                    Today
-                </button>
                 <button wire:click="setTimelineScale('week')" type="button"
                         class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ $timelineScale === 'week' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}">
                     Week

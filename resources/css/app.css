@@ -575,7 +575,7 @@
         color: var(--ui-text-3);
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        background: var(--ui-bg);
+        background: #ffffff;
         border-bottom: 1px solid var(--ui-border);
     }
 

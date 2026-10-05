@@ -18,6 +18,7 @@ class DailyStatusUpdates extends Component
 
     // Filter State
     public ?int $selectedProjectId = null;
+    public ?int $selectedSubsidiaryId = null;
     public string $selectedScope = 'all'; // 'all', 'task', 'project'
     public string $dateFilter = 'all'; // 'all', 'today', 'this_week'
     public string $searchQuery = '';
@@ -27,6 +28,7 @@ class DailyStatusUpdates extends Component
 
     public function updatedSearchQuery(): void { $this->resetPage(); }
     public function updatedSelectedProjectId(): void { $this->resetPage(); }
+    public function updatedSelectedSubsidiaryId(): void { $this->resetPage(); }
     public function updatedSelectedScope(): void { $this->resetPage(); }
     public function updatedDateFilter(): void { $this->resetPage(); }
 
@@ -37,13 +39,13 @@ class DailyStatusUpdates extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['searchQuery', 'selectedProjectId', 'selectedScope', 'dateFilter']);
+        $this->reset(['searchQuery', 'selectedProjectId', 'selectedSubsidiaryId', 'selectedScope', 'dateFilter']);
         $this->resetPage();
     }
 
     public function hasActiveFilters(): bool
     {
-        return (!empty(trim($this->searchQuery)) || $this->selectedProjectId !== null || $this->selectedScope !== 'all' || $this->dateFilter !== 'all');
+        return (!empty(trim($this->searchQuery)) || $this->selectedProjectId !== null || $this->selectedSubsidiaryId !== null || $this->selectedScope !== 'all' || $this->dateFilter !== 'all');
     }
 
     public function filterByDate(string $filter): void
@@ -498,6 +500,12 @@ class DailyStatusUpdates extends Component
             $updatesQuery->where('project_id', $this->selectedProjectId);
         }
 
+        if ($this->selectedSubsidiaryId) {
+            $updatesQuery->whereHas('project', function($pq) {
+                $pq->where('subsidiary_id', $this->selectedSubsidiaryId);
+            });
+        }
+
         if ($this->selectedScope === 'task') {
             $updatesQuery->whereNotNull('wbs_item_id');
         } elseif ($this->selectedScope === 'project') {
@@ -529,11 +537,16 @@ class DailyStatusUpdates extends Component
         $statusUpdates = $updatesQuery->latest()->get();
 
         $groupedProjectUpdates = collect();
-        $isSearchingOrFiltering = !empty(trim($this->searchQuery)) || $this->selectedScope !== 'all' || $this->dateFilter !== 'all';
+        $isSearchingOrFiltering = !empty(trim($this->searchQuery)) || $this->selectedSubsidiaryId !== null || $this->selectedScope !== 'all' || $this->dateFilter !== 'all';
 
         foreach ($accessibleProjects as $proj) {
             $pUpdates = $statusUpdates->where('project_id', $proj->id)->values();
             
+            // Apply subsidiary filter if selected
+            if ($this->selectedSubsidiaryId && $proj->subsidiary_id != $this->selectedSubsidiaryId) {
+                continue;
+            }
+
             // Apply project filter if selected
             if ($this->selectedProjectId && $this->selectedProjectId != $proj->id) {
                 continue;
@@ -618,8 +631,14 @@ class DailyStatusUpdates extends Component
             'myUpdatesCount' => $myUpdatesCount,
             'uncommentedUpdatesCount' => $uncommentedUpdatesCount,
             'isSuperAdmin' => $isSuperAdmin,
+            'subsidiaries' => \App\Models\Subsidiary::orderBy('name')->get(),
             'showFilters' => $this->showFilters,
             'hasActiveFilters' => $this->hasActiveFilters(),
+            'searchQuery' => $this->searchQuery,
+            'selectedProjectId' => $this->selectedProjectId,
+            'selectedSubsidiaryId' => $this->selectedSubsidiaryId,
+            'selectedScope' => $this->selectedScope,
+            'dateFilter' => $this->dateFilter,
         ])->layout('layouts.app', ['title' => 'Daily Status Updates']);
     }
 }

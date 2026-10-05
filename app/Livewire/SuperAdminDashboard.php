@@ -44,7 +44,7 @@ class SuperAdminDashboard extends Component
 
     public function setTimelineScale(string $scale): void
     {
-        if (in_array($scale, ['today', 'week', 'month'])) {
+        if (in_array($scale, ['week', 'month'])) {
             $this->timelineScale = $scale;
         }
     }

@@ -207,12 +207,6 @@
                                     <a href="{{ route('projects.show', $p->id) }}" wire:navigate.hover class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#c3122e] transition-colors no-underline">
                                         {{ $p->name }}
                                     </a>
-                                    @if(isset($p->user_assigned_role))
-                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold border {{ $p->user_role_badge }} shrink-0">
-                                            <span>{{ $p->user_role_icon }}</span>
-                                            <span>{{ $p->user_role_short }}</span>
-                                        </span>
-                                    @endif
                                 </div>
                                 <span class="text-[11px] text-slate-400 truncate block font-medium mt-0.5">
                                     {{ $p->subsidiary?->name ?? 'George Steuart Group' }}
@@ -266,24 +260,8 @@
 
                             $dueStr = $isToday ? 'Today' : ($isTmrw ? 'Tomorrow' : ($task->end_date ? $task->end_date->format('M j') : 'Soon'));
                             $dueColor = ($isToday || $isPast) ? 'text-rose-600 font-bold' : ($isTmrw ? 'text-amber-600 font-semibold' : 'text-slate-500');
-
-                            $rawPrio = $task->priority instanceof \BackedEnum 
-                                ? $task->priority->value 
-                                : (is_string($task->priority) ? $task->priority : ($task->priority?->name ?? 'medium'));
-                            $prioVal = strtolower((string)$rawPrio);
-                            $prioClass = 'bg-amber-50 text-amber-700 border-amber-200/60';
-
-                            if (in_array($prioVal, ['critical', 'high'])) {
-                                $prioClass = 'bg-rose-50 text-rose-700 border-rose-200/60';
-                                $prio = 'High';
-                            } elseif ($prioVal === 'low') {
-                                $prioClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
-                                $prio = 'Low';
-                            } else {
-                                $prio = 'Medium';
-                            }
                         @endphp
-                        <div class="flex items-start justify-between gap-2.5 p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                        <div class="flex items-center justify-between gap-2.5 p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
                             <div class="flex items-start gap-2.5 min-w-0 flex-1">
                                 <button type="button" 
                                         wire:click="toggleTaskComplete({{ $task->id }})" 
@@ -303,12 +281,9 @@
                                 </div>
                             </div>
 
-                            <div class="flex flex-col items-end shrink-0 space-y-1">
-                                <span class="text-[10.5px] {{ $dueColor }}">
+                            <div class="flex items-center shrink-0 self-center">
+                                <span class="text-[11px] {{ $dueColor }}">
                                     {{ $dueStr }}
-                                </span>
-                                <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold border {{ $prioClass }}">
-                                    {{ $prio }}
                                 </span>
                             </div>
                         </div>

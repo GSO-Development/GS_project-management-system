@@ -2,251 +2,285 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER (RISKS & BLOCKERS HUB)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-100">
         <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c3122e]/10 text-[#c3122e] tracking-wide uppercase">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                    Risk Governance
+                </span>
+            </div>
             <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 Risks &amp; Blockers Hub
             </h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5 font-normal">
-                Track project risks, evaluate threat scores, and resolve active delivery blockers.
-            </p>
         </div>
 
         <!-- Right Side: Action Buttons -->
-        <div class="flex items-center gap-2.5 flex-wrap flex-shrink-0 self-start sm:self-center">
+        <div class="flex items-center gap-2 flex-wrap flex-shrink-0 self-start sm:self-center">
+            {{-- Filter Toggle Button --}}
+            <button wire:click="toggleFilters" type="button"
+                    class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <span>Filter</span>
+                @if($hasActiveFilters)
+                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                @endif
+            </button>
+
+            {{-- Report Blocker Button --}}
             <button
                 wire:click="openAddBlockerModal()"
                 type="button"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-98"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95"
             >
-                <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <span>Report Blocker</span>
             </button>
 
+            {{-- Log Project Risk Button --}}
             <button
                 wire:click="openAddRiskModal()"
                 type="button"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-2xs hover:shadow-sm hover:opacity-95 active:scale-98 transition-all cursor-pointer"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-2xs hover:shadow-sm hover:opacity-95 active:scale-95 transition-all cursor-pointer"
                 style="background: linear-gradient(135deg, #c3122e 0%, #a80f26 100%);"
             >
-                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 <span>Log Project Risk</span>
             </button>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         2. KPI SUMMARY METRICS (4 Clean Modern Cards)
+         2. KPI SUMMARY METRICS (4 Executive Interactive Cards)
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-        <!-- Active Project Risks -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-amber-500 to-amber-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Project Risks</span>
-                        <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ $totalRisksCount }}</div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
+        <!-- 1. Active Project Risks -->
+        <button
+            type="button"
+            wire:click="$set('activeTab', 'risks'); $set('selectedStatus', 'all');"
+            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'risks' && $selectedStatus === 'all') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
+        >
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">PROJECT RISKS</span>
+                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'risks' && $selectedStatus === 'all') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
                 </div>
             </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold {{ $openRisksCount > 0 ? 'text-amber-600' : 'text-slate-400' }} truncate">
-                    {{ $openRisksCount }} active • {{ $projects->count() }} projects
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $totalRisksCount }}</span>
+                <span class="text-[11px] font-semibold text-slate-400">{{ $openRisksCount }} Active</span>
+            </div>
+        </button>
+
+        <!-- 2. High Threats -->
+        <button
+            type="button"
+            wire:click="$set('activeTab', 'risks'); $set('selectedStatus', 'open');"
+            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'risks' && $selectedStatus === 'open') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
+        >
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">HIGH THREATS</span>
+                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'risks' && $selectedStatus === 'open') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
                 </div>
             </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $criticalHighRiskCount }}</span>
+                <span class="text-[11px] font-semibold text-slate-400">Score ≥ 6</span>
+            </div>
+        </button>
+
+        <!-- 3. Pending Task Blockers -->
+        <button
+            type="button"
+            wire:click="$set('activeTab', 'blockers'); $set('selectedStatus', 'open');"
+            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'blockers' && $selectedStatus === 'open') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
+        >
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">TASK BLOCKERS</span>
+                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'blockers' && $selectedStatus === 'open') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $openBlockersCount }}</span>
+                <span class="text-[11px] font-semibold text-slate-400">Active</span>
+            </div>
+        </button>
+
+        <!-- 4. Resolved Blockers -->
+        <button
+            type="button"
+            wire:click="$set('activeTab', 'blockers'); $set('selectedStatus', 'resolved');"
+            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'blockers' && $selectedStatus === 'resolved') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
+        >
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">RESOLVED</span>
+                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'blockers' && $selectedStatus === 'resolved') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $resolvedBlockersCount }}</span>
+                <span class="text-[11px] font-semibold text-slate-400">Closed</span>
+            </div>
+        </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         3. SEGMENTED TABS ROW & SUMMARY
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- Segmented Pill Tabs -->
+        <div class="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/70 shadow-2xs">
+            <button
+                type="button"
+                wire:click="$set('activeTab', 'risks')"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'risks' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
+            >
+                <span>Project Risks</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $activeTab === 'risks' ? 'bg-rose-50 text-[#c3122e] border border-rose-200/60' : 'bg-slate-200/80 text-slate-600' }}">{{ $risks->count() }}</span>
+            </button>
+
+            <button
+                type="button"
+                wire:click="$set('activeTab', 'blockers')"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'blockers' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
+            >
+                <span>Task Blockers</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $activeTab === 'blockers' ? 'bg-rose-50 text-[#c3122e] border border-rose-200/60' : 'bg-slate-200/80 text-slate-600' }}">{{ $blockers->count() }}</span>
+            </button>
         </div>
 
-        <!-- High Threat Risks -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-rose-500 to-rose-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">High Threats</span>
-                        <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500 flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black {{ $criticalHighRiskCount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight leading-none mb-1">{{ $criticalHighRiskCount }}</div>
-                </div>
-            </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold text-rose-500 truncate">
-                    Critical / High (Score ≥ 6/12)
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Task Blockers -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-orange-500 to-orange-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Task Blockers</span>
-                        <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black {{ $openBlockersCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} tracking-tight leading-none mb-1">{{ $openBlockersCount }}</div>
-                </div>
-            </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold {{ $openBlockersCount > 0 ? 'text-rose-500' : 'text-slate-400' }} truncate">
-                    Execution impediments
-                </div>
-            </div>
-        </div>
-
-        <!-- Resolved Blockers -->
-        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-150 overflow-hidden flex flex-col justify-between h-full">
-            <div>
-                <div class="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 w-full"></div>
-                <div class="p-3.5 sm:p-4 pb-2">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block truncate">Resolved</span>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-black text-emerald-600 tracking-tight leading-none mb-1">{{ $resolvedBlockersCount }}</div>
-                </div>
-            </div>
-            <div class="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-0">
-                <div class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 truncate">
-                    <svg class="w-3 h-3 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>Unblocked deliverables</span>
-                </div>
-            </div>
+        <!-- Right Side: Showing info & Reset link -->
+        <div class="text-xs font-medium text-slate-500 flex items-center gap-3">
+            <span>Showing <strong class="text-slate-900 font-bold">{{ $activeTab === 'risks' ? $risks->count() . ' Risks' : $blockers->count() . ' Blockers' }}</strong></span>
+            @if($hasActiveFilters)
+                <button wire:click="resetAllFilters" type="button" class="text-xs font-bold text-[#c3122e] hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition-transform">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>Reset Filters</span>
+                </button>
+            @endif
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         3. CONTROLS, SEGMENTED TABS & FILTERS BAR
+         4. COLLAPSIBLE FILTER TOOLBAR
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs space-y-3.5">
-        <!-- Top Row: Tab Switcher & Active Count -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-            <!-- Segmented Pill Tabs -->
-            <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200/60">
-                <button
-                    type="button"
-                    wire:click="$set('activeTab', 'risks')"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'risks' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
-                >
-                    <span class="w-2 h-2 rounded-full {{ $activeTab === 'risks' ? 'bg-amber-500' : 'bg-slate-300' }}"></span>
-                    <span>Project Risks</span>
-                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $activeTab === 'risks' ? 'bg-amber-50 text-amber-700 border border-amber-200/60' : 'bg-slate-200/80 text-slate-600' }}">{{ $risks->count() }}</span>
-                </button>
+    @if($showFilters)
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs animate-in fade-in duration-200">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Search Input -->
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input
+                        type="text"
+                        wire:model.live.debounce.300ms="searchQuery"
+                        placeholder="Search keyword, code, title..."
+                        class="w-full text-xs font-medium py-2.5 pl-9 pr-8 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-800 placeholder:text-slate-400"
+                    >
+                    @if($searchQuery)
+                        <button wire:click="$set('searchQuery', '')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    @endif
+                </div>
 
-                <button
-                    type="button"
-                    wire:click="$set('activeTab', 'blockers')"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'blockers' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
-                >
-                    <span class="w-2 h-2 rounded-full {{ $activeTab === 'blockers' ? 'bg-[#c3122e]' : 'bg-slate-300' }}"></span>
-                    <span>Task Blockers</span>
-                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $activeTab === 'blockers' ? 'bg-rose-50 text-rose-700 border border-rose-200/60' : 'bg-slate-200/80 text-slate-600' }}">{{ $blockers->count() }}</span>
-                </button>
-            </div>
+                <!-- Project Selector Dropdown -->
+                <div>
+                    <select
+                        wire:model.live="selectedProjectId"
+                        class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
+                    >
+                        <option value="">All Accessible Projects</option>
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code ?? 'PRJ' }})</option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <!-- Active Filters Reset -->
-            <div class="text-xs font-medium text-slate-500 flex items-center gap-3">
-                <span>Showing <strong class="text-slate-800 font-semibold">{{ $activeTab === 'risks' ? $risks->count() . ' Risks' : $blockers->count() . ' Blockers' }}</strong></span>
-                @if($searchQuery || $selectedProjectId || ($activeTab === 'risks' && ($selectedCategory || $selectedStatus !== 'all')) || ($activeTab === 'blockers' && $selectedSeverity !== 'all'))
-                    <button wire:click="$set('searchQuery', ''); $set('selectedProjectId', null); $set('selectedCategory', ''); $set('selectedStatus', 'all'); $set('selectedSeverity', 'all');" class="text-xs font-semibold text-[#c3122e] hover:underline cursor-pointer flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        <span>Reset Filters</span>
-                    </button>
+                @if($activeTab === 'risks')
+                    <!-- Category Dropdown -->
+                    <div>
+                        <select
+                            wire:model.live="selectedCategory"
+                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
+                        >
+                            <option value="">All Risk Categories</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Financial">Financial</option>
+                            <option value="Schedule">Schedule</option>
+                            <option value="Resource">Resource</option>
+                            <option value="Operational">Operational</option>
+                            <option value="External">External Vendor</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <select
+                            wire:model.live="selectedStatus"
+                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
+                        >
+                            <option value="all">All Risk Statuses</option>
+                            <option value="open">Open (Active)</option>
+                            <option value="monitoring">Monitoring</option>
+                            <option value="mitigated">Mitigated</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                @else
+                    <!-- Severity Filter for Blockers -->
+                    <div>
+                        <select
+                            wire:model.live="selectedSeverity"
+                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
+                        >
+                            <option value="all">All Severities</option>
+                            <option value="critical">Critical Severity</option>
+                            <option value="high">High Severity</option>
+                            <option value="medium">Medium Severity</option>
+                            <option value="low">Low Severity</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter for Blockers -->
+                    <div>
+                        <select
+                            wire:model.live="selectedStatus"
+                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
+                        >
+                            <option value="all">All Statuses</option>
+                            <option value="open">Active / Pending</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                    </div>
                 @endif
             </div>
-        </div>
 
-        <!-- Filter Controls Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            <!-- Search Input -->
-            <div class="relative">
-                <input
-                    type="text"
-                    wire:model.live.debounce.300ms="searchQuery"
-                    placeholder="Search by keyword, code, title..."
-                    class="w-full text-xs font-medium py-2 pl-8.5 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-800 placeholder:text-slate-400"
-                >
-                <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
-
-            <!-- Project Selector Dropdown -->
-            <div>
-                <select
-                    wire:model.live="selectedProjectId"
-                    class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                >
-                    <option value="">All Accessible Projects</option>
-                    @foreach($projects as $p)
-                        <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code ?? 'PRJ' }})</option>
-                    @endforeach
-                </select>
-            </div>
-
-            @if($activeTab === 'risks')
-                <!-- Category Dropdown -->
-                <div>
-                    <select
-                        wire:model.live="selectedCategory"
-                        class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                    >
-                        <option value="">All Risk Categories</option>
-                        <option value="Technical">Technical</option>
-                        <option value="Financial">Financial</option>
-                        <option value="Schedule">Schedule</option>
-                        <option value="Resource">Resource</option>
-                        <option value="Operational">Operational</option>
-                        <option value="External">External Vendor</option>
-                    </select>
-                </div>
-
-                <!-- Status Filter -->
-                <div>
-                    <select
-                        wire:model.live="selectedStatus"
-                        class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                    >
-                        <option value="all">All Risk Statuses</option>
-                        <option value="open">Open (Active)</option>
-                        <option value="monitoring">Monitoring</option>
-                        <option value="mitigated">Mitigated</option>
-                        <option value="closed">Closed</option>
-                    </select>
-                </div>
-            @else
-                <!-- Severity Filter for Blockers -->
-                <div class="sm:col-span-2 lg:col-span-2">
-                    <select
-                        wire:model.live="selectedSeverity"
-                        class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                    >
-                        <option value="all">All Blocker Severities</option>
-                        <option value="critical">Critical Severity</option>
-                        <option value="high">High Severity</option>
-                        <option value="medium">Medium Severity</option>
-                        <option value="low">Low Severity</option>
-                    </select>
+            @if($hasActiveFilters)
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 text-xs">
+                    <span class="text-slate-400 font-medium">Filtered results applied</span>
+                    <button wire:click="resetAllFilters" type="button" class="text-[#c3122e] font-bold hover:underline cursor-pointer flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span>Clear All Filters</span>
+                    </button>
                 </div>
             @endif
         </div>
-    </div>
+    @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
          4. MAIN CONTENT (RISKS REGISTER OR BLOCKERS LIST)
@@ -261,45 +295,41 @@
                         $threatBadge = 'bg-rose-50 text-rose-700 border-rose-200/80';
                         $threatDot = 'bg-rose-500';
                         $threatLabel = 'Critical Threat';
-                        $borderAccent = 'border-l-rose-500';
                     } elseif ($score >= 6) {
                         $threatBadge = 'bg-orange-50 text-orange-700 border-orange-200/80';
                         $threatDot = 'bg-orange-500';
                         $threatLabel = 'High Threat';
-                        $borderAccent = 'border-l-orange-500';
                     } elseif ($score >= 4) {
-                        $threatBadge = 'bg-amber-50 text-amber-800 border-amber-200/80';
+                        $threatBadge = 'bg-amber-50/80 text-amber-800 border-amber-200/80';
                         $threatDot = 'bg-amber-500';
                         $threatLabel = 'Medium Threat';
-                        $borderAccent = 'border-l-amber-500';
                     } else {
                         $threatBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
                         $threatDot = 'bg-emerald-500';
                         $threatLabel = 'Low Threat';
-                        $borderAccent = 'border-l-emerald-500';
                     }
                 @endphp
 
-                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all border-l-4 {{ $borderAccent }} p-5 sm:p-6 space-y-3.5">
+                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all p-5 sm:p-5.5 space-y-3 group">
                     <!-- Top Row: Project & Context Info on Left, Threat Pill & Actions on Right -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-2 flex-wrap">
                             <!-- Project Badge -->
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
                                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 <span>{{ $r->project->name ?? 'Project' }}</span>
                             </span>
 
                             <!-- Category Badge -->
                             @if($r->category)
-                                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
+                                <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 border border-slate-200/60">
                                     {{ $r->category }}
                                 </span>
                             @endif
 
                             <!-- Scope Task (if linked) -->
                             @if($r->wbsItem)
-                                <span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium">
+                                <span class="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     <span>Task: <strong class="font-semibold text-slate-700">{{ $r->wbsItem->title }}</strong> ({{ $r->wbsItem->wbs_code }})</span>
                                 </span>
@@ -308,20 +338,16 @@
 
                         <!-- Right Side: Threat Score Pill & Action Buttons -->
                         <div class="flex items-center gap-2 flex-shrink-0 self-start sm:self-center">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border {{ $threatBadge }} shadow-2xs">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border {{ $threatBadge }} shadow-2xs">
                                 <span class="w-1.5 h-1.5 rounded-full {{ $threatDot }}"></span>
                                 <span>{{ $threatLabel }}</span>
-                                <span class="text-slate-300 font-normal">&bull;</span>
-                                <span class="font-black">{{ $score }}/12</span>
+                                <span class="opacity-40 font-normal">&bull;</span>
+                                <span class="font-mono font-bold">{{ $score }}/12</span>
                             </div>
 
                             <select
                                 wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)"
-                                class="text-xs font-bold rounded-lg px-2.5 py-1 border transition-all cursor-pointer shadow-2xs
-                                    {{ $r->status === 'open' ? 'bg-amber-50 text-amber-800 border-amber-200/90' : '' }}
-                                    {{ $r->status === 'monitoring' ? 'bg-sky-50 text-sky-800 border-sky-200/90' : '' }}
-                                    {{ $r->status === 'mitigated' ? 'bg-emerald-50 text-emerald-800 border-emerald-200/90' : '' }}
-                                    {{ $r->status === 'closed' ? 'bg-slate-50 text-slate-600 border-slate-200/90' : '' }}"
+                                class="text-xs font-semibold rounded-lg px-2.5 py-1 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs outline-none cursor-pointer transition-colors focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e]/10"
                             >
                                 <option value="open" @selected($r->status === 'open')>Open</option>
                                 <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
@@ -350,29 +376,35 @@
 
                     <!-- Middle: Title & Description -->
                     <div class="space-y-1">
-                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight leading-snug">{{ $r->title }}</h3>
-                        <p class="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">{{ $r->description }}</p>
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight leading-snug group-hover:text-[#c3122e] transition-colors" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            {{ $r->title }}
+                        </h3>
+                        @if($r->description)
+                            <p class="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">
+                                {{ $r->description }}
+                            </p>
+                        @endif
                     </div>
 
                     <!-- Matrix Factors (Probability & Impact) -->
-                    <div class="text-[11.5px] text-slate-500 font-medium flex items-center gap-3">
-                        <span class="inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/60">
-                            <span class="text-slate-400">Probability:</span>
-                            <strong class="text-slate-800 font-bold">{{ ucfirst($r->probability) }}</strong>
-                        </span>
-                        <span class="inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/60">
-                            <span class="text-slate-400">Impact:</span>
-                            <strong class="text-slate-800 font-bold">{{ ucfirst($r->impact) }}</strong>
-                        </span>
+                    <div class="flex items-center gap-2.5 text-xs text-slate-500 font-medium py-0.5 flex-wrap">
+                        <div class="inline-flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/70">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Probability:</span>
+                            <span class="font-bold text-slate-700 text-xs">{{ ucfirst($r->probability) }}</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/70">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Impact:</span>
+                            <span class="font-bold text-slate-700 text-xs">{{ ucfirst($r->impact) }}</span>
+                        </div>
                     </div>
 
                     <!-- Mitigation & Contingency Strategy Plans -->
                     @if($r->mitigation_plan || $r->contingency_plan)
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                             @if($r->mitigation_plan)
-                                <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 text-xs space-y-1">
-                                    <div class="font-bold text-slate-700 flex items-center gap-1.5 text-[11px]">
-                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                <div class="p-3.5 rounded-xl bg-emerald-50/40 border border-emerald-200/60 text-xs space-y-1.5">
+                                    <div class="font-bold text-emerald-800 flex items-center gap-1.5 text-xs">
+                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                                         <span>Mitigation Strategy</span>
                                     </div>
                                     <p class="text-slate-600 leading-relaxed text-xs">{{ $r->mitigation_plan }}</p>
@@ -380,9 +412,9 @@
                             @endif
 
                             @if($r->contingency_plan)
-                                <div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 text-xs space-y-1">
-                                    <div class="font-bold text-slate-700 flex items-center gap-1.5 text-[11px]">
-                                        <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div class="p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60 text-xs space-y-1.5">
+                                    <div class="font-bold text-amber-800 flex items-center gap-1.5 text-xs">
+                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>Contingency Plan</span>
                                     </div>
                                     <p class="text-slate-600 leading-relaxed text-xs">{{ $r->contingency_plan }}</p>
@@ -392,14 +424,17 @@
                     @endif
 
                     <!-- Footer: Owner & Timestamp -->
-                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-2.5 border-t border-slate-100">
+                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-3 border-t border-slate-100">
                         <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[10px] shadow-2xs">
+                            <div class="w-6 h-6 rounded-full bg-rose-50 text-[#c3122e] border border-rose-200/80 font-bold flex items-center justify-center text-[10px] shadow-2xs">
                                 {{ strtoupper(substr($r->owner->name ?? 'P', 0, 1)) }}
                             </div>
-                            <span>Owner: <strong class="text-slate-700 font-semibold">{{ $r->owner->name ?? 'Project Manager' }}</strong></span>
+                            <span class="text-slate-400 text-xs">Owner: <strong class="text-slate-700 font-semibold">{{ $r->owner->name ?? 'Project Manager' }}</strong></span>
                         </div>
-                        <span class="text-slate-400 text-[11px]">{{ $r->created_at->format('M d, Y') }} ({{ $r->created_at->diffForHumans() }})</span>
+                        <span class="text-slate-400 text-[11px] flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ $r->created_at->format('M d, Y') }} ({{ $r->created_at->diffForHumans() }})</span>
+                        </span>
                     </div>
                 </div>
             @empty
@@ -415,7 +450,7 @@
                         <button
                             wire:click="openAddRiskModal()"
                             type="button"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-2xs hover:shadow-xs transition-all cursor-pointer"
                             style="background: linear-gradient(135deg, #c3122e 0%, #a80f26 100%);"
                         >
                             <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -433,34 +468,28 @@
                     $sevBadge = match($b->severity) {
                         'critical' => 'bg-rose-50 text-rose-700 border-rose-200/80',
                         'high' => 'bg-orange-50 text-orange-700 border-orange-200/80',
-                        'medium' => 'bg-amber-50 text-amber-800 border-amber-200/80',
-                        default => 'bg-slate-50 text-slate-600 border-slate-200/70',
-                    };
-                    $sevBorder = match($b->severity) {
-                        'critical' => 'border-l-rose-500',
-                        'high' => 'border-l-orange-500',
-                        'medium' => 'border-l-amber-500',
-                        default => 'border-l-slate-400',
+                        'medium' => 'bg-amber-50/80 text-amber-800 border-amber-200/80',
+                        default => 'bg-slate-100 text-slate-600 border-slate-200/70',
                     };
                 @endphp
 
-                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all border-l-4 {{ $sevBorder }} p-5 sm:p-6 space-y-3.5">
+                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all p-5 sm:p-5.5 space-y-3 group">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-2 flex-wrap">
                             <!-- Project Badge -->
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
                                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 <span>{{ $b->wbsItem->project->name ?? 'Project' }}</span>
                             </span>
 
                             <!-- Task Badge -->
-                            <span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium">
+                            <span class="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                <span>Task: {{ $b->wbsItem->title ?? 'Scope Task' }} ({{ $b->wbsItem->wbs_code ?? '-' }})</span>
+                                <span>Task: <strong class="font-semibold text-slate-700">{{ $b->wbsItem->title ?? 'Scope Task' }}</strong> ({{ $b->wbsItem->wbs_code ?? '-' }})</span>
                             </span>
 
                             <!-- Severity Pill -->
-                            <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold border {{ $sevBadge }}">
+                            <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider border {{ $sevBadge }} shadow-2xs">
                                 {{ ucfirst($b->severity) }} Severity
                             </span>
                         </div>
@@ -476,7 +505,7 @@
                                 <button
                                     wire:click="openResolveBlockerModal({{ $b->id }})"
                                     type="button"
-                                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     <span>Resolve Blocker</span>
@@ -497,17 +526,21 @@
                         </div>
                     @endif
 
-                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-3 border-t border-slate-100">
                         <div class="flex items-center gap-2">
-                            <div class="w-5 h-5 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[9.5px]">
+                            <div class="w-6 h-6 rounded-full bg-rose-50 text-[#c3122e] border border-rose-200/80 font-bold flex items-center justify-center text-[10px] shadow-2xs">
                                 {{ strtoupper(substr($b->reporter->name ?? 'T', 0, 1)) }}
                             </div>
-                            <span>Reported by <strong class="text-slate-700 font-semibold">{{ $b->reporter->name ?? 'Team Member' }}</strong> &bull; {{ $b->created_at->diffForHumans() }}</span>
+                            <span class="text-slate-400 text-xs">Reported by <strong class="text-slate-700 font-semibold">{{ $b->reporter->name ?? 'Team Member' }}</strong></span>
                         </div>
 
-                        @if($b->resolved_at)
-                            <span class="text-[11px] text-slate-400">Resolved {{ $b->resolved_at->diffForHumans() }}</span>
-                        @endif
+                        <span class="text-slate-400 text-[11px] flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ $b->created_at->diffForHumans() }}</span>
+                            @if($b->resolved_at)
+                                <span class="text-emerald-600 font-medium">&bull; Resolved {{ $b->resolved_at->diffForHumans() }}</span>
+                            @endif
+                        </span>
                     </div>
                 </div>
             @empty

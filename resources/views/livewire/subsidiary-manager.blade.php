@@ -142,20 +142,20 @@
     @endif
 
     <!-- SUBSIDIARIES DATA TABLE -->
-    <div class="card p-0 overflow-hidden mb-6 shadow-xs">
-        <div class="overflow-x-auto">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th class="w-8"><input type="checkbox" wire:model.live="selectAll" class="rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] cursor-pointer"></th>
-                        <th>SUBSIDIARY</th>
-                        <th>CODE</th>
-                        <th>TYPE</th>
-                        <th>PROJECTS</th>
-                        <th>USERS</th>
-                        <th>STATUS</th>
-                        <th>CREATED DATE</th>
-                        <th class="text-right">ACTIONS</th>
+    <div class="card p-0 overflow-hidden mb-6 shadow-xs bg-white border border-slate-200/80 rounded-2xl">
+        <div class="overflow-x-auto bg-white">
+            <table class="data-table bg-white">
+                <thead class="bg-white border-b border-slate-100">
+                    <tr class="bg-white">
+                        <th class="w-8 !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;"><input type="checkbox" wire:model.live="selectAll" class="rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] cursor-pointer"></th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">SUBSIDIARY</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">CODE</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">TYPE</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">PROJECTS</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">USERS</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">STATUS</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">CREATED DATE</th>
+                        <th class="text-right !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">

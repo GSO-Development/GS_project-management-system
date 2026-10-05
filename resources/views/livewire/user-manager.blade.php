@@ -98,21 +98,21 @@
     @endif
 
     <!-- Users Table -->
-    <div class="card p-0 overflow-hidden shadow-xs mb-6">
-        <div class="overflow-x-auto">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th class="w-8">
+    <div class="card p-0 overflow-hidden shadow-xs mb-6 bg-white border border-slate-200/80 rounded-2xl">
+        <div class="overflow-x-auto bg-white">
+            <table class="data-table bg-white">
+                <thead class="bg-white border-b border-slate-100">
+                    <tr class="bg-white">
+                        <th class="w-8 !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">
                             <input type="checkbox" wire:model.live="selectAll" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer">
                         </th>
-                        <th class="whitespace-nowrap">USER MEMBER</th>
-                        <th class="whitespace-nowrap">ACCOUNT TYPE</th>
-                        <th class="whitespace-nowrap">SYSTEM ROLE</th>
-                        <th class="whitespace-nowrap">SUBSIDIARY</th>
-                        <th class="whitespace-nowrap">PHONE</th>
-                        <th class="whitespace-nowrap">ACCOUNT STATUS</th>
-                        <th class="text-right">ACTIONS</th>
+                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">USER MEMBER</th>
+                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACCOUNT TYPE</th>
+                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">SYSTEM ROLE</th>
+                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">SUBSIDIARY</th>
+                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">PHONE</th>
+                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACCOUNT STATUS</th>
+                        <th class="text-right !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">

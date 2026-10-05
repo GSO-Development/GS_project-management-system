@@ -21,6 +21,33 @@ class RiskBlockerManager extends Component
     public string $activeTab = 'risks'; // 'risks' or 'blockers'
     public ?string $matrixFilterProb = null;
     public ?string $matrixFilterImp = null;
+    public bool $showFilters = false;
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        return !empty(trim($this->searchQuery))
+            || !empty($this->selectedProjectId)
+            || ($this->activeTab === 'risks' && (!empty($this->selectedCategory) || $this->selectedStatus !== 'all'))
+            || ($this->activeTab === 'blockers' && ($this->selectedSeverity !== 'all' || $this->selectedStatus !== 'all'))
+            || !empty($this->matrixFilterProb)
+            || !empty($this->matrixFilterImp);
+    }
+
+    public function resetAllFilters(): void
+    {
+        $this->searchQuery = '';
+        $this->selectedProjectId = null;
+        $this->selectedCategory = '';
+        $this->selectedStatus = 'all';
+        $this->selectedSeverity = 'all';
+        $this->matrixFilterProb = null;
+        $this->matrixFilterImp = null;
+    }
 
     // Risk Modal State
     public bool $showAddRiskModal = false;
@@ -455,6 +482,13 @@ class RiskBlockerManager extends Component
         if ($this->selectedSeverity !== 'all') {
             $blockersQuery->where('severity', $this->selectedSeverity);
         }
+        if ($this->selectedStatus !== 'all') {
+            if ($this->selectedStatus === 'resolved') {
+                $blockersQuery->where('status', 'resolved');
+            } elseif ($this->selectedStatus === 'open') {
+                $blockersQuery->where('status', '!=', 'resolved');
+            }
+        }
         if ($this->searchQuery) {
             $q = $this->searchQuery;
             $blockersQuery->where(function ($sub) use ($q) {
@@ -502,6 +536,9 @@ class RiskBlockerManager extends Component
         $openBlockersCount = $allProjectBlockers->where('status', '!=', 'resolved')->count();
         $resolvedBlockersCount = $allProjectBlockers->where('status', 'resolved')->count();
 
+        $hasActiveFilters = $this->hasActiveFilters();
+        $showFilters = $this->showFilters;
+
         return view('livewire.risk-blocker-manager', compact(
             'projects',
             'risks',
@@ -513,7 +550,9 @@ class RiskBlockerManager extends Component
             'openRisksCount',
             'criticalHighRiskCount',
             'openBlockersCount',
-            'resolvedBlockersCount'
+            'resolvedBlockersCount',
+            'hasActiveFilters',
+            'showFilters'
         ))->layout('layouts.app', ['title' => 'Risks & Blockers Hub']);
     }
 }

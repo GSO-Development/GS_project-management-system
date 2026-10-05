@@ -198,9 +198,7 @@
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-slate-50/70 border-b border-slate-100 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            <th class="py-3.5 pl-5 pr-2 w-10 text-center">
-                                <input type="checkbox" disabled class="w-4 h-4 rounded border-slate-300 text-[#c3122e] opacity-40 cursor-not-allowed">
-                            </th>
+                            <th class="py-3.5 pl-5 pr-2 w-10 text-center"></th>
                             <th class="py-3.5 px-3 min-w-[200px]">Task</th>
                             <th class="py-3.5 px-3 min-w-[150px]">Project</th>
                             @if($taskScope === 'pm_projects')

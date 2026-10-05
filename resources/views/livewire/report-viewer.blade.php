@@ -114,22 +114,22 @@
     </div>
 
     <!-- Report Data Table -->
-    <div class="card p-0 overflow-hidden shadow-xs mb-6">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="card p-0 overflow-hidden shadow-xs mb-6 bg-white border border-slate-200/80 rounded-2xl">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
             <h3 class="font-bold text-slate-900 text-sm">Portfolio Performance Data</h3>
             <span class="text-xs text-slate-500 font-medium">{{ count($projects) }} Project(s) Listed</span>
         </div>
-        <div class="overflow-x-auto">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>CODE &amp; NAME</th>
-                        <th>SUBSIDIARY</th>
-                        <th>PROJECT MANAGER</th>
-                        <th>STATUS</th>
-                        <th>PROGRESS</th>
-                        <th>BUDGET (LKR)</th>
-                        <th>COST (LKR)</th>
+        <div class="overflow-x-auto bg-white">
+            <table class="data-table bg-white">
+                <thead class="bg-white border-b border-slate-100">
+                    <tr class="bg-white">
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">CODE &amp; NAME</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">SUBSIDIARY</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">PROJECT MANAGER</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">STATUS</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">PROGRESS</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">BUDGET (LKR)</th>
+                        <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">COST (LKR)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
