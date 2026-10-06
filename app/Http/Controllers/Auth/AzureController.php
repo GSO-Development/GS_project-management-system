@@ -66,7 +66,7 @@ class AzureController extends Controller
 
         // --- 5. Log in the user ---
         Auth::login($user, true);
-        request()->session()->regenerate();
+        request()->session()->put('audit_session_logged', true);
 
         \App\Models\ActivityLog::create([
             'user_id'     => $user->id,

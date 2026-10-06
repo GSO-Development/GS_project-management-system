@@ -29,6 +29,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if (Auth::check()) {
+            $request->session()->put('audit_session_logged', true);
             \App\Models\ActivityLog::create([
                 'user_id'     => Auth::id(),
                 'action'      => 'user_logged_in',
