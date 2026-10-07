@@ -23,8 +23,9 @@ class ProjectAssignedMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $code = $this->project->code ? "[{$this->project->code}] " : '';
         return new Envelope(
-            subject: "You've been assigned to project: {$this->project->name}",
+            subject: "{$code}You've been assigned to project: {$this->project->name}",
         );
     }
 
