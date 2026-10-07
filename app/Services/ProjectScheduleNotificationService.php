@@ -62,6 +62,7 @@ class ProjectScheduleNotificationService
         $pmoAdmins = User::where('is_active', true)
             ->where(function ($q) {
                 $q->whereHas('roles', fn ($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin']))
+                  ->orWhere('email', 'pmo@gsoptimize.lk')
                   ->orWhere('email', 'admin@nexuspm.local')
                   ->orWhere('email', 'superadmin@georgesteuart.com');
             })

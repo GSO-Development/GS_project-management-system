@@ -42,6 +42,7 @@ class TaskOverdueNotificationService
                 $q->whereHas('roles', function ($rq) {
                     $rq->whereIn('name', ['pmo_admin', 'super_admin']);
                 })
+                ->orWhere('email', 'pmo@gsoptimize.lk')
                 ->orWhere('email', 'admin@nexuspm.local')
                 ->orWhere('email', 'superadmin@georgesteuart.com');
             })

@@ -20,7 +20,7 @@ class SettingsManager extends Component
     public string $smtpUser = 'nadumi672@gmail.com';
     public string $smtpPass = 'myhb tzmx aeok nvxj';
     public string $smtpEncryption = 'tls';
-    public string $mailFromAddress = 'nadumi672@gmail.com';
+    public string $mailFromAddress = 'pmo@gsoptimize.lk';
     public string $mailFromName = 'GS Project Management';
 
     // Security & Password Rules
@@ -37,7 +37,7 @@ class SettingsManager extends Component
     public string $azureClientId = '';
 
     // Test Mail
-    public string $testEmailRecipient = 'nadumi672@gmail.com';
+    public string $testEmailRecipient = 'pmo@gsoptimize.lk';
     public ?string $testMailStatus = null;
     public ?string $testMailError = null;
 
@@ -53,7 +53,7 @@ class SettingsManager extends Component
 
         $this->loadSettings();
         if (empty($this->testEmailRecipient)) {
-            $this->testEmailRecipient = $user->email ?? 'admin@georgesteuart.com';
+            $this->testEmailRecipient = $user->email ?? 'pmo@gsoptimize.lk';
         }
     }
 
@@ -84,13 +84,13 @@ class SettingsManager extends Component
         $this->smtpEncryption = in_array(strtolower((string) $rawEnc), ['tls', 'ssl', 'none']) ? strtolower((string) $rawEnc) : 'tls';
 
         $this->mailFromAddress = (string) (SystemSetting::where('key', 'mail_from_address')->value('value')
-            ?: (env('MAIL_FROM_ADDRESS') ?: 'nadumi672@gmail.com'));
+            ?: (env('MAIL_FROM_ADDRESS') ?: 'pmo@gsoptimize.lk'));
         $this->mailFromName = (string) (SystemSetting::where('key', 'mail_from_name')->value('value')
             ?: (env('MAIL_FROM_NAME') ?: 'GS Project Management'));
 
         // Overdue Email Alert Settings
         $this->enableOverdueEmailAlerts = filter_var(SystemSetting::where('key', 'enable_overdue_email_alerts')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
-        $this->overdueNotificationEmail = (string) (SystemSetting::where('key', 'overdue_notification_email')->value('value') ?: ($this->mailFromAddress ?: 'admin@georgesteuart.com'));
+        $this->overdueNotificationEmail = (string) (SystemSetting::where('key', 'overdue_notification_email')->value('value') ?: ($this->mailFromAddress ?: 'pmo@gsoptimize.lk'));
 
         // Security Settings
         $this->enforcePasswordComplexity = filter_var(SystemSetting::where('key', 'enforce_password_complexity')->value('value') ?? true, FILTER_VALIDATE_BOOLEAN);
