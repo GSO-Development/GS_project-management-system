@@ -10,7 +10,7 @@ test('user dashboard renders project manager dashboard component successfully', 
 
     Livewire::test(ProjectManagerDashboard::class)
         ->assertStatus(200)
-        ->assertSee('Total Projects')
+        ->assertSee('My Projects')
         ->assertSee('Quick Access');
 });
 

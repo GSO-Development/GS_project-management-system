@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\ActivityLog;
 use App\Models\ApprovalRequest;
+use App\Models\CalendarEvent;
 use App\Models\Project;
 use App\Models\ProjectRisk;
 use App\Models\TaskBlocker;
@@ -826,6 +827,84 @@ class ProjectManagerDashboard extends Component
         $actWbsIds = $recentActivities->where('record_type', WbsItem::class)->pluck('record_id')->filter()->unique()->toArray();
         $wbsTitlesMap = !empty($actWbsIds) ? WbsItem::whereIn('id', $actWbsIds)->pluck('title', 'id')->toArray() : [];
 
+        // ── Today's Schedule (Day-by-Day Tasks & Meetings for Logged-In User) ──
+        $todayStr = now()->toDateString();
+
+        // ── Today's Schedule (Strictly Tasks assigned to user & Meetings for user on Today's date) ──
+        $todayStr = now()->toDateString();
+        $todayObj = now()->today();
+
+        // 1. Tasks assigned specifically to logged-in user active/due TODAY
+        $todayUserTasks = WbsItem::with('project')
+            ->where('assigned_user_id', $user->id)
+            ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
+            ->where(function ($q) use ($todayStr) {
+                $q->whereDate('end_date', $todayStr)
+                  ->orWhereDate('start_date', $todayStr)
+                  ->orWhere(function ($sq) use ($todayStr) {
+                      $sq->whereDate('start_date', '<=', $todayStr)
+                         ->whereDate('end_date', '>=', $todayStr);
+                  });
+            })
+            ->orderBy('end_date', 'asc')
+            ->get()
+            ->map(function ($t) use ($todayObj) {
+                $isOverdue = $t->end_date && $t->end_date->lt($todayObj);
+                $isDueToday = $t->end_date && $t->end_date->isToday();
+                $timeDisplay = $t->end_time_formatted ?: ($isDueToday ? 'Due Today' : 'Active Today');
+                return [
+                    'id'          => 'task_' . $t->id,
+                    'type'        => 'task',
+                    'title'       => !empty(trim($t->title)) ? $t->title : 'Assigned Task',
+                    'project'     => $t->project?->name ?: 'Personal Task',
+                    'time_label'  => $timeDisplay,
+                    'status'      => is_object($t->status) ? $t->status->label() : ucfirst(str_replace('_', ' ', (string) $t->status)),
+                    'status_val'  => is_object($t->status) ? $t->status->value : (string) $t->status,
+                    'progress'    => (int) $t->progress,
+                    'link'        => route('my-tasks.index'),
+                    'badge_bg'    => $isDueToday ? 'bg-amber-50 text-amber-800 border-amber-200/80 font-bold' : 'bg-emerald-50 text-emerald-700 border-emerald-200/80 font-semibold',
+                    'icon'        => 'task',
+                ];
+            });
+
+        // 2. Today's Meetings / Events created by or attended by the user
+        $todayUserEvents = CalendarEvent::with('project')
+            ->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhereJsonContains('attendees', (string) $user->id)
+                  ->orWhereJsonContains('attendees', (int) $user->id);
+            })
+            ->where(function ($q) use ($todayStr) {
+                $q->whereDate('start_date', $todayStr)
+                  ->orWhereDate('end_date', $todayStr)
+                  ->orWhere(function ($sq) use ($todayStr) {
+                      $sq->whereDate('start_date', '<=', $todayStr)
+                         ->whereDate('end_date', '>=', $todayStr);
+                  });
+            })
+            ->orderBy('start_time', 'asc')
+            ->get()
+            ->map(function ($ev) {
+                $eventTitle = !empty(trim($ev->title)) ? $ev->title : 'Scheduled Meeting';
+                return [
+                    'id'          => 'event_' . $ev->id,
+                    'type'        => 'meeting',
+                    'title'       => $eventTitle,
+                    'project'     => $ev->project?->name ?: ($ev->location ?: 'Calendar Meeting'),
+                    'time_label'  => $ev->time_range ?: 'All Day Meeting',
+                    'status'      => ucfirst($ev->event_type ?: 'Meeting'),
+                    'status_val'  => $ev->event_type ?: 'meeting',
+                    'progress'    => null,
+                    'link'        => route('calendar.index'),
+                    'badge_bg'    => 'bg-purple-50 text-purple-700 border-purple-200/80 font-bold',
+                    'icon'        => 'meeting',
+                ];
+            });
+
+        $todayScheduleItems = $todayUserTasks->concat($todayUserEvents)->take(10);
+        $todayTasksCount = $todayUserTasks->count();
+        $todayEventsCount = $todayUserEvents->count();
+
         // My Approvals List (100% Real)
         $myApprovalsList = ApprovalRequest::with(['project', 'requester'])
             ->latest()
@@ -954,6 +1033,9 @@ class ProjectManagerDashboard extends Component
             'upcomingMilestones',
             'myTasksDueSoonList',
             'recentActivities',
+            'todayScheduleItems',
+            'todayTasksCount',
+            'todayEventsCount',
             'myApprovalsList',
             'chartPoints',
             'chartYMax',

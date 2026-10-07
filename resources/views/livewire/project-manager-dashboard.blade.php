@@ -299,79 +299,81 @@
             </div>
         </div>
 
-        {{-- ── COLUMN 3: RECENT ACTIVITIES (3 cols) ── --}}
+        {{-- ── COLUMN 3: TODAY'S SCHEDULE (TASKS & MEETINGS) (3 cols) ── --}}
         <div class="dash-col-3 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Card Header --}}
                 <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Recent Activity</h2>
-                    @can('view audit logs')
-                        <a href="{{ route('audit-logs.index') }}" wire:navigate.hover class="text-xs font-semibold text-slate-400 hover:text-slate-800 flex items-center gap-1 transition-colors no-underline">
-                            <span>View all</span>
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    @endcan
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Today's Schedule</h2>
+                        <p class="text-[11px] font-medium text-slate-400 mt-0.5">{{ now()->format('l, M j') }}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-rose-50 text-[#c3122e] border border-rose-200/60" title="Tasks & Meetings for Today">
+                            {{ $todayScheduleItems->count() }} Items
+                        </span>
+                    </div>
                 </div>
 
-                {{-- Activity List --}}
+                {{-- Schedule List (Day-by-Day updating) --}}
                 <div class="space-y-2.5">
-                    @forelse($recentActivities as $act)
-                        @php
-                            $action = $act->action;
-                            $module = $act->module;
-                            $newVals = is_array($act->new_values) ? $act->new_values : [];
+                    @forelse($todayScheduleItems as $item)
+                        <div class="p-2.5 rounded-xl bg-slate-50/60 hover:bg-rose-50/20 border border-slate-100 hover:border-rose-100 transition-all space-y-1.5 group">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-start gap-2 min-w-0">
+                                    {{-- Type Icon --}}
+                                    <div class="w-7 h-7 rounded-lg {{ $item['type'] === 'meeting' ? 'bg-purple-100 text-purple-700 border border-purple-200/60' : 'bg-rose-100 text-[#c3122e] border border-rose-200/60' }} flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold shadow-2xs">
+                                        @if($item['type'] === 'meeting')
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        @else
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                        @endif
+                                    </div>
 
-                            $actionDesc = 'updated item';
-                            $targetName = $newVals['name'] ?? $newVals['title'] ?? $newVals['code'] ?? '';
-                            $iconBg = 'bg-slate-100 text-slate-600 border border-slate-200/60';
-
-                            if (str_contains($action, 'project')) {
-                                $iconBg = 'bg-blue-50 text-blue-600 border border-blue-200/60';
-                                $actionDesc = 'updated project';
-                            } elseif (str_contains($action, 'wbs') || str_contains($action, 'task') || $module === 'wbs') {
-                                $iconBg = 'bg-emerald-50 text-emerald-600 border border-emerald-200/60';
-                                $actionDesc = 'updated task';
-                            } elseif (str_contains($action, 'approval') || $module === 'approvals') {
-                                $iconBg = 'bg-purple-50 text-purple-600 border border-purple-200/60';
-                                $actionDesc = 'approval action';
-                            } elseif (str_contains($action, 'risk') || str_contains($action, 'blocker') || $module === 'risks') {
-                                $iconBg = 'bg-amber-50 text-amber-600 border border-amber-200/60';
-                                $actionDesc = 'risk update';
-                            }
-
-                            if (empty($targetName)) {
-                                $targetName = ucwords(str_replace('_', ' ', $action));
-                            }
-                        @endphp
-                        <div class="flex items-start gap-2.5 p-1.5 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="w-6 h-6 rounded-lg {{ $iconBg }} flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold">
-                                •
-                            </div>
-
-                            <div class="min-w-0 flex-1">
-                                <div class="text-xs text-slate-800 leading-snug">
-                                    <span class="font-bold text-slate-900">{{ $act->user?->name ?? 'System' }}</span>
-                                    <span class="text-slate-500 font-medium">{{ $actionDesc }}</span>
+                                    <div class="min-w-0">
+                                        <a href="{{ $item['link'] }}" wire:navigate.hover class="text-xs font-bold text-slate-900 hover:text-[#c3122e] transition-colors truncate no-underline block leading-snug" title="{{ $item['title'] }}">
+                                            {{ $item['title'] }}
+                                        </a>
+                                        <div class="flex items-center gap-1.5 text-[10.5px] font-medium text-slate-400 mt-0.5">
+                                            <span class="truncate max-w-[130px]">{{ $item['project'] }}</span>
+                                            @if($item['type'] === 'task' && $item['progress'] !== null)
+                                                <span class="text-slate-300">•</span>
+                                                <span class="font-mono font-bold text-slate-600">{{ $item['progress'] }}%</span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between gap-1 mt-0.5">
-                                    <span class="text-[11px] font-medium text-slate-600 truncate max-w-[120px]" title="{{ $targetName }}">
-                                        {{ $targetName }}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-medium">
-                                        {{ $act->created_at ? $act->created_at->diffForHumans(null, true) : 'recent' }}
+
+                                {{-- Time / Status Badge --}}
+                                <div class="shrink-0 flex flex-col items-end gap-1">
+                                    <span class="text-[9.5px] px-2 py-0.5 rounded-md border {{ $item['badge_bg'] }}">
+                                        {{ $item['time_label'] }}
                                     </span>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="py-10 text-center space-y-2">
-                            <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="py-8 text-center space-y-2">
+                            <div class="w-10 h-10 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                                ✓
                             </div>
-                            <p class="text-xs font-semibold text-slate-500">No recent activities recorded</p>
+                            <p class="text-xs font-bold text-slate-800">No tasks or meetings today</p>
+                            <p class="text-[11px] text-slate-400 font-medium">Your schedule for {{ now()->format('l') }} is completely clear.</p>
                         </div>
                     @endforelse
                 </div>
+            </div>
+
+            {{-- Footer links --}}
+            <div class="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
+                <a href="{{ route('calendar.index') }}" wire:navigate.hover class="text-[11px] font-bold text-slate-600 hover:text-[#c3122e] flex items-center gap-1.5 transition-colors no-underline">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Open Calendar</span>
+                </a>
+                <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="text-[11px] font-bold text-slate-600 hover:text-[#c3122e] flex items-center gap-1.5 transition-colors no-underline">
+                    <span>Task Board</span>
+                    <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
         </div>
 
