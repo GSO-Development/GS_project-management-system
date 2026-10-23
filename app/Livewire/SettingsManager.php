@@ -277,10 +277,12 @@ class SettingsManager extends Component
             $appName = $this->appName;
             $fromAddr = $this->mailFromAddress;
             $fromName = $this->mailFromName;
-            $recipient = $this->testEmailRecipient;
+            $recipient = trim($this->testEmailRecipient);
             $host = $this->smtpHost;
             $port = $this->smtpPort;
             $encryption = $this->smtpEncryption;
+
+            \Illuminate\Support\Facades\Log::info("Sending test email to: {$recipient} via {$host}:{$port} ({$fromAddr})");
 
             \Illuminate\Support\Facades\Mail::raw(
                 "Hello,\n\n" .
@@ -300,9 +302,12 @@ class SettingsManager extends Component
                 }
             );
 
+            \Illuminate\Support\Facades\Log::info("Test email successfully dispatched to: {$recipient}");
+
             $this->testMailStatus = "Test email successfully dispatched to {$recipient}!";
             $this->dispatch('toast', message: 'Test email dispatched successfully!', type: 'success');
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("SMTP error sending test mail to {$this->testEmailRecipient}: " . $e->getMessage());
             $this->testMailError = "SMTP Delivery Notice: " . $e->getMessage();
             $this->dispatch('toast', message: 'SMTP error: ' . $e->getMessage(), type: 'error');
         }

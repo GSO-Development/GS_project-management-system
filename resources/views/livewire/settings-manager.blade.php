@@ -223,7 +223,7 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <input 
                     type="email" 
-                    wire:model.live.debounce.300ms="testEmailRecipient" 
+                    wire:model="testEmailRecipient" 
                     placeholder="Recipient email address..." 
                     class="flex-1 px-3.5 py-2.5 text-xs font-semibold text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all"
                 >
