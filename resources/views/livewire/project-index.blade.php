@@ -15,6 +15,11 @@
             background-size: 11px;
             padding-right: 30px !important;
         }
+        @keyframes critical-alert-flash {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(225, 29, 72, .45); }
+            50% { opacity: .58; box-shadow: 0 0 0 7px rgba(225, 29, 72, 0); }
+        }
+        .critical-alert-flash { animation: critical-alert-flash 1.25s ease-in-out infinite; }
     </style>
 
     <!-- Flash Success / Error Toast Banners -->
@@ -202,19 +207,31 @@
                             <th class="py-3.5 px-3 w-[20%] sm:w-[18%] lg:w-[16%]">Project Manager</th>
                             <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden sm:table-cell">Status</th>
                             <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Progress</th>
+                            <th class="py-3.5 px-2 w-[7%] hidden lg:table-cell text-center">Delay</th>
                             <th class="py-3.5 px-3 w-[14%] lg:w-[10%] hidden xl:table-cell whitespace-nowrap">Deadline</th>
                             <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[10%] whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs bg-white">
                         @forelse($projects as $project)
+                            @php $delaySummary = $delaySummaries[$project->id] ?? ['is_delayed' => false, 'issues' => []]; @endphp
                             <tr class="hover:bg-slate-50/60 transition-colors duration-150 group">
                                 <!-- Project Name & Clean Metadata -->
                                 <td class="py-3.5 pl-5 sm:pl-6 pr-3 align-middle">
                                     <div class="min-w-0 space-y-1">
-                                        <a href="{{ route('projects.show', $project->id) }}" class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline" title="{{ $project->name }}">
-                                            {{ $project->name }}
-                                        </a>
+                                        @if($delaySummary['is_delayed'])
+                                            <a
+                                                href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
+                                                class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug text-left cursor-pointer w-full"
+                                                title="View delayed tasks, reasons and responsible people"
+                                            >
+                                                {{ $project->name }}
+                                            </a>
+                                        @else
+                                            <a href="{{ route('projects.show', $project->id) }}" class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline" title="{{ $project->name }}">
+                                                {{ $project->name }}
+                                            </a>
+                                        @endif
                                         <div class="flex items-center gap-2 text-[11px] text-slate-500 whitespace-nowrap">
                                             <span class="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60 leading-none">
                                                 {{ $project->code }}
@@ -292,6 +309,22 @@
                                     </div>
                                 </td>
 
+                                <!-- Delay Analysis Indicator -->
+                                <td class="py-3.5 px-2 hidden lg:table-cell align-middle text-center">
+                                    @if($delaySummary['is_delayed'])
+                                        <a
+                                            href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
+                                            class="critical-alert-flash inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-50 border border-rose-200 cursor-pointer"
+                                            title="View all delayed tasks and reasons"
+                                            aria-label="View all delayed tasks and reasons for {{ $project->name }}"
+                                        >
+                                            <span class="w-3 h-3 rounded-full bg-rose-600 border-2 border-rose-200"></span>
+                                        </a>
+                                    @else
+                                        <span class="inline-block w-2 h-2 rounded-full bg-slate-200" title="No delay detected"></span>
+                                    @endif
+                                </td>
+
                                 <!-- Deadline -->
                                 <td class="py-3.5 px-3 hidden xl:table-cell align-middle whitespace-nowrap">
                                     @if($project->deadline)
@@ -309,6 +342,7 @@
                                     <div class="inline-flex items-center justify-end gap-1">
                                         <a
                                             href="{{ route('projects.show', $project->id) }}"
+                                            x-on:click.stop
                                             class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all flex items-center justify-center cursor-pointer"
                                             title="Open Project Workspace"
                                         >
@@ -319,6 +353,7 @@
                                         @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin'))
                                             <button
                                                 wire:click="confirmDelete({{ $project->id }})"
+                                                x-on:click.stop
                                                 type="button"
                                                 class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer flex items-center justify-center"
                                                 title="Delete Project"
@@ -1231,6 +1266,64 @@
             </div>
         </div>
     @endif
+
+    @teleport('body')
+    @if($showDelayAnalysis)
+        <div style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, 0.68); backdrop-filter: blur(5px);" wire:click.self="closeDelayAnalysis">
+            <div
+                wire:key="delay-analysis-{{ $delayProjectId }}"
+                x-data
+                x-init="$nextTick(() => { $refs.delayList.scrollTop = 0 })"
+                style="width: min(920px, calc(100vw - 32px)); max-height: calc(100vh - 40px); overflow: hidden; border-radius: 20px; background: #ffffff; box-shadow: 0 30px 80px rgba(15, 23, 42, 0.38); border: 1px solid #fecdd3; display: flex; flex-direction: column;"
+            >
+                <div class="px-5 sm:px-6 py-4 text-white flex items-start justify-between gap-4 shrink-0" style="background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-[.2em] font-black text-rose-100">Critical delay analysis</div>
+                        <h2 class="text-xl font-black mt-1">{{ $delayAnalysis['project_name'] ?? '' }}</h2>
+                        <p class="text-xs text-rose-100 mt-1">{{ $delayAnalysis['project_code'] ?? '' }} · {{ $delayAnalysis['critical_issue_count'] ?? 0 }} critical issue(s)</p>
+                    </div>
+                    <a href="{{ route('projects.index', request()->except('delay_project')) }}" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black cursor-pointer inline-flex items-center justify-center no-underline" aria-label="Close delay analysis">&times;</a>
+                </div>
+
+                <div x-ref="delayList" class="min-h-0 flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain space-y-3 bg-slate-50 scroll-smooth" style="min-height: 0;">
+                    @forelse(($delayAnalysis['issues'] ?? []) as $issue)
+                        <article class="bg-white rounded-xl border {{ $issue['is_critical'] ? 'border-rose-200' : 'border-amber-200' }} px-4 py-3.5 shadow-xs">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $issue['is_critical'] ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800' }}">{{ $issue['is_critical'] ? 'CRITICAL PATH IMPACT' : 'DELAY' }}</span>
+                                        @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
+                                    </div>
+                                    <h3 class="text-sm font-black text-slate-900 mt-1.5 leading-snug break-words">{{ $issue['task'] }}</h3>
+                                </div>
+                                @if($issue['overdue_days'] > 0)<span class="px-2.5 py-1 rounded-full bg-rose-50 text-xs font-black text-rose-700 whitespace-nowrap">{{ $issue['overdue_days'] }} days late</span>@endif
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
+                                <div class="rounded-lg bg-rose-50/70 border border-rose-100 px-3 py-2.5 min-w-0">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-rose-500">Delay reason / problem</div>
+                                    <p class="text-xs font-semibold text-slate-700 mt-1 leading-relaxed break-words">{{ $issue['reason'] }}</p>
+                                </div>
+                                <div class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 min-w-0">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Responsible person</div>
+                                    <p class="text-xs font-black text-slate-900 mt-1 truncate" title="{{ $issue['responsible'] }}">{{ $issue['responsible'] }}</p>
+                                    @if($issue['responsible_email'])<p class="text-[11px] text-slate-500 mt-0.5 truncate" title="{{ $issue['responsible_email'] }}">{{ $issue['responsible_email'] }}</p>@endif
+                                    @if($issue['downstream_count'] > 0)<p class="text-[11px] font-bold text-rose-600 mt-2">Blocking {{ $issue['downstream_count'] }} downstream task(s)</p>@endif
+                                </div>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="py-12 text-center text-slate-500 font-semibold">No task-level delay reason has been detected.</div>
+                    @endforelse
+                </div>
+
+                <div class="px-5 py-3 border-t border-slate-200 bg-white flex justify-end gap-2 shrink-0">
+                    <a href="{{ route('projects.index', request()->except('delay_project')) }}" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 cursor-pointer no-underline">Close</a>
+                    @if($delayProjectId)<a href="{{ route('projects.show', $delayProjectId) }}?tab=wbs" class="px-5 py-2 rounded-xl text-xs font-black bg-rose-700 text-white no-underline">Open WBS workspace</a>@endif
+                </div>
+            </div>
+        </div>
+    @endif
+    @endteleport
 
     <!-- Delete Project Confirmation Modal -->
     @if($showDeleteModal)

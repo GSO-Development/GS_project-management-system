@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\ItemType;
 use App\Enums\Priority;
 use App\Enums\WbsStatus;
+use App\Imports\TaskFileImport;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\User;
@@ -16,13 +17,17 @@ use App\Services\DependencyValidationService;
 use App\Services\ProgressCalculationService;
 use App\Services\WbsNumberingService;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class WbsTree extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public Project $project;
     public int $perPage = 50;
@@ -47,6 +52,12 @@ class WbsTree extends Component
     public ?float $estimated_hours = null;
     public float $weight = 1.0;
     public bool $is_milestone = false;
+
+    // Bulk task file import
+    public bool $showImportModal = false;
+    public $taskImportFile = null;
+    public array $taskImportPreview = [];
+    public array $taskImportErrors = [];
 
     // Task Status Filter ('all', 'in_progress', 'at_risk', 'blocked', 'completed')
     public string $statusFilter = 'all';
@@ -268,6 +279,277 @@ class WbsTree extends Component
         $this->progress = 0;
         $this->weight = 1.0;
         $this->showItemModal = true;
+    }
+
+    public function openImportModal(): void
+    {
+        abort_if(!$this->canCreateTasks, 403, 'You do not have permission to import tasks for this project.');
+        $this->resetValidation('taskImportFile');
+        $this->reset(['taskImportFile', 'taskImportPreview', 'taskImportErrors']);
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->reset(['taskImportFile', 'taskImportPreview', 'taskImportErrors']);
+    }
+
+    public function previewTaskImport(): void
+    {
+        abort_if(!$this->canCreateTasks, 403, 'You do not have permission to import tasks for this project.');
+        $this->validate([
+            'taskImportFile' => 'required|file|mimes:xlsx,xls,csv,txt,docx|max:5120',
+        ]);
+
+        try {
+            $extension = strtolower($this->taskImportFile->getClientOriginalExtension());
+            if ($extension === 'docx') {
+                $rows = collect($this->parseDocxTaskRows($this->taskImportFile->getRealPath()));
+            } else {
+                $sheets = Excel::toArray(new TaskFileImport(), $this->taskImportFile);
+                $rows = collect($sheets[0] ?? []);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+            $this->addError('taskImportFile', 'The selected file could not be read. Check its format and try again.');
+            $this->taskImportPreview = [];
+            return;
+        }
+        $rows = $rows->filter(fn ($row) => filled($row['title'] ?? null));
+        $allowedTypes = ['phase', 'work_package', 'task', 'subtask', 'milestone'];
+        $allowedStatuses = ['backlog', 'not_started', 'in_progress', 'blocked', 'under_review', 'completed', 'on_hold', 'cancelled'];
+        $allowedPriorities = ['low', 'medium', 'high', 'critical'];
+        $this->taskImportErrors = [];
+        $this->taskImportPreview = [];
+
+        foreach ($rows->take(500)->values() as $index => $row) {
+            $rowNumber = $index + 2;
+            $title = trim((string) ($row['title'] ?? ''));
+            if (mb_strlen($title) > 255) {
+                $this->taskImportErrors[] = "Row {$rowNumber}: task title is longer than 255 characters and was skipped.";
+                continue;
+            }
+            try {
+                $startDate = $this->normalizeImportDate($row['start_date'] ?? null);
+                $endDate = $this->normalizeImportDate($row['end_date'] ?? null);
+            } catch (\Throwable $e) {
+                $this->taskImportErrors[] = "Row {$rowNumber}: invalid start_date or end_date.";
+                continue;
+            }
+
+            if ($startDate && $endDate && $endDate < $startDate) {
+                $this->taskImportErrors[] = "Row {$rowNumber}: end_date must be on or after start_date.";
+                continue;
+            }
+
+            $type = Str::snake(strtolower(trim((string) ($row['type'] ?? $row['item_type'] ?? 'task'))));
+            $status = Str::snake(strtolower(trim((string) ($row['status'] ?? 'not_started'))));
+            $priority = strtolower(trim((string) ($row['priority'] ?? 'medium')));
+            $progress = max(0, min(100, (int) preg_replace('/[^0-9]/', '', (string) ($row['progress'] ?? 0))));
+            $assignee = trim((string) ($row['assignee_email'] ?? $row['assignee'] ?? $row['assigned_to'] ?? $row['responsible_person'] ?? ''));
+
+            $this->taskImportPreview[] = [
+                'row' => $rowNumber,
+                'title' => $title,
+                'description' => filled($row['description'] ?? null) ? trim((string) $row['description']) : null,
+                'item_type' => in_array($type, $allowedTypes, true) ? $type : 'task',
+                'assignee' => $assignee,
+                'assignee_email' => str_contains($assignee, '@') ? strtolower($assignee) : '',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'status' => in_array($status, $allowedStatuses, true) ? $status : 'not_started',
+                'priority' => in_array($priority, $allowedPriorities, true) ? $priority : 'medium',
+                'progress' => $status === 'completed' ? 100 : $progress,
+                'estimated_hours' => $this->normalizeEstimatedHours($row['estimated_hours'] ?? $row['duration'] ?? null),
+            ];
+        }
+
+        if ($rows->count() === 0) {
+            $this->addError('taskImportFile', 'No task rows were found. The file must contain a title column.');
+        }
+    }
+
+    public function importTasks(): void
+    {
+        abort_if(!$this->canCreateTasks, 403, 'You do not have permission to import tasks for this project.');
+        if (empty($this->taskImportPreview)) {
+            $this->addError('taskImportFile', 'Upload and preview a valid task file first.');
+            return;
+        }
+
+        $user = auth()->user();
+        $canAssign = $user?->isPmoAdmin() || $this->project->userCan($user, 'task.assign');
+        $assigneeValues = collect($this->taskImportPreview)->pluck('assignee')->filter()->map(fn ($value) => strtolower(trim($value)));
+        $matchedUsers = User::where(function ($query) use ($assigneeValues) {
+            foreach ($assigneeValues as $value) {
+                $query->orWhereRaw('LOWER(email) = ?', [$value])->orWhereRaw('LOWER(name) = ?', [$value]);
+            }
+        })->get();
+        $usersByIdentity = collect();
+        foreach ($matchedUsers as $matchedUser) {
+            $usersByIdentity->put(strtolower($matchedUser->email), $matchedUser);
+            $usersByIdentity->put(strtolower($matchedUser->name), $matchedUser);
+        }
+        $nextSort = (int) (WbsItem::where('project_id', $this->project->id)->whereNull('parent_id')->max('sort_order') ?? 0);
+
+        DB::transaction(function () use ($usersByIdentity, $canAssign, $user, &$nextSort) {
+            foreach ($this->taskImportPreview as $row) {
+                $assignee = $usersByIdentity->get(strtolower($row['assignee'] ?? ''));
+                WbsItem::create([
+                    'project_id' => $this->project->id,
+                    'parent_id' => null,
+                    'item_type' => $row['item_type'] === 'subtask' ? 'task' : $row['item_type'],
+                    'title' => $row['title'],
+                    'description' => $row['description'],
+                    'assigned_user_id' => $canAssign ? $assignee?->id : null,
+                    'start_date' => $row['start_date'],
+                    'end_date' => $row['end_date'],
+                    'status' => $row['status'],
+                    'priority' => $row['priority'],
+                    'progress' => $row['progress'],
+                    'estimated_hours' => $row['estimated_hours'],
+                    'weight' => 1,
+                    'is_milestone' => $row['item_type'] === 'milestone',
+                    'sort_order' => ++$nextSort,
+                    'created_by' => $user?->id,
+                ]);
+            }
+        });
+
+        (new WbsNumberingService())->recalculateProjectWbsCodes($this->project->id);
+        $count = count($this->taskImportPreview);
+        $this->closeImportModal();
+        $this->resetPage();
+        $this->dispatch('toast', message: "{$count} tasks imported successfully!", type: 'success');
+        $this->dispatch('wbsUpdated');
+    }
+
+    private function normalizeImportDate(mixed $value): ?string
+    {
+        if ($value === null || $value === '') return null;
+        if (is_numeric($value)) {
+            return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $value)->format('Y-m-d');
+        }
+        return \Carbon\Carbon::parse((string) $value)->format('Y-m-d');
+    }
+
+    private function normalizeEstimatedHours(mixed $value): ?float
+    {
+        if ($value === null || trim((string) $value) === '') return null;
+        if (is_numeric($value)) return max(0, (float) $value);
+        if (preg_match('/([0-9]+(?:\.[0-9]+)?)\s*(?:day|days|d)\b/i', (string) $value, $matches)) return (float) $matches[1] * 8;
+        if (preg_match('/([0-9]+(?:\.[0-9]+)?)\s*(?:hour|hours|hr|hrs|h)\b/i', (string) $value, $matches)) return (float) $matches[1];
+        return null;
+    }
+
+    private function canonicalImportHeading(string $heading): string
+    {
+        $key = Str::snake(strtolower(trim($heading)));
+        return match ($key) {
+            'task', 'task_name', 'task_title', 'activity', 'activity_name', 'deliverable', 'task_deliverable', 'name' => 'title',
+            'planned_start', 'start', 'start_date', 'planned_start_date', 'start_schedule', 'planned_start_schedule', 'target_start', 'task_start', 'commencement', 'commencement_date', 'actual_start' => 'start_date',
+            'planned_finish', 'finish', 'finish_date', 'planned_finish_date', 'end', 'end_date', 'due', 'due_date', 'deadline', 'target_deadline', 'finish_schedule', 'target_finish', 'task_finish', 'completion_date' => 'end_date',
+            'assigned_to', 'assignee', 'assignee_name', 'owner', 'responsible', 'responsible_person', 'resource', 'resource_name', 'resource_names' => 'assignee',
+            'percent_complete', 'percentage_complete', 'complete', 'completion', 'progress_percent' => 'progress',
+            'reported_duration', 'planned_duration', 'duration_days' => 'duration',
+            default => $key,
+        };
+    }
+
+    private function parseDocxTaskRows(string $path): array
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            throw new \RuntimeException('The DOCX file could not be opened.');
+        }
+
+        $xml = $zip->getFromName('word/document.xml');
+        $zip->close();
+        if (!$xml) {
+            throw new \RuntimeException('The DOCX file does not contain a readable document.');
+        }
+
+        $dom = new \DOMDocument();
+        $dom->loadXML($xml, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new \DOMXPath($dom);
+        $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+        $rows = [];
+
+        // Prefer Word tables. The first row is treated as column headings when
+        // it contains a title/task heading; otherwise every first cell is a task title.
+        foreach ($xpath->query('//w:tbl') as $table) {
+            $tableRows = [];
+            foreach ($xpath->query('./w:tr', $table) as $tableRow) {
+                $cells = [];
+                foreach ($xpath->query('./w:tc', $tableRow) as $cell) {
+                    $parts = [];
+                    foreach ($xpath->query('.//w:t', $cell) as $textNode) $parts[] = $textNode->textContent;
+                    $cells[] = trim(implode(' ', $parts));
+                }
+                if (array_filter($cells, 'strlen')) $tableRows[] = $cells;
+            }
+            if (!$tableRows) continue;
+
+            $headings = array_map(fn ($value) => $this->canonicalImportHeading($value), $tableRows[0]);
+            $hasHeading = in_array('title', $headings, true);
+            if (!$hasHeading) $headings = ['title'];
+            foreach (array_slice($tableRows, $hasHeading ? 1 : 0) as $cells) {
+                $row = [];
+                foreach ($cells as $index => $value) {
+                    $heading = $headings[$index] ?? null;
+                    if ($heading) $row[$heading] = $value;
+                }
+                if (filled($row['title'] ?? null)) $rows[] = $row;
+            }
+        }
+
+        if ($rows) return $rows;
+
+        // For a normal Word document, prefer actual bullet/numbered list items.
+        // If the document has no list formatting, accept only short paragraphs;
+        // long explanatory prose must never become a database task title.
+        $paragraphs = [];
+        foreach ($xpath->query('//w:body/w:p') as $paragraph) {
+            $parts = [];
+            foreach ($xpath->query('.//w:t', $paragraph) as $textNode) $parts[] = $textNode->textContent;
+            $title = trim(implode('', $parts));
+            $title = preg_replace('/^\s*(?:[-•·]|\d+[.)])\s*/u', '', $title);
+            if ($title !== '' && !in_array(strtolower($title), ['task', 'tasks', 'task list'], true)) {
+                $paragraphs[] = [
+                    'title' => $title,
+                    'is_list' => $xpath->query('./w:pPr/w:numPr', $paragraph)->length > 0,
+                ];
+            }
+        }
+
+        $hasFormattedList = collect($paragraphs)->contains(fn ($paragraph) => $paragraph['is_list']);
+        foreach ($paragraphs as $paragraph) {
+            if ($hasFormattedList && !$paragraph['is_list']) continue;
+            if (!$hasFormattedList && mb_strlen($paragraph['title']) > 255) continue;
+            $row = $this->parseStructuredTaskLine($paragraph['title']);
+            if ($row) $rows[] = $row;
+        }
+
+        return $rows;
+    }
+
+    private function parseStructuredTaskLine(string $line): ?array
+    {
+        $segments = preg_split('/\s*[|\t]\s*/u', trim($line));
+        $row = [];
+        foreach ($segments as $index => $segment) {
+            if (preg_match('/^(?:planned\s+start|start(?:\s+(?:date|schedule))?|commencement(?:\s+date)?)\s*:?\s*(.+)$/i', $segment, $m)) $row['start_date'] = trim($m[1]);
+            elseif (preg_match('/^(?:planned\s+finish|finish|end(?:\s+date)?|due(?:\s+date)?|deadline)\s*:\s*(.+)$/i', $segment, $m)) $row['end_date'] = trim($m[1]);
+            elseif (preg_match('/^(?:reported\s+duration|planned\s+duration|duration)\s*:\s*(.+)$/i', $segment, $m)) $row['duration'] = trim($m[1]);
+            elseif (preg_match('/^(?:assigned\s+to|assignee|owner|responsible)\s*:\s*(.+)$/i', $segment, $m)) $row['assignee'] = trim($m[1]);
+            elseif (preg_match('/^(?:progress|complete)\s*:\s*(.+)$/i', $segment, $m)) $row['progress'] = trim($m[1]);
+            elseif ($index === 0) $row['title'] = trim($segment);
+        }
+
+        if (!isset($row['title'])) $row['title'] = trim($line);
+        if (preg_match('/^(?:reference\s+project|project\s+implementation\s+plan)\b/i', $row['title'])) return null;
+        return filled($row['title']) ? $row : null;
     }
 
     public function updatedStartDate($value): void

@@ -12,6 +12,7 @@ use App\Models\TaskBlocker;
 use App\Models\User;
 use App\Models\WbsItem;
 use App\Notifications\GenericSystemNotification;
+use App\Services\ProjectDelayAnalysisService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -58,6 +59,9 @@ class ProjectIndex extends Component
 
     // WBS Task Inspector Slide-Over Drawer properties
     public bool $showQuickDrawer = false;
+    public bool $showDelayAnalysis = false;
+    public ?int $delayProjectId = null;
+    public array $delayAnalysis = [];
     public ?int $drawerProjectId = null;
     public string $drawerWbsSearch = '';
     public string $drawerWbsStatusFilter = 'all'; // 'all', 'in_progress', 'blocked', 'overdue', 'completed', 'not_started'
@@ -99,6 +103,11 @@ class ProjectIndex extends Component
 
         if (request()->routeIs('projects.create') || request()->query('create') == 1) {
             $this->openCreateModal();
+        }
+
+        $delayProjectId = request()->integer('delay_project');
+        if ($delayProjectId > 0) {
+            $this->openDelayAnalysis($delayProjectId, app(ProjectDelayAnalysisService::class));
         }
     }
 
@@ -549,6 +558,26 @@ class ProjectIndex extends Component
         $this->selectedInspectorTaskId = null;
     }
 
+    public function openDelayAnalysis(int $projectId, ProjectDelayAnalysisService $service): void
+    {
+        $project = Project::findOrFail($projectId);
+        abort_unless($project->canUserView(auth()->user()), 403);
+
+        $this->delayProjectId = $projectId;
+        $this->delayAnalysis = $service->analyze($project) + [
+            'project_name' => $project->name,
+            'project_code' => $project->code,
+        ];
+        $this->showDelayAnalysis = true;
+    }
+
+    public function closeDelayAnalysis(): void
+    {
+        $this->showDelayAnalysis = false;
+        $this->delayProjectId = null;
+        $this->delayAnalysis = [];
+    }
+
     public function selectInspectorTask(?int $taskId): void
     {
         if ($this->selectedInspectorTaskId === $taskId) {
@@ -701,7 +730,10 @@ class ProjectIndex extends Component
         // ═══════════════════════════════════════════════════════════════
         // 📊 QUERY FOR PAGINATED PROJECTS TABLE
         // ═══════════════════════════════════════════════════════════════
-        $query = (clone $baseQuery)->with(['subsidiary', 'projectManager', 'members', 'risks', 'wbsItems']);
+        $query = (clone $baseQuery)->with([
+            'subsidiary', 'projectManager', 'members', 'risks',
+            'wbsItems.assignedUser', 'wbsItems.blockers', 'wbsItems.successors.successor',
+        ]);
 
         if ($this->search) {
             $query->where(fn($q) => $q
@@ -765,6 +797,10 @@ class ProjectIndex extends Component
         }
 
         $projects = $query->latest()->paginate($this->perPage);
+        $delayService = app(ProjectDelayAnalysisService::class);
+        $delaySummaries = $projects->getCollection()->mapWithKeys(
+            fn ($project) => [$project->id => $delayService->analyze($project)]
+        );
         $subsidiaries = Subsidiary::all();
         $pms = User::where('is_active', true)->get();
         $allUsers = User::where('is_active', true)->get();
@@ -1095,6 +1131,7 @@ class ProjectIndex extends Component
             'stuckProjectsList',
             'stuckAssigneesList',
             'ganttTimeline'
+            ,'delaySummaries'
         ));
     }
 }
