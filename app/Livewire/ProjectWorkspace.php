@@ -622,6 +622,7 @@ class ProjectWorkspace extends Component
         foreach ($this->project->members as $member) {
             $this->collaboratorRoles[(string) $member->id] = $member->pivot->role ?? 'member';
         }
+        $this->collaboratorSearch = '';
         $this->showCreateCollaboratorSection = false;
         $this->showCollaboratorsModal = true;
     }

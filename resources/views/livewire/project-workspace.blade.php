@@ -2112,81 +2112,37 @@
         wire:click.self="$set('showCollaboratorsModal', false)"
         style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
         role="dialog"
-        aria-modal="true"
+        aria-modal="true" aria-labelledby="team-dialog-title"
     >
-        <div style="position: relative; width: min(640px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow-y: auto; padding: 22px 24px;">
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <div class="team-dialog" style="position: relative; width: min(640px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow-y: auto; padding: 22px 24px;">
+            <div class="team-dialog-header flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-[#c3122e] flex-shrink-0 font-bold text-sm shadow-2xs">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <div>
-                        <h3 class="font-black text-slate-900 text-base">Project Team &amp; Collaborators</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Attach team members to collaborate and assign tasks</p>
+                        <h3 id="team-dialog-title" class="font-black text-slate-900 text-base">Project Team &amp; Collaborators</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Search existing staff, select members and assign their project roles.</p>
                     </div>
                 </div>
-                <button type="button" wire:click="$set('showCollaboratorsModal', false)" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
+                <button type="button" wire:click="$set('showCollaboratorsModal', false)" aria-label="Close team dialog" class="team-dialog-close p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <!-- Action Bar: Search & Quick Create Toggle -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <!-- Search existing staff accounts -->
+            <div class="team-dialog-toolbar flex flex-col gap-3 mb-4">
                 <div class="relative flex-1">
-                    <input type="text" wire:model.live="collaboratorSearch" placeholder="Search team members by name or email..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-semibold text-slate-900 focus:bg-white focus:border-[#c3122e] outline-none transition-all">
+                    <input type="search" aria-label="Search existing staff members" wire:model.live.debounce.250ms="collaboratorSearch" placeholder="Search existing staff by name or email..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-[#c3122e] outline-none transition-all">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-                <button wire:click="$toggle('showCreateCollaboratorSection')" type="button" class="px-3.5 py-2.5 rounded-xl text-xs font-extrabold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer flex-shrink-0">
-                    <span>{{ $showCreateCollaboratorSection ? '✕ Cancel Create' : '✨ + Add New Staff Member' }}</span>
-                </button>
             </div>
 
-            <!-- Optional: Quick Create Collaborator Form -->
-            @if($showCreateCollaboratorSection)
-                <div class="mb-5 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 space-y-3">
-                    <h4 class="font-extrabold text-amber-900 text-xs flex items-center gap-1.5">
-                        <span>🚀 Create &amp; Attach New Staff Account</span>
-                    </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Full Name <span class="text-rose-500">*</span></label>
-                            <input type="text" wire:model="newCollabName" placeholder="e.g. Ruwan Perera" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 outline-none focus:border-[#c3122e]">
-                            @error('newCollabName') <span class="text-[10px] text-rose-600 font-bold mt-0.5 block">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Email Address <span class="text-rose-500">*</span></label>
-                            <input type="email" wire:model="newCollabEmail" placeholder="e.g. ruwan@georgesteuart.com" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 outline-none focus:border-[#c3122e]">
-                            @error('newCollabEmail') <span class="text-[10px] text-rose-600 font-bold mt-0.5 block">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Temporary Login Password</label>
-                            <input type="text" wire:model="newCollabTempPassword" placeholder="Password@123" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-amber-50/50 text-xs font-mono font-bold text-amber-900 outline-none focus:border-[#c3122e]">
-                            <span class="text-[10px] text-amber-800 font-medium mt-0.5 block">🔑 Default: <strong class="font-bold font-mono">Password@123</strong> (Editable)</span>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Project Role <span class="text-rose-500">*</span></label>
-                            <select wire:model="newCollabRole" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 outline-none focus:border-[#c3122e]">
-                                @foreach($allRoles as $rCode => $rMeta)
-                                    @if($rCode !== 'pmo_admin' && $rCode !== 'super_admin')
-                                        <option value="{{ $rCode }}">{{ $rMeta['name'] }}</option>
-                                    @endif
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex justify-end pt-1">
-                        <button wire:click="quickCreateCollaborator" type="button" class="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm flex items-center gap-1.5 cursor-pointer">
-                            <span>Create &amp; Attach to Project</span>
-                        </button>
-                    </div>
-                </div>
-            @endif
-
             <!-- Collaborators Selection List -->
-            <form wire:submit="saveCollaborators" class="space-y-4">
-                <div class="text-xs font-extrabold text-slate-700 mb-2">Select Staff Members &amp; Assign Roles for this Project:</div>
+            <form wire:submit="saveCollaborators" class="team-dialog-form space-y-4">
+                <div class="text-xs font-extrabold text-slate-700 mb-2">Team members <span class="team-dialog-list-hint">Select members and set their roles</span></div>
 
-                <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <div class="team-dialog-list space-y-2 max-h-60 overflow-y-auto pr-1">
                     @php
                         $filteredUsers = $availableUsers->filter(function($u) {
                             if ($this->collaboratorSearch) {
@@ -2200,9 +2156,9 @@
                         @php
                             $isOwner = ($u->id === $project->project_manager_id);
                         @endphp
-                        <div class="flex items-center justify-between p-3 rounded-2xl border transition-all {{ in_array($u->id, $selectedCollaboratorIds) || $isOwner ? 'bg-[#fdf4f4]/60 border-[#faeaea]' : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100/70' }}">
+                        <div wire:key="team-member-{{ $u->id }}" class="team-dialog-member {{ in_array($u->id, $selectedCollaboratorIds) || $isOwner ? 'is-selected' : '' }} flex items-center justify-between p-3 rounded-2xl border transition-all {{ in_array($u->id, $selectedCollaboratorIds) || $isOwner ? 'bg-[#fdf4f4]/60 border-[#faeaea]' : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100/70' }}">
                             <label class="flex items-center gap-3 flex-1 cursor-pointer">
-                                <input type="checkbox" wire:model="selectedCollaboratorIds" value="{{ $u->id }}" @if($isOwner) checked disabled @endif class="w-4 h-4 rounded text-[#c3122e] focus:ring-[#c3122e] border-slate-300">
+                                <input type="checkbox" wire:model.live="selectedCollaboratorIds" value="{{ $u->id }}" @if($isOwner) checked disabled @endif class="w-4 h-4 rounded text-[#c3122e] focus:ring-[#c3122e] border-slate-300">
                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white font-black text-xs flex items-center justify-center shadow-xs">
                                     {{ strtoupper(substr($u->name, 0, 1)) }}
                                 </div>
@@ -2218,7 +2174,7 @@
                                         👑 Lead PM / Owner
                                     </span>
                                 @else
-                                    <select wire:model="collaboratorRoles.{{ $u->id }}" class="px-2.5 py-1 rounded-xl border border-slate-200 bg-white text-[11px] font-extrabold text-slate-800 outline-none focus:border-[#c3122e]">
+                                    <select aria-label="Project role for {{ $u->name }}" wire:model="collaboratorRoles.{{ $u->id }}" class="px-2.5 py-1 rounded-xl border border-slate-200 bg-white text-[11px] font-extrabold text-slate-800 outline-none focus:border-[#c3122e]">
                                         @foreach($allRoles as $rCode => $rMeta)
                                             @if($rCode !== 'pmo_admin' && $rCode !== 'super_admin')
                                                 <option value="{{ $rCode }}">{{ $rMeta['name'] }}</option>
@@ -2239,12 +2195,12 @@
                     @endforelse
                 </div>
 
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <div class="team-dialog-footer flex items-center justify-between pt-3 border-t border-slate-100">
                     <p class="text-[11px] text-slate-500 font-medium">Selected: <strong class="text-slate-900">{{ count($selectedCollaboratorIds) }} members</strong></p>
                     <div class="flex items-center gap-3">
                         <button type="button" wire:click="$set('showCollaboratorsModal', false)" class="px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/25">
-                            <span>Save Team Members</span>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="saveCollaborators" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/25">
+                            <span wire:loading.remove wire:target="saveCollaborators">Save team members</span><span wire:loading wire:target="saveCollaborators">Saving...</span>
                         </button>
                     </div>
                 </div>

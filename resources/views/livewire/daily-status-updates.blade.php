@@ -79,7 +79,7 @@
         <!-- Top Right Action Controls (Filter toggle button only, post update button removed per user request) -->
         <div class="flex items-center gap-2 self-start sm:self-center">
             <!-- Filter Toggle Button -->
-            <button wire:click="toggleFilters" type="button"
+            <button wire:click="toggleFilters" type="button" aria-expanded="{{ $showFilters ? 'true' : 'false' }}" aria-controls="daily-update-filters"
                     class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
@@ -94,7 +94,7 @@
          2. COLLAPSIBLE FILTER TOOLBAR
          ═══════════════════════════════════════════════════════════════ -->
     @if($showFilters)
-        <div wire:key="daily-updates-filter-toolbar" class="daily-updates-filters bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs filter-toolbar-enter">
+        <div id="daily-update-filters" wire:key="daily-updates-filter-toolbar" class="daily-updates-filters bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs filter-toolbar-enter">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {{-- Search Box --}}
                 <div class="relative">
@@ -185,7 +185,7 @@
                     <h2 class="text-sm font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                         Project update register
                     </h2>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Latest project progress and activity</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Review recent activity, share progress and keep delivery on track.</p>
                 </div>
             </div>
             
@@ -202,13 +202,13 @@
                 @else
                     <span class="daily-project-count hidden sm:inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        {{ $groupedProjectUpdates->total() }} active projects
+                        {{ $groupedProjectUpdates->total() }} projects
                     </span>
                 @endif
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="daily-register-scroll" x-data x-init="$el.scrollLeft = 0" tabindex="0" role="region" aria-label="Project updates table">
             <table class="daily-updates-table w-full min-w-[920px] text-left border-collapse text-xs">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-[.09em] text-slate-500" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
@@ -282,12 +282,6 @@
                                                 <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
                                                 {{ $statusConfig['label'] }}
                                             </span>
-                                            @if($update->wbsItem)
-                                                <span class="inline-flex items-center gap-1 text-[10.5px] text-slate-600 font-medium bg-white px-2 py-0.5 rounded-md border border-slate-200/70 truncate max-w-[210px] shadow-2xs" title="{{ $update->wbsItem->title }}">
-                                                    <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                                    <span class="truncate">{{ $update->wbsItem->title }}</span>
-                                                </span>
-                                            @endif
                                             @if($update->current_blockers)
                                                 <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/70 shadow-2xs">
                                                     <svg class="w-3 h-3 text-rose-500 shrink-0 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -298,11 +292,15 @@
                                         <p class="text-xs text-slate-600 font-normal line-clamp-2 leading-relaxed" title="{{ $update->summary }}">
                                             {{ $update->summary }}
                                         </p>
+                                        <div class="daily-log-context" title="{{ $update->wbsItem?->title ?? 'Overall project update' }}">
+                                            <span>{{ $update->wbsItem ? 'Task' : 'Project' }}</span>
+                                            <span>{{ $update->wbsItem?->title ?? '' }}</span>
+                                        </div>
                                     </div>
                                 @else
                                     <div class="daily-log-empty inline-flex items-center gap-2 py-1.5 text-slate-400 text-[11px] font-medium">
                                         <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                        <span>No activity logs recorded yet</span>
+                                        <span>No updates yet</span>
                                     </div>
                                 @endif
                             </td>
@@ -342,7 +340,7 @@
                                         title="View project logs history"
                                     >
                                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span class="sr-only">View logs</span>
+                                        <span>Logs</span>
                                         <span class="px-1.5 py-0.2 rounded-md {{ $allUpdatesCount > 0 ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' : 'bg-slate-100 text-slate-500 border border-slate-200' }} text-[10px] font-black">
                                             {{ $allUpdatesCount }}
                                         </span>
@@ -429,7 +427,7 @@
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 id="daily-history-title" class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
-                                        Project Activity &amp; Progress Logs
+                                        Project activity
                                     </h3>
                                     @if($historyProject->code)
                                         <span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
@@ -453,7 +451,7 @@
                     </div>
 
                     <!-- Modal Navigation Tabs Bar -->
-                    <div class="px-6 pt-3 pb-0 bg-slate-50/70 border-b border-slate-200/80 flex items-center gap-2 overflow-x-auto scrollbar-none flex-shrink-0">
+                    <div class="daily-history-tabs px-6 pt-3 pb-0 bg-slate-50/70 border-b border-slate-200/80 flex items-center gap-2 overflow-x-auto scrollbar-none flex-shrink-0">
                         <button 
                             @click="modalTab = 'report'" 
                             :class="modalTab === 'report' ? 'border-[#c3122e] text-[#c3122e] font-black bg-white shadow-2xs' : 'border-transparent text-slate-600 hover:text-slate-900 font-bold hover:bg-white/50'"
@@ -490,18 +488,18 @@
                     <div class="daily-history-body flex-1 overflow-y-auto p-6 bg-slate-50/50">
                         @if($historyLatestUpdate)
                             <!-- TAB 1: PROGRESS REPORT -->
-                            <div x-show="modalTab === 'report'" class="space-y-4">
+                            <div x-show="modalTab === 'report'" class="daily-report space-y-4">
                                 <div class="flex items-center justify-between">
                                     <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        <span>Active Progress Report Details</span>
+                                        <span>Latest progress report</span>
                                     </div>
                                     <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
                                         Log #{{ $historyUpdatesCount }}
                                     </span>
                                 </div>
 
-                                <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                                <div class="daily-report-card p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                                     <!-- Author Row -->
                                     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                                         <div class="flex items-center gap-2.5">
@@ -556,7 +554,7 @@
                             </div>
 
                             <!-- TAB 2: TEAM DISCUSSION -->
-                            <div x-show="modalTab === 'discussion'" class="space-y-4">
+                            <div x-cloak x-show="modalTab === 'discussion'" class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                         <span>💬 Team Discussion &amp; Feedback Thread</span>
@@ -632,7 +630,7 @@
                         @endif
 
                         <!-- TAB 3: LOG HISTORY -->
-                        <div x-show="modalTab === 'history'" class="space-y-4">
+                        <div x-cloak x-show="modalTab === 'history'" class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                     <span>📜 Execution History &amp; Past Log Updates</span>
@@ -714,19 +712,17 @@
          6. MODAL: POST DAILY STATUS UPDATE
          ═══════════════════════════════════════════════════════════════ -->
     @if($showUpdateModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10 animate-fade-in">
-            <!-- Overlay Backdrop with soft blur -->
-            <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showUpdateModal', false)"></div>
-
-            <div class="relative bg-white rounded-2xl max-w-xl w-full p-0 overflow-hidden shadow-2xl z-10 border border-slate-200 animate-in fade-in zoom-in-95 duration-200 mx-3 sm:mx-auto max-h-[90vh] overflow-y-auto">
+        @teleport('body')
+        <dialog class="daily-publish-dialog" x-data x-init="$nextTick(() => $el.showModal())" @cancel.prevent="$wire.set('showUpdateModal', false)" @click="if ($event.target === $el) $wire.set('showUpdateModal', false)" aria-labelledby="daily-publish-title">
+            <div class="daily-publish-panel">
                 <!-- Modal Header -->
-                <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0 bg-white">
+                <div class="daily-publish-header px-6 py-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0 bg-white">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
                             <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </div>
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Publish Daily Progress Log</h3>
+                            <h3 id="daily-publish-title" class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Publish Daily Progress Log</h3>
                             <p class="text-xs text-slate-500 font-normal mt-0.5">Log task execution progress or overall project status update</p>
                         </div>
                     </div>
@@ -734,19 +730,20 @@
                         wire:click="$set('showUpdateModal', false)" 
                         type="button" 
                         class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Close Window"
+                        title="Close Window" aria-label="Close daily update" autofocus
                     >
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <form wire:submit="saveStatusUpdate" class="p-6 space-y-4">
+                <form wire:submit="saveStatusUpdate" class="daily-publish-form">
+                    <div class="daily-publish-fields space-y-4">
                     <!-- Target Project Select -->
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-black text-slate-700">Target Project <span class="text-rose-500">*</span></label>
+                        <label for="daily-updateProjectId" class="block text-xs font-black text-slate-700">Target Project <span class="text-rose-500">*</span></label>
                         <div class="relative">
                             <select
-                                wire:model.live="updateProjectId"
+                                id="daily-updateProjectId" wire:model.live="updateProjectId"
                                 class="no-native-arrow w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800 shadow-2xs"
                             >
                                 @foreach($accessibleProjects as $p)
@@ -786,7 +783,7 @@
                             <label class="block text-xs font-black text-slate-700">📍 WBS Scope Task</label>
                             <div class="relative">
                                 <select
-                                    wire:model="updateWbsItemId"
+                                    id="daily-updateWbsItemId" wire:model="updateWbsItemId"
                                     class="no-native-arrow w-full text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all cursor-pointer text-slate-800 shadow-2xs"
                                 >
                                     <option value="">Select Task...</option>
@@ -804,10 +801,10 @@
 
                     <!-- Log Title -->
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-black text-slate-700">Log Title <span class="text-rose-500">*</span></label>
+                        <label for="daily-updateTitle" class="block text-xs font-black text-slate-700">Log Title <span class="text-rose-500">*</span></label>
                         <input
                             type="text"
-                            wire:model="updateTitle"
+                            id="daily-updateTitle" wire:model="updateTitle"
                             placeholder="e.g. Completed Payment Gateway API integration tests"
                             class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                         >
@@ -816,9 +813,9 @@
 
                     <!-- Daily Executive Summary -->
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-black text-slate-700">Daily Executive Summary <span class="text-rose-500">*</span></label>
+                        <label for="daily-updateSummary" class="block text-xs font-black text-slate-700">Daily Executive Summary <span class="text-rose-500">*</span></label>
                         <textarea
-                            wire:model="updateSummary"
+                            id="daily-updateSummary" wire:model="updateSummary"
                             rows="3"
                             placeholder="Detail main work completed, progress made, or key highlights..."
                             class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
@@ -829,28 +826,29 @@
                     <!-- Deliverables and Blockers -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-black text-slate-700">Work Completed Today</label>
+                            <label for="daily-updateWorkCompleted" class="block text-xs font-black text-slate-700">Work Completed Today</label>
                             <input
                                 type="text"
-                                wire:model="updateWorkCompleted"
+                                id="daily-updateWorkCompleted" wire:model="updateWorkCompleted"
                                 placeholder="Deliverables finished..."
                                 class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                             >
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-black text-slate-700">Blockers / Issues (If Any)</label>
+                            <label for="daily-updateBlockers" class="block text-xs font-black text-slate-700">Blockers / Issues (If Any)</label>
                             <input
                                 type="text"
-                                wire:model="updateBlockers"
+                                id="daily-updateBlockers" wire:model="updateBlockers"
                                 placeholder="Execution blockers faced..."
                                 class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                             >
                         </div>
                     </div>
 
+                    </div>
                     <!-- Action Buttons -->
-                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <div class="daily-publish-footer flex justify-end gap-3 pt-4 border-t border-slate-100">
                         <button
                             type="button"
                             wire:click="$set('showUpdateModal', false)"
@@ -859,14 +857,15 @@
                             Cancel
                         </button>
                         <button
-                            type="submit"
+                            type="submit" wire:loading.attr="disabled" wire:target="saveStatusUpdate"
                             class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#8b0d1f] shadow-2xs hover:shadow-xs transition-all cursor-pointer hover:-translate-y-0.5"
                         >
-                            Publish Daily Update
+                            <span wire:loading.remove wire:target="saveStatusUpdate">Publish update</span><span wire:loading wire:target="saveStatusUpdate">Publishing...</span>
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
+        </dialog>
+        @endteleport
     @endif
 </div>

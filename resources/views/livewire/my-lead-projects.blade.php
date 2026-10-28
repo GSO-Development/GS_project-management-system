@@ -7,6 +7,7 @@
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 My Projects
             </h1>
+            <p class="projects-description">Manage your portfolio, track delivery and keep your team moving forward.</p>
         </div>
         @if(auth()->user()->canCreateProject())
             <div class="flex items-center gap-3 flex-shrink-0">
@@ -21,7 +22,7 @@
     {{-- ══════════════════════════════════════════════════════════
          2. KPI TILES
          ══════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
+    <div class="projects-metrics grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         @php
             $metricTiles = [
                 ['label' => 'Total Projects', 'count' => $totalCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', 'iconBg' => 'bg-slate-100 text-slate-700', 'border' => 'hover:border-slate-400', 'active' => $statusFilter === 'all', 'action' => '$set("statusFilter", "all")'],
@@ -51,13 +52,13 @@
     {{-- ══════════════════════════════════════════════════════════
          3. SEARCH & FILTER TOOLBAR
          ══════════════════════════════════════════════════════════ --}}
-    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
+    <div class="projects-filters bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
         {{-- Search --}}
         <div class="relative flex-1 min-w-0">
             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <input type="text" wire:model.live.debounce.250ms="search" placeholder="Search projects by name, code, or subsidiary..."
+            <input type="text" wire:model.live.debounce.250ms="search" aria-label="Search projects" placeholder="Search by project name, code or subsidiary..."
                 class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all">
             @if($search)
                 <button type="button" wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -70,29 +71,29 @@
         <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
             {{-- Status Filter --}}
             <div class="min-w-[160px]">
-                <select wire:model.live="statusFilter"
+                <select aria-label="Filter by status" wire:model.live="statusFilter"
                     class="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
-                    <option value="all">📊 All Statuses</option>
-                    <option value="in_progress">🔵 In Progress</option>
-                    <option value="overdue">🔴 Overdue Attention</option>
-                    <option value="completed">🟢 Completed</option>
-                    <option value="planning">🟣 Planning</option>
-                    <option value="at_risk">🟠 At Risk</option>
-                    <option value="on_hold">🟡 On Hold</option>
-                    <option value="under_review">🟣 Under Review</option>
+                    <option value="all">All Statuses</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="overdue">Overdue Attention</option>
+                    <option value="completed">Completed</option>
+                    <option value="planning">Planning</option>
+                    <option value="at_risk">At Risk</option>
+                    <option value="on_hold">On Hold</option>
+                    <option value="under_review">Under Review</option>
                 </select>
             </div>
 
             {{-- Role Filter --}}
             <div class="min-w-[180px]">
-                <select wire:model.live="roleFilter"
+                <select aria-label="Filter by your role" wire:model.live="roleFilter"
                     class="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
-                    <option value="all">👥 All My Roles ({{ $totalCount }})</option>
-                    <option value="lead">⭐ Project Manager (PM) ({{ $roleCounts['lead'] ?? 0 }})</option>
-                    <option value="sponsor">💼 Project Sponsor ({{ $roleCounts['sponsor'] ?? 0 }})</option>
-                    <option value="owner">🏛️ Project Owner ({{ $roleCounts['owner'] ?? 0 }})</option>
-                    <option value="steering_committee">🎖️ Steering Committee ({{ $roleCounts['steering_committee'] ?? 0 }})</option>
-                    <option value="member">🤝 Team Member ({{ $roleCounts['member'] ?? 0 }})</option>
+                    <option value="all">All My Roles ({{ $totalCount }})</option>
+                    <option value="lead">Project Manager (PM) ({{ $roleCounts['lead'] ?? 0 }})</option>
+                    <option value="sponsor">Project Sponsor ({{ $roleCounts['sponsor'] ?? 0 }})</option>
+                    <option value="owner">Project Owner ({{ $roleCounts['owner'] ?? 0 }})</option>
+                    <option value="steering_committee">Steering Committee ({{ $roleCounts['steering_committee'] ?? 0 }})</option>
+                    <option value="member">Team Member ({{ $roleCounts['member'] ?? 0 }})</option>
                 </select>
             </div>
 
@@ -111,7 +112,11 @@
          4. PROJECTS TABLE
          ══════════════════════════════════════════════════════════ --}}
     @if($projects->count() > 0)
-    <div class="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm mb-6">
+    <div class="projects-register bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm mb-6">
+        <div class="projects-register-heading">
+            <div><h2>Project portfolio</h2><p>Your assignments and delivery overview</p></div>
+            <span>{{ $projects->total() }} {{ Str::plural('project', $projects->total()) }}</span>
+        </div>
         <div class="my-projects-drag-scroll overflow-x-auto scrollbar-thin"
             x-data="{
                 panStart: null,
@@ -149,7 +154,7 @@
                 .my-projects-drag-scroll a, .my-projects-drag-scroll button { cursor: pointer; }
                 .my-projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
             </style>
-            <table class="w-full text-left border-collapse min-w-[1040px]">
+            <table class="projects-table w-full text-left border-collapse min-w-[1040px]">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black text-slate-500 uppercase tracking-wider">
                         <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[35%] sm:w-[30%] lg:w-[26%]">Project &amp; Code</th>
@@ -236,7 +241,7 @@
                             <td class="py-3 px-3 align-middle">
                                 <div class="flex flex-col items-start gap-1 justify-center min-h-[32px]">
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black {{ $roleConfig['bg'] }} {{ $roleConfig['text'] }} border {{ $roleConfig['border'] }} shadow-2xs whitespace-nowrap shrink-0">
-                                        <span>{{ $roleConfig['icon'] }}</span>
+
                                         <span>{{ $roleConfig['label'] }}</span>
                                     </span>
                                     {{-- Pending acceptance badge for Lead role --}}
@@ -272,7 +277,7 @@
                             {{-- Schedule Health --}}
                             <td class="py-3 px-3 align-middle">
                                 @if($delaySummary['is_delayed'] ?? false)
-                                    <button type="button" wire:click="openDelayAnalysis({{ $p->id }})"
+                                    <button type="button" wire:click="openDelayAnalysis({{ $p->id }})" aria-label="Review project delay"
                                         class="inline-flex min-w-[136px] items-center gap-2 rounded-xl border border-rose-200 bg-rose-50/90 hover:bg-rose-100 hover:border-rose-300 px-2.5 py-1.5 text-left text-rose-700 transition cursor-pointer shadow-2xs hover:shadow-xs group/health"
                                         aria-label="Review delay reasons for {{ $p->name }}">
                                         <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-600 text-white shadow-2xs group-hover/health:scale-105 transition-transform">
@@ -518,7 +523,7 @@
             }
             $tasksCount = $wbsItems->where('item_type.value', 'task')->count();
             $milestonesCount = $wbsItems->where('is_milestone', true)->count();
-            
+
             $sponsors = $reviewProject->members->where('pivot.role', 'sponsor');
             $owners = $reviewProject->members->where('pivot.role', 'owner');
             $committee = $reviewProject->members->where('pivot.role', 'steering_committee');
@@ -531,7 +536,7 @@
         @endphp
         <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md">
             <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
-                
+
                 {{-- Header --}}
                 <div class="flex-shrink-0 px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-rose-50/80 via-white to-white flex items-center justify-between">
                     <div class="flex items-center gap-3.5 min-w-0">
