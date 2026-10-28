@@ -105,7 +105,7 @@
                         <th class="ts-th">Duration</th>
                         <th class="ts-th">Start Schedule</th>
                         <th class="ts-th">Target Deadline</th>
-                        <th class="ts-th">Predecessors</th>
+                        <th class="ts-th">Dependencies</th>
                         <th class="ts-th">Resource Names</th>
                         <th class="ts-th">Progress</th>
                         <th class="ts-th">Status</th>

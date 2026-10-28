@@ -592,7 +592,65 @@
                         </div>
                     </div>
 
-                    <!-- 4. Status, Priority & Progress in 3 Columns -->
+                    <!-- 4. Dependencies (Predecessor Tasks) -->
+                    @php
+                        $candidateDependencies = $allWbsItems->filter(function($cand) use ($editingItemId, $selectedDependencies) {
+                            if ($editingItemId && $cand->id === $editingItemId) return false;
+                            if (in_array($cand->id, $selectedDependencies, true)) return false;
+                            return true;
+                        })->sortBy('wbs_code');
+                    @endphp
+                    <div style="padding: 10px 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 7px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <label style="font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 5px; margin: 0;">
+                                <span>🔗 Dependencies (Predecessors)</span>
+                                <span style="font-size: 9px; font-weight: 600; color: #64748b; text-transform: none;">(Optional)</span>
+                            </label>
+                            @if(!empty($selectedDependencies))
+                                <span style="font-size: 9.5px; font-weight: 800; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 7px; border-radius: 999px;">
+                                    {{ count($selectedDependencies) }} {{ Str::plural('Dependency', count($selectedDependencies)) }}
+                                </span>
+                            @endif
+                        </div>
+                        
+                        <div style="display: flex; gap: 6px;">
+                            <select wire:model.live="selectedPredecessorId" style="flex: 1; height: 33px; padding: 0 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 11px; font-weight: 600; color: #0f172a; outline: none;">
+                                <option value="">-- Select a dependency task (Must finish first) --</option>
+                                @foreach($candidateDependencies as $cand)
+                                    <option value="{{ $cand->id }}">
+                                        #{{ $cand->wbs_code }} - {{ Str::limit($cand->title, 40) }} (Due: {{ $cand->end_date ? $cand->end_date->format('M d') : 'No date' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="button" wire:click="addSelectedDependency" style="padding: 0 12px; height: 33px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.15s; white-space: nowrap;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                                ＋ Add
+                            </button>
+                        </div>
+
+                        <!-- Selected Dependencies Pills -->
+                        @if(!empty($selectedDependencies))
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px;">
+                                @foreach($selectedDependencies as $predId)
+                                    @php $depItem = $allWbsItems->firstWhere('id', $predId); @endphp
+                                    @if($depItem)
+                                        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: #ffffff; border: 1px solid #fde68a; border-radius: 7px; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                                            <span style="font-family: monospace; font-size: 9.5px; font-weight: 800; background: #fef3c7; color: #b45309; padding: 1px 5px; border-radius: 4px; border: 1px solid #fcd34d;">
+                                                #{{ $depItem->wbs_code }}
+                                            </span>
+                                            <span style="font-weight: 700; color: #1e293b; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                {{ $depItem->title }}
+                                            </span>
+                                            <button type="button" wire:click="removeSelectedDependency({{ $predId }})" title="Remove dependency" style="border: none; background: #fee2e2; color: #dc2626; border-radius: 4px; width: 17px; height: 17px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; cursor: pointer; padding: 0; transition: all 0.15s;" onmouseover="this.style.background='#fecdd3'" onmouseout="this.style.background='#fee2e2'">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- 5. Status, Priority & Progress in 3 Columns -->
                     <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap: 10px; align-items: end;">
                         <!-- Status -->
                         <div>
@@ -787,7 +845,7 @@
                 <!-- Existing Dependencies -->
                 <div>
                     <span style="font-size: 10.5px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
-                        Current Predecessors (Must complete before this task)
+                        Current Dependencies (Must complete before this task)
                     </span>
                     @if($currentPredecessors->isNotEmpty())
                         <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -824,14 +882,14 @@
                 <!-- Add New Predecessor -->
                 <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px;">
                     <span style="font-size: 10px; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">
-                        Add Predecessor Task
+                        Add Dependency Task
                     </span>
                     <div style="display: flex; gap: 8px;">
                         <select 
                             wire:model="depPredecessorId" 
                             style="flex: 1; height: 35px; padding: 0 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 11.5px; font-weight: 600; color: #0f172a; outline: none;"
                         >
-                            <option value="">-- Select a predecessor task --</option>
+                            <option value="">-- Select a dependency task --</option>
                             @foreach($availablePredecessors as $cand)
                                 <option value="{{ $cand->id }}">#{{ $cand->wbs_code }} - {{ $cand->title }}</option>
                             @endforeach

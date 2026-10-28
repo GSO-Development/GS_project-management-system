@@ -242,3 +242,57 @@ test('gantt chart renders visible task dependency connectors', function () {
         ->assertSee('gantt-dependency-path', false)
         ->assertSee('waiting for predecessor');
 });
+
+test('user can select and save dependencies directly within the add task modal', function () {
+    $subsidiary = Subsidiary::create(['name' => 'Dep Modal Sub', 'code' => 'DMS']);
+    $pm = User::factory()->create(['subsidiary_id' => $subsidiary->id]);
+    $project = Project::create([
+        'name' => 'Modal Dep Project',
+        'code' => 'MDP-01',
+        'subsidiary_id' => $subsidiary->id,
+        'project_manager_id' => $pm->id,
+        'pm_accepted' => true,
+        'start_date' => '2026-11-01',
+    ]);
+
+    $task1 = WbsItem::create([
+        'project_id' => $project->id,
+        'wbs_code' => '1',
+        'item_type' => ItemType::TASK,
+        'title' => 'First Task',
+        'start_date' => '2026-11-02',
+        'end_date' => '2026-11-05',
+        'status' => WbsStatus::NOT_STARTED,
+        'priority' => Priority::MEDIUM,
+        'progress' => 0,
+        'created_by' => $pm->id,
+    ]);
+
+    // Open Add Item Modal and select Task 1 as dependency
+    $component = Livewire::actingAs($pm)
+        ->test(WbsTree::class, ['project' => $project])
+        ->call('openAddItemModal')
+        ->assertSee('Dependencies (Predecessors)')
+        ->set('title', 'Second Task with Dep')
+        ->set('selectedPredecessorId', $task1->id)
+        ->assertSet('selectedDependencies', [$task1->id])
+        ->call('saveItem')
+        ->assertHasNoErrors();
+
+    $createdTask = WbsItem::where('title', 'Second Task with Dep')->first();
+    expect($createdTask)->not->toBeNull();
+
+    // Verify dependency was persisted
+    $dep = WbsDependency::where('predecessor_id', $task1->id)->where('successor_id', $createdTask->id)->first();
+    expect($dep)->not->toBeNull();
+
+    // Now test removing dependency via Edit Modal
+    $component->call('openEditItemModal', $createdTask->id)
+        ->assertSet('selectedDependencies', [$task1->id])
+        ->call('removeSelectedDependency', $task1->id)
+        ->assertSet('selectedDependencies', [])
+        ->call('saveItem');
+
+    expect(WbsDependency::where('successor_id', $createdTask->id)->count())->toBe(0);
+});
+

@@ -56,6 +56,10 @@ class WbsTree extends Component
     public float $weight = 1.0;
     public bool $is_milestone = false;
 
+    // Dependencies inside Add/Edit Task Modal
+    public array $selectedDependencies = [];
+    public ?int $selectedPredecessorId = null;
+
     // Task template import (Excel). Preview is display-only; the file is re-validated on import.
     public bool $showImportModal = false;
     public $taskImportFile = null;
@@ -247,7 +251,9 @@ class WbsTree extends Component
             abort_if(!$this->canCreateTasks, 403, 'You do not have permission to create tasks for this project.');
         }
 
-        $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'start_time', 'end_date', 'end_time', 'progress', 'estimated_hours', 'is_milestone']);
+        $this->reset(['editingItemId', 'title', 'description', 'assigned_user_id', 'start_date', 'start_time', 'end_date', 'end_time', 'progress', 'estimated_hours', 'is_milestone', 'selectedDependencies', 'selectedPredecessorId']);
+        $this->selectedDependencies = [];
+        $this->selectedPredecessorId = null;
         $this->selectedParentId = $parentId;
         $this->item_type = $type;
 
@@ -543,6 +549,11 @@ class WbsTree extends Component
         $this->estimated_hours = $item->estimated_hours;
         $this->weight = (float) $item->weight;
         $this->is_milestone = (bool) $item->is_milestone;
+        $this->selectedDependencies = WbsDependency::where('successor_id', $item->id)
+            ->pluck('predecessor_id')
+            ->map(fn($pid) => (int)$pid)
+            ->toArray();
+        $this->selectedPredecessorId = null;
         $this->showItemModal = true;
     }
 
@@ -660,6 +671,28 @@ class WbsTree extends Component
                 }
             }
 
+            // Sync selected dependencies for existing task
+            $currentDepIds = WbsDependency::where('successor_id', $item->id)->pluck('predecessor_id')->map(fn($id) => (int)$id)->toArray();
+            $toDelete = array_diff($currentDepIds, $this->selectedDependencies);
+            if (!empty($toDelete)) {
+                WbsDependency::where('successor_id', $item->id)->whereIn('predecessor_id', $toDelete)->delete();
+            }
+            $toAdd = array_diff($this->selectedDependencies, $currentDepIds);
+            foreach ($toAdd as $predId) {
+                if ($predId && (int)$predId !== (int)$item->id) {
+                    try {
+                        (new DependencyValidationService())->validateDependency((int)$predId, $item->id);
+                        WbsDependency::firstOrCreate([
+                            'predecessor_id'  => (int)$predId,
+                            'successor_id'    => $item->id,
+                        ], [
+                            'dependency_type' => 'finish_to_start',
+                            'lag_days'        => 0,
+                        ]);
+                    } catch (\Throwable $e) {}
+                }
+            }
+
             (new WbsNumberingService())->recalculateProjectWbsCodes($this->project->id);
             (new ProgressCalculationService())->updateItemProgress($item);
             $this->showItemModal = false;
@@ -688,6 +721,24 @@ class WbsTree extends Component
             $data['sort_order'] = $lastSort + 1;
             $data['created_by'] = auth()->id();
             $item = WbsItem::create($data);
+
+            // Save selected dependencies for new task
+            if (!empty($this->selectedDependencies)) {
+                foreach ($this->selectedDependencies as $predId) {
+                    if ($predId && (int)$predId !== (int)$item->id) {
+                        try {
+                            (new DependencyValidationService())->validateDependency((int)$predId, $item->id);
+                            WbsDependency::firstOrCreate([
+                                'predecessor_id'  => (int)$predId,
+                                'successor_id'    => $item->id,
+                            ], [
+                                'dependency_type' => 'finish_to_start',
+                                'lag_days'        => 0,
+                            ]);
+                        } catch (\Throwable $e) {}
+                    }
+                }
+            }
 
             // Automatically cascade and shift subsequent sibling task times if this task has times
             \App\Services\WbsScheduleCascadeService::cascadeTimeSlotsForSiblings($item);
@@ -979,6 +1030,70 @@ class WbsTree extends Component
             $this->dispatch('toast', message: 'Dependency removed.', type: 'success');
             $this->dispatch('wbsUpdated');
         }
+    }
+
+    public function updatedSelectedPredecessorId($value): void
+    {
+        if ($value) {
+            $this->addSelectedDependency();
+        }
+    }
+
+    public function addSelectedDependency(): void
+    {
+        if (!$this->selectedPredecessorId) {
+            return;
+        }
+
+        $predId = (int) $this->selectedPredecessorId;
+
+        if ($this->editingItemId && $predId === (int) $this->editingItemId) {
+            $this->dispatch('toast', message: 'A task cannot depend on itself.', type: 'error');
+            $this->selectedPredecessorId = null;
+            return;
+        }
+
+        if (in_array($predId, $this->selectedDependencies, true)) {
+            $this->selectedPredecessorId = null;
+            return;
+        }
+
+        // Circular dependency check if editing an existing task
+        if ($this->editingItemId) {
+            try {
+                (new DependencyValidationService())->validateDependency($predId, $this->editingItemId);
+            } catch (\InvalidArgumentException $e) {
+                $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+                $this->selectedPredecessorId = null;
+                return;
+            }
+        }
+
+        $this->selectedDependencies[] = $predId;
+
+        // Helpful schedule alignment: if newly created task and predecessor has end_date,
+        // advance default start_date after predecessor's end date if needed
+        if (!$this->editingItemId) {
+            $predItem = WbsItem::find($predId);
+            if ($predItem && $predItem->end_date) {
+                if (!$this->start_date || \Carbon\Carbon::parse($this->start_date)->lte($predItem->end_date)) {
+                    $this->start_date = $predItem->end_date->copy()->addDay()->toDateString();
+                    if ($this->end_date && \Carbon\Carbon::parse($this->end_date)->lt(\Carbon\Carbon::parse($this->start_date))) {
+                        $this->end_date = $this->start_date;
+                    }
+                }
+            }
+        }
+
+        $this->selectedPredecessorId = null;
+    }
+
+    public function removeSelectedDependency(int $predId): void
+    {
+        $this->selectedDependencies = array_values(array_filter(
+            $this->selectedDependencies,
+            fn($id) => (int)$id !== $predId
+        ));
     }
 
     public function setStatusFilter(string $filter)

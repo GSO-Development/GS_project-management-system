@@ -93,4 +93,28 @@ class ProjectDeletionModalTest extends TestCase
         $this->assertSoftDeleted('projects', ['id' => $project->id]);
         $this->assertDatabaseMissing('wbs_items', ['id' => $task->id]);
     }
+
+    public function test_edit_project_details_modal_renders_properly(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $admin->assignRole('super_admin');
+
+        $subsidiary = Subsidiary::create(['code' => 'WSMOD', 'name' => 'Workspace Modal Sub']);
+        $project = Project::create([
+            'code' => 'WS-MOD-01',
+            'name' => 'Workspace Modal Project',
+            'subsidiary_id' => $subsidiary->id,
+            'project_manager_id' => $admin->id,
+            'created_by' => $admin->id,
+            'priority' => 'high',
+            'status' => 'in_progress',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(\App\Livewire\ProjectWorkspace::class, ['project' => $project])
+            ->set('showEditProjectModal', true)
+            ->assertSee('Edit Project Details &amp; Specifications', false)
+            ->assertSee('Project Identity &amp; Classification', false)
+            ->assertSee('Save All Project Details');
+    }
 }

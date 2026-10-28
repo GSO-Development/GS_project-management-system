@@ -1663,6 +1663,7 @@
     </div>
 
     <!-- Edit Financial Summary & Hours Modal -->
+    @teleport('body')
     <div x-data="{ open: @entangle('showFinancialsModal') }"
          x-show="open"
          x-transition:enter="transition ease-out duration-200"
@@ -1671,11 +1672,11 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-         style="display:none">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="open = false; $wire.showFinancialsModal = false"></div>
+         class="fixed inset-0 flex items-center justify-center p-4"
+         style="display:none; position: fixed; inset: 0; z-index: 2147483000;">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="open = false; $wire.showFinancialsModal = false" style="position: fixed; inset: 0;"></div>
 
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md z-10 p-6">
+        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md z-10 p-6" style="position: relative;">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e] flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1712,7 +1713,7 @@
 
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
                     <p class="font-bold text-slate-800">Automatic Sync Note:</p>
-                    <p>â€¢ Estimated and Actual Hours also automatically aggregate from tasks created in the <strong>WBS Plan</strong>.</p>
+                    <p>• Estimated and Actual Hours also automatically aggregate from tasks created in the <strong>WBS Plan</strong>.</p>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2">
@@ -1724,8 +1725,10 @@
             </form>
         </div>
     </div>
+    @endteleport
 
     <!-- Edit Project Timeline & Target Deadline Modal -->
+    @teleport('body')
     <div x-data="{ open: @entangle('showTimelineModal') }"
          x-show="open"
          x-transition:enter="transition ease-out duration-200"
@@ -1734,11 +1737,11 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-         style="display:none">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="open = false; $wire.showTimelineModal = false"></div>
+         class="fixed inset-0 flex items-center justify-center p-4"
+         style="display:none; position: fixed; inset: 0; z-index: 2147483000;">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="open = false; $wire.showTimelineModal = false" style="position: fixed; inset: 0;"></div>
 
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md z-10 p-6">
+        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md z-10 p-6" style="position: relative;">
             <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
                 <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e] flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -1776,31 +1779,54 @@
             </form>
         </div>
     </div>
+    @endteleport
 
     <!-- Edit Project Details Modal (Comprehensive Specs) -->
     @if($showEditProjectModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-200">
-        <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl z-10 p-6 sm:p-7 max-h-[92vh] overflow-y-auto">
-            <div class="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e] flex-shrink-0 font-bold text-base shadow-2xs">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                        </svg>
+    @teleport('body')
+    <div 
+        x-data 
+        @keydown.escape.window="$wire.set('showEditProjectModal', false)"
+        wire:click.self="$set('showEditProjectModal', false)"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-project-modal-title"
+    >
+        <div 
+            style="position: relative; width: min(880px, calc(100vw - 32px)); height: min(840px, calc(100dvh - 32px)); max-width: 880px; max-height: calc(100dvh - 32px); margin: 0; display: flex; flex-direction: column; background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow: hidden; animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
+        >
+            <!-- Header -->
+            <div style="padding: 15px 22px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                    <div style="width: 38px; height: 38px; border-radius: 11px; background: #fff1f2; border: 1px solid #fecdd3; color: #c3122e; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; box-shadow: 0 1px 2px rgba(195,18,46,0.1);">
+                        ✏️
                     </div>
-                    <div>
-                        <h3 class="font-black text-slate-900 text-base sm:text-lg" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Edit Project Details &amp; Specifications</h3>
-                        <p class="text-xs text-slate-500 mt-0.5 font-medium">Update project identity, governance status, schedule, budget, and scope</p>
+                    <div style="min-width: 0;">
+                        <h3 id="edit-project-modal-title" style="margin: 0; font-size: 15px; font-weight: 800; color: #0f172a; line-height: 1.25; letter-spacing: -0.01em;">
+                            Edit Project Details &amp; Specifications
+                        </h3>
+                        <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-weight: 500;">
+                            Update project identity, governance status, schedule, budget, and scope
+                        </p>
                     </div>
                 </div>
-                <button wire:click="$set('showEditProjectModal', false)" type="button" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button 
+                    wire:click="$set('showEditProjectModal', false)" 
+                    type="button" 
+                    style="width: 32px; height: 32px; border-radius: 9px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; transition: all 0.15s; flex-shrink: 0;"
+                    onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
+                    onmouseout="this.style.background='#ffffff'; this.style.color='#64748b'"
+                    title="Close (Esc)"
+                >
+                    ✕
                 </button>
             </div>
 
-            <form wire:submit="saveProjectDetails" class="space-y-5">
-                {{-- 1. Project Identity Section --}}
-                <div class="bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80 space-y-3.5">
+            <form wire:submit="saveProjectDetails" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
+                <div style="padding: 18px 22px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; background: #f8fafc; scrollbar-gutter: stable;">
+                    {{-- 1. Project Identity Section --}}
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 space-y-3.5 shadow-xs">
                     <div class="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
                         <span class="text-[#c3122e]">🏷️</span>
                         <span>Project Identity &amp; Classification</span>
@@ -2091,25 +2117,47 @@
                     </div>
                 </div>
 
-                {{-- Action Buttons --}}
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button type="button" wire:click="$set('showEditProjectModal', false)" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all shadow-2xs">
+                {{-- Fixed Footer Action Buttons --}}
+                <div style="padding: 12px 22px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; background: #ffffff; flex-shrink: 0;">
+                    <button 
+                        type="button" 
+                        wire:click="$set('showEditProjectModal', false)" 
+                        style="padding: 8px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;"
+                        onmouseover="this.style.background='#f1f5f9'"
+                        onmouseout="this.style.background='#ffffff'"
+                    >
                         Cancel
                     </button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/25 cursor-pointer active:scale-95 transition-all flex items-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>Save All Project Details</span>
+                    <button 
+                        type="submit" 
+                        wire:loading.attr="disabled"
+                        style="padding: 8px 22px; border-radius: 10px; border: none; background: linear-gradient(135deg, #c3122e 0%, #99001a 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 10px rgba(195, 18, 46, 0.28); transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;"
+                        onmouseover="this.style.opacity='0.92'"
+                        onmouseout="this.style.opacity='1'"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span wire:loading.remove wire:target="saveProjectDetails">Save All Project Details</span>
+                        <span wire:loading wire:target="saveProjectDetails">Saving Changes...</span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
+    @endteleport
     @endif
 
     <!-- Manage & Add Team Members / Collaborators Modal -->
     @if($showCollaboratorsModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
-        <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-xl z-10 p-6 sm:p-7 max-h-[90vh] overflow-y-auto">
+    @teleport('body')
+    <div 
+        x-data 
+        @keydown.escape.window="$wire.set('showCollaboratorsModal', false)"
+        wire:click.self="$set('showCollaboratorsModal', false)"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
+        role="dialog"
+        aria-modal="true"
+    >
+        <div style="position: relative; width: min(640px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow-y: auto; padding: 22px 24px;">
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-[#c3122e] flex-shrink-0 font-bold text-sm shadow-2xs">
@@ -2246,12 +2294,21 @@
             </form>
         </div>
     </div>
+    @endteleport
     @endif
 
     <!-- ===== DECLINE / REJECT ASSIGNMENT MODAL ===== -->
     @if($showRejectionModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    @teleport('body')
+    <div 
+        x-data 
+        @keydown.escape.window="$wire.set('showRejectionModal', false)"
+        wire:click.self="$set('showRejectionModal', false)"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
+        role="dialog"
+        aria-modal="true"
+    >
+        <div style="position: relative; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow: hidden;">
             <div class="p-5 border-b border-slate-100 bg-rose-50/60 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-black">
@@ -2295,12 +2352,21 @@
             </form>
         </div>
     </div>
+    @endteleport
     @endif
 
     <!-- ===== REASSIGN & RECONFIGURE PROJECT LEADER MODAL (PMO ADMIN) ===== -->
     @if($showReassignModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md">
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[92vh] my-auto">
+    @teleport('body')
+    <div 
+        x-data 
+        @keydown.escape.window="$wire.closeReassignModal()"
+        wire:click.self="closeReassignModal"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
+        role="dialog"
+        aria-modal="true"
+    >
+        <div style="position: relative; width: min(840px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column;">
                 {{-- Header --}}
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 flex-shrink-0">
                     <div class="flex items-center gap-3">
@@ -2675,6 +2741,8 @@
                 </div>
             </div>
         </div>
+    </div>
+    @endteleport
     @endif
 
     <!-- ===== COMPREHENSIVE PROJECT DETAILS EXECUTIVE MODAL (ULTRA-CLEAN MODERN SAAS) ===== -->
