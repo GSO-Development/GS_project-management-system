@@ -1,79 +1,77 @@
 <x-guest-layout>
-<div class="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 sm:p-6 md:p-10 font-sans relative overflow-hidden" style="background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f1f5f9 100%);">
+<div class="login-page min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 md:p-10 font-sans relative overflow-hidden">
     
     <!-- Background Ambient Soft Glow Orbs -->
-    <div class="absolute -top-32 -left-32 w-[550px] h-[550px] bg-[#c3122e]/8 rounded-full blur-[140px] pointer-events-none"></div>
-    <div class="absolute -bottom-32 -right-32 w-[550px] h-[550px] bg-slate-300/40 rounded-full blur-[140px] pointer-events-none"></div>
+    <div class="hidden"></div>
+    <div class="hidden"></div>
 
     <!-- Outer Card Container -->
-    <div class="w-full max-w-5xl bg-white rounded-3xl border border-slate-200/90 shadow-2xl shadow-slate-300/60 overflow-hidden flex flex-col lg:flex-row min-h-[620px] relative z-10">
+    <div class="login-shell w-full bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col lg:flex-row relative z-10">
 
         <!-- ================= LEFT PANEL: Cinematic Skyscraper Hero ================= -->
-        <div class="lg:w-1/2 text-white p-8 sm:p-10 xl:p-12 relative flex flex-col justify-between overflow-hidden bg-cover bg-center min-h-[380px] lg:min-h-full"
-             style="background-image: url('{{ asset('images/nexuspm_login_cinematic_hero.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+        <div class="login-brand-panel lg:w-[43%] p-7 sm:p-8 relative flex flex-col justify-between overflow-hidden min-h-[280px] lg:min-h-full">
             
             <!-- Dark Executive Overlay Vignette -->
-            <div class="absolute inset-0 z-0" style="background: linear-gradient(180deg, rgba(7, 10, 18, 0.45) 0%, rgba(18, 3, 7, 0.88) 100%);"></div>
+            <div class="absolute inset-x-0 top-0 h-1 z-0" style="background: #c3122e;"></div>
+
+            <!-- Decorative portfolio orbit -->
+            <div class="login-brand-orbit" aria-hidden="true">
+                <span class="login-orbit-ring login-orbit-ring--outer"></span>
+                <span class="login-orbit-ring login-orbit-ring--inner"></span>
+                <span class="login-orbit-node login-orbit-node--one"></span>
+                <span class="login-orbit-node login-orbit-node--two"></span>
+                <span class="login-orbit-node login-orbit-node--three"></span>
+            </div>
+            <div class="login-brand-glow" aria-hidden="true"></div>
 
             <!-- Top Header Badge -->
-            <div class="relative z-10 flex items-center justify-between">
+            <div class="login-reveal login-reveal--one relative z-10 flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-[#c3122e] flex items-center justify-center shadow-md shadow-[#c3122e]/50 border border-white/20 shrink-0" style="width: 36px; height: 36px;">
+                    <div class="w-9 h-9 rounded-xl bg-[#c3122e] flex items-center justify-center shadow-sm border border-white shrink-0" style="width: 36px; height: 36px;">
                         <svg class="w-5 h-5 text-white" width="20" height="20" style="width: 20px; height: 20px; max-width: 20px; max-height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
                     </div>
-                    <span class="text-lg font-black text-white tracking-tight">GS NexusPM</span>
+                    <span class="text-lg font-black text-slate-900 tracking-tight">GS NexusPM</span>
                 </div>
 
-                <span class="px-3 py-1 rounded-full text-[10px] font-black bg-black/50 border border-white/20 text-amber-300 backdrop-blur-md">
+                <span class="px-3 py-1 rounded-full text-[10px] font-black bg-white border border-rose-200 text-[#a80f28] shadow-2xs">
                     EST. 1835
                 </span>
             </div>
 
-            <!-- Center Headline -->
-            <div class="relative z-10 my-auto py-6 space-y-3 max-w-md">
-                <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-[#c3122e]/30 border border-[#e8556a]/40 text-rose-200 inline-block">
-                    George Steuart Group
-                </span>
-                <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight" style="font-family: Georgia, 'Times New Roman', serif;">
-                    Enterprise Project Intelligence.
+            <!-- Corporate brand story -->
+            <div class="login-brand-copy relative z-10 my-auto max-w-md">
+                <p class="login-eyebrow">George Steuart Group</p>
+                <h1 class="login-animated-title" aria-label="One calm workspace for every project.">
+                    <span style="--word-index: 0">One</span>
+                    <span style="--word-index: 1">calm</span>
+                    <span style="--word-index: 2">workspace</span>
+                    <span style="--word-index: 3">for</span>
+                    <span style="--word-index: 4">every</span>
+                    <span style="--word-index: 5">project.</span>
                 </h1>
-                <p class="text-xs text-slate-300/90 leading-relaxed font-medium">
-                    Centralized governance, WBS progress tracking, and audit-level compliance for all subsidiary operations.
-                </p>
+                <p class="login-brand-intro">Plan work, follow progress and keep every delivery decision visible across the group.</p>
+
+                <div class="login-feature-list">
+                    <div><span><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span><p>Clear project and task visibility</p></div>
+                    <div><span><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span><p>Simple progress and ownership tracking</p></div>
+                    <div><span><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span><p>Secure, traceable team collaboration</p></div>
+                </div>
             </div>
 
-            <!-- Bottom Status Card -->
-            <div class="relative z-10 p-3.5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md flex items-center justify-between text-xs font-extrabold text-white">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>5 Active Subsidiaries</span>
-                </div>
-                <div class="h-3 w-px bg-white/20"></div>
-                <div class="text-slate-300 font-medium text-[11px]">
-                    100% Audit Logged
-                </div>
-            </div>
+            <p class="login-brand-trust login-reveal login-reveal--three relative z-10">Trusted project governance since 1835.</p>
         </div>
 
         <!-- ================= RIGHT PANEL: Pristine White Login Form ================= -->
-        <div class="lg:w-1/2 bg-white p-8 sm:p-12 flex flex-col justify-center">
-            <div class="w-full max-w-sm mx-auto space-y-6">
+        <div class="login-form-panel lg:w-[57%] bg-white p-7 sm:p-9 lg:p-10 flex flex-col justify-center">
+            <div class="login-form-content w-full max-w-sm mx-auto space-y-5">
                 
                 <!-- Brand Form Header -->
-                <div>
-                    <div class="w-12 h-12 rounded-2xl bg-[#fdf2f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e] mb-4 shadow-2xs shrink-0" style="width: 48px; height: 48px;">
-                        <svg class="w-6 h-6" width="24" height="24" style="width: 24px; height: 24px; max-width: 24px; max-height: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        Sign In
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-1 font-medium">
-                        Access your GS NexusPM Executive Workspace
-                    </p>
+                <div class="login-form-heading">
+                    <div class="login-secure-label"><span></span> Secure workspace</div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
+                    <p class="text-xs text-slate-500 mt-1.5 font-normal">Sign in to continue to GS NexusPM</p>
                 </div>
 
                 <!-- Session Status -->
@@ -85,7 +83,7 @@
 
                     <!-- Email Field -->
                     <div>
-                        <label for="email" class="text-xs font-extrabold text-slate-800 mb-1.5 block">Email Address</label>
+                        <label for="email" class="text-xs font-semibold text-slate-700 mb-1.5 block">Email address</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <svg class="w-4 h-4 text-slate-400" width="16" height="16" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,9 +110,9 @@
                     <!-- Password Field -->
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label for="password" class="text-xs font-extrabold text-slate-800">Password</label>
+                            <label for="password" class="text-xs font-semibold text-slate-700">Password</label>
                             @if(Route::has('password.request'))
-                                <a href="{{ route('password.request') }}" class="text-[11px] font-extrabold text-[#c3122e] hover:underline">
+                                <a href="{{ route('password.request') }}" class="text-[11px] font-semibold text-[#b51a31] hover:underline">
                                     Forgot password?
                                 </a>
                             @endif
@@ -146,7 +144,7 @@
 
                     <!-- Remember Me Checkbox -->
                     <div class="pt-0.5">
-                        <label for="remember_me" class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-700 font-bold select-none">
+                        <label for="remember_me" class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-600 font-medium select-none">
                             <input id="remember_me" type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e]/20 focus:ring-2 cursor-pointer">
                             <span>Keep me signed in</span>
                         </label>
@@ -156,9 +154,9 @@
                     <button
                         type="submit"
                         :disabled="loading"
-                        class="w-full py-3.5 px-4 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#c3122e] to-[#9a091d] hover:from-[#a50d24] hover:to-[#800617] shadow-lg shadow-[#c3122e]/30 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                        class="login-submit w-full py-3 px-4 rounded-xl text-xs font-semibold text-white bg-[#bd1731] hover:bg-[#a9142b] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                     >
-                        <span x-show="!loading">Sign In to Executive Workspace</span>
+                        <span x-show="!loading">Sign in to workspace</span>
                         <svg x-show="!loading" class="w-4 h-4" width="16" height="16" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
@@ -172,15 +170,14 @@
                 <!-- Divider -->
                 <div class="relative flex items-center py-1">
                     <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">or continue with</span>
+                    <span class="mx-3 text-[10px] font-medium text-slate-400">or continue with</span>
                     <div class="flex-grow border-t border-slate-200"></div>
                 </div>
 
                 <!-- Microsoft Azure SSO Button -->
                 <a
                     href="{{ route('azure.redirect') }}"
-                    class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full border border-[#0078d4] bg-white hover:bg-[#0078d4]/5 hover:shadow-md transition-all duration-200 group cursor-pointer"
-                    style="box-shadow: 0 1px 3px rgba(0,0,0,0.08);"
+                    class="login-microsoft w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all duration-200 group cursor-pointer"
                 >
                     <!-- Official Microsoft Logo SVG -->
                     <svg width="20" height="20" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
@@ -189,7 +186,7 @@
                         <rect x="0" y="11" width="10" height="10" fill="#00A4EF"/>
                         <rect x="11" y="11" width="10" height="10" fill="#FFB900"/>
                     </svg>
-                    <span class="text-xs font-extrabold text-[#0078d4] transition-colors">Sign in with Microsoft</span>
+                    <span class="text-xs font-semibold text-slate-700 transition-colors">Sign in with Microsoft</span>
                 </a>
 
                 @if(session('errors') && session('errors')->has('azure'))
@@ -197,6 +194,11 @@
                         {{ session('errors')->first('azure') }}
                     </div>
                 @endif
+
+                <p class="login-access-note">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Authorised George Steuart Group users only
+                </p>
 
             </div>
         </div>

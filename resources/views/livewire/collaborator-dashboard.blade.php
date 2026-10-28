@@ -1,7 +1,7 @@
 {{-- ============================================================
      COLLABORATOR / TEAM MEMBER DASHBOARD — GS NexusPM
      ============================================================ --}}
-<div class="space-y-6 pb-12 font-sans">
+<div data-ui-page="dashboard-collaborator" class="ui-page ui-page-dashboard space-y-6 pb-12 font-sans">
 
     {{-- ═══════════════════ PENDING PM ASSIGNMENT INVITATIONS ═══════════════════ --}}
     @if(isset($pendingInvitations) && $pendingInvitations->count() > 0)

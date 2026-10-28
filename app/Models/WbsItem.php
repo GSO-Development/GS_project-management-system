@@ -37,6 +37,7 @@ class WbsItem extends Model
         'title',
         'description',
         'assigned_user_id',
+        'source_assignee',
         'start_date',
         'start_time',
         'end_date',
@@ -195,6 +196,74 @@ class WbsItem extends Model
     }
 
     /**
+     * Format duration as days or hours based on schedule and time slots.
+     */
+    public function getDurationFormattedAttribute(): ?string
+    {
+        if ($this->is_milestone) {
+            return 'Milestone';
+        }
+
+        // 1. Check if same-day or time-slot based (Hours)
+        $startTime = $this->start_time;
+        $endTime = $this->end_time;
+
+        // Also detect if title has "08:30 AM – 12:30 PM" pattern if times are not explicitly set
+        if ((!$startTime || !$endTime) && preg_match('/(\d{1,2}:\d{2}\s*(?:AM|PM))\s*[-–—\s]+\s*(\d{1,2}:\d{2}\s*(?:AM|PM))/iu', (string) $this->title, $mTimes)) {
+            $startTime ??= $mTimes[1];
+            $endTime ??= $mTimes[2];
+        }
+
+        $isSameDay = ($this->start_date && $this->end_date && $this->start_date->toDateString() === $this->end_date->toDateString())
+            || ($this->start_date && !$this->end_date)
+            || (!$this->start_date && !$this->end_date);
+
+        if ($startTime && $endTime && $isSameDay) {
+            try {
+                $st = \Carbon\Carbon::parse($startTime);
+                $et = \Carbon\Carbon::parse($endTime);
+                $diffMins = abs($st->diffInMinutes($et));
+                if ($diffMins > 0) {
+                    if ($diffMins < 60) {
+                        return "{$diffMins} Mins";
+                    }
+                    if ($diffMins % 60 === 0) {
+                        $hrs = (int) ($diffMins / 60);
+                        return $hrs . ($hrs === 1 ? ' Hour' : ' Hours');
+                    }
+                    $hrs = round($diffMins / 60, 1);
+                    return $hrs . ' Hours';
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 2. Multi-day or day-based duration
+        if ($this->start_date && $this->end_date) {
+            if ($this->start_date->toDateString() !== $this->end_date->toDateString()) {
+                $days = max(1, (int) $this->start_date->diffInDays($this->end_date) + 1);
+                return $days . ($days === 1 ? ' Day' : ' Days');
+            } elseif (!$startTime || !$endTime) {
+                return '1 Day';
+            }
+        }
+
+        // 3. Fallback to duration column (stored as days)
+        if (!empty($this->duration) && (int) $this->duration > 0) {
+            $days = (int) $this->duration;
+            return $days . ($days === 1 ? ' Day' : ' Days');
+        }
+
+        // 4. Fallback to estimated_hours if available
+        if (!empty($this->estimated_hours) && (float) $this->estimated_hours > 0) {
+            $hrs = (float) $this->estimated_hours;
+            $formattedHrs = ($hrs == (int) $hrs) ? (int) $hrs : $hrs;
+            return $formattedHrs . ($formattedHrs == 1 ? ' Hour' : ' Hours');
+        }
+
+        return null;
+    }
+
+    /**
      * Automatically transition tasks based on start_date schedule:
      * - Tasks whose start_date has arrived (start_date <= today) -> in_progress (if currently not_started)
      * - Future tasks (start_date > today) with 0% progress -> not_started (if incorrectly marked in_progress)
@@ -238,4 +307,3 @@ class WbsItem extends Model
         return $started;
     }
 }
-

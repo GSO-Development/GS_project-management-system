@@ -17,6 +17,7 @@ use App\Models\WbsItem;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -27,11 +28,15 @@ class ProjectWorkspace extends Component
     public Project $project;
     public string $activeTab = 'wbs';
 
-
-
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
+    }
+
+    #[On('closeTaskSheet')]
+    public function closeTaskSheet(): void
+    {
+        $this->activeTab = 'wbs';
     }
 
     // Status Update Form
@@ -570,75 +575,7 @@ class ProjectWorkspace extends Component
 
     private function createWbsFromTemplate(Project $project, int $templateId, \Carbon\Carbon $projectStartDate)
     {
-        $template = \App\Models\ProjectTemplate::findOrFail($templateId);
-        $templateTasks = $template->tasks;
-
-        // Group tasks by parent_id
-        $tasksByParent = $templateTasks->groupBy(function($task) {
-            return $task->parent_id ?: 'root';
-        });
-
-        $this->scheduleAndCreateTasks($project, $tasksByParent, 'root', $projectStartDate, null);
-
-        // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
-        \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
-
-        // Recalculate WBS numbering and progress
-        (new \App\Services\WbsNumberingService())->recalculateProjectWbsCodes($project->id);
-        (new \App\Services\ProgressCalculationService())->updateProjectOverallProgress($project->id);
-    }
-
-    private function scheduleAndCreateTasks(Project $project, $tasksByParent, $parentIdKey, \Carbon\Carbon $currentStartDate, $parentWbsItemId = null)
-    {
-        $tasks = $tasksByParent->get($parentIdKey);
-        if (!$tasks) {
-            return $currentStartDate;
-        }
-
-        $lastEndDate = $currentStartDate->copy();
-
-        foreach ($tasks as $task) {
-            $durationInDays = $this->getDurationInDays($task->duration, $task->unit);
-            $taskStartDate = $lastEndDate->copy();
-            $taskEndDate = $taskStartDate->copy()->addDays(max(1, $durationInDays))->subDay();
-
-            $itemType = $parentWbsItemId ? \App\Enums\ItemType::TASK : \App\Enums\ItemType::PHASE;
-
-            $wbsItem = \App\Models\WbsItem::create([
-                'project_id'   => $project->id,
-                'parent_id'    => $parentWbsItemId,
-                'wbs_code'     => 'TEMP',
-                'item_type'    => $itemType,
-                'title'        => $task->name ?? 'Task',
-                'description'  => null,
-                'duration'     => $durationInDays,
-                'start_date'   => $taskStartDate->toDateString(),
-                'end_date'     => $taskEndDate->toDateString(),
-                'status'       => \App\Enums\WbsStatus::NOT_STARTED,
-                'priority'     => \App\Enums\Priority::MEDIUM,
-                'progress'     => 0,
-                'sort_order'   => (int) ($task->order_index ?? 0),
-                'is_milestone' => false,
-                'created_by'   => auth()->id(),
-            ]);
-
-            // Recursively create children
-            $childEndDate = $this->scheduleAndCreateTasks($project, $tasksByParent, (string)$task->id, $taskStartDate, $wbsItem->id);
-
-            $lastEndDate = $taskEndDate;
-        }
-
-        return $lastEndDate;
-    }
-
-    private function getDurationInDays($duration, $unit)
-    {
-        if ($unit === 'weeks') {
-            return $duration * 7;
-        } elseif ($unit === 'months') {
-            return $duration * 30;
-        }
-        return $duration;
+        app(\App\Services\TemplateWbsGeneratorService::class)->generate($project, $templateId, $projectStartDate, true);
     }
 
     public function openTimelineModal()

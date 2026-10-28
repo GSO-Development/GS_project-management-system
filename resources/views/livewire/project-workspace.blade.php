@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="project-workspace" class="ui-page ui-page-workspace">
     @php
         $currentUser     = auth()->user();
         $isSuperAdmin    = $currentUser->isSuperAdmin() || $currentUser->hasRole('pmo_admin');
@@ -70,7 +70,7 @@
     @endphp
 
     <!-- 1. Top Bar: Clean Minimalist Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mb-3.5 flex-wrap">
+    <div class="workspace-breadcrumb flex items-center gap-2 text-xs text-slate-500 font-medium mb-3.5 flex-wrap">
         <a href="{{ route('dashboard') }}" wire:navigate.hover class="text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center gap-1.5" title="Dashboard">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -142,7 +142,7 @@
             </div>
         </div>
     @elseif(!$project->pm_accepted && ($project->project_manager_id !== auth()->id() || auth()->user()->isSuperAdmin()))
-        <div class="mb-4.5 rounded-2xl p-4 sm:p-4.5 bg-gradient-to-r from-amber-50/50 via-white to-white border border-amber-200/70 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden animate-in fade-in duration-300">
+        <div class="workspace-alert mb-4.5 rounded-2xl p-4 sm:p-4.5 bg-gradient-to-r from-amber-50/50 via-white to-white border border-amber-200/70 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden animate-in fade-in duration-300">
             <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-400 to-amber-600 rounded-l-2xl"></div>
             <div class="flex items-start sm:items-center gap-3.5 pl-1.5">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
@@ -195,14 +195,14 @@
     @endif
 
     <!-- 2. Sleek Executive Project Header Card -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs mb-5 p-5 sm:p-6 space-y-5">
+    <div class="workspace-overview bg-white border border-slate-200/80 rounded-xl shadow-2xs mb-4 p-4 sm:px-5 sm:py-4 space-y-3">
         
         <!-- Header Top Row: Brand Monogram, Title, Status Badges & CTA -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3.5 min-w-0">
                 <!-- Brand Project Icon Box -->
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-50 via-rose-100/50 to-slate-50 border border-rose-200/60 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-6 h-6 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-50 via-rose-100/50 to-slate-50 border border-rose-200/60 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-5 h-5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                 </div>
@@ -246,7 +246,7 @@
                 <button
                     wire:click="openProjectDetailsModal"
                     type="button"
-                    class="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] active:scale-98 transition-all shadow-sm hover:shadow cursor-pointer shrink-0"
+                    class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] active:scale-98 transition-all shadow-sm hover:shadow cursor-pointer shrink-0"
                     title="View full project brief, specifications & governance"
                 >
                     <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
@@ -261,7 +261,7 @@
         </div>
 
         <!-- 4 Minimalist Metric Stat Tiles -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
+        <div class="workspace-metrics grid grid-cols-2 lg:grid-cols-4 gap-0 pt-3 border-t border-slate-100">
             <!-- Card 1: Project Lead -->
             @php
                 $leadUser = $project->projectManager;
@@ -269,7 +269,7 @@
                 $leadInitials = $leadUser ? collect(explode(' ', trim($leadName)))->filter()->map(fn($w) => mb_substr($w, 0, 1))->take(2)->join('') : '—';
             @endphp
             <div class="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3 sm:p-3.5 hover:bg-white hover:border-slate-300 hover:shadow-2xs transition-all flex items-center gap-3 group">
-                <div class="w-9 h-9 rounded-xl bg-white border border-slate-200/80 text-[#c3122e] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200/80 text-[#c3122e] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                     @if($leadUser)
                         <span class="font-bold text-[11px]">{{ strtoupper($leadInitials) }}</span>
                     @else
@@ -288,7 +288,7 @@
 
             <!-- Card 2: Start Date -->
             <div class="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3 sm:p-3.5 hover:bg-white hover:border-slate-300 hover:shadow-2xs transition-all flex items-center gap-3 group">
-                <div class="w-9 h-9 rounded-xl bg-white border border-slate-200/80 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200/80 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
@@ -303,7 +303,7 @@
 
             <!-- Card 3: Due Date -->
             <div class="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3 sm:p-3.5 hover:bg-white hover:border-slate-300 hover:shadow-2xs transition-all flex items-center gap-3 group">
-                <div class="w-9 h-9 rounded-xl bg-white border border-slate-200/80 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200/80 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
@@ -639,6 +639,7 @@
             <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-none p-0.5 w-full">
                 @foreach([
                     'wbs'       => ['Task List', 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+                    'sheet'     => ['Task Sheet', 'M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
                     'kanban'    => ['Kanban', 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7'],
                     'team'      => ['Team Roster', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
                     'updates'   => ['Status Updates', 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'],
@@ -873,6 +874,11 @@
     <!-- 2. WBS PLAN TAB -->
     @if($activeTab === 'wbs')
         <livewire:wbs-tree :project="$project" :key="'wbs-tree-'.$project->id.'-'.($project->updated_at?->timestamp ?? time())" />
+    @endif
+
+    <!-- 2.1. TASK SHEET FULL-PAGE POPUP MODAL -->
+    @if($activeTab === 'sheet')
+        <livewire:project-task-sheet :project="$project" :key="'project-task-sheet-'.$project->id.'-'.($project->updated_at?->timestamp ?? time())" />
     @endif
 
     <!-- 3. KANBAN TAB -->
@@ -2676,33 +2682,38 @@
          PROJECT OVERVIEW / SUMMARY MODAL
          ═══════════════════════════════════════════════════════════════ -->
     @if($showProjectDetailsModal && (auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'project_details.view')))
+    @teleport('body')
     <div 
         x-data 
         @keydown.escape.window="$wire.closeProjectDetailsModal()" 
-        class="fixed inset-0 z-[999999] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
+        class="fixed inset-0 z-[999999] bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(30, 41, 59, 0.46); backdrop-filter: blur(6px);"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="project-overview-title"
     >
         <!-- Modal Card Container -->
         <div 
             @click.outside="$wire.closeProjectDetailsModal()" 
-            class="relative w-full max-w-3xl max-h-[92vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto animate-in zoom-in-95 duration-150"
-            style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;"
+            class="relative flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; width: min(960px, calc(100vw - 32px)); height: min(780px, calc(100dvh - 32px)); max-width: 960px; max-height: calc(100dvh - 32px); margin: 0; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.26);"
         >
             <!-- 1. Header (Clean & Simple Edit-Style Header) -->
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4 flex-shrink-0 bg-white">
+            <div class="px-5 sm:px-6 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-4 flex-shrink-0 bg-white">
                 <div class="flex items-center gap-3.5 min-w-0 flex-1">
                     <!-- Soft Light-Rose Circle Icon Box -->
-                    <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100/90 text-[#c3122e] flex items-center justify-center shadow-2xs shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-[#c3122e] flex items-center justify-center shrink-0">
                         <svg class="w-5.5 h-5.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                     </div>
 
                     <div class="min-w-0 flex-1">
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug truncate" style="font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            Project Specifications &amp; Overview
+                        <h2 id="project-overview-title" class="text-lg font-extrabold text-slate-900 tracking-tight leading-snug truncate">
+                            Project Overview
                         </h2>
                         <p class="text-xs text-slate-500 font-medium truncate mt-0.5">
-                            Comprehensive identity, governance status, schedule, budget, and scope details
+                            {{ $project->code }} &middot; Project governance, schedule, budget and scope
                         </p>
                     </div>
                 </div>
@@ -2711,7 +2722,7 @@
                 <button 
                     wire:click="closeProjectDetailsModal" 
                     type="button" 
-                    class="w-8.5 h-8.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer flex-shrink-0 active:scale-95 shadow-2xs"
+                    class="w-9 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer flex-shrink-0 active:scale-95"
                     title="Close (Esc)"
                 >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -2733,10 +2744,10 @@
                 };
             @endphp
 
-            <div class="p-6 overflow-y-auto space-y-5 flex-1 bg-white">
+            <div class="min-h-0 p-4 sm:p-5 overflow-y-auto overscroll-contain space-y-3.5 flex-1 bg-slate-50/70" style="scrollbar-gutter: stable;">
                 
                 <!-- SECTION 1: 🏷️ PROJECT IDENTITY & CLASSIFICATION -->
-                <div class="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4.5 sm:p-5 space-y-3.5 shadow-2xs">
+                <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3.5 shadow-sm shadow-slate-200/20">
                     <div class="border-b border-slate-200/60 pb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-sm">🏷️</span>
@@ -2785,7 +2796,7 @@
                 </div>
 
                 <!-- SECTION 2: ⚙️ GOVERNANCE, STATUS & LEADERSHIP -->
-                <div class="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4.5 sm:p-5 space-y-3.5 shadow-2xs">
+                <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3.5 shadow-sm shadow-slate-200/20">
                     <div class="border-b border-slate-200/60 pb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-sm">⚙️</span>
@@ -2856,7 +2867,7 @@
                 </div>
 
                 <!-- SECTION 3: 📅 SCHEDULE HORIZON & FINANCIAL BUDGET -->
-                <div class="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4.5 sm:p-5 space-y-3.5 shadow-2xs">
+                <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3.5 shadow-sm shadow-slate-200/20">
                     <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-sm">📅</span>
@@ -2920,7 +2931,7 @@
                     $days = $tpl?->work_days ? implode(', ', array_map('ucfirst', $tpl->work_days)) : 'Mon, Tue, Wed, Thu, Fri';
                     $granularity = ($tpl?->divide_by_hours ?? true) ? 'Hourly Breakdown' : 'Daily Breakdown';
                 @endphp
-                <div class="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4.5 sm:p-5 space-y-3.5 shadow-2xs">
+                <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3.5 shadow-sm shadow-slate-200/20">
                     <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-sm">📊</span>
@@ -3001,7 +3012,7 @@
                 </div>
 
                 <!-- SECTION 5: 📝 PROJECT SCOPE & OBJECTIVES (Project Description) -->
-                <div class="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4.5 sm:p-5 space-y-3 shadow-2xs">
+                <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3 shadow-sm shadow-slate-200/20">
                     <div class="border-b border-slate-200/60 pb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-sm">📝</span>
@@ -3028,7 +3039,7 @@
             </div>
 
             <!-- 3. Footer (Clean Bottom Action Bar) -->
-            <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-between gap-4 flex-shrink-0">
+            <div class="px-5 sm:px-6 py-3 border-t border-slate-200/80 bg-white flex items-center justify-between gap-4 flex-shrink-0">
                 <span class="text-xs text-slate-400 font-semibold">
                     Created on {{ $project->created_at->format('M d, Y') }}
                 </span>
@@ -3037,7 +3048,7 @@
                         <button 
                             wire:click="openEditProjectModal" 
                             type="button" 
-                            class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer shadow-2xs active:scale-95 flex items-center gap-1.5"
+                            class="px-4 py-2 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
                         >
                             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                             <span>Edit Details</span>
@@ -3046,8 +3057,7 @@
                     <button 
                         wire:click="closeProjectDetailsModal" 
                         type="button" 
-                        class="px-6 py-2 rounded-xl text-xs font-black text-white shadow-md hover:shadow-lg active:scale-95 transition-all cursor-pointer"
-                        style="background: #8b0d1f;"
+                        class="px-5 py-2 rounded-lg text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm active:scale-95 transition-all cursor-pointer"
                     >
                         Done
                     </button>
@@ -3056,8 +3066,7 @@
 
         </div>
     </div>
+    @endteleport
     @endif
 
 </div>
-
-

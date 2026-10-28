@@ -1,4 +1,4 @@
-<div wire:poll.30s class="space-y-6 max-w-[1600px] mx-auto pb-10">
+<div wire:poll.30s data-ui-page="dashboard-manager" class="ui-page ui-page-dashboard manager-dashboard space-y-5 max-w-[1600px] mx-auto pb-10">
 
     <style>
         .dash-grid-3col {
@@ -15,6 +15,32 @@
             .dash-col-3 { grid-column: span 3 / span 3; }
             .dash-col-7 { grid-column: span 7 / span 7; }
         }
+        .manager-head { border-bottom: 1px solid #e6ebf0; padding-bottom: 16px; }
+        .manager-head h1 { font-size: 27px !important; font-weight: 700 !important; letter-spacing: -.035em; }
+        .manager-head h1 span { display: none; }
+        .manager-kpis {
+            display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px;
+            background: transparent;
+        }
+        .manager-kpis > * { min-height: 106px; padding: 16px 18px !important; border: 1px solid #e2e7ed !important; border-radius: 16px !important; box-shadow: 0 12px 30px -27px rgba(15,23,42,.38) !important; background: #fff !important; }
+        .manager-kpis > *:hover { border-color:#d4dbe4 !important; transform:translateY(-1px); }
+        .manager-kpis > *:last-child { background: #fff !important; border-color:#f0dce0 !important; }
+        .manager-kpis > *:nth-child(1) [class*="w-8"] { background:#eef6ff !important; color:#4774a8 !important; border-color:#dbe9f7 !important; }
+        .manager-kpis > *:nth-child(2) [class*="w-8"] { background:#f4f1fb !important; color:#6d5f91 !important; border-color:#e7e0f3 !important; }
+        .manager-kpis > *:nth-child(3) [class*="w-8"] { background:#edf8f5 !important; color:#397a6b !important; border-color:#d9eee8 !important; }
+        .manager-kpis > *:nth-child(4) [class*="w-8"] { background:#fff2f3 !important; color:#b4233a !important; border-color:#f5dce0 !important; }
+        .manager-kpis [class*="text-2xl"] { font-family:'Plus Jakarta Sans',system-ui,sans-serif !important; font-size:1.65rem !important; font-weight:700 !important; }
+        .manager-kpis [class*="uppercase"] { font-size:9px !important; letter-spacing:.08em !important; color:#7f8ca0 !important; }
+        .manager-panels { gap: 16px; }
+        .manager-panels > div { border-color: #e1e7ed !important; border-radius: 16px !important; box-shadow: 0 16px 38px -34px rgba(15,23,42,.36) !important; padding: 18px !important; }
+        .manager-panels .space-y-2\.5 > div { background: #fbfcfd !important; border-color: #e9edf2 !important; border-radius: 10px !important; }
+        .manager-panels h2 { font-weight:700 !important; letter-spacing:-.025em !important; }
+        @media (min-width: 1024px) {
+            .manager-primary-panels { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+            .manager-primary-panels > div { grid-column: span 1 / span 1 !important; }
+        }
+        @media (max-width:1023px) { .manager-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media (max-width:639px) { .manager-head h1{font-size:23px!important}.manager-kpis{grid-template-columns:1fr}.manager-kpis > *{min-height:96px} }
     </style>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
@@ -30,7 +56,7 @@
         $subsidiaryName = $currentUser->subsidiary?->name ?? 'George Steuart Group';
     @endphp
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1 pb-1">
+    <div class="manager-head flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
         <div>
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 {{ $greeting }}, {{ $firstName }} <span class="inline-block hover:scale-110 transition-transform cursor-default select-none">👋</span>
@@ -85,7 +111,7 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- 2. MINIMALIST KPI METRIC TILES                             --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="manager-kpis">
 
         {{-- 1. Total Projects --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
@@ -93,7 +119,7 @@
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">TOTAL PROJECTS</span>
                 <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/>
                     </svg>
                 </div>
             </div>
@@ -109,7 +135,7 @@
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">PROJECT ROLES</span>
                 <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0M18 8h3m-1.5-1.5v3"/>
                     </svg>
                 </div>
             </div>
@@ -124,7 +150,7 @@
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">MY TASKS</span>
                 <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/></svg>
                 </div>
             </div>
             <div class="flex items-baseline justify-between">
@@ -138,7 +164,7 @@
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="text-[10px] font-extrabold {{ $overdueTasksCount > 0 ? 'text-rose-500' : 'text-slate-400' }} uppercase tracking-wider block">OVERDUE</span>
                 <div class="w-8 h-8 rounded-xl {{ $overdueTasksCount > 0 ? 'bg-rose-100/80 text-[#c3122e] border-rose-200/70' : 'bg-slate-100/80 text-slate-600 border-slate-200/60' }} flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3.5h.01M10.3 4.6L3.8 16a2 2 0 001.74 3h12.92a2 2 0 001.74-3L13.7 4.6a2 2 0 00-3.4 0z"/></svg>
                 </div>
             </div>
             <div class="flex items-baseline justify-between">
@@ -152,10 +178,10 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- 3. MAIN SECTION (MY PROJECTS, UPCOMING TASKS, ACTIVITIES)  --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="dash-grid-3col items-stretch">
+    <div class="dash-grid-3col manager-panels manager-primary-panels items-stretch">
 
-        {{-- ── COLUMN 1: MY PROJECTS (5 cols) ── --}}
-        <div class="dash-col-5 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
+        {{-- ── COLUMN 1: MY PROJECTS (4 cols / 1 of 3) ── --}}
+        <div class="dash-col-4 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Card Header --}}
                 <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
@@ -299,8 +325,8 @@
             </div>
         </div>
 
-        {{-- ── COLUMN 3: TODAY'S SCHEDULE (TASKS & MEETINGS) (3 cols) ── --}}
-        <div class="dash-col-3 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
+        {{-- ── COLUMN 3: TODAY'S SCHEDULE (TASKS & MEETINGS) (4 cols / 1 of 3) ── --}}
+        <div class="dash-col-4 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
             <div>
                 {{-- Card Header --}}
                 <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
@@ -317,7 +343,7 @@
 
                 {{-- Schedule List (Day-by-Day updating) --}}
                 <div class="space-y-2.5">
-                    @forelse($todayScheduleItems as $item)
+                    @forelse($todayScheduleItems->take(5) as $item)
                         <div class="p-2.5 rounded-xl bg-slate-50/60 hover:bg-rose-50/20 border border-slate-100 hover:border-rose-100 transition-all space-y-1.5 group">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-start gap-2 min-w-0">
@@ -382,7 +408,7 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- 5. BOTTOM SECTION (PROJECT RISKS & QUICK ACCESS)           --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="dash-grid-3col items-stretch">
+    <div class="dash-grid-3col manager-panels items-stretch">
 
         {{-- ── CARD 1: PROJECT RISKS (7 cols) ── --}}
         <div class="dash-col-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between">
@@ -547,18 +573,26 @@
             $requesterName = $reviewApproval->requester->name ?? ($reviewProject->creator->name ?? 'Super Administrator (PMO Admin)');
         @endphp
 
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-md overflow-y-auto animate-fade-in">
-            <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-3xl p-5 sm:p-7 space-y-4 my-auto max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <dialog
+            x-data
+            x-init="$nextTick(() => { if (!$el.open) $el.showModal() })"
+            x-on:cancel.prevent="$wire.closeReviewModal()"
+            class="m-0 p-3 sm:p-6 w-screen h-screen max-w-none max-h-none border-0 bg-slate-900/65 backdrop:bg-slate-900/65 overflow-hidden"
+            style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:clamp(.75rem,2vw,1.5rem);background:rgba(15,23,42,.66);backdrop-filter:blur(7px);"
+            aria-labelledby="leadership-signoff-title"
+            wire:click.self="closeReviewModal"
+        >
+            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" style="height:min(760px,calc(100dvh - 3rem));max-height:calc(100dvh - 1.5rem);box-shadow:0 30px 90px -30px rgba(15,23,42,.55);">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 flex-shrink-0">
+                <div class="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-slate-200 bg-white flex-shrink-0">
                     <div class="flex items-center gap-3.5 min-w-0">
                         <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-2xs">
                             ⭐
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <h3 class="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                                <h3 id="leadership-signoff-title" class="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                                     Project Leadership Sign-Off
                                 </h3>
                                 <span class="px-2 py-0.5 rounded-md text-[10.5px] font-mono font-black bg-rose-50 text-[#c3122e] border border-rose-200">
@@ -576,7 +610,7 @@
                 </div>
 
                 {{-- Modal Body Container --}}
-                <div class="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+                <div class="flex-1 min-h-0 overflow-y-auto space-y-4 px-5 sm:px-7 py-5 bg-slate-50/50 scrollbar-thin overscroll-contain">
                     @if(!$showRejectModal)
                         {{-- 1. Project Title, Requester & Scope Card --}}
                         <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
@@ -824,41 +858,33 @@
                     @endif
                 </div>
 
-                {{-- Action Footer --}}
-                <div class="flex items-center justify-between pt-3.5 border-t border-slate-100 flex-shrink-0 gap-3">
-                    <div>
-                        @if(!$showRejectModal)
-                            <button
-                                wire:click="openRejectForm({{ $reviewProject->id }})"
-                                type="button"
-                                class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all border border-rose-200/60 cursor-pointer active:scale-95"
-                            >
-                                Decline Assignment
-                            </button>
-                        @endif
-                    </div>
-
-                    <div class="flex items-center gap-2.5">
-                        <button
-                            wire:click="closeReviewModal"
-                            type="button"
-                            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer active:scale-95"
-                        >
+                {{-- Premium Action Footer --}}
+                <div class="flex-shrink-0" style="padding:15px 28px;border-top:1px solid #e2e8f0;background:linear-gradient(180deg,#fff 0%,#fafbfd 100%);box-shadow:0 -12px 28px -28px rgba(15,23,42,.45);">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;flex-wrap:wrap;">
+                        <button wire:click="closeReviewModal" type="button" class="transition-all cursor-pointer active:scale-[.98]"
+                            style="height:42px;padding:0 19px;border-radius:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-size:13px;font-weight:700;box-shadow:0 1px 2px rgba(15,23,42,.04);">
                             Cancel
                         </button>
+
                         @if(!$showRejectModal)
-                            <button
-                                wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)"
-                                type="button"
-                                class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a80f27] transition-all shadow-md shadow-[#c3122e]/20 flex items-center gap-2 cursor-pointer active:scale-95"
-                            >
-                                <span>Accept &amp; Open Workspace &rarr;</span>
+                            <button wire:click="openRejectForm({{ $reviewProject->id }})" type="button" class="transition-all cursor-pointer active:scale-[.98]"
+                                style="height:42px;padding:0 19px;border-radius:11px;border:1px solid #fecdd3;background:#fff5f6;color:#be123c;font-size:13px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 1px 2px rgba(15,23,42,.03);">
+                                <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span>Decline Assignment</span>
+                            </button>
+
+                            <button wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)" wire:loading.attr="disabled" type="button" class="transition-all cursor-pointer active:scale-[.98] disabled:opacity-60"
+                                style="height:42px;padding:0 22px;border-radius:11px;border:1px solid #a80f27;background:linear-gradient(135deg,#cf1535 0%,#b30e29 100%);color:#fff;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 9px 20px -12px rgba(195,18,46,.9),inset 0 1px 0 rgba(255,255,255,.18);">
+                                <svg wire:loading.remove wire:target="acceptProjectAssignment" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <svg wire:loading wire:target="acceptProjectAssignment" class="animate-spin" style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none"><circle opacity=".3" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"/><path fill="currentColor" d="M21 12a9 9 0 00-9-9v3a6 6 0 016 6h3z"/></svg>
+                                <span>Accept &amp; Open Workspace</span>
+                                <svg wire:loading.remove wire:target="acceptProjectAssignment" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         @endif
                     </div>
                 </div>
             </div>
-        </div>
+        </dialog>
     @endif
 
     {{-- B. Resolve Blocker Modal --}}

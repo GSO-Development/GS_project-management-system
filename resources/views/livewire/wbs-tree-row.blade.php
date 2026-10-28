@@ -72,6 +72,7 @@
     $canEditTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned'))));
     $canDeleteTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.delete'));
     $canChangeStatusRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.change_status') || $item->assigned_user_id === $usr?->id));
+    $canChangePriorityRow = $isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.change_priority', $item));
 @endphp
 
 <tr class="transition-colors duration-150 group border-b border-slate-100/90 hover:bg-slate-50/60 {{ $levelConfig['rowBg'] }}">
@@ -206,7 +207,7 @@
         @if($item->start_date)
             <div class="flex flex-col leading-tight">
                 <span class="font-semibold text-slate-700 text-xs">{{ $item->start_date->format('M d, Y') }}</span>
-                <span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->start_time_formatted ?: '09:00 AM' }}</span>
+                @if($item->start_time_formatted)<span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->start_time_formatted }}</span>@endif
             </div>
         @else
             <span class="text-slate-300 font-mono text-xs">—</span>
@@ -226,7 +227,7 @@
                         <span>Overdue</span>
                     </span>
                 @else
-                    <span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->end_time_formatted ?: '05:00 PM' }}</span>
+                    @if($item->end_time_formatted)<span class="text-[10px] font-mono text-slate-400 mt-0.5">{{ $item->end_time_formatted }}</span>@endif
                 @endif
             </div>
         @else
@@ -234,7 +235,60 @@
         @endif
     </td>
 
-    <!-- 6. PROGRESS (Refined Bar + %) -->
+    <!-- 6. DURATION (Days if multi-day/whole-day, Hours if same-day time slots) -->
+    <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap min-w-[105px] w-28">
+        @php
+            $durationFormatted = $item->duration_formatted;
+        @endphp
+        @if($durationFormatted)
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold font-mono bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs">
+                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ $durationFormatted }}</span>
+            </span>
+        @else
+            <span class="text-slate-300 font-mono text-xs">—</span>
+        @endif
+    </td>
+
+    <!-- 7. DEPENDENCIES -->
+    <td class="py-3.5 px-3 text-xs align-middle min-w-[110px] w-32">
+        @php
+            $predecessors = $item->predecessors ? $item->predecessors->filter(fn($d) => $d->predecessor !== null) : collect();
+        @endphp
+        @if($predecessors->isNotEmpty())
+            <div class="flex items-center gap-1 flex-wrap">
+                @foreach($predecessors as $dep)
+                    <button 
+                        @if($canEditTaskRow) wire:click="openDepModal({{ $item->id }})" type="button" @endif
+                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10.5px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs {{ $canEditTaskRow ? 'hover:bg-amber-100 cursor-pointer' : 'cursor-help' }} transition-colors"
+                        title="Predecessor: #{{ $dep->predecessor->wbs_code }} - {{ $dep->predecessor->title }}"
+                    >
+                        <svg class="w-2.5 h-2.5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        <span>#{{ $dep->predecessor->wbs_code }}</span>
+                    </button>
+                @endforeach
+            </div>
+        @else
+            @if($canEditTaskRow)
+                <button 
+                    wire:click="openDepModal({{ $item->id }})" 
+                    type="button" 
+                    class="text-slate-300 hover:text-slate-600 font-mono text-xs hover:bg-slate-100 px-1.5 py-0.5 rounded transition-colors" 
+                    title="Add dependency"
+                >
+                    —
+                </button>
+            @else
+                <span class="text-slate-300 font-mono text-xs">—</span>
+            @endif
+        @endif
+    </td>
+
+    <!-- 8. PROGRESS (Refined Bar + %) -->
     <td class="py-3.5 px-3 text-xs align-middle whitespace-nowrap min-w-[125px] w-32">
         <div class="flex items-center gap-2.5">
             <div class="min-w-[70px] flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-[0.5px] flex items-center shrink-0">
@@ -321,6 +375,33 @@
     </td>
 
     <!-- 8. ACTIONS (Compact Kebab ⋮ Menu) -->
+    <td class="py-3.5 px-3 align-middle whitespace-nowrap min-w-[120px] w-32">
+        @php
+            $currentPriority = is_object($item->priority) ? $item->priority->value : ($item->priority ?: 'medium');
+            $priorityStyle = match($currentPriority) {
+                'critical' => 'background:#fff1f2; color:#be123c; border-color:#fecdd3;',
+                'high' => 'background:#fff7ed; color:#c2410c; border-color:#fed7aa;',
+                'low' => 'background:#f8fafc; color:#475569; border-color:#cbd5e1;',
+                default => 'background:#fffbeb; color:#b45309; border-color:#fde68a;',
+            };
+        @endphp
+        <div class="relative inline-flex items-center w-full max-w-[120px]">
+            <select
+                wire:change="updateItemPriority({{ $item->id }}, $event.target.value)"
+                @if(!$canChangePriorityRow) disabled @endif
+                class="w-full appearance-none rounded-lg border py-1.5 pl-3 pr-7 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-200 {{ !$canChangePriorityRow ? 'cursor-not-allowed opacity-70' : 'cursor-pointer' }}"
+                style="{{ $priorityStyle }}"
+                title="{{ $canChangePriorityRow ? 'Update Task Priority' : 'Priority change disabled' }}"
+            >
+                <option value="low" @selected($currentPriority === 'low')>Low</option>
+                <option value="medium" @selected($currentPriority === 'medium')>Medium</option>
+                <option value="high" @selected($currentPriority === 'high')>High</option>
+                <option value="critical" @selected($currentPriority === 'critical')>Critical</option>
+            </select>
+            <svg class="pointer-events-none absolute right-2.5 h-3.5 w-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+    </td>
+
     <td class="py-3.5 pr-5 pl-2 text-center align-middle whitespace-nowrap w-12 shrink-0">
         @php
             $isAssignedUser = auth()->check() && $item->assigned_user_id === auth()->id();
@@ -365,6 +446,10 @@
                         <button wire:click="openEditItemModal({{ $item->id }})" @click="open = false" type="button" class="w-full px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-left">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                             <span>Edit Task</span>
+                        </button>
+                        <button wire:click="openDepModal({{ $item->id }})" @click="open = false" type="button" class="w-full px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-left">
+                            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                            <span>Dependencies</span>
                         </button>
                     @endif
 

@@ -1,4 +1,4 @@
-<div class="space-y-6 pt-2 pb-8 px-2 md:px-4">
+<div data-ui-page="team-monitor" class="ui-page ui-page-admin space-y-6 pt-2 pb-8">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 

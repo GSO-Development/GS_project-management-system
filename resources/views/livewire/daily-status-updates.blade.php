@@ -1,4 +1,4 @@
-<div class="space-y-5 pb-12">
+<div data-ui-page="daily-updates" class="ui-page ui-page-collaboration space-y-5 pb-12">
     <style>
         .daily-update-scroll::-webkit-scrollbar {
             width: 5px;
@@ -21,12 +21,23 @@
         .filter-toolbar-enter {
             animation: slideDownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        .daily-updates-ledger { box-shadow: 0 1px 2px rgba(15,23,42,.02), 0 12px 28px -26px rgba(15,23,42,.32) !important; }
+        .daily-updates-table tbody td { padding-top: 14px !important; padding-bottom: 14px !important; border-bottom: 1px solid #eef2f6; }
+        .daily-updates-table tbody tr:last-child td { border-bottom: 0; }
+        .daily-updates-table tbody tr:hover { background: #fafbfc !important; }
+        .daily-updates-table thead th { position: sticky; top: 0; z-index: 2; }
+        .daily-update-button { box-shadow: none !important; }
+        .daily-history-button { box-shadow: none !important; }
+        @media (max-width: 767px) {
+            .daily-updates-ledger__toolbar { padding: 14px 16px !important; }
+            .daily-updates-table th, .daily-updates-table td { padding-left: 12px !important; padding-right: 12px !important; }
+        }
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & ACTION CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-100">
+    <div class="daily-updates-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c3122e]/10 text-[#c3122e] tracking-wide uppercase">
@@ -68,7 +79,7 @@
          2. COLLAPSIBLE FILTER TOOLBAR
          ═══════════════════════════════════════════════════════════════ -->
     @if($showFilters)
-        <div wire:key="daily-updates-filter-toolbar" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs filter-toolbar-enter">
+        <div wire:key="daily-updates-filter-toolbar" class="daily-updates-filters bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs filter-toolbar-enter">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {{-- Search Box --}}
                 <div class="relative">
@@ -146,19 +157,20 @@
     @endif    <!-- ═══════════════════════════════════════════════════════════════
          3. PROJECTS DAILY UPDATES MATRIX TABLE
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="w-full rounded-2xl bg-white shadow-xs border border-slate-200/90 overflow-hidden transition-all">
+    <div class="daily-updates-ledger w-full rounded-2xl bg-white border border-slate-200 overflow-hidden transition-all">
         <!-- Section Bar / Table Header Toolbar -->
-        <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap bg-white">
-            <div class="flex items-center gap-3.5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-50 via-white to-slate-50 border border-rose-200/60 flex items-center justify-center text-[#c3122e] shadow-2xs">
-                    <svg class="w-5 h-5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="daily-updates-ledger__toolbar px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-4 flex-wrap bg-white">
+            <div class="flex items-center gap-3">
+                <div class="daily-ledger-icon w-9 h-9 rounded-xl flex items-center justify-center text-[#c3122e]">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Active Projects Status
+                    <h2 class="text-sm font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        Project update register
                     </h2>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Latest project progress and activity</p>
                 </div>
             </div>
             
@@ -173,23 +185,23 @@
                         </button>
                     </div>
                 @else
-                    <span class="text-xs text-slate-500 font-medium hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50/80 border border-slate-200/80 shadow-2xs">
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Click <strong class="text-slate-800 font-bold">"Update"</strong> to log progress or <strong class="text-slate-800 font-bold">"Logs"</strong> to view history</span>
+                    <span class="daily-project-count hidden sm:inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        {{ $groupedProjectUpdates->total() }} active projects
                     </span>
                 @endif
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="daily-updates-table w-full min-w-[920px] text-left border-collapse text-xs">
                 <thead>
-                    <tr class="bg-slate-50/90 border-b border-slate-200/90 text-[10.5px] font-bold uppercase tracking-wider text-slate-500" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        <th scope="col" class="py-3.5 pl-6 pr-4 w-[28%]">Project Details</th>
-                        <th scope="col" class="py-3.5 px-4 w-[18%]">Project Manager</th>
-                        <th scope="col" class="py-3.5 px-4 w-[34%]">Latest Progress Log</th>
-                        <th scope="col" class="py-3.5 px-4 w-[10%] hidden lg:table-cell">Last Activity</th>
-                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right w-[10%] whitespace-nowrap">Actions</th>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-[.09em] text-slate-500" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                        <th scope="col" class="py-3.5 pl-6 pr-4 w-[23%]">Project</th>
+                        <th scope="col" class="py-3.5 px-4 w-[18%]">Owner</th>
+                        <th scope="col" class="py-3.5 px-4 w-[34%]">Latest update</th>
+                        <th scope="col" class="py-3.5 px-4 w-[11%] hidden lg:table-cell">Updated</th>
+                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right w-[14%] whitespace-nowrap">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -210,11 +222,11 @@
                             $projInitial = strtoupper(substr($project->name, 0, 1));
                         @endphp
 
-                        <tr class="hover:bg-slate-50/80 transition-all duration-150 group">
+                        <tr class="daily-update-row transition-colors duration-150 group {{ $update?->current_blockers ? 'has-blocker' : '' }}">
                             <!-- Project & Code -->
                             <td class="py-4 pl-6 pr-4 align-middle">
                                 <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="w-10 h-10 rounded-full bg-rose-50 text-[#c3122e] border border-rose-200/80 flex items-center justify-center font-extrabold text-sm shrink-0 transition-all duration-200 shadow-2xs group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]">
+                                    <div class="daily-project-avatar w-9 h-9 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center font-extrabold text-xs shrink-0 transition-colors group-hover:bg-white">
                                         {{ $projInitial }}
                                     </div>
                                     <div class="min-w-0 flex-1 space-y-1">
@@ -232,7 +244,10 @@
 
                             <!-- Project Manager -->
                             <td class="py-4 px-4 align-middle">
-                                <span class="font-bold text-slate-800 text-xs sm:text-[13px] truncate block group-hover:text-slate-950 transition-colors" title="{{ $pmName }}">{{ $pmName }}</span>
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="daily-owner-avatar">{{ $pmInitials }}</span>
+                                    <span class="font-semibold text-slate-700 text-xs truncate block" title="{{ $pmName }}">{{ $pmName }}</span>
+                                </div>
                             </td>
 
                             <!-- Latest Update Summary -->
@@ -246,7 +261,7 @@
                                             default => ['bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200/80', 'dot' => 'bg-blue-500', 'label' => 'In Progress'],
                                         };
                                     @endphp
-                                    <div class="p-3 rounded-xl bg-slate-50/70 group-hover:bg-white border border-slate-200/70 group-hover:border-slate-300/80 transition-all duration-150 space-y-1.5 min-w-0 max-w-lg shadow-2xs">
+                                    <div class="daily-log-summary space-y-1.5 min-w-0 max-w-lg">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold border {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} {{ $statusConfig['border'] }} shadow-2xs">
                                                 <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
@@ -265,12 +280,12 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <p class="text-xs text-slate-700 font-normal line-clamp-2 leading-relaxed" title="{{ $update->summary }}">
+                                        <p class="text-xs text-slate-600 font-normal line-clamp-2 leading-relaxed" title="{{ $update->summary }}">
                                             {{ $update->summary }}
                                         </p>
                                     </div>
                                 @else
-                                    <div class="inline-flex items-center gap-2 py-1.5 px-3 rounded-xl bg-slate-50/80 border border-dashed border-slate-200/90 text-slate-400 text-[11px] font-medium">
+                                    <div class="daily-log-empty inline-flex items-center gap-2 py-1.5 text-slate-400 text-[11px] font-medium">
                                         <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                                         <span>No activity logs recorded yet</span>
                                     </div>
@@ -294,26 +309,25 @@
 
                             <!-- Actions -->
                             <td class="py-4 pl-3 pr-6 align-middle text-right whitespace-nowrap">
-                                <div class="inline-flex items-center justify-end gap-2">
+                                <div class="daily-row-actions inline-flex items-center justify-end gap-2">
                                     <button
                                         wire:click="openStatusUpdateModal({{ $project->id }})"
                                         type="button"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow active:scale-95 transition-all cursor-pointer"
-                                        style="background: linear-gradient(135deg, #c3122e 0%, #9e0e25 100%);"
+                                        class="daily-update-button inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold text-white active:scale-95 transition-all cursor-pointer"
                                         title="Log new daily progress update"
                                     >
                                         <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>Update</span>
+                                        <span>Add update</span>
                                     </button>
 
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
                                         type="button"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 hover:text-slate-900 border border-slate-200/90 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer"
+                                        class="daily-history-button inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 border border-slate-200 active:scale-95 transition-all cursor-pointer"
                                         title="View project logs history"
                                     >
                                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span>Logs</span>
+                                        <span class="sr-only">View logs</span>
                                         <span class="px-1.5 py-0.2 rounded-md {{ $allUpdatesCount > 0 ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' : 'bg-slate-100 text-slate-500 border border-slate-200' }} text-[10px] font-black">
                                             {{ $allUpdatesCount }}
                                         </span>

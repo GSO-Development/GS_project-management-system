@@ -1,4 +1,4 @@
-<div @if($autoRefresh) wire:poll.30s @endif style="font-family: 'Inter', system-ui, sans-serif; --brand: #c3122e; --brand-dark: #9b0e24;">
+<div data-ui-page="audit" class="ui-page ui-page-admin" @if($autoRefresh) wire:poll.30s @endif style="font-family: 'Inter', system-ui, sans-serif; --brand: #c3122e; --brand-dark: #9b0e24;">
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');

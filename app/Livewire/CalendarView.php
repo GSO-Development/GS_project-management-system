@@ -441,6 +441,11 @@ class CalendarView extends Component
         $this->showCreateEventModal = true;
     }
 
+    public function closeCreateEventModal(): void
+    {
+        $this->showCreateEventModal = false;
+    }
+
     /**
      * Advance from Step 1 to Step 2: Validate details and calculate team availability.
      */

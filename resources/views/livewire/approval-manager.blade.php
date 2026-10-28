@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: {{ ($statusFilter !== 'all' || $typeFilter !== 'all' || $scopeFilter !== 'all' || !empty($search)) ? 'true' : 'false' }} }">
+<div data-ui-page="approvals" class="ui-page ui-page-governance" x-data="{ showFilters: {{ ($statusFilter !== 'all' || $typeFilter !== 'all' || $scopeFilter !== 'all' || !empty($search)) ? 'true' : 'false' }} }">
     {{-- ══════════════════════════════════════════════════════
          APPROVAL WORKFLOWS — Governance & Team Request Desk
     ══════════════════════════════════════════════════════ --}}

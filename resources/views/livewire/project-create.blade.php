@@ -1,4 +1,4 @@
-<div class="space-y-6 max-w-5xl mx-auto pb-12 font-sans" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+<div data-ui-page="project-create" class="ui-page ui-page-form space-y-6 max-w-5xl mx-auto pb-12 font-sans" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
     <style>
         .step-field-input {
             width: 100%;

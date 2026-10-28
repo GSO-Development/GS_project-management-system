@@ -15,7 +15,7 @@
         svg { max-width: 100%; }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen" style="background: #eff0ec;">
+<body class="guest-clean font-sans antialiased min-h-screen" style="background: #f6f7f8;">
     {{ $slot }}
     @livewireScripts
 </body>

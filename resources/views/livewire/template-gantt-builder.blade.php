@@ -1,4 +1,4 @@
-<div class="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 flex flex-col min-h-screen">
+<div data-ui-page="template-builder" class="ui-page ui-page-admin max-w-7xl mx-auto space-y-6 flex flex-col min-h-screen">
 
     <!-- Header & Action Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">

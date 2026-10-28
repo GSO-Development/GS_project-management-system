@@ -1,4 +1,4 @@
-<div class="space-y-6 pb-12">
+<div data-ui-page="risks" class="ui-page ui-page-governance space-y-6 pb-12">
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER (RISKS & BLOCKERS HUB)
          ═══════════════════════════════════════════════════════════════ -->

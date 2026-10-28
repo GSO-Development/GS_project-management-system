@@ -1,9 +1,9 @@
-<div class="space-y-4 sm:space-y-5 pb-16">
+<div data-ui-page="calendar" class="ui-page ui-page-collaboration space-y-4 sm:space-y-5 pb-16">
     <style>
         /* ── Team Attendee list (Create + Edit modals) ── */
         .att-list { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
-        .att-list-scroll { max-height: 260px; min-height: 120px; overflow-y: auto; }
-        .att-list-scroll.att-list-tall { max-height: 320px; }
+        .att-list-scroll { max-height: 240px; min-height: 120px; overflow-y: auto; }
+        .att-list-scroll.att-list-tall { max-height: 240px; }
         .att-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) 22px; align-items: center; column-gap: 12px; padding: 10px 14px; cursor: pointer; user-select: none; background: #fff; border-left: 3px solid transparent; transition: background-color .15s ease, border-color .15s ease; }
         .att-row + .att-row { border-top: 1px solid #f1f5f9; }
         .att-row:hover { background: #f8fafc; }
@@ -642,9 +642,10 @@
     <!-- ═══════════════════════════════════════════════════════════════
          7. MODAL: EVENT DETAILS & MICROSOFT 365 ACTIONS
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ open: @entangle('showEventModal') }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none" x-cloak>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="open = false; $wire.showEventModal = false"></div>
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg p-5 sm:p-6 z-10 space-y-4 max-h-[90vh] overflow-y-auto">
+    @teleport('body')
+    <div x-data="{ open: @entangle('showEventModal') }" x-show="open" @keydown.escape.window="open = false; $wire.showEventModal = false" style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px); display: none;" x-cloak>
+        <div class="fixed inset-0 -z-10" @click="open = false; $wire.showEventModal = false"></div>
+        <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-lg p-5 sm:p-6 z-10 space-y-4 max-h-[90vh] overflow-y-auto" @click.outside="open = false; $wire.showEventModal = false">
             @if($selectedEvent)
                 <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                     <div class="min-w-0">
@@ -751,57 +752,68 @@
             @endif
         </div>
     </div>
+    @endteleport
 
     <!-- ═══════════════════════════════════════════════════════════════
          8. MODAL: 2-STEP INTERACTIVE PROJECT SCHEDULER & AVAILABILITY WIZARD
          ═══════════════════════════════════════════════════════════════ -->
     @if($canCreate)
-        <div x-data="{ open: @entangle('showCreateEventModal') }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto" style="display:none" x-cloak>
+        @teleport('body')
+        <div
+            x-data="{ open: @entangle('showCreateEventModal') }"
+            x-show="open"
+            @keydown.escape.window="open = false; $wire.showCreateEventModal = false"
+            class="fixed inset-0"
+            style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: none;"
+            x-cloak
+        >
             <!-- Backdrop -->
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" @click="open = false; $wire.showCreateEventModal = false"></div>
+            <div class="fixed inset-0 -z-10" @click="open = false; $wire.showCreateEventModal = false"></div>
 
             <!-- Modal Card -->
-            <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 w-full max-w-5xl z-10 my-auto flex flex-col max-h-[92vh] overflow-hidden transition-all duration-200">
+            <div
+                class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden transition-all duration-200"
+                style="width: min(980px, calc(100vw - 32px)); height: min(680px, calc(100dvh - 36px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);"
+                @click.outside="open = false; $wire.showCreateEventModal = false"
+            >
 
                 <!-- Clean Modal Header with Integrated Minimal Stepper -->
-                <div class="px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div class="px-5 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-rose-950/20" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Schedule Project Event</h2>
-                            <p class="text-[11px] text-slate-400 font-medium">
-                                {{ $createEventStep === 1 ? 'Configure event details and required attendees' : 'Select conflict-free meeting time' }}
-                            </p>
+                            <div class="text-[10px] font-black uppercase tracking-[.18em] text-[#c3122e]">Event Scheduling Wizard</div>
+                            <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">Schedule Project Event</h2>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2.5 sm:gap-3">
                         <!-- Exchange Connected indicator -->
-                        <div class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/60 text-[11px] font-medium text-slate-600">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>Exchange Connected</span>
+                        <div class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] font-bold text-emerald-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Microsoft 365 Connected</span>
                         </div>
 
                         <!-- Segmented Pill Stepper -->
-                        <div class="hidden sm:inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/60 text-xs font-semibold">
-                            <button type="button" wire:click="goToStep1" class="px-3 py-1 rounded-lg transition-all cursor-pointer {{ $createEventStep === 1 ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800' }}">
+                        <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-bold">
+                            <button type="button" wire:click="goToStep1" class="px-3 py-1 rounded-lg transition-all cursor-pointer {{ $createEventStep === 1 ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-800' }}">
                                 1. Details
                             </button>
-                            <button type="button" @if($createEventStep === 2) wire:click="goToStep2" @endif class="px-3 py-1 rounded-lg transition-all {{ $createEventStep === 2 ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-400 cursor-default' }}">
+                            <button type="button" @if($createEventStep === 2) wire:click="goToStep2" @endif class="px-3 py-1 rounded-lg transition-all {{ $createEventStep === 2 ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-400 cursor-default' }}">
                                 2. Availability
                             </button>
                         </div>
 
-                        <button type="button" @click="open = false; $wire.showCreateEventModal = false" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="open = false; $wire.showCreateEventModal = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
 
                 <!-- Scrollable Body Content -->
-                <div class="flex-1 overflow-y-auto px-6 py-4 scrollbar-slim">
+                <div class="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-4 scrollbar-slim overscroll-contain" style="min-height: 0;">
 
                     <!-- ── STEP 1: CLEAN 2-COLUMN LAYOUT ──────────────────── -->
                     @if($createEventStep === 1)
@@ -1324,34 +1336,34 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="px-6 py-3.5 border-t border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div class="px-5 sm:px-6 py-3.5 border-t border-slate-100 flex items-center justify-between bg-slate-50/90 shrink-0">
                     @if($createEventStep === 2)
-                        <button type="button" wire:click="goToStep1" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        <button type="button" wire:click="goToStep1" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors cursor-pointer flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                             Back to Details
                         </button>
                     @else
-                        <button type="button" @click="open = false; $wire.showCreateEventModal = false" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer">
+                        <button type="button" @click="open = false; $wire.showCreateEventModal = false" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-colors cursor-pointer">
                             Cancel
                         </button>
                     @endif
 
                     @if($createEventStep === 1)
-                        <button type="button" wire:click="goToStep2" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#c3122e] hover:bg-[#a50f26] shadow-sm shadow-[#c3122e]/20 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-60">
+                        <button type="button" wire:click="goToStep2" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60 active:scale-98" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                             <span wire:loading.remove wire:target="goToStep2" class="flex items-center gap-1.5">
-                                Check Availability
+                                Check Availability &amp; Time
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </span>
                             <span wire:loading wire:target="goToStep2" class="flex items-center gap-2">
                                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                Checking Availability...
+                                Evaluating Schedules...
                             </span>
                         </button>
                     @elseif($createEventStep === 2)
-                        <button type="button" wire:click="createEvent" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#c3122e] hover:bg-[#a50f26] shadow-sm shadow-[#c3122e]/20 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-60">
+                        <button type="button" wire:click="createEvent" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60 active:scale-98" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                             <span wire:loading.remove wire:target="createEvent" class="flex items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                Confirm &amp; Schedule
+                                Confirm &amp; Schedule Event
                             </span>
                             <span wire:loading wire:target="createEvent" class="flex items-center gap-2">
                                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
@@ -1363,43 +1375,46 @@
 
             </div>
         </div>
+        @endteleport
     @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
          8.5. MODAL: EDIT MEETING & RESCHEDULE MODAL
          ═══════════════════════════════════════════════════════════════ -->
+    @teleport('body')
     <div x-data="{ open: @entangle('showEditEventModal') }" 
          x-init="$watch('open', val => { if (val) $nextTick(() => { if ($refs.editModalBody) $refs.editModalBody.scrollTop = 0; }) })"
          x-show="open" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto" 
-         style="display:none" 
+         @keydown.escape.window="open = false; $wire.closeEditEventModal()"
+         class="fixed inset-0"
+         style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: none;" 
          x-cloak>
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" @click="open = false; $wire.closeEditEventModal()"></div>
+        <div class="fixed inset-0 -z-10" @click="open = false; $wire.closeEditEventModal()"></div>
 
         <!-- Modal Card -->
-        <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-4xl lg:max-w-5xl z-10 my-auto flex flex-col max-h-[92vh] overflow-hidden transition-all duration-200">
+        <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden transition-all duration-200"
+             style="width: min(980px, calc(100vw - 32px)); height: min(680px, calc(100dvh - 36px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);"
+             @click.outside="open = false; $wire.closeEditEventModal()">
 
             <!-- Clean Modal Header -->
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+            <div class="px-5 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-[#c3122e] flex items-center justify-center shrink-0 border border-rose-100/80">
-                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-rose-950/20" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </div>
                     <div>
-                        <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Edit Meeting &amp; Schedule</h2>
-                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">
-                            Update meeting specifications, schedule dates, location, and attendee list
-                        </p>
+                        <div class="text-[10px] font-black uppercase tracking-[.18em] text-[#c3122e]">Event Editor</div>
+                        <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">Edit Meeting &amp; Schedule</h2>
                     </div>
                 </div>
-                <button type="button" @click="open = false; $wire.closeEditEventModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button type="button" @click="open = false; $wire.closeEditEventModal()" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
             <!-- Scrollable Body Content -->
-            <div class="flex-1 overflow-y-auto px-6 py-5 scrollbar-slim" x-ref="editModalBody">
+            <div class="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-4 scrollbar-slim overscroll-contain" style="min-height: 0;" x-ref="editModalBody">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
                     <!-- Left Column: Meeting Specifications & Schedule (7 cols) -->
@@ -1645,13 +1660,15 @@
 
         </div>
     </div>
+    @endteleport
 
     <!-- ═══════════════════════════════════════════════════════════════
          9. MODAL: OUTLOOK LIVE SUBSCRIPTION SETUP
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ open: @entangle('showSubscribeModal'), copied: false }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none" x-cloak>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="open = false; $wire.showSubscribeModal = false"></div>
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-5 sm:p-6 z-10 space-y-4">
+    @teleport('body')
+    <div x-data="{ open: @entangle('showSubscribeModal'), copied: false }" x-show="open" @keydown.escape.window="open = false; $wire.showSubscribeModal = false" style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px); display: none;" x-cloak>
+        <div class="fixed inset-0 -z-10" @click="open = false; $wire.showSubscribeModal = false"></div>
+        <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-md p-5 sm:p-6 z-10 space-y-4" @click.outside="open = false; $wire.showSubscribeModal = false">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-[#eff6ff] text-[#0078d4] flex items-center justify-center">
@@ -1709,4 +1726,5 @@
             </div>
         </div>
     </div>
+    @endteleport
 </div>

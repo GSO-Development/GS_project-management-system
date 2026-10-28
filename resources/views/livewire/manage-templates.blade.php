@@ -1,4 +1,4 @@
-<div class="p-4 sm:p-6 max-w-7xl mx-auto space-y-6" x-data="{ viewMode: 'grid' }">
+<div data-ui-page="templates" class="ui-page ui-page-admin max-w-7xl mx-auto space-y-6" x-data="{ viewMode: 'grid' }">
 
     <!-- Flash Message Notification -->
     @if(session()->has('message'))

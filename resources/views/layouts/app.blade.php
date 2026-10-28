@@ -31,11 +31,11 @@
 
         /* Smooth SPA Instant Page Transitions */
         @keyframes gsPageFadeIn {
-            0% { opacity: 0; transform: translateY(4px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
         main > div {
-            animation: gsPageFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: gsPageFadeIn 0.15s ease-out;
         }
         /* Livewire 3 Navigation Progress Bar — George Steuart Signature */
         .livewire-progress-bar {
@@ -48,6 +48,26 @@
         .bg-white { background-color: #ffffff !important; }
         .bg-gray-50, .bg-slate-50 { background-color: #f8fafc !important; }
         .bg-gray-100, .bg-slate-100 { background-color: #f1f5f9 !important; }
+
+        /* Full-screen Takeover Modal for Task Sheet */
+        .task-sheet-fullscreen-takeover {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            z-index: 9999999 !important;
+            background: #ffffff !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -57,23 +77,23 @@
     <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.15/dist/docx-preview.min.js"></script>
 </head>
-<body style="background:#f8fafc; font-family:'Inter',system-ui,sans-serif;">
+<body class="app-clean" style="background:#f6f7f8; font-family:'Inter',system-ui,sans-serif;">
 
     <!-- =================== SIDEBAR =================== -->
     <aside
         id="app-sidebar"
         class="fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 overflow-hidden select-none"
-        style="background: #ffffff; border-right: 1px solid #e2e8f0; box-shadow: 2px 0 12px rgba(0,0,0,0.03);"
+        style="background: #ffffff; border-right: 1px solid #e5e7eb; box-shadow: none;"
         :class="{
-            'w-64': !sidebarCollapsed && !mobileSidebarOpen,
-            'w-[72px]': sidebarCollapsed && !mobileSidebarOpen,
+            'w-56': !sidebarCollapsed && !mobileSidebarOpen,
+            'w-16': sidebarCollapsed && !mobileSidebarOpen,
             'w-72 sm:w-80 z-50': mobileSidebarOpen,
             '-translate-x-full lg:translate-x-0': !mobileSidebarOpen,
             'translate-x-0': mobileSidebarOpen
         }"
     >
         <!-- GS Crimson signature accent line -->
-        <div class="h-1 flex-shrink-0" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, #c3122e 100%);"></div>
+        <div class="h-1 flex-shrink-0" style="background: #c3122e;"></div>
 
         <!-- Brand & Logo Header (Matches topnav height 64px) -->
         <div class="h-16 flex items-center flex-shrink-0 transition-all"
@@ -213,8 +233,9 @@
             @if($isSuperAdmin)
                 <!-- PMO Admin: Projects Directory Accordion -->
                 <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
-                    <button @click="open = !open" 
+                    <button @click="if (sidebarCollapsed && !mobileSidebarOpen) { sidebarCollapsed = false; open = true } else { open = !open }"
                             type="button" 
+                            :aria-expanded="open && (!sidebarCollapsed || mobileSidebarOpen)"
                             class="{{ $navItemClass(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full cursor-pointer" 
                             :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
                             style="{{ $navItemStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}" 
@@ -544,11 +565,10 @@
     <!-- =================== TOP NAV =================== -->
     <header
         class="fixed top-0 right-0 z-30 flex items-center gap-3 h-16 transition-all duration-300"
-        style="background: #ffffff; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 4px rgba(0,0,0,0.03);"
-        :class="{ 'left-0 lg:left-64': !sidebarCollapsed, 'left-0 lg:left-[72px]': sidebarCollapsed }"
+        style="background: rgba(255,255,255,0.96); border-bottom: 1px solid #e5e7eb; box-shadow: none; backdrop-filter: blur(12px);"
+        :class="{ 'left-0 lg:left-56': !sidebarCollapsed, 'left-0 lg:left-16': sidebarCollapsed }"
     >
         <!-- Accent bar below topnav -->
-        <div class="absolute bottom-0 left-0 right-0 h-0.5" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, transparent 100%); opacity: 0.6; box-shadow: 0 0 6px rgba(195,18,46,0.3);"></div>
 
         <div class="px-3 sm:px-6 w-full flex items-center justify-between">
             <!-- Left: Mobile toggle + Breadcrumbs -->
@@ -770,10 +790,10 @@
     <!-- =================== MAIN CONTENT =================== -->
     <main
         class="pt-16 min-h-screen transition-all duration-300 w-full"
-        :class="{ 'pl-0 lg:pl-64': !sidebarCollapsed, 'pl-0 lg:pl-[72px]': sidebarCollapsed }"
-        style="background: #f7f4f4;"
+        :class="{ 'pl-0 lg:pl-56': !sidebarCollapsed, 'pl-0 lg:pl-16': sidebarCollapsed }"
+        style="background: #f6f7f8;"
     >
-        <div class="p-3 sm:p-6 max-w-[1600px] mx-auto w-full">
+        <div class="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
             {{ $slot }}
         </div>
     </main>
@@ -1136,10 +1156,10 @@
     }
 
     // 3. Flash session messages on load & livewire navigate (guaranteed single run)
-    let __gsFlashShown = false;
+    window.__gsFlashShown = window.__gsFlashShown || false;
     function __gsShowFlashMessages() {
-        if (__gsFlashShown) return;
-        __gsFlashShown = true;
+        if (window.__gsFlashShown) return;
+        window.__gsFlashShown = true;
         @if(session('success'))
             let msgSuccess = @json(session('success'));
             window.showToast(Array.isArray(msgSuccess) ? msgSuccess[0] : msgSuccess, 'success');

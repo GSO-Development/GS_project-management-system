@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Project;
+use App\Services\ProjectDelayAnalysisService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -19,6 +20,9 @@ class MyLeadProjects extends Component
     public ?int $reviewProjectId = null;
     public bool $showRejectModal = false;
     public string $rejectionReasonInput = '';
+    public bool $showDelayAnalysis = false;
+    public ?int $delayProjectId = null;
+    public array $delayAnalysis = [];
 
     protected $queryString = [
         'roleFilter'   => ['except' => 'all', 'as' => 'role'],
@@ -33,6 +37,9 @@ class MyLeadProjects extends Component
         }
         if (request()->has('status')) {
             $this->statusFilter = request('status');
+        }
+        if ($delayProjectId = request()->integer('delay_project')) {
+            $this->openDelayAnalysis($delayProjectId, app(ProjectDelayAnalysisService::class));
         }
     }
 
@@ -108,6 +115,31 @@ class MyLeadProjects extends Component
         $this->dispatch('toast', message: 'Project assignment declined. PMO Admin has been notified of your issue report.', type: 'warning');
     }
 
+    public function openDelayAnalysis(int $projectId, ProjectDelayAnalysisService $service): void
+    {
+        $project = Project::findOrFail($projectId);
+        $user = auth()->user();
+
+        abort_unless(
+            $project->project_manager_id === $user->id || $user->isPmoAdmin() || $user->isSuperAdmin() || $project->canUserView($user),
+            403
+        );
+
+        $this->delayProjectId = $project->id;
+        $this->delayAnalysis = $service->analyze($project) + [
+            'project_name' => $project->name,
+            'project_code' => $project->code,
+        ];
+        $this->showDelayAnalysis = true;
+    }
+
+    public function closeDelayAnalysis(): void
+    {
+        $this->showDelayAnalysis = false;
+        $this->delayProjectId = null;
+        $this->delayAnalysis = [];
+    }
+
     public function render()
     {
         $user = auth()->user();
@@ -172,10 +204,21 @@ class MyLeadProjects extends Component
 
         // Status filter
         if ($this->statusFilter !== 'all') {
-            $baseQuery->where('status', $this->statusFilter);
+            if ($this->statusFilter === 'overdue') {
+                $baseQuery->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled']);
+            } else {
+                $baseQuery->where('status', $this->statusFilter);
+            }
         }
 
         $projects = $baseQuery->latest()->paginate($this->perPage);
+
+        $delayService = app(ProjectDelayAnalysisService::class);
+        // Health is visible for every listed project, but the detailed analysis
+        // action is rendered and authorized only for the project's manager.
+        $delaySummaries = $projects->getCollection()->mapWithKeys(
+            fn (Project $project) => [$project->id => $delayService->analyze($project)]
+        );
 
         // Compute user role per project for display
         $userRoles = [];
@@ -199,7 +242,8 @@ class MyLeadProjects extends Component
             'overdueCount',
             'completedCount',
             'roleCounts',
-            'userRoles'
+            'userRoles',
+            'delaySummaries'
         ))->title('My Projects — GS NexusPM');
     }
 }

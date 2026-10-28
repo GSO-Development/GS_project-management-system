@@ -1,4 +1,4 @@
-<div wire:poll.30s class="space-y-6 max-w-[1600px] mx-auto pb-10">
+<div wire:poll.30s data-ui-page="dashboard-admin" class="ui-page ui-page-dashboard space-y-6 max-w-[1600px] mx-auto pb-10">
 
     {{-- ══════════════════════════════════════════════════════════════════════════
          0. DECLINED PROJECT LEADER BANNER (IF ANY)
@@ -61,7 +61,7 @@
     {{-- ══════════════════════════════════════════════════════════════════════════
          2. MINIMALIST KEY METRIC TILES
          ══════════════════════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="executive-kpi-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         <!-- 1. Total Projects -->
         <a href="{{ route('projects.index') }}" 
@@ -160,7 +160,7 @@
     {{-- ══════════════════════════════════════════════════════════════════════════
          3. PROJECT TIMELINE GANTT CARD (BULLETPROOF FLEX/GRID STYLES)
          ══════════════════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 sm:p-6 space-y-4">
+    <div class="executive-timeline bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 sm:p-6 space-y-4">
         
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -401,10 +401,10 @@
     {{-- ══════════════════════════════════════════════════════════════════════════
          4. ROW 3 (RISK SUMMARY, UPCOMING MEETINGS, RECENT ACTIVITY)
          ══════════════════════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+    <div class="executive-insight-grid grid grid-cols-1 lg:grid-cols-3 items-start">
 
         <!-- ── Col 1: Risk Summary ── -->
-        <a href="{{ route('risks.index') }}" class="no-underline block bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4 hover:border-slate-300 transition-all duration-200 group">
+        <a href="{{ route('risks.index') }}" class="executive-insight-card executive-risk-card no-underline block bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4 hover:border-slate-300 transition-all duration-200 group">
 
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
@@ -424,7 +424,7 @@
             </div>
 
             <!-- Crisp 3-Tile Stat Bar -->
-            <div class="grid grid-cols-3 gap-2.5">
+            <div class="executive-stat-strip grid grid-cols-3 gap-2.5">
                 <div class="flex flex-col items-center justify-center bg-slate-50/80 border border-slate-200/70 rounded-xl py-2.5 px-2 hover:bg-slate-100/60 transition-colors">
                     <span class="text-xl font-extrabold text-slate-900 leading-none font-mono tracking-tight">{{ $openRisksCount }}</span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 block">OPEN</span>
@@ -480,7 +480,7 @@
         <!-- ── Col 2: Upcoming Meetings ── -->
         <a href="{{ route('calendar.index') }}" 
            wire:navigate.hover
-           class="no-underline block bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4 hover:border-slate-300 transition-all duration-200 group">
+           class="executive-insight-card executive-meeting-card no-underline block bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4 hover:border-slate-300 transition-all duration-200 group">
             
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
@@ -500,7 +500,7 @@
             </div>
 
             <!-- Crisp 3-Tile Stat Bar -->
-            <div class="grid grid-cols-3 gap-2.5">
+            <div class="executive-stat-strip grid grid-cols-3 gap-2.5">
                 <div class="flex flex-col items-center justify-center bg-slate-50/80 border border-slate-200/70 rounded-xl py-2.5 px-2 hover:bg-slate-100/60 transition-colors">
                     <span class="text-xl font-extrabold text-slate-900 leading-none font-mono tracking-tight">{{ $todayMeetingsCount }}</span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 block">TODAY</span>
@@ -525,7 +525,7 @@
                     @endphp
                     <div class="p-3 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:border-slate-300 hover:bg-white transition-all shadow-2xs flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div class="px-2.5 py-1 rounded-lg {{ $isToday ? 'bg-[#c3122e] text-white' : 'bg-slate-900 text-white' }} shrink-0 text-center font-mono">
+                            <div class="meeting-date-badge px-2.5 py-1 rounded-lg {{ $isToday ? 'is-today' : '' }} shrink-0 text-center font-mono">
                                 <span class="text-[10px] font-extrabold uppercase block leading-none">{{ $dateLabel }}</span>
                                 <span class="text-[9px] leading-none mt-0.5 block opacity-80">{{ $timeFormatted }}</span>
                             </div>
@@ -552,7 +552,7 @@
         </a>
 
         <!-- ── Col 3: Recent Activity ── -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4">
+        <div class="executive-insight-card executive-activity-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/70 flex items-center justify-center shrink-0">

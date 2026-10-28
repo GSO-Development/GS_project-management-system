@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="subsidiaries" class="ui-page ui-page-admin">
     <!-- Clean Standard Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>

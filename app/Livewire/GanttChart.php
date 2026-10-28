@@ -108,7 +108,7 @@ class GanttChart extends Component
         $user = auth()->user();
 
         // ── 1. Query WBS items for this project ────────────────────────
-        $query = WbsItem::with(['assignedUser', 'children', 'risks'])
+        $query = WbsItem::with(['assignedUser', 'children', 'risks', 'predecessors.predecessor'])
             ->where('project_id', $this->project->id);
 
         if ($this->search) {
@@ -375,6 +375,83 @@ class GanttChart extends Component
         }
         $dayToPx[] = round($pxCursor, 2); // Sentinel: right edge of last column
 
+        // Build dependency connector coordinates for tasks that are currently visible.
+        // Keeping these coordinates in the same pixel system as the task bars makes
+        // the connectors stay aligned in day, week and month views.
+        $visibleRowById = $wbsItems->values()->mapWithKeys(
+            fn ($item, $index) => [(int) $item->id => $index]
+        );
+
+        $barCoordinates = [];
+        foreach ($wbsItems as $item) {
+            $itemStart = $item->start_date
+                ? $item->start_date->copy()->startOfDay()
+                : $timelineStart->copy();
+            $itemEnd = $item->end_date
+                ? $item->end_date->copy()->endOfDay()
+                : $itemStart->copy()->addDays(4);
+
+            $startOffset = max(0, (int) $timelineStart->diffInDays($itemStart, false));
+            $endOffset = max($startOffset + 1, (int) $timelineStart->diffInDays($itemEnd, false) + 1);
+            $startOffset = min($startOffset, count($dayToPx) - 1);
+            $endOffset = min($endOffset, count($dayToPx) - 1);
+
+            $barStart = round($dayToPx[$startOffset], 2);
+            $barEnd = round($dayToPx[$endOffset], 2);
+            if ($item->is_milestone) {
+                // Milestone diamonds are centred 10px after the scheduled date.
+                $barStart += 10;
+                $barEnd = $barStart;
+            }
+
+            $barCoordinates[(int) $item->id] = [
+                'start' => $barStart,
+                'end' => $barEnd,
+            ];
+        }
+
+        $ganttDependencies = [];
+        $connectorIndex = 0;
+        foreach ($wbsItems as $successor) {
+            foreach ($successor->predecessors as $dependency) {
+                $predecessor = $dependency->predecessor;
+                if (!$predecessor || !$visibleRowById->has((int) $predecessor->id)) {
+                    continue;
+                }
+
+                $sourceId = (int) $predecessor->id;
+                $targetId = (int) $successor->id;
+                $sourceX = $barCoordinates[$sourceId]['end'];
+                $targetX = $barCoordinates[$targetId]['start'];
+                $sourceY = ((int) $visibleRowById->get($sourceId) * 48) + 24;
+                $targetY = ((int) $visibleRowById->get($targetId) * 48) + 24;
+                $laneOffset = 12 + (($connectorIndex % 5) * 6);
+                $laneX = min($totalCanvasPx - 8, max($sourceX + 10, $targetX + $laneOffset));
+                $bendY = $targetY > $sourceY ? $targetY - 10 : $targetY + 10;
+                $targetApproachX = max(2, $targetX - 14);
+                $targetEdgeX = max(5, $targetX - 4);
+
+                $predecessorStatus = is_object($predecessor->status)
+                    ? $predecessor->status->value
+                    : (string) $predecessor->status;
+                $isBlocking = $predecessorStatus !== 'completed' && (int) $predecessor->progress < 100;
+
+                $ganttDependencies[] = [
+                    'id' => (int) $dependency->id,
+                    // Finish-to-start style: leave the predecessor at its right edge,
+                    // take an orthogonal lane, then enter the successor from the left.
+                    'path' => "M {$sourceX} {$sourceY} H {$laneX} V {$bendY} H {$targetApproachX} V {$targetY} H {$targetEdgeX}",
+                    'source_x' => $sourceX,
+                    'source_y' => $sourceY,
+                    'target_x' => $targetX,
+                    'target_y' => $targetY,
+                    'is_blocking' => $isBlocking,
+                    'label' => trim(($predecessor->wbs_code ?? '') . ' → ' . ($successor->wbs_code ?? '')),
+                ];
+                $connectorIndex++;
+            }
+        }
+
         // ── 7. Multi-Tier Header Grouping ───────────────────────────────────
         $monthHeaders = [];
         if ($this->timeframe === 'month') {
@@ -468,7 +545,8 @@ class GanttChart extends Component
             'daysToDeadline',
             'collapsedIds',
             'parentIds',
-            'atRiskCount'
+            'atRiskCount',
+            'ganttDependencies'
         ));
     }
 }

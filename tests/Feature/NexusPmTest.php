@@ -248,6 +248,28 @@ test('projects index renders successfully and supports health and kpi card filte
         ->assertSet('healthFilter', 'all');
 });
 
+test('super admin can permanently initiate project deletion from the projects index', function () {
+    $admin = User::factory()->create(['is_active' => true]);
+    $admin->assignRole('super_admin');
+    $subsidiary = Subsidiary::create(['code' => 'DEL1', 'name' => 'Deletion Test']);
+    $project = Project::create([
+        'code' => 'PRJ-DELETE-1',
+        'name' => 'Project marked for deletion',
+        'subsidiary_id' => $subsidiary->id,
+        'project_manager_id' => $admin->id,
+        'created_by' => $admin->id,
+        'priority' => 'medium',
+        'status' => 'planning',
+    ]);
+
+    \Livewire\Livewire::actingAs($admin)
+        ->test(\App\Livewire\ProjectIndex::class)
+        ->call('deleteProjectById', $project->id)
+        ->assertHasNoErrors();
+
+    $this->assertSoftDeleted('projects', ['id' => $project->id]);
+});
+
 test('audit log viewer renders successfully and supports filtering and details modal', function () {
     $user = User::factory()->create(['is_active' => true]);
     $user->assignRole('super_admin');
@@ -296,4 +318,3 @@ test('audit log viewer renders successfully and supports filtering and details m
         ->call('exportCsv')
         ->assertFileDownloaded();
 });
-

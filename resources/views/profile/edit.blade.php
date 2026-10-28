@@ -12,7 +12,7 @@
         $assignedTaskCount = \App\Models\WbsItem::where('assigned_user_id', $user->id)->count();
     @endphp
 
-    <div class="space-y-6 pb-12" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+    <div data-ui-page="profile" class="ui-page ui-page-admin space-y-6 pb-12" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
 
         <!-- ── 1. CLEAN PAGE HEADER ── -->
         <div class="pb-4 border-b border-slate-200/80">

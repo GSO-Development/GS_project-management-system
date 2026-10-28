@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="documents" class="ui-page ui-page-collaboration">
     {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>

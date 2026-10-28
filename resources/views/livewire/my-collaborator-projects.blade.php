@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="collaborator-projects" class="ui-page ui-page-projects">
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER (COLLABORATOR PROJECTS)
          ═══════════════════════════════════════════════════════════════ -->

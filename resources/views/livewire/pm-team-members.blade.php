@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="participants" class="ui-page ui-page-admin">
     {{-- ══════════════════════════════════════════════════════
          PM TEAM MEMBERS PAGE
     ══════════════════════════════════════════════════════ --}}

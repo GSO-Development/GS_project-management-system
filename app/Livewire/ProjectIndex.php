@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\WbsItem;
 use App\Notifications\GenericSystemNotification;
 use App\Services\ProjectDelayAnalysisService;
+use App\Services\ProjectDeletionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -56,6 +57,8 @@ class ProjectIndex extends Component
     public ?int $projectToDeleteId = null;
     public ?string $projectToDeleteName = null;
     public ?string $projectToDeleteCode = null;
+    public int $projectToDeleteTasksCount = 0;
+    public int $projectToDeleteDocsCount = 0;
 
     // WBS Task Inspector Slide-Over Drawer properties
     public bool $showQuickDrawer = false;
@@ -480,15 +483,17 @@ class ProjectIndex extends Component
     public function confirmDelete(int $id): void
     {
         $user = auth()->user();
-        if (!$user || !($user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1)) {
+        if (!$user || !($user->isPmoAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1)) {
             $this->dispatch('toast', message: 'Only Super Admins & PMO Admins can delete projects.', type: 'error');
             return;
         }
 
-        $project = Project::findOrFail($id);
+        $project = Project::withCount(['wbsItems', 'documents'])->findOrFail($id);
         $this->projectToDeleteId = $project->id;
         $this->projectToDeleteName = $project->name;
         $this->projectToDeleteCode = $project->code;
+        $this->projectToDeleteTasksCount = (int) ($project->wbs_items_count ?? 0);
+        $this->projectToDeleteDocsCount = (int) ($project->documents_count ?? 0);
         $this->showDeleteModal = true;
     }
 
@@ -498,12 +503,20 @@ class ProjectIndex extends Component
         $this->projectToDeleteId = null;
         $this->projectToDeleteName = null;
         $this->projectToDeleteCode = null;
+        $this->projectToDeleteTasksCount = 0;
+        $this->projectToDeleteDocsCount = 0;
     }
 
-    public function deleteProject(): void
+    public function deleteProjectById(int $id, ProjectDeletionService $deletionService): void
+    {
+        $this->confirmDelete($id);
+        $this->deleteProject($deletionService);
+    }
+
+    public function deleteProject(ProjectDeletionService $deletionService): void
     {
         $user = auth()->user();
-        if (!$user || !($user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1)) {
+        if (!$user || !($user->isPmoAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1)) {
             $this->dispatch('toast', message: 'Only Super Admins & PMO Admins can delete projects.', type: 'error');
             $this->cancelDelete();
             return;
@@ -513,28 +526,25 @@ class ProjectIndex extends Component
             return;
         }
 
-        $project = Project::findOrFail($this->projectToDeleteId);
+        $project = Project::find($this->projectToDeleteId);
+        if (!$project) {
+            $this->dispatch('toast', message: 'This project no longer exists.', type: 'error');
+            $this->cancelDelete();
+            return;
+        }
+
         $projectName = $project->name;
         $projectCode = $project->code;
 
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'project_deleted',
-            'module' => 'projects',
-            'record_type' => Project::class,
-            'record_id' => $project->id,
-            'old_values' => $project->toArray(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
-
-        // Delete all associated approval requests
-        \App\Models\ApprovalRequest::where('project_id', $project->id)->delete();
-
-        $project->delete();
-
-        $this->cancelDelete();
-        $this->dispatch('toast', message: "Project [{$projectCode}] {$projectName} has been deleted successfully.", type: 'success');
+        try {
+            $deletionService->purgeProject($project, $user);
+            $this->cancelDelete();
+            $this->resetPage();
+            $this->dispatch('toast', message: "Project [{$projectCode}] {$projectName} has been permanently deleted.", type: 'success');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to delete project {$projectCode}: " . $e->getMessage(), ['exception' => $e]);
+            $this->dispatch('toast', message: 'Failed to delete project: ' . $e->getMessage(), type: 'error');
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

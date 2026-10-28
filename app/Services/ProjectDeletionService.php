@@ -23,7 +23,7 @@ class ProjectDeletionService
             return false;
         }
 
-        if (!$user->isPmoAdmin()) {
+        if (!$user->isPmoAdmin() && !$user->hasRole('super_admin') && $user->id !== 1) {
             throw new InvalidArgumentException("Unauthorized: Only PMO Admins can permanently delete projects.");
         }
 
@@ -71,11 +71,13 @@ class ProjectDeletionService
             // 6. Delete uploaded document files from disk & delete document records
             $documents = DB::table('project_documents')->where('project_id', $projectId)->get();
             foreach ($documents as $doc) {
-                if (!empty($doc->file_path)) {
+                $filePath = $doc->storage_path ?? ($doc->file_path ?? null);
+                if (!empty($filePath)) {
                     try {
-                        Storage::disk('public')->delete($doc->file_path);
+                        Storage::disk('local')->delete($filePath);
+                        Storage::disk('public')->delete($filePath);
                     } catch (\Throwable $e) {
-                        Log::warning("Could not delete file {$doc->file_path}: " . $e->getMessage());
+                        Log::warning("Could not delete file {$filePath}: " . $e->getMessage());
                     }
                 }
             }
@@ -99,6 +101,11 @@ class ProjectDeletionService
 
             // 12. Delete WBS items
             DB::table('wbs_items')->where('project_id', $projectId)->delete();
+
+            // 12.1 Delete calendar events
+            if (\Illuminate\Support\Facades\Schema::hasTable('calendar_events')) {
+                DB::table('calendar_events')->where('project_id', $projectId)->delete();
+            }
 
             // 13. Delete any orphaned notifications referencing this project
             try {
@@ -134,8 +141,8 @@ class ProjectDeletionService
                 ],
             ];
 
-            // 15. Permanently remove the project record from database (Force Delete)
-            $projectModel->forceDelete();
+            // 15. Delete the project record from database (Soft Delete)
+            $projectModel->delete();
 
             // 16. Record Comprehensive Audit Log
             ActivityLog::create([

@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="lead-projects" class="ui-page ui-page-projects">
     {{-- ══════════════════════════════════════════════════════════
          1. TOP HEADER — MY PROJECTS
          ══════════════════════════════════════════════════════════ --}}
@@ -26,13 +26,13 @@
             $metricTiles = [
                 ['label' => 'Total Projects', 'count' => $totalCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', 'iconBg' => 'bg-slate-100 text-slate-700', 'border' => 'hover:border-slate-400', 'active' => $statusFilter === 'all', 'action' => '$set("statusFilter", "all")'],
                 ['label' => 'In Progress', 'count' => $activeCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', 'iconBg' => 'bg-blue-50 text-blue-600', 'border' => 'hover:border-blue-400', 'active' => $statusFilter === 'in_progress', 'action' => '$set("statusFilter", "in_progress")'],
-                ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => false, 'action' => ''],
+                ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => $statusFilter === 'overdue', 'action' => '$set("statusFilter", "overdue")'],
                 ['label' => 'Completed', 'count' => $completedCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', 'iconBg' => 'bg-emerald-50 text-emerald-600', 'border' => 'hover:border-emerald-400', 'active' => $statusFilter === 'completed', 'action' => '$set("statusFilter", "completed")'],
             ];
         @endphp
         @foreach($metricTiles as $tile)
             <button type="button" @if($tile['action']) wire:click="{{ $tile['action'] }}" @endif
-                class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'ring-2 ring-slate-800 border-slate-800 bg-slate-50/50 shadow-sm' : 'shadow-xs ' . $tile['border'] }}"
+                class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $tile['active'] ? 'border-rose-300 bg-rose-50/40 shadow-sm ring-2 ring-rose-500/10' : 'shadow-xs ' . $tile['border'] }}"
             >
                 <div class="flex items-center justify-between gap-1 mb-1 sm:mb-2.5">
                     <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">{{ $tile['label'] }}</span>
@@ -47,8 +47,6 @@
             </button>
         @endforeach
     </div>
-
-
 
     {{-- ══════════════════════════════════════════════════════════
          3. SEARCH & FILTER TOOLBAR
@@ -70,6 +68,21 @@
 
         {{-- Filters --}}
         <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
+            {{-- Status Filter --}}
+            <div class="min-w-[160px]">
+                <select wire:model.live="statusFilter"
+                    class="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
+                    <option value="all">📊 All Statuses</option>
+                    <option value="in_progress">🔵 In Progress</option>
+                    <option value="overdue">🔴 Overdue Attention</option>
+                    <option value="completed">🟢 Completed</option>
+                    <option value="planning">🟣 Planning</option>
+                    <option value="at_risk">🟠 At Risk</option>
+                    <option value="on_hold">🟡 On Hold</option>
+                    <option value="under_review">🟣 Under Review</option>
+                </select>
+            </div>
+
             {{-- Role Filter --}}
             <div class="min-w-[180px]">
                 <select wire:model.live="roleFilter"
@@ -82,8 +95,6 @@
                     <option value="member">🤝 Team Member ({{ $roleCounts['member'] ?? 0 }})</option>
                 </select>
             </div>
-
-
 
             {{-- Reset --}}
             @if($search || $statusFilter !== 'all' || $roleFilter !== 'all')
@@ -102,16 +113,17 @@
     @if($projects->count() > 0)
     <div class="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm mb-6">
         <div class="overflow-x-auto scrollbar-thin">
-            <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
+            <table class="w-full text-left border-collapse min-w-[1040px]">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black text-slate-500 uppercase tracking-wider">
                         <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[35%] sm:w-[30%] lg:w-[26%]">Project &amp; Code</th>
                         <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Subsidiary</th>
                         <th class="py-3.5 px-3 w-[22%] sm:w-[18%] lg:w-[15%]">Your Role</th>
-                        <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Status</th>
-                        <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Progress</th>
-                        <th class="py-3.5 px-3 w-[11%] hidden xl:table-cell">Timeline</th>
-                        <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[20%] sm:w-[16%] lg:w-[14%]">Action</th>
+                        <th class="py-3.5 px-3 w-[12%]">Status</th>
+                        <th class="py-3.5 px-3 w-[13%]">Progress</th>
+                        <th class="py-3.5 px-3 w-[15%]">Schedule Health</th>
+                        <th class="py-3.5 px-3 w-[11%]">Deadline</th>
+                        <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[12%]">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -155,6 +167,7 @@
                                 ],
                             };
                         @endphp
+                        @php $delaySummary = $delaySummaries[$p->id] ?? ['is_delayed' => false, 'issues' => []]; @endphp
                         <tr class="hover:bg-slate-50/70 transition-colors group">
                             {{-- Project Name & Code --}}
                             <td class="py-3 pl-5 sm:pl-6 pr-3 align-middle">
@@ -200,7 +213,7 @@
                             </td>
 
                             {{-- Status --}}
-                            <td class="py-3 px-3 hidden lg:table-cell align-middle">
+                            <td class="py-3 px-3 align-middle">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} border {{ $statusConfig['border'] }} whitespace-nowrap shrink-0">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
                                     <span>{{ $statusConfig['label'] }}</span>
@@ -208,7 +221,7 @@
                             </td>
 
                             {{-- Progress --}}
-                            <td class="py-3 px-3 hidden lg:table-cell align-middle">
+                            <td class="py-3 px-3 align-middle">
                                 <div class="space-y-1 w-full min-w-[135px] max-w-[180px]">
                                     <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
                                         <span class="font-mono text-slate-900 font-black">{{ $progress }}%</span>
@@ -220,17 +233,36 @@
                                 </div>
                             </td>
 
-                            {{-- Timeline --}}
-                            <td class="py-3 px-3 hidden xl:table-cell align-middle">
-                                <div class="flex flex-col justify-center gap-0.5">
-                                    <div class="text-xs font-bold text-slate-800 flex items-center gap-1 whitespace-nowrap">
-                                        <span class="text-slate-400 text-[11px]">📅</span>
-                                        <span>{{ $p->deadline ? $p->deadline->format('M d, Y') : 'No Deadline' }}</span>
-                                    </div>
+                            {{-- Schedule Health --}}
+                            <td class="py-3 px-3 align-middle">
+                                @if($delaySummary['is_delayed'] ?? false)
+                                    <button type="button" wire:click="openDelayAnalysis({{ $p->id }})"
+                                        class="inline-flex min-w-[136px] items-center gap-2 rounded-xl border border-rose-200 bg-rose-50/90 hover:bg-rose-100 hover:border-rose-300 px-2.5 py-1.5 text-left text-rose-700 transition cursor-pointer shadow-2xs hover:shadow-xs group/health"
+                                        aria-label="Review delay reasons for {{ $p->name }}">
+                                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-600 text-white shadow-2xs group-hover/health:scale-105 transition-transform">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 4.5h.008v.008H12V16.5z"/></svg>
+                                        </span>
+                                        <span class="min-w-0">
+                                            <span class="block text-[11px] font-extrabold leading-tight text-rose-800">Review delay</span>
+                                            <span class="mt-0.5 block text-[9.5px] font-bold leading-tight text-rose-600">{{ $delaySummary['project_overdue_days'] ?? 0 }}d late · {{ count($delaySummary['issues'] ?? []) }} {{ Str::plural('issue', count($delaySummary['issues'] ?? [])) }}</span>
+                                        </span>
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                        On schedule
+                                    </span>
+                                @endif
+                            </td>
+
+                            {{-- Deadline --}}
+                            <td class="py-3 px-3 align-middle">
+                                <div class="flex flex-col gap-1 whitespace-nowrap">
+                                    <span class="text-xs font-extrabold {{ $isOverdue ? 'text-rose-600' : 'text-slate-700' }}">{{ $p->deadline ? $p->deadline->format('M d, Y') : 'No deadline' }}</span>
                                     @if($isOverdue)
-                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-50 text-rose-600 border border-rose-200/80 whitespace-nowrap w-max">⚠️ {{ abs($daysLeft) }}d overdue</span>
+                                        <span class="text-[9.5px] font-extrabold text-rose-500">{{ abs($daysLeft) }}d overdue</span>
                                     @elseif($daysLeft !== null && $daysLeft >= 0)
-                                        <span class="inline-block text-[9.5px] font-bold text-slate-400 font-mono whitespace-nowrap">{{ $daysLeft }}d left</span>
+                                        <span class="text-[9.5px] font-bold text-slate-400">{{ $daysLeft }}d left</span>
                                     @endif
                                 </div>
                             </td>
@@ -279,8 +311,169 @@
     {{-- ══════════════════════════════════════════════════════════
          5. PROJECT LEADERSHIP REVIEW & ACCEPTANCE MODAL
          ══════════════════════════════════════════════════════════ --}}
+    @if($showDelayAnalysis)
+        @teleport('body')
+        <div
+            x-data
+            @keydown.escape.window="$wire.closeDelayAnalysis()"
+            class="delay-analysis-backdrop"
+            style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(51, 65, 85, 0.42); backdrop-filter: blur(10px);"
+            wire:click.self="closeDelayAnalysis"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delay-analysis-title-myleads"
+        >
+            <div
+                wire:key="lead-delay-analysis-{{ $delayProjectId }}"
+                x-data
+                x-init="$nextTick(() => { if ($refs.delayList) $refs.delayList.scrollTop = 0 })"
+                style="width: min(1040px, calc(100vw - 32px)); height: min(760px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); overflow: hidden; border-radius: 22px; background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22); border: 1px solid #e2e8f0; display: flex; flex-direction: column;"
+            >
+                {{-- Header --}}
+                <div class="px-5 sm:px-6 py-4 text-slate-900 bg-white border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-[.18em] font-black text-[#c3122e]">Critical delay analysis</div>
+                        <div class="flex items-center gap-2.5 mt-1 flex-wrap">
+                            <h2 id="delay-analysis-title-myleads" class="text-base font-black">{{ $delayAnalysis['project_name'] ?? '' }}</h2>
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">{{ $delayAnalysis['project_code'] ?? '' }}</span>
+                            <span class="text-[11px] text-slate-500">{{ $delayAnalysis['critical_issue_count'] ?? 0 }} critical issue(s)</span>
+                            <span class="text-[11px] text-slate-500">&bull; {{ count($delayAnalysis['issues'] ?? []) }} delayed task(s)</span>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="closeDelayAnalysis" class="w-9 h-9 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-[#c3122e] font-black cursor-pointer inline-flex items-center justify-center transition-colors" aria-label="Close delay analysis">&times;</button>
+                </div>
+
+                {{-- Body List --}}
+                <div x-ref="delayList" class="min-h-0 flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain space-y-2.5 bg-slate-50/70 scroll-smooth" style="min-height: 0;">
+                    @php $delaySummary = $delayAnalysis['summary'] ?? []; @endphp
+                    @if(!empty($delaySummary['reasons']) || !empty($delaySummary['root_causes']))
+                        <section class="rounded-xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-white px-4 py-3.5 shadow-2xs">
+                            <div class="flex items-center justify-between gap-3 flex-wrap">
+                                <div class="text-[10px] font-black uppercase tracking-[.16em] text-[#c3122e]">Why is this project delayed?</div>
+                                @if(($delayAnalysis['project_overdue_days'] ?? 0) > 0)
+                                    <span class="px-2.5 py-1 rounded-full bg-rose-100 text-[11px] font-black text-rose-700">Project {{ $delayAnalysis['project_overdue_days'] }} days past deadline</span>
+                                @endif
+                            </div>
+
+                            <div class="mt-2.5 grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                <div class="space-y-2">
+                                    @foreach(($delaySummary['reasons'] ?? []) as $reason)
+                                        <div class="flex items-start gap-2">
+                                            <span class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 {{ in_array($reason['type'], ['deadline', 'blocker'], true) ? 'bg-rose-500' : ($reason['type'] === 'dependency' ? 'bg-amber-500' : 'bg-slate-400') }}"></span>
+                                            <p class="text-[11px] text-slate-600 leading-relaxed"><strong class="text-slate-800">{{ $reason['label'] }}.</strong> {{ $reason['detail'] }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="space-y-3">
+                                    @if(!empty($delaySummary['root_causes']))
+                                        <div>
+                                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Root-cause tasks</div>
+                                            <div class="mt-1.5 space-y-1.5">
+                                                @foreach($delaySummary['root_causes'] as $root)
+                                                    <div class="flex items-center justify-between gap-2 rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 shadow-2xs">
+                                                        <div class="min-w-0">
+                                                            <p class="text-[11px] font-bold text-slate-800 truncate"><span class="font-mono text-slate-500">{{ $root['wbs_code'] }}</span> {{ $root['task'] }}</p>
+                                                            <p class="text-[10px] text-slate-500 truncate">Owner: {{ $root['responsible'] }}</p>
+                                                        </div>
+                                                        <div class="text-right shrink-0">
+                                                            @if($root['overdue_days'] > 0)<p class="text-[10px] font-black text-rose-700">{{ $root['overdue_days'] }}d late</p>@endif
+                                                            <p class="text-[10px] text-slate-500">causes {{ $root['affected'] }} {{ \Illuminate\Support\Str::plural('task', $root['affected']) }}</p>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if(!empty($delaySummary['responsible_people']))
+                                        <div>
+                                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Responsible people</div>
+                                            <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                                @foreach($delaySummary['responsible_people'] as $person)
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-2xs" title="{{ $person['email'] }}">
+                                                        <span class="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] font-black inline-flex items-center justify-center">{{ strtoupper(substr($person['name'], 0, 1)) }}</span>
+                                                        {{ $person['name'] }}
+                                                        <span class="text-rose-600 font-black">{{ $person['task_count'] }}</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </section>
+                    @endif
+
+                    @forelse(($delayAnalysis['issues'] ?? []) as $issue)
+                        <article class="bg-white rounded-xl border border-slate-200 px-4 py-3.5 shadow-xs">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $issue['is_critical'] ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800' }}">{{ $issue['is_critical'] ? 'CRITICAL PATH IMPACT' : 'DELAY' }}</span>
+                                        @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
+                                    </div>
+                                    <h3 class="text-sm font-extrabold text-slate-900 mt-1 leading-snug break-words">{{ $issue['task'] }}</h3>
+                                </div>
+                                @if($issue['overdue_days'] > 0)<span class="px-2.5 py-1 rounded-full bg-rose-50 text-xs font-black text-rose-700 whitespace-nowrap">{{ $issue['overdue_days'] }} days late</span>@endif
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_250px] gap-2.5 mt-2.5 items-start">
+                                <div class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 min-w-0 self-start">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Why this task is delayed</div>
+                                    <div class="mt-2 space-y-2">
+                                        @forelse(($issue['causes'] ?? []) as $cause)
+                                            <div class="flex items-start gap-2">
+                                                <span class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 {{ in_array($cause['type'], ['dependency', 'root'], true) ? 'bg-amber-500' : (in_array($cause['type'], ['blocker', 'status'], true) ? 'bg-rose-500' : 'bg-slate-400') }}"></span>
+                                                <p class="text-[11px] text-slate-600 leading-relaxed"><strong class="text-slate-800">{{ $cause['label'] }}:</strong> {{ $cause['detail'] }}@if(!empty($cause['responsible'])) <span class="inline-block ml-1 px-1.5 py-px rounded bg-slate-200/70 text-[10px] font-bold text-slate-600 whitespace-nowrap">Owner: {{ $cause['responsible'] }}</span>@endif</p>
+                                            </div>
+                                        @empty
+                                            <p class="text-[11px] text-slate-600 leading-relaxed">{{ $issue['reason'] }}</p>
+                                        @endforelse
+                                    </div>
+                                </div>
+                                <div class="rounded-lg bg-white border border-slate-200 px-3 py-2.5 min-w-0 self-start">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Responsible person</div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div class="w-6 h-6 rounded-full bg-slate-800 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                                            {{ strtoupper(substr($issue['responsible'] ?? 'U', 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-xs font-black text-slate-900 truncate" title="{{ $issue['responsible'] }}">{{ $issue['responsible'] }}</p>
+                                            @if($issue['responsible_email'])<p class="text-[10px] text-slate-500 truncate" title="{{ $issue['responsible_email'] }}">{{ $issue['responsible_email'] }}</p>@endif
+                                        </div>
+                                    </div>
+                                    <div class="mt-2.5 pt-2 border-t border-slate-100 grid grid-cols-2 gap-1.5 text-[10px]">
+                                        <div><span class="text-slate-400 block">Progress</span><strong class="text-slate-700">{{ $issue['progress'] ?? 0 }}%</strong></div>
+                                        <div><span class="text-slate-400 block">Status</span><strong class="text-slate-700">{{ \Illuminate\Support\Str::headline($issue['status'] ?? '') }}</strong></div>
+                                        @if(!empty($issue['end_date']))<div class="col-span-2"><span class="text-slate-400 block">Planned end</span><strong class="text-slate-700">{{ $issue['end_date'] }}</strong></div>@endif
+                                    </div>
+                                    @if($issue['downstream_count'] > 0)
+                                        <p class="text-[10px] font-bold text-rose-600 mt-2">Blocks {{ $issue['downstream_count'] }} downstream {{ \Illuminate\Support\Str::plural('task', $issue['downstream_count']) }}</p>
+                                        @foreach(($issue['downstream_tasks'] ?? []) as $down)
+                                            <p class="text-[10px] text-slate-500 truncate" title="{{ $down['task'] }}"><span class="font-mono">{{ $down['wbs_code'] }}</span> {{ $down['task'] }}</p>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="py-12 text-center text-slate-500 font-semibold">No task-level delay reason has been detected.</div>
+                    @endforelse
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-5 py-2.5 border-t border-slate-200 bg-white flex justify-end gap-2 shrink-0">
+                    <button type="button" wire:click="closeDelayAnalysis" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors">Close</button>
+                    @if($delayProjectId)<a href="{{ route('projects.show', $delayProjectId) }}?tab=wbs" class="px-5 py-2 rounded-xl text-xs font-black bg-[#c3122e] hover:bg-[#a50f27] text-white no-underline shadow-xs hover:shadow transition-all flex items-center gap-1.5"><span>Open WBS workspace</span><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>@endif
+                </div>
+            </div>
+        </div>
+        @endteleport
+    @endif
+
     <!-- 5. Review Project Assignment Modal -->
     @if($showReviewModal && $reviewProject)
+        @teleport('body')
         @php
             $wbsItems = $reviewProject->wbsItems ?? collect();
             $phases = $wbsItems->where('item_type.value', 'phase');
@@ -559,5 +752,6 @@
                 </div>
             </div>
         </div>
+        @endteleport
     @endif
 </div>

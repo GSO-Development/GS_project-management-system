@@ -1,4 +1,4 @@
-<div x-data="{
+<div class="workspace-gantt" x-data="{
     zoom: 100,
     tooltip: { visible: false, x: 0, y: 0, data: null },
     showTooltip(el, data) {
@@ -51,7 +51,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
     </style>
 
     <!-- ===== GANTT HERO CARD CONTAINER ===== -->
-    <div class="bg-white border border-slate-200/80 shadow-2xs rounded-2xl p-5 sm:p-6 overflow-hidden" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+    <div class="workspace-gantt-card bg-white border border-slate-200/80 shadow-2xs rounded-2xl p-5 sm:p-6 overflow-hidden" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
         
         <!-- ── HEADER ROW: Title, Task Count & Status Legend ── -->
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
@@ -122,6 +122,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                     <span class="w-2 h-2 bg-purple-500 rotate-45 rounded-2xs"></span>
                     <span>Milestone</span>
                 </button>
+                @if(count($ganttDependencies) > 0)
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] bg-white text-slate-600 border border-slate-200/80"
+                          title="Visible task dependency links">
+                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                        </svg>
+                        <span>{{ count($ganttDependencies) }} dependencies</span>
+                    </span>
+                @endif
             </div>
         </div>
 
@@ -171,7 +180,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
         </div>
 
         <!-- ── GANTT TABLE & TIMELINE CANVAS ── -->
-        <div class="overflow-x-auto gantt-scroll border border-slate-200/80 rounded-2xl shadow-2xs" x-ref="timelineScrollContainer">
+        <div class="overflow-x-auto gantt-scroll gantt-viewport border border-slate-200/80 rounded-2xl shadow-2xs" x-ref="timelineScrollContainer">
             {{-- Fixed width container: 280px left table + totalCanvasPx --}}
             <div style="min-width: {{ 280 + $totalCanvasPx }}px;" class="flex flex-col relative bg-white">
 
@@ -179,9 +188,9 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                 <div class="flex items-stretch border-b border-slate-200/90 bg-slate-50/90 sticky top-0 z-30 select-none">
                     
                     <!-- Left Pinned Table Header (280px wide) -->
-                    <div class="sticky left-0 z-40 flex bg-slate-50/90 border-r border-slate-200/90 shadow-2xs" style="width: 280px; flex-shrink: 0;">
-                        <div class="w-10 text-center flex items-center justify-center text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">#</div>
-                        <div class="w-60 px-3.5 flex items-center text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Task / WBS</div>
+                    <div class="gantt-pinned-header sticky left-0 z-50 flex bg-slate-50 border-r border-slate-200/90" style="width: 280px; flex-shrink: 0;">
+                        <div class="w-16 text-center flex items-center justify-center text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">WBS</div>
+                        <div class="flex-1 px-3.5 flex items-center text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Task</div>
                     </div>
 
                     <!-- Right Timeline Header (Month top tier + Week/Day bottom tier) -->
@@ -220,6 +229,39 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
                 <!-- 2. GANTT ROWS AREA -->
                 <div class="relative divide-y divide-slate-100 bg-white">
+
+                    @if(count($ganttDependencies) > 0)
+                        <svg class="absolute pointer-events-none z-10 gantt-dependency-layer"
+                             style="left: 280px; top: 0; width: {{ $totalCanvasPx }}px; height: {{ max(48, $wbsItems->count() * 48) }}px; overflow: visible;"
+                             viewBox="0 0 {{ $totalCanvasPx }} {{ max(48, $wbsItems->count() * 48) }}"
+                             preserveAspectRatio="none"
+                             aria-label="Task dependency connectors">
+                            <defs>
+                                <marker id="gantt-arrow-{{ $project->id }}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L7,3.5 L0,7 Z" fill="#64748b" />
+                                </marker>
+                                <marker id="gantt-arrow-blocking-{{ $project->id }}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L7,3.5 L0,7 Z" fill="#d97706" />
+                                </marker>
+                            </defs>
+                            @foreach($ganttDependencies as $connector)
+                                <g class="gantt-dependency-path">
+                                    <title>{{ $connector['label'] }}{{ $connector['is_blocking'] ? ' · waiting for predecessor' : '' }}</title>
+                                    <path d="{{ $connector['path'] }}"
+                                          fill="none"
+                                          stroke="{{ $connector['is_blocking'] ? '#d97706' : '#64748b' }}"
+                                          stroke-width="1.75"
+                                          stroke-linejoin="round"
+                                          stroke-linecap="round"
+                                          stroke-dasharray="4 4"
+                                          opacity="0.88"
+                                          marker-end="url(#{{ $connector['is_blocking'] ? 'gantt-arrow-blocking-' : 'gantt-arrow-' }}{{ $project->id }})" />
+                                    <circle cx="{{ $connector['source_x'] }}" cy="{{ $connector['source_y'] }}" r="3"
+                                            fill="white" stroke="{{ $connector['is_blocking'] ? '#d97706' : '#64748b' }}" stroke-width="1.5" />
+                                </g>
+                            @endforeach
+                        </svg>
+                    @endif
 
                     <!-- Today Vertical Red Dashed Line (Extends across all rows) -->
                     @if(!is_null($todayPx))
@@ -310,14 +352,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                         <div class="flex items-center min-h-[48px] h-[48px] text-xs cursor-default hover:bg-slate-50/70 group transition-colors">
 
                             <!-- Left Pinned Table Cells (280px wide, sticky left) -->
-                            <div class="sticky left-0 z-20 flex items-center h-[48px] bg-white group-hover:bg-slate-50 border-r border-slate-200/90 shadow-2xs transition-colors" style="width: 280px; flex-shrink: 0;">
-                                <!-- # Column -->
-                                <div class="w-10 text-center flex-shrink-0 text-slate-500 font-normal">
-                                    {{ $loop->iteration }}
+                            <div class="gantt-pinned-cell sticky left-0 z-40 flex items-center h-[48px] bg-white group-hover:bg-slate-50 border-r border-slate-200/90 transition-colors" style="width: 280px; flex-shrink: 0;">
+                                <!-- Project WBS number -->
+                                <div class="w-16 px-1 text-center flex-shrink-0 text-slate-500 font-mono text-[11px] font-semibold truncate"
+                                     title="WBS {{ $item->wbs_code ?: $loop->iteration }}">
+                                    {{ $item->wbs_code ?: $loop->iteration }}
                                 </div>
 
                                 <!-- Task / WBS Column with Expand/Collapse Chevron -->
-                                <div class="w-60 px-2 flex-shrink-0 flex items-center gap-1.5 min-w-0" style="padding-left: {{ max(8, 8 + ($levelIndent * 12)) }}px;">
+                                <div class="flex-1 px-2 flex items-center gap-1.5 min-w-0" style="padding-left: {{ max(8, 8 + ($levelIndent * 12)) }}px;">
                                     @if($hasChildren)
                                         <button 
                                             wire:click="toggleCollapse({{ $item->id }})" 
@@ -364,7 +407,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                             </div>
 
                             <!-- Right Timeline Canvas -->
-                            <div class="relative flex-shrink-0 h-[48px] flex items-center" style="width: {{ $totalCanvasPx }}px;">
+                            <div class="gantt-timeline-canvas relative flex-shrink-0 h-[48px] flex items-center" style="width: {{ $totalCanvasPx }}px;">
                                 <!-- Column Grid Lines -->
                                 @php $colLeft = 0; @endphp
                                 @foreach($columns as $col)

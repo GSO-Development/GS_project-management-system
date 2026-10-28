@@ -1,4 +1,4 @@
-<div class="space-y-6 pt-1">
+<div data-ui-page="my-tasks" class="ui-page ui-page-work tasks-workspace space-y-5 pt-1">
     <style>
         .custom-select {
             appearance: none;
@@ -27,18 +27,58 @@
         .kanban-scroll::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        .tasks-command { padding-bottom: 2px; }
+        .tasks-page-head { padding-bottom: 15px; border-bottom: 1px solid #e4e9ef; }
+        .tasks-page-head h1 { font-size: 28px !important; font-weight: 700 !important; letter-spacing: -.04em; }
+        .tasks-view-nav { border: 1px solid #e1e7ed; border-radius: 14px; background: #fff; padding: 5px 8px; box-shadow: 0 12px 28px -26px rgba(15,23,42,.35); }
+        .tasks-view-nav button { padding-top: 9px !important; padding-bottom: 9px !important; border-radius: 9px 9px 0 0; }
+        .tasks-view-nav .task-view-tab { min-width:92px; justify-content:center; }
+        .tasks-view-nav .task-scope-tab { margin-block:4px; padding:6px 11px !important; border:0 !important; border-radius:9px !important; background:#f5f7f9; }
+        .tasks-filter-panel { background:#fff !important; border-color:#e1e7ed !important; border-radius:14px !important; box-shadow:0 12px 28px -27px rgba(15,23,42,.35); }
+        .tasks-table-card { border-color:#dfe5ec !important; border-radius:16px !important; box-shadow:0 18px 42px -36px rgba(15,23,42,.42) !important; }
+        .tasks-table-card table { table-layout:auto; }
+        .tasks-table-card .hide-from-register { display:none !important; }
+        .tasks-table-card thead tr { background:#f7f9fb !important; }
+        .tasks-table-card th { color:#667287 !important; font-size:9.5px !important; font-weight:700 !important; letter-spacing:.07em !important; padding-top:13px !important; padding-bottom:13px !important; }
+        .tasks-table-card .task-table-row { border-left:3px solid transparent; }
+        .tasks-table-card .task-table-row:hover { background:#fafbfd !important; }
+        .tasks-table-card .task-table-row.is-overdue { border-left-color:#d94a5f; background:#fffdfd; }
+        .tasks-table-card .task-table-row td { padding-top:15px !important; padding-bottom:15px !important; }
+        .tasks-table-card .task-title { font-size:13px !important; font-weight:650 !important; white-space:normal; line-height:1.35; }
+        .task-meta-priority { display:inline-flex; align-items:center; gap:5px; color:#64748b; font-size:10px; font-weight:600; }
+        .task-meta-priority i { width:5px; height:5px; border-radius:999px; background:#94a3b8; }
+        .task-meta-priority.is-high i { background:#e05267; }
+        .task-meta-priority.is-medium i { background:#e7a62f; }
+        .task-meta-priority.is-low i { background:#48a787; }
+        .tasks-table-card tbody { color:#475569; }
+        .tasks-pagination > div:first-child { display:none; }
+        .tasks-pagination > div:last-child { width:100%; }
+        .tasks-pagination > div:last-child > div:first-child { flex:1; }
+        .schedule-workspace { --schedule-border:#e2e7ed; --schedule-muted:#7d899d; }
+        .schedule-toolbar { border-color:var(--schedule-border) !important; border-radius:16px !important; padding:14px 16px !important; box-shadow:0 14px 34px -31px rgba(15,23,42,.38) !important; }
+        .schedule-toolbar h2 { font-size:17px !important; font-weight:700 !important; letter-spacing:-.025em !important; }
+        .schedule-week-strip { gap:8px !important; padding:5px; border:1px solid var(--schedule-border); border-radius:15px; background:#fff; }
+        .schedule-day { min-height:58px; border:0 !important; border-radius:10px !important; background:transparent !important; box-shadow:none !important; }
+        .schedule-day:hover { background:#f6f8fa !important; }
+        .schedule-day.is-selected { background:#fff1f3 !important; color:#b51630 !important; box-shadow:inset 0 0 0 1px #f2cbd2 !important; }
+        .schedule-day.is-selected span { color:#b51630 !important; }
+        .schedule-periods { gap:12px !important; }
+        .schedule-period-card { min-height:245px; padding:16px !important; border-color:var(--schedule-border) !important; border-radius:16px !important; box-shadow:0 15px 34px -32px rgba(15,23,42,.38) !important; }
+        .schedule-period-card h3 { font-size:11px !important; letter-spacing:.055em !important; }
+        .schedule-empty { min-height:140px; padding:24px 12px !important; border:1px dashed #e0e6ed !important; background:#fafbfd !important; color:#94a3b8 !important; }
+        @media(max-width:767px){ .tasks-page-head h1{font-size:24px!important}.tasks-view-nav{overflow-x:auto}.tasks-table-card{border-radius:14px!important} }
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ showFilters: {{ ($search || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all') ? 'true' : 'false' }} }" class="space-y-4 mb-5">
+    <div x-data="{ showFilters: {{ ($search || $statusFilter !== 'all' || $dueDateFilter !== 'all' || ($assigneeFilter ?? 'all') !== 'all') ? 'true' : 'false' }} }" class="tasks-command space-y-3 mb-4">
         <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="tasks-page-head flex flex-col md:flex-row md:items-end justify-between gap-4">
             <!-- Title -->
             <div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Tasks
+                    My work
                 </h1>
             </div>
 
@@ -73,23 +113,23 @@
         </div>
 
         <!-- View Tabs Line (Matching Uploaded UI Image with bottom border underline indicator) -->
-        <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
+        <div class="tasks-view-nav border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
             <div class="flex items-center gap-6 text-xs whitespace-nowrap">
                 <!-- Kanban View Tab -->
                 <button wire:click="setViewMode('kanban')" type="button"
-                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'kanban' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="task-view-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'kanban' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
                     <span>Kanban View</span>
                 </button>
 
                 <!-- Table View Tab -->
                 <button wire:click="setViewMode('table')" type="button"
-                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="task-view-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
                     <span>Table View</span>
                 </button>
 
                 <!-- Schedule View Tab -->
                 <button wire:click="setViewMode('timeline')" type="button"
-                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'timeline' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="task-view-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'timeline' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
                     <span>Schedule</span>
                 </button>
 
@@ -97,7 +137,7 @@
                     <div class="h-4 w-px bg-slate-200 my-auto"></div>
                     <!-- My Tasks Scope Tab -->
                     <button wire:click="setTaskScope('assigned')" type="button"
-                            class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'assigned' ? 'border-slate-900 text-slate-900 font-bold' : 'border-transparent text-slate-400 hover:text-slate-700 font-semibold' }}">
+                            class="task-scope-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'assigned' ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold' }}">
                         <span>My Tasks</span>
                         <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                             {{ $myAssignedCount }}
@@ -106,7 +146,7 @@
 
                     <!-- Managed Projects Scope Tab -->
                     <button wire:click="setTaskScope('pm_projects')" type="button"
-                            class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'pm_projects' ? 'border-slate-900 text-slate-900 font-bold' : 'border-transparent text-slate-400 hover:text-slate-700 font-semibold' }}">
+                            class="task-scope-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'pm_projects' ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold' }}">
                         <span>Managed Projects</span>
                         <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                             {{ $pmProjectsTasksCount }}
@@ -118,7 +158,7 @@
 
         <!-- Filter Bar (Collapsible or visible when toggled) -->
         <div x-show="showFilters" transition:enter="transition ease-out duration-200" transition:leave="transition ease-in duration-150" class="pt-1">
-            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+            <div class="tasks-filter-panel flex flex-col md:flex-row items-stretch md:items-center gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
                 <!-- Search Input -->
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -193,9 +233,9 @@
          3. CLEAN EXECUTIVE TABLE VIEW (Matching Example UI)
          ═══════════════════════════════════════════════════════════════ -->
     @if($viewMode === 'table')
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div class="tasks-table-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
             <div class="w-full overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
+                <table class="tasks-data-table w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-slate-50/70 border-b border-slate-100 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                             <th class="py-3.5 pl-5 pr-2 w-10 text-center"></th>
@@ -204,8 +244,8 @@
                             @if($taskScope === 'pm_projects')
                                 <th class="py-3.5 px-3 min-w-[130px]">Assignee</th>
                             @endif
-                            <th class="py-3.5 px-3 min-w-[90px]">Priority</th>
-                            <th class="py-3.5 px-3 min-w-[100px]">Start Date</th>
+                            <th class="hide-from-register py-3.5 px-3 min-w-[90px]">Priority</th>
+                            <th class="hide-from-register py-3.5 px-3 min-w-[100px]">Start Date</th>
                             <th class="py-3.5 px-3 min-w-[120px]">Deadline</th>
                             <th class="py-3.5 px-3 min-w-[90px]">Progress</th>
                             <th class="py-3.5 px-3 min-w-[110px]">Status</th>
@@ -256,7 +296,7 @@
                                     default        => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200/80' : ($isDueToday ? 'bg-amber-50 text-amber-800 border-amber-200/80' : 'bg-slate-100 text-slate-600 border-slate-200')),
                                 };
                             @endphp
-                            <tr class="hover:bg-slate-50/70 transition-colors group cursor-pointer" wire:click="openTaskDetail({{ $task->id }})">
+                            <tr class="task-table-row {{ $isOverdue ? 'is-overdue' : '' }} hover:bg-slate-50/70 transition-colors group cursor-pointer" wire:click="openTaskDetail({{ $task->id }})">
                                 <!-- Checkbox Column -->
                                 <td class="py-3.5 pl-5 pr-2 align-middle text-center" onclick="event.stopPropagation()">
                                     <button wire:click="toggleTaskComplete({{ $task->id }})" type="button"
@@ -274,7 +314,7 @@
                                 <td class="py-3.5 px-3 align-middle">
                                     <div class="space-y-0.5 min-w-0">
                                         <span wire:click="openTaskDetail({{ $task->id }})" 
-                                              class="font-bold text-xs sm:text-[13px] text-slate-900 block leading-snug cursor-pointer hover:text-[#c3122e] transition-colors truncate {{ $isCompleted ? 'line-through text-slate-400 font-normal' : '' }}" title="{{ $task->title }}">
+                                              class="task-title font-bold text-xs sm:text-[13px] text-slate-900 block leading-snug cursor-pointer hover:text-[#c3122e] transition-colors {{ $isCompleted ? 'line-through text-slate-400 font-normal' : '' }}" title="{{ $task->title }}">
                                             {{ ucwords(strtolower($task->title)) }}
                                         </span>
                                         <div class="flex items-center gap-1.5 whitespace-nowrap">
@@ -283,6 +323,9 @@
                                             </span>
                                             <span class="text-slate-400 text-[10.5px] font-semibold whitespace-nowrap shrink-0">
                                                 • WBS {{ $task->wbs_code ?? '1.0' }}
+                                            </span>
+                                            <span class="task-meta-priority {{ in_array($pLower, ['high', 'urgent', 'critical']) ? 'is-high' : ($pLower === 'medium' ? 'is-medium' : 'is-low') }}">
+                                                <i></i>{{ in_array($pLower, ['high', 'urgent', 'critical']) ? 'High' : ucfirst($pLower) }}
                                             </span>
                                         </div>
                                     </div>
@@ -314,7 +357,7 @@
                                 @endif
 
                                 <!-- Priority -->
-                                <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                                <td class="hide-from-register py-3.5 px-3 align-middle whitespace-nowrap">
                                     @if(in_array($pLower, ['high', 'urgent', 'critical']))
                                         <span class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -334,7 +377,7 @@
                                 </td>
 
                                 <!-- Start Date -->
-                                <td class="py-3.5 px-3 align-middle whitespace-nowrap text-xs text-slate-600 font-medium">
+                                <td class="hide-from-register py-3.5 px-3 align-middle whitespace-nowrap text-xs text-slate-600 font-medium">
                                     {{ $task->start_date ? $task->start_date->format('M d, Y') : '—' }}
                                 </td>
 
@@ -449,7 +492,7 @@
             </div>
 
             <!-- Bottom Pagination (Matching Example UI) -->
-            <div class="px-6 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-500 font-medium">
+            <div class="tasks-pagination px-6 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-500 font-medium">
                 <div>
                     Showing {{ $paginatedTasks->firstItem() ?? 0 }}–{{ $paginatedTasks->lastItem() ?? 0 }} of {{ $paginatedTasks->total() }} tasks
                 </div>
@@ -605,9 +648,9 @@
          6. VIEW MODE 3: INTRADAY HOURLY & SCHEDULE TIMELINE VIEW
          ═══════════════════════════════════════════════════════════════ -->
     @elseif($viewMode === 'timeline')
-        <div class="space-y-4">
+        <div class="schedule-workspace space-y-3">
             <!-- Top Controls Bar: Navigator + Date + Project Filter + View Switcher + Date Picker -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="schedule-toolbar bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <!-- Left: Navigation Arrows + Today Button + Date Title -->
                 <div class="flex items-center gap-3 min-w-0 flex-wrap">
                     <div class="flex items-center gap-1 flex-shrink-0 bg-slate-100 p-1 rounded-xl border border-slate-200">
@@ -682,7 +725,7 @@
 
             <!-- 7-Day Interactive Mini Calendar Strip (Only in Day View) -->
             @if($timelineTimeframe === 'day')
-                <div class="grid grid-cols-7 gap-2">
+                <div class="schedule-week-strip grid grid-cols-7 gap-2">
                     @foreach($weekSchedule as $wDateKey => $wInfo)
                         @php
                             $wIsSelected = $wInfo['isSelected'];
@@ -692,7 +735,7 @@
                         <button 
                             wire:click="selectTimelineDay('{{ $wDateKey }}')" 
                             type="button" 
-                            class="py-2.5 px-2 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 border {{ $wIsSelected ? 'bg-[#c3122e] text-white border-[#c3122e] shadow-2xs' : ($wIsToday ? 'bg-rose-50/70 border-rose-200 text-slate-900 hover:bg-rose-50' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700') }}"
+                            class="schedule-day {{ $wIsSelected ? 'is-selected' : '' }} py-2.5 px-2 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 border {{ $wIsToday && !$wIsSelected ? 'text-[#b51630]' : 'text-slate-700' }}"
                         >
                             <span class="text-[10px] font-bold uppercase tracking-wider leading-none {{ $wIsSelected ? 'text-white/80' : ($wIsToday ? 'text-[#c3122e]' : 'text-slate-400') }}">
                                 {{ $wInfo['date']->format('D') }}
@@ -714,9 +757,9 @@
 
             <!-- ── TIMEFRAME 1: DAY BREAKDOWN (Morning / Afternoon / Evening) ── -->
             @if($timelineTimeframe === 'day')
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="schedule-periods grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <!-- 1. Morning Block -->
-                    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-2xs flex flex-col">
+                    <div class="schedule-period-card bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-2xs flex flex-col">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200/60">
@@ -736,7 +779,7 @@
                             @forelse($morningTasks as $mTask)
                                 @include('livewire.my-tasks-timeline-card', ['t' => $mTask])
                             @empty
-                                <div class="py-10 px-4 text-center text-slate-400 text-xs font-medium rounded-xl bg-slate-50/60 border border-slate-100 flex flex-col items-center justify-center gap-1">
+                                <div class="schedule-empty py-10 px-4 text-center text-slate-400 text-xs font-medium rounded-xl bg-slate-50/60 border border-slate-100 flex flex-col items-center justify-center gap-1">
                                     <svg class="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <span>No morning deliverables</span>
                                 </div>
@@ -745,7 +788,7 @@
                     </div>
 
                     <!-- 2. Afternoon Block -->
-                    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-2xs flex flex-col">
+                    <div class="schedule-period-card bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-2xs flex flex-col">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-200/60">
@@ -765,7 +808,7 @@
                             @forelse($afternoonTasks as $aTask)
                                 @include('livewire.my-tasks-timeline-card', ['t' => $aTask])
                             @empty
-                                <div class="py-10 px-4 text-center text-slate-400 text-xs font-medium rounded-xl bg-slate-50/60 border border-slate-100 flex flex-col items-center justify-center gap-1">
+                                <div class="schedule-empty py-10 px-4 text-center text-slate-400 text-xs font-medium rounded-xl bg-slate-50/60 border border-slate-100 flex flex-col items-center justify-center gap-1">
                                     <svg class="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <span>No afternoon deliverables</span>
                                 </div>
@@ -774,7 +817,7 @@
                     </div>
 
                     <!-- 3. Evening & All-Day -->
-                    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-2xs flex flex-col">
+                    <div class="schedule-period-card bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-2xs flex flex-col">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-200/60">
@@ -794,7 +837,7 @@
                             @forelse($eveningTasks->concat($allDayTasks) as $eTask)
                                 @include('livewire.my-tasks-timeline-card', ['t' => $eTask])
                             @empty
-                                <div class="py-10 px-4 text-center text-slate-400 text-xs font-medium rounded-xl bg-slate-50/60 border border-slate-100 flex flex-col items-center justify-center gap-1">
+                                <div class="schedule-empty py-10 px-4 text-center text-slate-400 text-xs font-medium rounded-xl bg-slate-50/60 border border-slate-100 flex flex-col items-center justify-center gap-1">
                                     <svg class="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <span>No evening deliverables</span>
                                 </div>

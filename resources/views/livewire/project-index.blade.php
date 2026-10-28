@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="projects" class="ui-page ui-page-projects">
     <style>
         .no-native-arrow {
             -webkit-appearance: none !important;
@@ -20,6 +20,13 @@
             50% { opacity: .58; box-shadow: 0 0 0 7px rgba(225, 29, 72, 0); }
         }
         .critical-alert-flash { animation: critical-alert-flash 1.25s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+            .critical-alert-flash { animation: none; }
+        }
+        html:has(.delay-analysis-backdrop),
+        body:has(.delay-analysis-backdrop),
+        html:has(.delete-project-backdrop),
+        body:has(.delete-project-backdrop) { overflow: hidden !important; }
     </style>
 
     <!-- Flash Success / Error Toast Banners -->
@@ -45,14 +52,15 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="space-y-4 mb-6">
+    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-4 mb-6">
         <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Title -->
             <div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Projects
+                    Projects Portfolio
                 </h1>
+                <p class="text-xs text-slate-500 font-medium mt-1">Governance, delivery health and schedule visibility across active initiatives.</p>
             </div>
 
             <!-- Top Right Action Controls -->
@@ -97,7 +105,7 @@
         </div>
 
         <!-- View Tabs Line (Matching Uploaded UI Mockup with bottom border underline active indicator) -->
-        <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
+        <div class="projects-view-tabs border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
             <div class="flex items-center gap-6 text-xs whitespace-nowrap">
                 <!-- Table View Tab -->
                 <button wire:click="setViewMode('table')" type="button"
@@ -197,41 +205,48 @@
         {{-- ── Projects Table Container ── --}}
 
         {{-- ── Projects Table Container ── --}}
-        <div class="bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
+        <div class="projects-directory-table bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
             <div class="w-full overflow-x-auto scrollbar-thin">
                 <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
+                    <colgroup>
+                        <col class="w-[4%]">
+                        <col class="w-[19%]">
+                        <col class="w-[13%]">
+                        <col class="w-[15%]">
+                        <col class="w-[10%]">
+                        <col class="w-[12%]">
+                        <col class="w-[20%]">
+                        <col class="w-[5%]">
+                    </colgroup>
                     <thead>
                         <tr class="bg-slate-50/70 border-b border-slate-200/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider select-none">
-                            <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[30%] sm:w-[26%] lg:w-[25%]">Project</th>
+                            <th class="py-3.5 pl-5 sm:pl-6 pr-2 text-center whitespace-nowrap">#</th>
+                            <th class="py-3.5 pl-2 pr-3 w-[30%] sm:w-[26%] lg:w-[25%]">Project</th>
                             <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Subsidiary</th>
                             <th class="py-3.5 px-3 w-[20%] sm:w-[18%] lg:w-[16%]">Project Manager</th>
                             <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden sm:table-cell">Status</th>
                             <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Progress</th>
-                            <th class="py-3.5 px-2 w-[7%] hidden lg:table-cell text-center">Delay</th>
-                            <th class="py-3.5 px-3 w-[14%] lg:w-[10%] hidden xl:table-cell whitespace-nowrap">Deadline</th>
+                            <th class="py-3.5 px-3 w-[20%] hidden lg:table-cell whitespace-nowrap">Deadline</th>
                             <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[10%] whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs bg-white">
                         @forelse($projects as $project)
                             @php $delaySummary = $delaySummaries[$project->id] ?? ['is_delayed' => false, 'issues' => []]; @endphp
-                            <tr class="hover:bg-slate-50/60 transition-colors duration-150 group">
+                            <tr class="{{ $delaySummary['is_delayed'] ? 'project-row-delayed' : '' }} hover:bg-slate-50/60 transition-colors duration-150 group">
+                                <!-- Sequential project number (continues across pagination) -->
+                                <td class="py-3.5 pl-5 sm:pl-6 pr-2 text-center align-middle">
+                                    <span class="font-mono text-[11px] font-semibold text-slate-400 tabular-nums">
+                                        {{ ($projects->firstItem() ?? 1) + $loop->index }}
+                                    </span>
+                                </td>
+
                                 <!-- Project Name & Clean Metadata -->
-                                <td class="py-3.5 pl-5 sm:pl-6 pr-3 align-middle">
+                                <td class="py-3.5 pl-2 pr-3 align-middle">
                                     <div class="min-w-0 space-y-1">
-                                        @if($delaySummary['is_delayed'])
-                                            <a
-                                                href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
-                                                class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug text-left cursor-pointer w-full"
-                                                title="View delayed tasks, reasons and responsible people"
-                                            >
-                                                {{ $project->name }}
-                                            </a>
-                                        @else
-                                            <a href="{{ route('projects.show', $project->id) }}" class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline" title="{{ $project->name }}">
-                                                {{ $project->name }}
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('projects.show', $project->id) }}" class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline" title="Open {{ $project->name }} workspace">
+                                            {{ $project->name }}
+                                        </a>
                                         <div class="flex items-center gap-2 text-[11px] text-slate-500 whitespace-nowrap">
                                             <span class="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60 leading-none">
                                                 {{ $project->code }}
@@ -309,29 +324,35 @@
                                     </div>
                                 </td>
 
-                                <!-- Delay Analysis Indicator -->
-                                <td class="py-3.5 px-2 hidden lg:table-cell align-middle text-center">
-                                    @if($delaySummary['is_delayed'])
-                                        <a
-                                            href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
-                                            class="critical-alert-flash inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-50 border border-rose-200 cursor-pointer"
-                                            title="View all delayed tasks and reasons"
-                                            aria-label="View all delayed tasks and reasons for {{ $project->name }}"
-                                        >
-                                            <span class="w-3 h-3 rounded-full bg-rose-600 border-2 border-rose-200"></span>
-                                        </a>
-                                    @else
-                                        <span class="inline-block w-2 h-2 rounded-full bg-slate-200" title="No delay detected"></span>
-                                    @endif
-                                </td>
-
                                 <!-- Deadline -->
-                                <td class="py-3.5 px-3 hidden xl:table-cell align-middle whitespace-nowrap">
+                                <td class="py-3.5 px-3 hidden lg:table-cell align-middle whitespace-nowrap">
                                     @if($project->deadline)
                                         @php $isOverdue = $project->deadline->isPast() && $project->overall_progress < 100; @endphp
-                                        <span class="text-xs font-semibold {{ $isOverdue ? 'text-rose-600 font-bold' : 'text-slate-600' }}">
+                                        <span class="block text-xs font-extrabold tracking-tight {{ $isOverdue ? 'text-[#d10a32]' : 'text-slate-700' }}">
                                             {{ $project->deadline->format('M d, Y') }}
                                         </span>
+                                        @if($delaySummary['is_delayed'])
+                                            <a
+                                                href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
+                                                class="group/delay mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-600 no-underline transition-colors hover:text-[#a80e27]"
+                                                title="Review delayed tasks and reasons"
+                                                aria-label="Review {{ $delaySummary['project_overdue_days'] ?? 0 }} overdue days and {{ count($delaySummary['issues'] ?? []) }} delay issues for {{ $project->name }}"
+                                            >
+                                                <span class="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
+                                                    <span class="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-60 critical-alert-flash"></span>
+                                                    <span class="relative m-auto inline-flex h-2 w-2 rounded-full bg-[#d10a32] ring-2 ring-rose-100"></span>
+                                                </span>
+                                                <span>{{ $delaySummary['project_overdue_days'] ?? 0 }}d overdue</span>
+                                                <span class="text-rose-300">&bull;</span>
+                                                <span>{{ count($delaySummary['issues'] ?? []) }} {{ Str::plural('issue', count($delaySummary['issues'] ?? [])) }}</span>
+                                                <svg class="h-3 w-3 translate-x-0 opacity-50 transition-all group-hover/delay:translate-x-0.5 group-hover/delay:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                            </a>
+                                        @elseif(!$isOverdue)
+                                            <span class="mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                On schedule
+                                            </span>
+                                        @endif
                                     @else
                                         <span class="text-slate-400 text-xs">—</span>
                                     @endif
@@ -340,6 +361,21 @@
                                 <!-- Action Buttons -->
                                 <td class="py-3.5 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
                                     <div class="inline-flex items-center justify-end gap-1">
+                                        @if($delaySummary['is_delayed'])
+                                            <a
+                                                href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
+                                                x-on:click.stop
+                                                class="group/critical relative flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-[#d10a32] shadow-sm shadow-rose-100 transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:bg-[#d10a32] hover:text-white hover:shadow-md hover:shadow-rose-200"
+                                                title="Open Critical Delay Analysis"
+                                                aria-label="Open critical delay analysis for {{ $project->name }}"
+                                            >
+                                                <span class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-[#d10a32] critical-alert-flash group-hover/critical:bg-white" aria-hidden="true"></span>
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l3-3 3 2 5-7"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 7h3v3"/>
+                                                </svg>
+                                            </a>
+                                        @endif
                                         <a
                                             href="{{ route('projects.show', $project->id) }}"
                                             x-on:click.stop
@@ -350,15 +386,15 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                             </svg>
                                         </a>
-                                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin'))
+                                        @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1)
                                             <button
                                                 wire:click="confirmDelete({{ $project->id }})"
-                                                x-on:click.stop
                                                 type="button"
-                                                class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer flex items-center justify-center"
-                                                title="Delete Project"
+                                                class="group/delete relative flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-400 transition-all hover:-translate-y-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-[#c3122e] hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c3122e]/30 cursor-pointer"
+                                                title="Delete {{ $project->name }}"
+                                                aria-label="Delete project {{ $project->name }}"
                                             >
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <svg class="h-4 w-4 transition-transform group-hover/delete:scale-105" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
                                             </button>
@@ -368,7 +404,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="py-16 text-center">
+                                <td colspan="8" class="py-16 text-center">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -1267,47 +1303,138 @@
         </div>
     @endif
 
-    @teleport('body')
     @if($showDelayAnalysis)
-        <div style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, 0.68); backdrop-filter: blur(5px);" wire:click.self="closeDelayAnalysis">
+        @teleport('body')
+        <div
+            x-data
+            @keydown.escape.window="$wire.closeDelayAnalysis()"
+            class="delay-analysis-backdrop"
+            style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(51, 65, 85, 0.42); backdrop-filter: blur(10px);"
+            wire:click.self="closeDelayAnalysis"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delay-analysis-title"
+        >
             <div
                 wire:key="delay-analysis-{{ $delayProjectId }}"
                 x-data
                 x-init="$nextTick(() => { $refs.delayList.scrollTop = 0 })"
-                style="width: min(920px, calc(100vw - 32px)); max-height: calc(100vh - 40px); overflow: hidden; border-radius: 20px; background: #ffffff; box-shadow: 0 30px 80px rgba(15, 23, 42, 0.38); border: 1px solid #fecdd3; display: flex; flex-direction: column;"
+                style="width: min(1040px, calc(100vw - 32px)); height: min(760px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); overflow: hidden; border-radius: 22px; background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22); border: 1px solid #e2e8f0; display: flex; flex-direction: column;"
             >
-                <div class="px-5 sm:px-6 py-4 text-white flex items-start justify-between gap-4 shrink-0" style="background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);">
+                <div class="px-5 sm:px-6 py-4 text-slate-900 bg-white border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
                     <div>
-                        <div class="text-[10px] uppercase tracking-[.2em] font-black text-rose-100">Critical delay analysis</div>
-                        <h2 class="text-xl font-black mt-1">{{ $delayAnalysis['project_name'] ?? '' }}</h2>
-                        <p class="text-xs text-rose-100 mt-1">{{ $delayAnalysis['project_code'] ?? '' }} · {{ $delayAnalysis['critical_issue_count'] ?? 0 }} critical issue(s)</p>
+                        <div class="text-[10px] uppercase tracking-[.18em] font-black text-[#c3122e]">Critical delay analysis</div>
+                        <div class="flex items-center gap-2.5 mt-1 flex-wrap">
+                            <h2 id="delay-analysis-title" class="text-base font-black">{{ $delayAnalysis['project_name'] ?? '' }}</h2>
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">{{ $delayAnalysis['project_code'] ?? '' }}</span>
+                            <span class="text-[11px] text-slate-500">{{ $delayAnalysis['critical_issue_count'] ?? 0 }} critical issue(s)</span>
+                            <span class="text-[11px] text-slate-500">&bull; {{ count($delayAnalysis['issues'] ?? []) }} delayed task(s)</span>
+                        </div>
                     </div>
-                    <a href="{{ route('projects.index', request()->except('delay_project')) }}" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black cursor-pointer inline-flex items-center justify-center no-underline" aria-label="Close delay analysis">&times;</a>
+                    <button type="button" wire:click="closeDelayAnalysis" class="w-9 h-9 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-[#c3122e] font-black cursor-pointer inline-flex items-center justify-center transition-colors" aria-label="Close delay analysis">&times;</button>
                 </div>
 
-                <div x-ref="delayList" class="min-h-0 flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain space-y-3 bg-slate-50 scroll-smooth" style="min-height: 0;">
+                <div x-ref="delayList" class="min-h-0 flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain space-y-2.5 bg-slate-50/70 scroll-smooth" style="min-height: 0;">
+                    @php $delaySummary = $delayAnalysis['summary'] ?? []; @endphp
+                    @if(!empty($delaySummary['reasons']) || !empty($delaySummary['root_causes']))
+                        <section class="rounded-xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-white px-4 py-3.5">
+                            <div class="flex items-center justify-between gap-3 flex-wrap">
+                                <div class="text-[10px] font-black uppercase tracking-[.16em] text-[#c3122e]">Why is this project delayed?</div>
+                                @if(($delayAnalysis['project_overdue_days'] ?? 0) > 0)
+                                    <span class="px-2.5 py-1 rounded-full bg-rose-100 text-[11px] font-black text-rose-700">Project {{ $delayAnalysis['project_overdue_days'] }} days past deadline</span>
+                                @endif
+                            </div>
+
+                            <div class="mt-2.5 grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                <div class="space-y-2">
+                                    @foreach(($delaySummary['reasons'] ?? []) as $reason)
+                                        <div class="flex items-start gap-2">
+                                            <span class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 {{ in_array($reason['type'], ['deadline', 'blocker'], true) ? 'bg-rose-500' : ($reason['type'] === 'dependency' ? 'bg-amber-500' : 'bg-slate-400') }}"></span>
+                                            <p class="text-[11px] text-slate-600 leading-relaxed"><strong class="text-slate-800">{{ $reason['label'] }}.</strong> {{ $reason['detail'] }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="space-y-3">
+                                    @if(!empty($delaySummary['root_causes']))
+                                        <div>
+                                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Root-cause tasks</div>
+                                            <div class="mt-1.5 space-y-1.5">
+                                                @foreach($delaySummary['root_causes'] as $root)
+                                                    <div class="flex items-center justify-between gap-2 rounded-lg bg-white border border-slate-200 px-2.5 py-1.5">
+                                                        <div class="min-w-0">
+                                                            <p class="text-[11px] font-bold text-slate-800 truncate"><span class="font-mono text-slate-500">{{ $root['wbs_code'] }}</span> {{ $root['task'] }}</p>
+                                                            <p class="text-[10px] text-slate-500 truncate">Owner: {{ $root['responsible'] }}</p>
+                                                        </div>
+                                                        <div class="text-right shrink-0">
+                                                            @if($root['overdue_days'] > 0)<p class="text-[10px] font-black text-rose-700">{{ $root['overdue_days'] }}d late</p>@endif
+                                                            <p class="text-[10px] text-slate-500">causes {{ $root['affected'] }} {{ \Illuminate\Support\Str::plural('task', $root['affected']) }}</p>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if(!empty($delaySummary['responsible_people']))
+                                        <div>
+                                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Responsible people</div>
+                                            <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                                @foreach($delaySummary['responsible_people'] as $person)
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-bold text-slate-700" title="{{ $person['email'] }}">
+                                                        <span class="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] font-black inline-flex items-center justify-center">{{ strtoupper(substr($person['name'], 0, 1)) }}</span>
+                                                        {{ $person['name'] }}
+                                                        <span class="text-rose-600">{{ $person['task_count'] }}</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </section>
+                    @endif
                     @forelse(($delayAnalysis['issues'] ?? []) as $issue)
-                        <article class="bg-white rounded-xl border {{ $issue['is_critical'] ? 'border-rose-200' : 'border-amber-200' }} px-4 py-3.5 shadow-xs">
+                        <article class="bg-white rounded-xl border border-slate-200 px-4 py-3.5 shadow-xs">
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $issue['is_critical'] ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800' }}">{{ $issue['is_critical'] ? 'CRITICAL PATH IMPACT' : 'DELAY' }}</span>
                                         @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
                                     </div>
-                                    <h3 class="text-sm font-black text-slate-900 mt-1.5 leading-snug break-words">{{ $issue['task'] }}</h3>
+                                    <h3 class="text-sm font-extrabold text-slate-900 mt-1 leading-snug break-words">{{ $issue['task'] }}</h3>
                                 </div>
                                 @if($issue['overdue_days'] > 0)<span class="px-2.5 py-1 rounded-full bg-rose-50 text-xs font-black text-rose-700 whitespace-nowrap">{{ $issue['overdue_days'] }} days late</span>@endif
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
-                                <div class="rounded-lg bg-rose-50/70 border border-rose-100 px-3 py-2.5 min-w-0">
-                                    <div class="text-[10px] font-black uppercase tracking-wider text-rose-500">Delay reason / problem</div>
-                                    <p class="text-xs font-semibold text-slate-700 mt-1 leading-relaxed break-words">{{ $issue['reason'] }}</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_250px] gap-2.5 mt-2.5 items-start">
+                                <div class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 min-w-0 self-start">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Why this task is delayed</div>
+                                    <div class="mt-2 space-y-2">
+                                        @forelse(($issue['causes'] ?? []) as $cause)
+                                            <div class="flex items-start gap-2">
+                                                <span class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 {{ in_array($cause['type'], ['dependency', 'root'], true) ? 'bg-amber-500' : (in_array($cause['type'], ['blocker', 'status'], true) ? 'bg-rose-500' : 'bg-slate-400') }}"></span>
+                                                <p class="text-[11px] text-slate-600 leading-relaxed"><strong class="text-slate-800">{{ $cause['label'] }}:</strong> {{ $cause['detail'] }}@if(!empty($cause['responsible'])) <span class="inline-block ml-1 px-1.5 py-px rounded bg-slate-200/70 text-[10px] font-bold text-slate-600 whitespace-nowrap">Owner: {{ $cause['responsible'] }}</span>@endif</p>
+                                            </div>
+                                        @empty
+                                            <p class="text-[11px] text-slate-600 leading-relaxed">{{ $issue['reason'] }}</p>
+                                        @endforelse
+                                    </div>
                                 </div>
-                                <div class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 min-w-0">
+                                <div class="rounded-lg bg-white border border-slate-200 px-3 py-2.5 min-w-0 self-start">
                                     <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Responsible person</div>
                                     <p class="text-xs font-black text-slate-900 mt-1 truncate" title="{{ $issue['responsible'] }}">{{ $issue['responsible'] }}</p>
                                     @if($issue['responsible_email'])<p class="text-[11px] text-slate-500 mt-0.5 truncate" title="{{ $issue['responsible_email'] }}">{{ $issue['responsible_email'] }}</p>@endif
-                                    @if($issue['downstream_count'] > 0)<p class="text-[11px] font-bold text-rose-600 mt-2">Blocking {{ $issue['downstream_count'] }} downstream task(s)</p>@endif
+                                    <div class="mt-2.5 pt-2 border-t border-slate-100 grid grid-cols-2 gap-1.5 text-[10px]">
+                                        <div><span class="text-slate-400 block">Progress</span><strong class="text-slate-700">{{ $issue['progress'] ?? 0 }}%</strong></div>
+                                        <div><span class="text-slate-400 block">Status</span><strong class="text-slate-700">{{ \Illuminate\Support\Str::headline($issue['status'] ?? '') }}</strong></div>
+                                        @if(!empty($issue['end_date']))<div class="col-span-2"><span class="text-slate-400 block">Planned end</span><strong class="text-slate-700">{{ $issue['end_date'] }}</strong></div>@endif
+                                    </div>
+                                    @if($issue['downstream_count'] > 0)
+                                        <p class="text-[10px] font-bold text-rose-600 mt-2">Blocks {{ $issue['downstream_count'] }} downstream {{ \Illuminate\Support\Str::plural('task', $issue['downstream_count']) }}</p>
+                                        @foreach(($issue['downstream_tasks'] ?? []) as $down)
+                                            <p class="text-[10px] text-slate-500 truncate" title="{{ $down['task'] }}"><span class="font-mono">{{ $down['wbs_code'] }}</span> {{ $down['task'] }}</p>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
                         </article>
@@ -1316,52 +1443,99 @@
                     @endforelse
                 </div>
 
-                <div class="px-5 py-3 border-t border-slate-200 bg-white flex justify-end gap-2 shrink-0">
-                    <a href="{{ route('projects.index', request()->except('delay_project')) }}" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 cursor-pointer no-underline">Close</a>
+                <div class="px-5 py-2.5 border-t border-slate-200 bg-white flex justify-end gap-2 shrink-0">
+                    <button type="button" wire:click="closeDelayAnalysis" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors">Close</button>
                     @if($delayProjectId)<a href="{{ route('projects.show', $delayProjectId) }}?tab=wbs" class="px-5 py-2 rounded-xl text-xs font-black bg-rose-700 text-white no-underline">Open WBS workspace</a>@endif
                 </div>
             </div>
         </div>
+        @endteleport
     @endif
-    @endteleport
 
-    <!-- Delete Project Confirmation Modal -->
+    <!-- ===== DELETE PROJECT CONFIRMATION MODAL ===== -->
     @if($showDeleteModal)
-    <div style="position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); box-sizing: border-box;">
-        <div style="position: relative; width: 100%; max-width: 480px; background: #ffffff; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.4); border: 1px solid #e2e8f0; overflow: hidden; animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div style="padding: 22px 24px 16px 24px; display: flex; align-items: flex-start; gap: 14px;">
-                <div style="width: 44px; height: 44px; border-radius: 12px; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.15);">
-                    🗑️
-                </div>
-                <div style="flex: 1;">
-                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.3;">
-                        Delete Project?
-                    </h3>
-                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500; line-height: 1.4;">
-                        Are you sure you want to delete <strong style="color: #0f172a;">{{ $projectToDeleteName }}</strong> (<code style="font-size: 11px; color: #c3122e; background: #fff1f2; padding: 1px 5px; border-radius: 4px; font-weight: 700;">{{ $projectToDeleteCode }}</code>)?
-                    </p>
-                </div>
-                <button type="button" wire:click="cancelDelete" style="width: 28px; height: 28px; border-radius: 7px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
-                    ✕
-                </button>
-            </div>
+        @teleport('body')
+        <div
+            x-data
+            @keydown.escape.window="$wire.cancelDelete()"
+            wire:click.self="cancelDelete"
+            class="delete-project-backdrop"
+            style="position: fixed; inset: 0; z-index: 2147483640; display: flex; align-items: center; justify-content: center; padding: 20px; background-color: rgba(51, 65, 85, 0.48); backdrop-filter: blur(10px); box-sizing: border-box;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-project-title"
+        >
 
-            <div style="margin: 0 24px 16px 24px; padding: 12px 14px; background: #fff1f2; border-radius: 12px; border: 1px solid #fecdd3; display: flex; align-items: flex-start; gap: 10px;">
-                <span style="font-size: 15px; flex-shrink: 0;">🚨</span>
-                <p style="margin: 0; font-size: 11.5px; color: #9f1239; font-weight: 600; line-height: 1.45;">
-                    This will permanently delete this project and all its WBS items, deliverables, documents, risks, and records from the entire system. An audit log entry will be permanently recorded.
-                </p>
-            </div>
+            <div style="position: relative; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); background: #ffffff; border-radius: 22px; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.24); border: 1px solid #e2e8f0; overflow-y: auto; z-index: 10; padding: 22px;" class="space-y-4.5 overscroll-contain">
+                <div class="flex items-start justify-between gap-3.5 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 id="delete-project-title" class="text-base font-extrabold text-slate-900 tracking-tight">Delete Project Permanently?</h3>
+                            <p class="text-xs text-slate-500 font-medium">This action cannot be undone</p>
+                        </div>
+                    </div>
+                    <button wire:click="cancelDelete" type="button" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold text-sm transition-all cursor-pointer">
+                        ✕
+                    </button>
+                </div>
 
-            <div style="padding: 14px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
-                <button type="button" wire:click="cancelDelete" style="padding: 8px 16px; border-radius: 9px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
-                    Cancel
-                </button>
-                <button type="button" wire:click="deleteProject" style="padding: 8px 20px; border-radius: 9px; border: none; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35); transition: all 0.15s; display: flex; align-items: gap: 6px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1.0'">
-                    <span>Permanently Delete Project</span>
-                </button>
+                <div class="space-y-4">
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                        <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1.5">Target Project</div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-xs font-black tracking-wide">{{ $projectToDeleteCode }}</span>
+                            <span class="text-sm font-bold text-slate-900">{{ $projectToDeleteName }}</span>
+                        </div>
+                        <div class="flex items-center gap-4 mt-3 pt-3 border-t border-slate-200/60 text-xs text-slate-600 font-medium">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <strong>{{ $projectToDeleteTasksCount }}</strong> Tasks / WBS Items
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <strong>{{ $projectToDeleteDocsCount }}</strong> Documents
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-1.5">
+                        <div class="flex items-center gap-2 font-black text-[#c3122e]">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span>Permanent System Purge Warning</span>
+                        </div>
+                        <p class="text-[11.5px] leading-relaxed text-rose-950 font-medium">
+                            All associated WBS tasks, dependencies, blockers, documents, risks, status updates, and records will be permanently removed from the system. A PMO audit log entry will be preserved.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button wire:click="cancelDelete" type="button" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer">
+                        Cancel
+                    </button>
+                    <button 
+                        wire:click="deleteProject" 
+                        wire:loading.attr="disabled"
+                        type="button" 
+                        class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#c3122e] to-rose-700 hover:from-rose-700 hover:to-rose-800 shadow-md shadow-rose-600/20 hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                    >
+                        <svg wire:loading wire:target="deleteProject" class="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="deleteProject">Permanently Delete Project</span>
+                        <span wire:loading wire:target="deleteProject">Deleting Project...</span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+        @endteleport
     @endif
 </div>

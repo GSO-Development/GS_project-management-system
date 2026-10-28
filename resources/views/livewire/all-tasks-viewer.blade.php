@@ -1,4 +1,4 @@
-<div class="space-y-5 pt-1">
+<div data-ui-page="all-tasks" class="ui-page ui-page-work space-y-5 pt-1">
 <style>
     .at-table-row:hover { background: #f8fafc; }
     .at-table-row:hover .at-task-title { color: #c3122e; }
@@ -19,13 +19,13 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="space-y-4 mb-5">
+    <div class="all-tasks-header space-y-4 mb-5">
         <!-- Top Row: Page Title & Action Controls -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Title -->
             <div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Tasks
+                    Task Operations
                 </h1>
             </div>
 
@@ -59,7 +59,7 @@
 
                 <!-- Back to Projects CTA Button -->
                 <a href="{{ auth()->user()?->isPmoAdmin() ? route('projects.index') : route('projects.my-leads') }}" 
-                   class="px-4 py-2 bg-[#c3122e] hover:bg-[#a00e25] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-[#c3122e]/20 cursor-pointer active:scale-95 shrink-0 no-underline">
+                   class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0 no-underline">
                     <svg class="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -69,7 +69,7 @@
         </div>
 
         <!-- View Tabs Line (Crimson underline for active tab) -->
-        <div class="border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
+        <div class="all-tasks-tabs border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
             <div class="flex items-center gap-6 text-xs whitespace-nowrap">
                 <!-- All Tasks View Tab -->
                 <button wire:key="tab-all-tasks" wire:click="setViewMode('all')" type="button"
@@ -95,7 +95,7 @@
         @if($showFilters)
             <div wire:key="filter-toolbar-{{ $viewMode }}" class="pt-1 filter-toolbar-enter">
                 @if($viewMode === 'all')
-                    <div wire:key="filter-bar-all-tasks" class="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+                    <div wire:key="filter-bar-all-tasks" class="all-tasks-filter flex flex-col md:flex-row items-stretch md:items-center gap-2.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
                         {{-- Search Input --}}
                         <div class="relative flex-1 min-w-[200px]">
                             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -228,7 +228,7 @@
     @if($viewMode === 'all')
         <div wire:key="view-content-all-tasks" class="space-y-4">
             {{-- KPI TILES --}}
-            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;">
+            <div class="all-tasks-kpi-grid grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2.5">
             {{-- Total --}}
             <button wire:click="clearFilters" type="button"
                 class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='all' ? 'active border-slate-800' : 'bg-white border-slate-200 hover:border-slate-300' }}"
@@ -281,9 +281,17 @@
 
 
         {{-- TABLE --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div class="all-tasks-table bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
+                    <colgroup>
+                        <col class="w-[28%]">
+                        <col class="w-[19%]">
+                        <col class="w-[17%]">
+                        <col class="w-[12%]">
+                        <col class="w-[13%]">
+                        <col class="w-[11%]">
+                    </colgroup>
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-slate-200/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider select-none">
                             <th class="py-3.5 pl-6 pr-4">Task</th>
@@ -330,7 +338,7 @@
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <span class="w-2 h-2 rounded-full {{ $dotColorCls }} shrink-0"></span>
                                         <div class="min-w-0">
-                                            <div class="at-task-title text-xs font-bold text-slate-900 truncate transition-colors leading-tight" title="{{ $task->title }}">
+                                            <div class="at-task-title text-xs font-bold text-slate-900 whitespace-normal break-words transition-colors leading-snug" title="{{ $task->title }}">
                                                 {{ $task->title }}
                                             </div>
                                             @if($task->wbs_code)
@@ -342,7 +350,7 @@
 
                                 {{-- Project --}}
                                 <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                    <div class="font-bold text-xs text-slate-800 truncate max-w-[180px]" title="{{ $task->project->name ?? '' }}">
+                                    <div class="font-bold text-xs text-slate-800 whitespace-normal break-words leading-snug" title="{{ $task->project->name ?? '' }}">
                                         {{ $task->project->name ?? '—' }}
                                     </div>
                                     @if($task->project?->subsidiary?->name)
@@ -448,7 +456,7 @@
     @elseif($viewMode === 'stuck')
         <div wire:key="view-content-stuck-tasks" class="space-y-4">
             <!-- 1. 4 KPI Metric Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
+            <div class="all-tasks-kpi-grid all-tasks-stuck-kpis grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
                 <!-- 1. Total Stuck -->
                 <button type="button" wire:click="setStuckTypeFilter('all')"
                         class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $stuckTypeFilter === 'all' ? 'ring-2 ring-slate-800 border-slate-800 bg-slate-50/50 shadow-sm' : 'shadow-xs hover:border-slate-400' }}">
@@ -499,7 +507,7 @@
             </div>
 
             <!-- 2. Stuck Tasks Table -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            <div class="all-tasks-table bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>

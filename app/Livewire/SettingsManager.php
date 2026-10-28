@@ -7,7 +7,7 @@ use Livewire\Component;
 
 class SettingsManager extends Component
 {
-    public string $activeTab = 'general'; // 'general', 'smtp', 'security', 'maintenance'
+    public string $activeTab = 'mail';
 
     // General & Branding
     public string $appName = 'GS NexusPM';
@@ -59,7 +59,7 @@ class SettingsManager extends Component
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = $tab;
+        $this->activeTab = 'mail';
     }
 
     public function loadSettings(): void

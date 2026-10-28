@@ -1,4 +1,4 @@
-<div>
+<div data-ui-page="users" class="ui-page ui-page-admin">
     <style>
         .custom-select {
             appearance: none;
@@ -11,7 +11,7 @@
         }
     </style>
     <!-- Clean Standard Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="users-page-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 Participants &amp; System Users
@@ -22,8 +22,7 @@
             <button
                 wire:click="openCreateModal"
                 type="button"
-                class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
-                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                class="users-add-button inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 cursor-pointer"
             >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>Add New User</span>
@@ -33,7 +32,7 @@
 
     <!-- Filters Bar -->
     <!-- Filters Bar -->
-    <div class="card mb-6 p-4 space-y-3">
+    <div class="users-filter-bar card mb-6 p-4 space-y-3">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase font-black text-slate-500 ml-1 mb-1">Search Members</span>
@@ -98,9 +97,9 @@
     @endif
 
     <!-- Users Table -->
-    <div class="card p-0 overflow-hidden shadow-xs mb-6 bg-white border border-slate-200/80 rounded-2xl">
+    <div class="users-directory card p-0 overflow-hidden shadow-xs mb-6 bg-white border border-slate-200/80 rounded-2xl">
         <div class="overflow-x-auto bg-white">
-            <table class="data-table bg-white">
+            <table class="data-table users-directory-table bg-white">
                 <thead class="bg-white border-b border-slate-100">
                     <tr class="bg-white">
                         <th class="w-8 !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">
@@ -127,13 +126,13 @@
                         </tr>
                         @foreach($group['users'] as $user)
                             @php $isUserSelected = in_array((string)$user->id, $selectedUsers, true) || in_array($user->id, $selectedUsers, false); @endphp
-                            <tr class="transition-colors {{ $isUserSelected ? 'bg-rose-50/50' : 'hover:bg-[#fdf4f4]/20' }}">
+                            <tr class="users-member-row transition-colors {{ $isUserSelected ? 'is-selected' : '' }}">
                                 <td class="w-8">
                                     <input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedUsers" class="w-4 h-4 rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e]/20 cursor-pointer">
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-3">
-                                        <div class="avatar-sm w-9 h-9 font-bold text-xs text-white rounded-full flex items-center justify-center shadow-xs ring-2 ring-rose-200/50" style="background: linear-gradient(135deg, #c3122e 0%, #800a1c 100%);">
+                                        <div class="users-member-avatar avatar-sm w-9 h-9 font-bold text-xs rounded-full flex items-center justify-center">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                         <div class="min-w-0">
@@ -198,13 +197,13 @@
                         </tr>
                         @foreach($noSubUsers as $user)
                             @php $isNoSubSelected = in_array((string)$user->id, $selectedUsers, true) || in_array($user->id, $selectedUsers, false); @endphp
-                            <tr class="transition-colors {{ $isNoSubSelected ? 'bg-rose-50/50' : 'hover:bg-slate-50' }}">
+                            <tr class="users-member-row transition-colors {{ $isNoSubSelected ? 'is-selected' : '' }}">
                                 <td class="w-8">
                                     <input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedUsers" class="w-4 h-4 rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e]/20 cursor-pointer">
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-3">
-                                        <div class="avatar-sm w-9 h-9 font-bold text-xs text-white" style="background: linear-gradient(135deg, rgb(79 70 229), rgb(124 58 237));">
+                                        <div class="users-member-avatar avatar-sm w-9 h-9 font-bold text-xs rounded-full flex items-center justify-center">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                         <div class="min-w-0">

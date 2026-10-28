@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto space-y-4 pb-20 font-sans">
+<div data-ui-page="notifications" class="ui-page ui-page-collaboration max-w-7xl mx-auto space-y-4 pb-20 font-sans">
 
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- 1. PAGE HEADER                                             --}}

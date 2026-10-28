@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: {{ ($subsidiaryFilter !== 'all' || $statusFilter !== 'all') ? 'true' : 'false' }} }">
+<div data-ui-page="reports" class="ui-page ui-page-governance" x-data="{ showFilters: {{ ($subsidiaryFilter !== 'all' || $statusFilter !== 'all') ? 'true' : 'false' }} }">
     <!-- Clean Standard Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
