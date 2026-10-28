@@ -351,32 +351,24 @@
             50% { opacity: 0.5; transform: scale(0.7); }
         }
 
-        /* Modal */
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: rgba(15,23,42,0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            animation: fadeIn 0.15s ease;
-        }
-        .modal-panel {
-            background: #fff;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            width: 100%;
-            max-width: 760px;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            animation: slideUp 0.18s ease;
-            overflow: hidden;
+        /* Audit inspector: rendered above the page layout in the browser top layer. */
+        html:has(.audit-inspector-dialog[open]), body:has(.audit-inspector-dialog[open]) { overflow: hidden; }
+        dialog.audit-inspector-dialog { position: fixed; inset: 0; margin: 0; padding: 24px; width: 100%; max-width: none; height: 100dvh; max-height: none; border: 0; background: transparent; color: #0f172a; overflow: hidden; box-sizing: border-box; }
+        dialog.audit-inspector-dialog[open] { display: grid; place-items: center; }
+        dialog.audit-inspector-dialog::backdrop { background: rgba(15,23,42,.5); backdrop-filter: blur(5px); }
+        .audit-inspector-panel { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 24px 70px rgba(15,23,42,.22); width: min(100%, 900px); max-height: min(860px, calc(100dvh - 48px)); min-height: 0; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; }
+        .audit-inspector-body { min-height: 0; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; overflow-wrap: anywhere; }
+        .audit-inspector-panel button:focus-visible { outline: 2px solid #c3122e; outline-offset: 3px; }
+        .audit-inspector-panel table { table-layout: fixed; }
+        .audit-inspector-metadata > div, .audit-inspector-json > div { min-width: 0; }
+        .audit-inspector-header { gap: 12px; }
+        .audit-inspector-header > button { flex-shrink: 0; }
+        @media (max-width: 640px) {
+            dialog.audit-inspector-dialog { padding: 12px; }
+            .audit-inspector-panel { max-height: calc(100dvh - 24px); border-radius: 14px; }
+            .audit-inspector-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            .audit-inspector-json { grid-template-columns: minmax(0, 1fr) !important; }
+            .audit-inspector-footer { gap: 12px; flex-wrap: wrap; }
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
@@ -1057,11 +1049,15 @@
          4.  AUDIT INSPECTOR MODAL
     ══════════════════════════════════════════════════════════ --}}
     @if($showDetailModal && $selectedLog)
-        <div class="modal-backdrop" wire:click.self="closeDetailModal">
-            <div class="modal-panel">
+        @teleport('body')
+        <dialog class="audit-inspector-dialog" x-data x-init="$nextTick(() => $el.showModal())"
+            @cancel.prevent="$wire.closeDetailModal()"
+            @click="if ($event.target === $el) $wire.closeDetailModal()"
+            aria-labelledby="audit-inspector-title" wire:key="audit-inspector-{{ $selectedLog->id }}">
+            <div class="audit-inspector-panel">
 
                 {{-- Modal Header --}}
-                <div style="padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <div class="audit-inspector-header" style="padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                     <div style="display:flex;align-items:center;gap:12px;">
                         <div style="width:42px;height:42px;border-radius:13px;background:#fff1f2;border:1px solid #fecdd3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg style="width:20px;height:20px;color:#be123c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1070,7 +1066,7 @@
                         </div>
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;">
-                                <h3 style="font-size:16px;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">Audit Inspector</h3>
+                                <h3 id="audit-inspector-title" style="font-size:16px;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">Audit Inspector</h3>
                                 <span style="padding:2px 8px;border-radius:6px;background:#f1f5f9;color:#475569;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;">#{{ $selectedLog->id }}</span>
                             </div>
                             <span style="font-size:11px;color:#94a3b8;font-family:'JetBrains Mono',monospace;">
@@ -1079,16 +1075,16 @@
                         </div>
                     </div>
                     <button wire:click="closeDetailModal" type="button"
-                            style="width:32px;height:32px;border-radius:10px;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:14px;font-weight:800;transition:all 0.15s;"
+                            aria-label="Close audit inspector" autofocus style="width:32px;height:32px;border-radius:10px;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:14px;font-weight:800;transition:all 0.15s;"
                             onmouseover="this.style.background='#e2e8f0';this.style.color='#0f172a';"
                             onmouseout="this.style.background='#f1f5f9';this.style.color='#64748b';">✕</button>
                 </div>
 
                 {{-- Modal Body --}}
-                <div style="padding:20px 24px;overflow-y:auto;flex:1;space-y:16px;">
+                <div class="audit-inspector-body" style="padding:20px 24px;overflow-y:auto;flex:1;">
 
                     {{-- Metadata grid --}}
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:14px;padding:16px;margin-bottom:16px;">
+                    <div class="audit-inspector-metadata" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:14px;padding:16px;margin-bottom:16px;">
                         <div>
                             <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Actor</span>
                             <span style="font-size:12.5px;font-weight:700;color:#0f172a;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $selectedLog->user->name ?? 'System Automated' }}</span>
@@ -1235,7 +1231,7 @@
                                     </table>
                                 </div>
                             @else
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div class="audit-inspector-json" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                                     <div>
                                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                                             <span style="font-size:10.5px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:0.07em;">Previous</span>
@@ -1261,7 +1257,7 @@
                 </div>
 
                 {{-- Modal Footer --}}
-                <div style="padding:14px 24px;border-top:1px solid #f1f5f9;background:#fafafa;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <div class="audit-inspector-footer" style="padding:14px 24px;border-top:1px solid #f1f5f9;background:#fafafa;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                     <div style="display:flex;align-items:center;gap:6px;">
                         <svg style="width:12px;height:12px;color:#94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -1275,7 +1271,8 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </dialog>
+        @endteleport
     @endif
 
 </div>

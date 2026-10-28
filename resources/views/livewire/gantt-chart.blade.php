@@ -1,4 +1,33 @@
 <div class="workspace-gantt" x-data="{
+
+    panStart: null,
+    isPanning: false,
+    beginPan(event) {
+        const board = this.$refs.timelineScrollContainer;
+        if (event.pointerType !== 'mouse' || event.button !== 0 || board.scrollWidth &lt;= board.clientWidth) return;
+        if (event.target.closest('a, button, input, select, textarea, [contenteditable], [role=button], [data-pan-ignore]')) return;
+        const rect = board.getBoundingClientRect();
+        if (event.clientX >= rect.left + board.clientWidth || event.clientY >= rect.top + board.clientHeight) return;
+        this.panStart = { id: event.pointerId, x: event.clientX, left: board.scrollLeft };
+        event.preventDefault();
+    },
+    movePan(event) {
+        if (!this.panStart || event.pointerId !== this.panStart.id) return;
+        if (!(event.buttons &amp; 1)) { this.endPan(); return; }
+        const delta = event.clientX - this.panStart.x;
+        if (!this.isPanning &amp;&amp; Math.abs(delta) &lt; 4) return;
+        const board = this.$refs.timelineScrollContainer;
+        if (!this.isPanning) board.setPointerCapture(event.pointerId);
+        this.isPanning = true;
+        event.preventDefault();
+        board.scrollLeft = this.panStart.left - delta;
+    },
+    endPan() {
+        const board = this.$refs.timelineScrollContainer;
+        if (this.panStart &amp;&amp; board.hasPointerCapture(this.panStart.id)) board.releasePointerCapture(this.panStart.id);
+        this.panStart = null;
+        this.isPanning = false;
+    },
     zoom: 100,
     tooltip: { visible: false, x: 0, y: 0, data: null },
     showTooltip(el, data) {
@@ -34,6 +63,11 @@ x-on:scroll-to-marker.window="scrollToMarker($event.detail.marker)"
 x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
 
     <style>
+        .workspace-mouse-scroll { cursor: grab; }
+        .workspace-mouse-scroll.is-panning, .workspace-mouse-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
+        .workspace-mouse-scroll button, .workspace-mouse-scroll a { cursor: pointer; }
+        .workspace-mouse-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+
         .gantt-scroll::-webkit-scrollbar {
             height: 6px;
         }
@@ -180,7 +214,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
         </div>
 
         <!-- ── GANTT TABLE & TIMELINE CANVAS ── -->
-        <div class="overflow-x-auto gantt-scroll gantt-viewport border border-slate-200/80 rounded-2xl shadow-2xs" x-ref="timelineScrollContainer">
+        <div class="workspace-mouse-scroll overflow-x-auto gantt-scroll gantt-viewport border border-slate-200/80 rounded-2xl shadow-2xs" x-ref="timelineScrollContainer" @pointerdown="beginPan($event)" @pointermove.window="movePan($event)" @pointerup.window="endPan()" @pointercancel.window="endPan()" @blur.window="endPan()" @lostpointercapture="panStart = null; isPanning = false" :class="{ 'is-panning': isPanning }" tabindex="0" role="region" aria-label="WBS Gantt timeline, drag empty space to scroll horizontally">
             {{-- Fixed width container: 280px left table + totalCanvasPx --}}
             <div style="min-width: {{ 280 + $totalCanvasPx }}px;" class="flex flex-col relative bg-white">
 
@@ -228,16 +262,16 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                 </div>
 
                 <!-- 2. GANTT ROWS AREA -->
-                <div class="relative divide-y divide-slate-100 bg-white">
+                <div class="relative bg-white">
 
                     @if(count($ganttDependencies) > 0)
                         <svg class="absolute pointer-events-none z-10 gantt-dependency-layer"
-                             style="left: 280px; top: 0; width: {{ $totalCanvasPx }}px; height: {{ max(48, $wbsItems->count() * 48) }}px; overflow: visible;"
-                             viewBox="0 0 {{ $totalCanvasPx }} {{ max(48, $wbsItems->count() * 48) }}"
+                             style="left: 280px; top: 0; width: {{ $totalCanvasPx }}px; height: {{ max($rowHeight, $wbsItems->count() * $rowHeight) }}px; overflow: visible;"
+                             viewBox="0 0 {{ $totalCanvasPx }} {{ max($rowHeight, $wbsItems->count() * $rowHeight) }}"
                              preserveAspectRatio="none"
                              aria-label="Task dependency connectors">
                             <defs>
-                                <marker id="gantt-arrow-{{ $project->id }}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                                <marker id="gantt-arrow-{{ $project->id }}" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
                                     <path d="M0,0 L7,3.5 L0,7 Z" fill="#64748b" />
                                 </marker>
                                 <marker id="gantt-arrow-blocking-{{ $project->id }}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
@@ -349,10 +383,10 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                             $cleanTitle = str_replace(['???', '??'], '–', $item->title);
                         @endphp
 
-                        <div class="flex items-center min-h-[48px] h-[48px] text-xs cursor-default hover:bg-slate-50/70 group transition-colors">
+                        <div class="gantt-task-row flex items-center text-xs cursor-default hover:bg-slate-50/70 group transition-colors" style="height: {{ $rowHeight }}px; min-height: {{ $rowHeight }}px; box-shadow: inset 0 -1px 0 #f1f5f9;">
 
                             <!-- Left Pinned Table Cells (280px wide, sticky left) -->
-                            <div class="gantt-pinned-cell sticky left-0 z-40 flex items-center h-[48px] bg-white group-hover:bg-slate-50 border-r border-slate-200/90 transition-colors" style="width: 280px; flex-shrink: 0;">
+                            <div class="gantt-pinned-cell sticky left-0 z-40 flex items-center bg-white group-hover:bg-slate-50 border-r border-slate-200/90 transition-colors" style="width: 280px; height: {{ $rowHeight }}px; flex-shrink: 0;">
                                 <!-- Project WBS number -->
                                 <div class="w-16 px-1 text-center flex-shrink-0 text-slate-500 font-mono text-[11px] font-semibold truncate"
                                      title="WBS {{ $item->wbs_code ?: $loop->iteration }}">
@@ -407,7 +441,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                             </div>
 
                             <!-- Right Timeline Canvas -->
-                            <div class="gantt-timeline-canvas relative flex-shrink-0 h-[48px] flex items-center" style="width: {{ $totalCanvasPx }}px;">
+                            <div class="gantt-timeline-canvas relative flex-shrink-0 flex items-center" style="width: {{ $totalCanvasPx }}px; height: {{ $rowHeight }}px;">
                                 <!-- Column Grid Lines -->
                                 @php $colLeft = 0; @endphp
                                 @foreach($columns as $col)
@@ -419,14 +453,14 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                 @if($item->is_milestone)
                                     <div class="absolute top-1/2 -translate-y-1/2 z-20 cursor-pointer"
                                          style="left: {{ $barLeft + 10 }}px;"
-                                         @mouseenter="showTooltip($el, {{ $tooltipData }})"
+                                         data-pan-ignore @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                         <div class="w-4 h-4 {{ $isAtRisk ? 'bg-[#e11d48] ring-2 ring-rose-300' : 'bg-[#8b5cf6]' }} rotate-45 rounded-2xs shadow-xs hover:scale-125 transition-transform"></div>
                                     </div>
                                 @else
                                     <div class="absolute top-1/2 -translate-y-1/2 h-6 rounded-md {{ $barBg }} z-20 cursor-pointer shadow-2xs hover:brightness-105 transition-all overflow-hidden flex items-center px-2 gap-1.5"
                                          style="left: {{ $barLeft }}px; width: {{ max(18, $barWidth) }}px;"
-                                         @mouseenter="showTooltip($el, {{ $tooltipData }})"
+                                         data-pan-ignore @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                         @if($item->progress > 0 && $item->progress < 100)
                                             <div class="absolute inset-y-0 left-0 bg-black/15 pointer-events-none" style="width: {{ $item->progress }}%;"></div>

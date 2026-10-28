@@ -20,14 +20,14 @@ class ScheduleCascadeService
      * @param int     $daysDelta   Positive or negative number of days extended
      * @return array
      */
-    public function calculateImpact(WbsItem $sourceTask, int $daysDelta): array
+    public function calculateImpact(WbsItem $sourceTask, int $daysDelta, bool $preserveSourceSchedule = false): array
     {
         if ($daysDelta === 0) {
             return $this->emptyImpact($daysDelta);
         }
 
         $projectId = $sourceTask->project_id;
-        $eligibleTasks = $this->findEligibleFollowingTasks($sourceTask);
+        $eligibleTasks = $this->findEligibleFollowingTasks($sourceTask, $preserveSourceSchedule);
 
         $affectedTasks = [];
         $skippedTasks  = [];
@@ -155,7 +155,7 @@ class ScheduleCascadeService
      *
      * @return array List of shifted tasks with metadata
      */
-    public function applyReschedule(WbsItem $sourceTask, int $daysDelta): array
+    public function applyReschedule(WbsItem $sourceTask, int $daysDelta, bool $preserveSourceSchedule = false): array
     {
         if ($daysDelta === 0) {
             return [];
@@ -163,9 +163,10 @@ class ScheduleCascadeService
 
         $shiftedTasks = [];
 
-        DB::transaction(function () use ($sourceTask, $daysDelta, &$shiftedTasks) {
+        DB::transaction(function () use ($sourceTask, $daysDelta, $preserveSourceSchedule, &$shiftedTasks) {
+            $sourceSchedule = $sourceTask->only(['start_date', 'end_date', 'start_time', 'end_time']);
             $projectId = $sourceTask->project_id;
-            $eligibleTasks = $this->findEligibleFollowingTasks($sourceTask);
+            $eligibleTasks = $this->findEligibleFollowingTasks($sourceTask, $preserveSourceSchedule);
             $reason = "Upstream task \"{$sourceTask->title}\" (WBS {$sourceTask->wbs_code}) deadline changed by {$daysDelta} " . (abs($daysDelta) === 1 ? 'day' : 'days');
 
             foreach ($eligibleTasks as $task) {
@@ -242,6 +243,7 @@ class ScheduleCascadeService
 
             // Recalculate parent phase/container boundaries from child dates
             $this->recalculatePhaseBoundaries($projectId);
+            if ($preserveSourceSchedule) $sourceTask->update($sourceSchedule);
 
             // Auto-update Project official deadline to sync with new overall maximum task schedule
             $project = Project::find($projectId);
@@ -343,7 +345,7 @@ class ScheduleCascadeService
      * Includes explicit WbsDependency successors AND sequential tasks that come
      * after the source task in WBS order.
      */
-    private function findEligibleFollowingTasks(WbsItem $sourceTask): \Illuminate\Support\Collection
+    private function findEligibleFollowingTasks(WbsItem $sourceTask, bool $preserveSourceSchedule = false): \Illuminate\Support\Collection
     {
         $projectId = $sourceTask->project_id;
         $visited   = [$sourceTask->id => true];
@@ -418,6 +420,20 @@ class ScheduleCascadeService
             }
         }
 
+        if ($preserveSourceSchedule) {
+            // A summary deadline extension must not move its own children.
+            $parents = WbsItem::where('project_id', $projectId)->pluck('parent_id', 'id');
+            $tasksToShift = $tasksToShift->reject(function ($task) use ($sourceTask, $parents) {
+                $parentId = $task->parent_id;
+                $seen = [];
+                while ($parentId && !isset($seen[$parentId])) {
+                    if ((int) $parentId === (int) $sourceTask->id) return true;
+                    $seen[$parentId] = true;
+                    $parentId = $parents[$parentId] ?? null;
+                }
+                return false;
+            });
+        }
         return $tasksToShift->values();
     }
 

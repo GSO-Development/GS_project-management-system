@@ -687,187 +687,144 @@
                     <p class="text-xs text-slate-500">You do not have permission to view the team roster for this project.</p>
                 </div>
             @else
-            <div class="space-y-5" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                
-                <!-- Main Clean Container Card -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
-                    
-                    <!-- 1. Clean Top Header & Action -->
-                    <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#c3122e] to-[#8b0d1f] text-white flex items-center justify-center shadow-md shadow-rose-600/20 border border-white/20">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="text-base font-black text-slate-900 tracking-tight">Project Team Roster</h3>
-                                    <span class="px-2 py-0.5 rounded-full text-[10.5px] font-black bg-rose-50 text-[#c3122e] border border-rose-200">
-                                        {{ $project->members->count() }} Active Member{{ $project->members->count() !== 1 ? 's' : '' }}
-                                    </span>
-                                </div>
-                                <p class="text-xs text-slate-400 font-medium mt-0.5">Assigned cross-functional delivery team and governance authorities</p>
+            @php
+                $teamTaskCounts = \App\Models\WbsItem::where('project_id', $project->id)
+                    ->selectRaw('assigned_user_id, count(*) as total')->groupBy('assigned_user_id')->pluck('total', 'assigned_user_id');
+                $rosterCount = $otherMembers->pluck('id')->when($pmUser, fn($ids) => $ids->push($pmUser->id))->unique()->count();
+                $pmTasksCount = $pmUser ? ($teamTaskCounts[$pmUser->id] ?? 0) : 0;
+            @endphp
+            <section class="team-roster" aria-labelledby="team-roster-title">
+                <style>
+                    .team-roster { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 28px -24px rgba(100,116,139,.3); }
+                    .team-roster__header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 24px; border-bottom: 1px solid #f1f5f9; }
+                    .team-roster__title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+                    .team-roster__title h3 { margin: 0; color: #0f172a; font-size: 16px; font-weight: 700; letter-spacing: -.025em; }
+                    .team-roster__count { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 20px; background: #f0fdf4; color: #15803d; font-size: 10px; font-weight: 600; }
+                    .team-roster__count i { display: block; width: 5px; height: 5px; border-radius: 50%; background: #4ade80; }
+                    .team-roster__subtitle { margin: 6px 0 0; color: #526277; font-size: 12px; line-height: 1.6; }
+                    .team-roster__add { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 12px; background: #fff1f3; border: 1px solid #ffe0e6; border-radius: 8px; color: #be123c; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+                    .team-roster__add:hover { border-color: #fda4af; background: #fff7f8; color: #be123c; }
+                    .team-roster svg { width: 14px; height: 14px; flex-shrink: 0; }
+                    .team-roster__body { padding: 22px 24px 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 22px; align-items: start; }
+                    .team-roster__section-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: #475569; font-size: 12px; font-weight: 700; }
+                    .team-roster__section-label span:last-child { font-size: 11px; font-weight: 500; color: #64748b; }
+                    .team-lead { display: flex; flex-direction: column; align-items: stretch; gap: 22px; padding: 20px; border: 1px solid #f0cdd7; border-radius: 12px; background: #fff8fa; min-height: 190px; }
+                    .team-person { display: flex; align-items: center; gap: 11px; min-width: 0; }
+                    .team-person__avatar { width: 42px; height: 42px; border-radius: 50%; background: #eff6ff; color: #326397; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+                    .team-lead .team-person__avatar { width: 42px; height: 42px; background: #ffeaf0; color: #bd6078; border: 1px solid #f8dce4; }
+                    .team-person__details { min-width: 0; }
+                    .team-person__name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+                    .team-person__name h4, .team-person__name h5 { margin: 0; font-size: 14px; font-weight: 700; color: #243247; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.5; }
+                    .team-person__email { display: block; margin-top: 5px; font-size: 12px; color: #526277; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; line-height: 1.6; }
+                    .team-person__email:hover { color: #be123c; }
+                    .team-lead__label { display: block; color: #a43555; font-size: 11px; font-weight: 600; margin-bottom: 6px; }
+                    .team-lead__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding-top: 16px; margin-top: auto; border-top: 1px solid #f4e8ec; }
+                    .team-lead__stat { min-width: 0; padding: 0 12px; border: 0; border-radius: 0; background: transparent; }
+                    .team-lead__stat strong { display: block; color: #334155; font-size: 21px; font-weight: 700; line-height: 1.3; }
+                    .team-lead__stat span { display: block; color: #526277; font-size: 11px; margin-top: 5px; }
+                    .team-lead__stat .team-lead__company { font-size: 13px; }
+                    .team-you { font-size: 9px; font-weight: 600; color: #a43555; padding: 3px 5px; border-radius: 4px; background: #fff1f3; flex-shrink: 0; }
+                    .team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+                    .team-member { display: flex; flex-direction: column; min-width: 0; min-height: 190px; padding: 18px; background: #fff; border: 1px solid #d8e0ea; border-radius: 12px; transition: border-color .18s, box-shadow .18s; }
+                    .team-member__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+                    .team-roster .team-member__role { display: inline-flex; align-items: center; padding: 5px 8px; font-size: 11px; font-weight: 600; border: 0; border-radius: 5px; }
+                    .team-member__remove { border: 0; background: transparent; color: #64748b; padding: 4px; border-radius: 4px; cursor: pointer; }
+                    .team-member__remove:hover { background: #fff1f2; color: #be123c; }
+                    .team-member__footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 14px; margin-top: auto; border-top: 1px solid #e5eaf0; color: #526277; font-size: 11px; }
+                    .team-member__tasks { display: inline-flex; align-items: center; gap: 6px; color: #334155; font-weight: 600; }
+                    .team-member__tasks svg { width: 11px; height: 11px; }
+                    .team-roster__empty { grid-column: 1 / -1; padding: 20px 0; font-size: 11px; color: #94a3b8; }
+                    .team-roster button:focus-visible, .team-roster a:focus-visible { outline: 2px solid #fda4af; outline-offset: 3px; }
+
+                    .team-member:hover { border-color: #d4dee9; box-shadow: 0 5px 18px -12px rgba(100,116,139,.25); }
+                    .team-member:nth-child(even) .team-person__avatar { background: #edf8f2; color: #2e7558; }
+                    .team-member__tasks { padding: 3px 7px; border-radius: 5px; background: #f8fafc; }
+                    .team-lead-section, .team-collaborators-section { min-width: 0; }
+                    .team-lead__stat:first-child { padding-left: 0; border-right: 1px solid #f1e5e9; }
+                    .team-lead__label { margin-bottom: 5px; }
+                    .team-person__details { flex: 1; }
+                    .team-member > .team-person { margin-bottom: 20px; }
+                    .team-member__tasks { background: transparent; padding: 0; }
+                    @media(max-width: 1100px) {
+                        .team-roster__body { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+                        .team-lead { min-height: 0; flex-direction: row; align-items: center; }
+                        .team-lead__stats { margin: 0; padding: 0; min-width: 180px; border: 0; }
+                    }
+                    @media(max-width: 640px) {
+                        .team-roster__header { padding: 18px; flex-wrap: wrap; }
+                        .team-roster__body { padding: 18px; }
+                        .team-grid { grid-template-columns: minmax(0, 1fr); }
+                        .team-lead { flex-direction: column; align-items: stretch; }
+                        .team-lead__stats { border-top: 1px solid #f4e8ec; padding-top: 14px; }
+                        .team-member { min-height: 185px; }
+                    }
+                </style>
+                <header class="team-roster__header">
+                    <div>
+                        <div class="team-roster__title"><h3 id="team-roster-title">Project Team Roster</h3><span class="team-roster__count"><i aria-hidden="true"></i>{{ $rosterCount }} members</span></div>
+                        <p class="team-roster__subtitle">The people leading and delivering this project.</p>
+                    </div>
+                    @if($canAddTeam)
+                        <button wire:click="openCollaboratorsModal" type="button" class="team-roster__add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Collaborator</button>
+                    @endif
+                </header>
+                <div class="team-roster__body">
+                    <div class="team-lead-section">
+                    <div class="team-roster__section-label"><span>Project leadership</span><span></span></div>
+                    <div class="team-lead">
+                        <div class="team-person">
+                            <div class="team-person__avatar">{{ strtoupper(substr($pmUser->name ?? 'P', 0, 1)) }}</div>
+                            <div class="team-person__details">
+                                <span class="team-lead__label">Lead project manager</span>
+                                <div class="team-person__name"><h4>{{ $pmUser->name ?? 'Unassigned' }}</h4>@if($isPm)<span class="team-you">You</span>@endif</div>
+                                @if($pmUser)<a href="mailto:{{ $pmUser->email }}" class="team-person__email">{{ $pmUser->email }}</a>@endif
                             </div>
                         </div>
-
-                        @if($canAddTeam)
-                            <button 
-                                wire:click="openCollaboratorsModal" 
-                                type="button"
-                                class="px-4.5 py-2.5 rounded-xl text-xs font-black text-white shadow-sm hover:shadow-md hover:scale-102 transition-all cursor-pointer flex items-center justify-center gap-2"
-                                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
-                            >
-                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Add Collaborator</span>
-                            </button>
+                        <div class="team-lead__stats">
+                            <div class="team-lead__stat"><strong>{{ $pmTasksCount }}</strong><span>Assigned tasks</span></div>
+                            <div class="team-lead__stat"><strong class="team-lead__company">{{ $pmUser->subsidiary->code ?? ($project->subsidiary->code ?? 'GS') }}</strong><span>Subsidiary</span></div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="team-collaborators-section">
+                    <div class="team-roster__section-label"><span>Team collaborators</span><span>{{ $otherMembers->count() }} assigned</span></div>
+                    <div class="team-grid">
+                        @foreach($otherMembers as $member)
+                            @php
+                                $isMe = $member->id === $currentUser->id;
+                                $role = $member->pivot->role ?? 'member';
+                                $roleMeta = $allRoles[$role] ?? null;
+                                $roleLabel = $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role));
+                                $roleBadgeClass = $roleMeta['badge'] ?? 'bg-blue-50 text-blue-800 border-blue-200';
+                                $memberTasksCount = $teamTaskCounts[$member->id] ?? 0;
+                            @endphp
+                            <article class="team-member" wire:key="team-member-{{ $member->id }}">
+                                <div class="team-member__top">
+                                    <span class="team-member__role {{ $roleBadgeClass }}">{{ $roleLabel }}</span>
+                                    @if($canRemoveTeam)
+                                        <button type="button" wire:click="removeCollaborator({{ $member->id }})" wire:confirm="Remove {{ $member->name }} from this project team?" class="team-member__remove" aria-label="Remove {{ $member->name }}" title="Remove member"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+                                    @endif
+                                </div>
+                                <div class="team-person">
+                                    <div class="team-person__avatar">{{ strtoupper(substr($member->name, 0, 1)) }}</div>
+                                    <div class="team-person__details">
+                                        <div class="team-person__name"><h5 title="{{ $member->name }}">{{ $member->name }}</h5>@if($isMe)<span class="team-you">You</span>@endif</div>
+                                        <a href="mailto:{{ $member->email }}" class="team-person__email" title="{{ $member->email }}">{{ $member->email }}</a>
+                                    </div>
+                                </div>
+                                <div class="team-member__footer">
+                                    <span>{{ $member->subsidiary->code ?? 'GS' }}</span>
+                                    <span class="team-member__tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 3h6v4H9zM9 14l2 2 4-4"/></svg>{{ $memberTasksCount }} tasks</span>
+                                </div>
+                            </article>
+                        @endforeach
+                        @if($otherMembers->isEmpty())
+                            <p class="team-roster__empty">No additional collaborators assigned yet.</p>
                         @endif
                     </div>
-
-                    <div class="p-6 space-y-5">
-                        <!-- 3. Primary Project Lead Card -->
-                        <div class="space-y-2">
-                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 block px-1">Project Leadership</span>
-                            
-                            @php
-                                $pmTasksCount = $pmUser ? \App\Models\WbsItem::where('project_id', $project->id)->where('assigned_user_id', $pmUser->id)->count() : 0;
-                            @endphp
-
-                            <div class="p-5 rounded-2xl border-2 border-rose-200/90 bg-gradient-to-r from-rose-50/70 via-slate-50/40 to-white shadow-2xs hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div class="flex items-center gap-4 min-w-0">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#c3122e] to-[#7a0a1a] text-white font-black text-lg flex items-center justify-center shadow-md shadow-rose-600/25 border-2 border-white">
-                                            {{ strtoupper(substr($pmUser->name ?? 'P', 0, 1)) }}
-                                        </div>
-                                    </div>
-
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <h4 class="text-base font-black text-slate-900 leading-tight">{{ $pmUser->name ?? 'Unassigned' }}</h4>
-                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#c3122e] text-white shadow-2xs">
-                                                LEAD PM
-                                            </span>
-                                            @if($isPm)
-                                                <span class="px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-300">
-                                                    ★ You
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <a href="mailto:{{ $pmUser->email ?? '' }}" class="text-xs text-slate-500 hover:text-[#c3122e] hover:underline font-medium block truncate mt-0.5">
-                                            {{ $pmUser->email ?? 'No email' }}
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-3 flex-shrink-0 self-start sm:self-center">
-                                    @if($pmTasksCount > 0)
-                                        <span class="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                            📋 {{ $pmTasksCount }} Task{{ $pmTasksCount !== 1 ? 's' : '' }}
-                                        </span>
-                                    @endif
-
-                                    <span class="text-xs font-bold text-[#c3122e] bg-white px-3.5 py-1.5 rounded-xl border border-rose-200 font-mono shadow-2xs">
-                                        {{ $pmUser->subsidiary->code ?? ($project->subsidiary->code ?? 'GS') }} Corp
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. Collaborators Squad Section -->
-                        <div class="space-y-3 pt-2">
-                            <div class="flex items-center justify-between px-1">
-                                <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Team Collaborators</span>
-                                <span class="text-[11px] font-semibold text-slate-400">{{ $otherMembers->count() }} Assigned</span>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                                @forelse($otherMembers as $member)
-                                    @php
-                                        $isMe = ($member->id === $currentUser->id);
-                                        $role = $member->pivot->role ?? 'member';
-                                        $roleMeta = $allRoles[$role] ?? null;
-                                        $roleLabel = $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role));
-                                        $roleBadgeClass = $roleMeta['badge'] ?? 'bg-blue-50 text-blue-800 border-blue-200';
-                                        $memberTasksCount = \App\Models\WbsItem::where('project_id', $project->id)->where('assigned_user_id', $member->id)->count();
-                                    @endphp
-
-                                    <div class="rounded-2xl border {{ $isMe ? 'border-rose-300 bg-rose-50/30 ring-2 ring-rose-500/15' : 'border-slate-200/90 bg-white' }} p-4 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between space-y-3">
-                                        <!-- Top Row: Role + Remove Action -->
-                                        <div class="flex items-center justify-between gap-2">
-                                            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold border {{ $roleBadgeClass }}">
-                                                {{ $roleLabel }}
-                                            </span>
-
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="text-[9.5px] font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
-                                                    {{ $member->subsidiary->code ?? 'GS' }}
-                                                </span>
-
-                                                @if($canRemoveTeam)
-                                                    <button 
-                                                        wire:click="removeCollaborator({{ $member->id }})" 
-                                                        wire:confirm="Remove {{ $member->name }} from this project team?"
-                                                        class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" 
-                                                        title="Remove member"
-                                                    >
-                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        <!-- Center: Avatar + Info -->
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-10 h-10 rounded-xl {{ $isMe ? 'bg-[#c3122e] text-white' : 'bg-slate-800 text-white' }} font-black text-xs flex items-center justify-center flex-shrink-0 border border-white shadow-2xs">
-                                                {{ strtoupper(substr($member->name, 0, 1)) }}
-                                            </div>
-
-                                            <div class="min-w-0 flex-1">
-                                                <div class="flex items-center gap-1.5 flex-wrap">
-                                                    <h5 class="text-xs font-black text-slate-900 truncate leading-tight">{{ $member->name }}</h5>
-                                                    @if($isMe)
-                                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase tracking-wider bg-rose-100 text-[#c3122e] border border-rose-200">
-                                                            You
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <a href="mailto:{{ $member->email }}" class="text-[11px] text-slate-400 hover:text-[#c3122e] hover:underline font-medium truncate block mt-0.5">
-                                                    {{ $member->email }}
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        <!-- Bottom: Task stats -->
-                                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10.5px] text-slate-500 font-medium">
-                                            <span>Task Scope</span>
-                                            <span class="font-bold text-slate-800 font-mono">{{ $memberTasksCount }} Assigned</span>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="col-span-full text-center py-8 rounded-2xl bg-slate-50/80 border border-dashed border-slate-300 space-y-2">
-                                        <p class="text-xs font-bold text-slate-600">No additional team members attached</p>
-                                        <p class="text-[11px] text-slate-400">Click "+ Add Collaborator" above to assign members to this project squad.</p>
-                                    </div>
-                                @endforelse
-
-                                <!-- Add Collaborator Dashed Quick Card -->
-                                @if($canAddTeam && $otherMembers->isNotEmpty())
-                                    <button
-                                        wire:click="openCollaboratorsModal"
-                                        type="button"
-                                        class="rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#c3122e] hover:bg-rose-50/40 p-4 transition-all flex flex-col items-center justify-center text-center space-y-1.5 cursor-pointer group min-h-[120px]"
-                                    >
-                                        <div class="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#c3122e] text-slate-500 group-hover:text-white flex items-center justify-center transition-all shadow-2xs">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        </div>
-                                        <span class="text-xs font-bold text-slate-700 group-hover:text-[#c3122e] transition-colors">Add Collaborator</span>
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-
                     </div>
                 </div>
-
-            </div>
+            </section>
             @endif
         @endif
 

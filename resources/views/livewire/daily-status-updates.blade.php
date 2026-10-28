@@ -1,5 +1,20 @@
 <div data-ui-page="daily-updates" class="ui-page ui-page-collaboration space-y-5 pb-12">
     <style>
+        html:has(.daily-history-dialog[open]), body:has(.daily-history-dialog[open]) { overflow: hidden; }
+        dialog.daily-history-dialog { position: fixed; inset: 0; margin: 0; padding: 24px; width: 100%; max-width: none; height: 100dvh; max-height: none; border: 0; background: transparent; color: #0f172a; overflow: hidden; box-sizing: border-box; }
+        dialog.daily-history-dialog[open] { display: grid; place-items: center; }
+        dialog.daily-history-dialog::backdrop { background: rgba(15,23,42,.48); backdrop-filter: blur(5px); }
+        .daily-history-panel { width: min(100%, 1000px); max-height: min(860px, calc(100dvh - 48px)); min-height: 0; margin: 0; box-sizing: border-box; }
+        .daily-history-body { min-height: 0; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; overflow-wrap: anywhere; }
+        .daily-history-header > div { min-width: 0; }
+        .daily-history-header button { flex-shrink: 0; }
+        .daily-history-panel button:focus-visible { outline: 2px solid #c3122e; outline-offset: 3px; }
+        @media (max-width: 640px) {
+            dialog.daily-history-dialog { padding: 12px; }
+            .daily-history-panel { max-height: calc(100dvh - 24px); }
+            .daily-history-header, .daily-history-body { padding: 16px; }
+        }
+
         .daily-update-scroll::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -395,21 +410,25 @@
         @endphp
 
         @if($historyProject)
-            <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in" x-data="{ modalTab: 'report' }">
-                <!-- Overlay Backdrop with soft blur -->
-                <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="closeHistoryModal"></div>
+            @teleport('body')
+            <dialog class="daily-history-dialog" x-data="{ modalTab: 'report' }"
+                x-init="$nextTick(() => $el.showModal())"
+                @cancel.prevent="$wire.closeHistoryModal()"
+                @click="if ($event.target === $el) $wire.closeHistoryModal()"
+                aria-labelledby="daily-history-title"
+                wire:key="daily-history-{{ $historyProjectId }}">
 
                 <!-- Popup Content Box -->
-                <div class="relative bg-white rounded-2xl max-w-4xl w-full shadow-2xl z-10 flex flex-col max-h-[90vh] md:max-h-[85vh] overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 mx-auto">
+                <div class="daily-history-panel bg-white rounded-2xl w-full shadow-2xl flex flex-col overflow-hidden border border-slate-200">
                     <!-- Modal Header -->
-                    <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-white flex-shrink-0">
+                    <div class="daily-history-header px-6 py-4 flex items-center justify-between gap-3 border-b border-slate-100 bg-white flex-shrink-0">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
                                 <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             </div>
                             <div class="min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 id="daily-history-title" class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                                         Project Activity &amp; Progress Logs
                                     </h3>
                                     @if($historyProject->code)
@@ -427,7 +446,7 @@
                             wire:click="closeHistoryModal" 
                             type="button" 
                             class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                            title="Close Window"
+                            title="Close Window" aria-label="Close project activity logs" autofocus
                         >
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -468,7 +487,7 @@
                     </div>
 
                     <!-- Modal Body Container -->
-                    <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                    <div class="daily-history-body flex-1 overflow-y-auto p-6 bg-slate-50/50">
                         @if($historyLatestUpdate)
                             <!-- TAB 1: PROGRESS REPORT -->
                             <div x-show="modalTab === 'report'" class="space-y-4">
@@ -685,7 +704,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </dialog>
+            @endteleport
+
         @endif
     @endif
 

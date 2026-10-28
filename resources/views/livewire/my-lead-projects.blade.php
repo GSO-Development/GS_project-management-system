@@ -112,7 +112,43 @@
          ══════════════════════════════════════════════════════════ --}}
     @if($projects->count() > 0)
     <div class="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm mb-6">
-        <div class="overflow-x-auto scrollbar-thin">
+        <div class="my-projects-drag-scroll overflow-x-auto scrollbar-thin"
+            x-data="{
+                panStart: null,
+                isPanning: false,
+                beginPan(event) {
+                    if (event.pointerType !== 'mouse' || event.button !== 0 || this.$el.scrollWidth &lt;= this.$el.clientWidth) return;
+                    if (event.target.closest('a, button, input, select, textarea, [contenteditable], [role=button]')) return;
+                    const rect = this.$el.getBoundingClientRect();
+                    if (event.clientX >= rect.left + this.$el.clientWidth || event.clientY >= rect.top + this.$el.clientHeight) return;
+                    this.panStart = { id: event.pointerId, x: event.clientX, left: this.$el.scrollLeft };
+                    event.preventDefault();
+                },
+                movePan(event) {
+                    if (!this.panStart || event.pointerId !== this.panStart.id) return;
+                    if (!(event.buttons &amp; 1)) { this.endPan(); return; }
+                    const delta = event.clientX - this.panStart.x;
+                    if (!this.isPanning &amp;&amp; Math.abs(delta) &lt; 4) return;
+                    if (!this.isPanning) this.$el.setPointerCapture(event.pointerId);
+                    this.isPanning = true;
+                    event.preventDefault();
+                    this.$el.scrollLeft = this.panStart.left - delta;
+                },
+                endPan() {
+                    if (this.panStart &amp;&amp; this.$el.hasPointerCapture(this.panStart.id)) this.$el.releasePointerCapture(this.panStart.id);
+                    this.panStart = null;
+                    this.isPanning = false;
+                }
+            }"
+            @pointerdown="beginPan($event)" @pointermove.window="movePan($event)" @pointerup.window="endPan()"
+            @pointercancel.window="endPan()" @blur.window="endPan()" @lostpointercapture="panStart = null; isPanning = false"
+            :class="{ 'is-panning': isPanning }" tabindex="0" role="region" aria-label="My Projects table, drag empty space to scroll horizontally">
+            <style>
+                .my-projects-drag-scroll { cursor: grab; }
+                .my-projects-drag-scroll.is-panning, .my-projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
+                .my-projects-drag-scroll a, .my-projects-drag-scroll button { cursor: pointer; }
+                .my-projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+            </style>
             <table class="w-full text-left border-collapse min-w-[1040px]">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black text-slate-500 uppercase tracking-wider">

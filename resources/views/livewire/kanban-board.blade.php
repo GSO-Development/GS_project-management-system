@@ -1,5 +1,59 @@
-<div>
-    <div class="flex gap-5 overflow-x-auto pb-4 scrollbar-thin">
+<div class="project-kanban" x-data="{
+    drag: null,
+    dragging: false,
+    beginPan(event) {
+        if (event.pointerType !== 'mouse' || event.button !== 0) return;
+        if (event.target.closest('[data-task-id], button, input, select, textarea, a, [contenteditable]')) return;
+        const board = this.$refs.board;
+        const rect = board.getBoundingClientRect();
+        if (event.clientX >= rect.left + board.clientWidth || event.clientY >= rect.top + board.clientHeight) return;
+        this.drag = { id: event.pointerId, x: event.clientX, left: board.scrollLeft };
+    },
+    pan(event) {
+        if (!this.drag || event.pointerId !== this.drag.id) return;
+        if (!(event.buttons &amp; 1)) { this.endPan(); return; }
+        const delta = event.clientX - this.drag.x;
+        if (!this.dragging &amp;&amp; Math.abs(delta) &lt; 4) return;
+        if (!this.dragging) this.$refs.board.setPointerCapture(event.pointerId);
+        this.dragging = true;
+        event.preventDefault();
+        this.$refs.board.scrollLeft = this.drag.left - delta;
+    },
+    endPan() {
+        if (this.drag &amp;&amp; this.$refs.board.hasPointerCapture(this.drag.id)) this.$refs.board.releasePointerCapture(this.drag.id);
+        this.drag = null;
+        this.dragging = false;
+    },
+    scrollAcross(event, fromHeader = false) {
+        if (event.ctrlKey || (!event.shiftKey &amp;&amp; !fromHeader)) return;
+        const board = this.$refs.board;
+        if (board.scrollWidth &lt;= board.clientWidth) return;
+        const unit = event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? board.clientWidth : 1;
+        const movement = (event.deltaX || event.deltaY) * unit;
+        if (!movement) return;
+        event.preventDefault();
+        board.scrollLeft += movement;
+    }
+}">
+    <style>
+        .project-kanban { min-width: 0; max-width: 100%; }
+        .project-kanban .kanban-board-viewport {
+            width: 100%; height: min(680px, 70dvh); min-height: 280px;
+            overflow: auto; padding: 0 0 8px; border-radius: 12px;
+            scrollbar-width: auto; scrollbar-color: #94a3b8 #f1f5f9;
+            scrollbar-gutter: stable; overscroll-behavior: contain;
+        }
+        .kanban-board-viewport::-webkit-scrollbar { width: 10px; height: 10px; }
+        .kanban-board-viewport::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .kanban-board-viewport::-webkit-scrollbar-thumb { background: #94a3b8; border: 2px solid #f1f5f9; border-radius: 8px; }
+        .kanban-board-viewport::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .kanban-board-viewport:focus-visible { outline: 2px solid #c3122e; outline-offset: 3px; }
+        .kanban-board-viewport, .kanban-board-viewport .kanban-dropzone { cursor: grab; }
+        .kanban-board-viewport.is-panning, .kanban-board-viewport.is-panning * { cursor: grabbing !important; user-select: none; }
+        .kanban-columns { display: flex; gap: 20px; width: max-content; min-width: 100%; min-height: 100%; }
+    </style>
+    <div x-ref="board" @wheel="scrollAcross($event)" @pointerdown="beginPan($event)" @pointermove.window="pan($event)" @pointerup.window="endPan()" @pointercancel.window="endPan()" @lostpointercapture="drag = null; dragging = false" @blur.window="endPan()" :class="{ 'is-panning': dragging }" class="kanban-board-viewport" tabindex="0" role="region" aria-label="Kanban board, scroll horizontally and vertically" title="Click and drag empty space to scroll horizontally">
+        <div class="kanban-columns">
         @foreach($columns as $statusKey => $col)
             @php
                 $statusDotColor = match($statusKey) {
@@ -15,7 +69,7 @@
             @endphp
             <div class="w-80 flex-shrink-0 bg-slate-50/70 border border-slate-200/80 rounded-2xl p-3.5 space-y-3" data-status="{{ $statusKey }}">
                 <!-- Column Header -->
-                <div class="flex items-center justify-between px-1 pb-1">
+                <div class="flex items-center justify-between px-1 pb-1" @wheel.stop="scrollAcross($event, true)" title="Mouse wheel: scroll columns horizontally">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full {{ $statusDotColor }}"></span>
                         <h4 class="font-black text-xs text-slate-800 uppercase tracking-wider">{{ $col['title'] }}</h4>
@@ -104,6 +158,7 @@
                 </div>
             </div>
         @endforeach
+        </div>
     </div>
 
     <!-- SortableJS Initialization Script -->

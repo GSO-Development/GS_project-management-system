@@ -378,6 +378,7 @@ class GanttChart extends Component
         // Build dependency connector coordinates for tasks that are currently visible.
         // Keeping these coordinates in the same pixel system as the task bars makes
         // the connectors stay aligned in day, week and month views.
+        $rowHeight = 44;
         $visibleRowById = $wbsItems->values()->mapWithKeys(
             fn ($item, $index) => [(int) $item->id => $index]
         );
@@ -399,9 +400,13 @@ class GanttChart extends Component
             $barStart = round($dayToPx[$startOffset], 2);
             $barEnd = round($dayToPx[$endOffset], 2);
             if ($item->is_milestone) {
-                // Milestone diamonds are centred 10px after the scheduled date.
-                $barStart += 10;
-                $barEnd = $barStart;
+                // The 16px diamond is rotated around its centre at left + 18px.
+                $centre = $barStart + 18;
+                $halfDiagonal = 8 * sqrt(2);
+                $barStart = round($centre - $halfDiagonal, 2);
+                $barEnd = round($centre + $halfDiagonal, 2);
+            } else {
+                $barEnd = $barStart + max(18, $barEnd - $barStart);
             }
 
             $barCoordinates[(int) $item->id] = [
@@ -423,13 +428,13 @@ class GanttChart extends Component
                 $targetId = (int) $successor->id;
                 $sourceX = $barCoordinates[$sourceId]['end'];
                 $targetX = $barCoordinates[$targetId]['start'];
-                $sourceY = ((int) $visibleRowById->get($sourceId) * 48) + 24;
-                $targetY = ((int) $visibleRowById->get($targetId) * 48) + 24;
+                $sourceY = ((int) $visibleRowById->get($sourceId) * $rowHeight) + ($rowHeight / 2);
+                $targetY = ((int) $visibleRowById->get($targetId) * $rowHeight) + ($rowHeight / 2);
                 $laneOffset = 12 + (($connectorIndex % 5) * 6);
                 $laneX = min($totalCanvasPx - 8, max($sourceX + 10, $targetX + $laneOffset));
                 $bendY = $targetY > $sourceY ? $targetY - 10 : $targetY + 10;
                 $targetApproachX = max(2, $targetX - 14);
-                $targetEdgeX = max(5, $targetX - 4);
+                $targetEdgeX = max(0, $targetX);
 
                 $predecessorStatus = is_object($predecessor->status)
                     ? $predecessor->status->value
@@ -536,6 +541,7 @@ class GanttChart extends Component
             'timelineEnd',
             'totalTimelineDays',
             'totalCanvasPx',
+            'rowHeight',
             'monthHeaders',
             'columns',
             'dayToPx',

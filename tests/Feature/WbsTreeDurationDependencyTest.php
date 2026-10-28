@@ -240,7 +240,20 @@ test('gantt chart renders visible task dependency connectors', function () {
         ->assertSee('1 dependencies')
         ->assertSee('gantt-dependency-layer', false)
         ->assertSee('gantt-dependency-path', false)
-        ->assertSee('waiting for predecessor');
+        ->assertSee('waiting for predecessor')
+        ->assertViewHas('rowHeight', 44)
+        ->assertViewHas('ganttDependencies', function ($links) {
+            return count($links) === 1 && $links[0]['source_y'] == 22 && $links[0]['target_y'] == 66;
+        });
+
+    $successor->update(['is_milestone' => true]);
+    Livewire::actingAs($pm)->test(GanttChart::class, ['project' => $project])
+        ->assertViewHas('ganttDependencies', function ($links) {
+            // A rotated diamond connects at its left tip, rather than its box origin.
+            return count($links) === 1
+                && $links[0]['source_y'] == 22 && $links[0]['target_y'] == 66
+                && str_ends_with($links[0]['path'], 'H '.$links[0]['target_x']);
+        });
 });
 
 test('user can select and save dependencies directly within the add task modal', function () {

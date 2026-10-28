@@ -206,7 +206,43 @@
 
         {{-- ── Projects Table Container ── --}}
         <div class="projects-directory-table bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
-            <div class="w-full overflow-x-auto scrollbar-thin">
+            <div class="projects-drag-scroll w-full overflow-x-auto scrollbar-thin"
+                x-data="{
+                    drag: null,
+                    dragging: false,
+                    beginPan(event) {
+                        if (event.pointerType !== 'mouse' || event.button !== 0 || this.$el.scrollWidth &lt;= this.$el.clientWidth) return;
+                        if (event.target.closest('a, button, input, select, textarea, [contenteditable], [role=button]')) return;
+                        const rect = this.$el.getBoundingClientRect();
+                        if (event.clientX >= rect.left + this.$el.clientWidth || event.clientY >= rect.top + this.$el.clientHeight) return;
+                        this.drag = { id: event.pointerId, x: event.clientX, left: this.$el.scrollLeft };
+                        event.preventDefault();
+                    },
+                    pan(event) {
+                        if (!this.drag || event.pointerId !== this.drag.id) return;
+                        if (!(event.buttons &amp; 1)) { this.endPan(); return; }
+                        const delta = event.clientX - this.drag.x;
+                        if (!this.dragging &amp;&amp; Math.abs(delta) &lt; 4) return;
+                        if (!this.dragging) this.$el.setPointerCapture(event.pointerId);
+                        this.dragging = true;
+                        event.preventDefault();
+                        this.$el.scrollLeft = this.drag.left - delta;
+                    },
+                    endPan() {
+                        if (this.drag &amp;&amp; this.$el.hasPointerCapture(this.drag.id)) this.$el.releasePointerCapture(this.drag.id);
+                        this.drag = null;
+                        this.dragging = false;
+                    }
+                }"
+                @pointerdown="beginPan($event)" @pointermove.window="pan($event)" @pointerup.window="endPan()"
+                @pointercancel.window="endPan()" @blur.window="endPan()" @lostpointercapture="drag = null; dragging = false"
+                :class="{ 'is-panning': dragging }" tabindex="0" role="region" aria-label="Projects table, drag empty space to scroll horizontally">
+                <style>
+                    .projects-drag-scroll { cursor: grab; }
+                    .projects-drag-scroll.is-panning, .projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
+                    .projects-drag-scroll a, .projects-drag-scroll button { cursor: pointer; }
+                    .projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+                </style>
                 <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
                     <colgroup>
                         <col class="w-[4%]">

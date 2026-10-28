@@ -1,4 +1,18 @@
 <div class="w-full" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+    <style>
+        .workspace-mouse-scroll { cursor: grab; }
+        .workspace-mouse-scroll.is-panning, .workspace-mouse-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
+        .workspace-mouse-scroll button, .workspace-mouse-scroll a { cursor: pointer; }
+        .workspace-mouse-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+
+        .task-tree-controls { display: inline-flex; align-items: center; padding: 2px; gap: 0; border: 1px solid #e8edf3; border-radius: 7px; background: #fff; }
+        .task-tree-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 3px 7px; border: 0; border-radius: 4px; background: transparent; color: #64748b; font-family: inherit; font-size: 10px; font-weight: 600; line-height: 16px; white-space: nowrap; cursor: pointer; transition: background .15s ease, color .15s ease; }
+        .task-tree-controls button:hover { background: #fff1f3; color: #c3122e; }
+        .task-tree-controls button:focus-visible { outline: 2px solid #c3122e; outline-offset: 2px; }
+        .task-tree-controls button:disabled { opacity: .5; cursor: wait; }
+        .task-tree-controls svg { width: 12px; height: 12px; flex-shrink: 0; }
+        .task-tree-controls__divider { width: 1px; height: 12px; margin: 0 2px; background: #e8edf3; }
+    </style>
     <!-- 🌟 UNIFIED EXECUTIVE TASKS CONTAINER (Clean, Modern, All-in-One Card) -->
     <div class="w-full bg-white rounded-2xl shadow-2xs border border-slate-200/80 overflow-hidden">
         
@@ -60,8 +74,20 @@
                 </div>
             </div>
 
-            <!-- Right Controls: Add Task -->
+            <!-- Tree controls and task actions -->
             <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+                <div class="task-tree-controls" role="group" aria-label="Task hierarchy controls">
+                    <button type="button" wire:click="expandAll" wire:loading.attr="disabled" wire:target="expandAll,collapseAll" aria-label="Expand all tasks" title="Expand all tasks and subtasks">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M5 17h14M12 10v4m-2-2h4"/></svg>
+                        <span>Expand</span>
+                    </button>
+                    <span class="task-tree-controls__divider" aria-hidden="true"></span>
+                    <button type="button" wire:click="collapseAll" wire:loading.attr="disabled" wire:target="expandAll,collapseAll" aria-label="Collapse all tasks" title="Collapse to top-level tasks">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M5 17h14M10 12h4"/></svg>
+                        <span>Collapse</span>
+                    </button>
+                </div>
+
 
                 @if($this->canCreateTasks)
                     <button
@@ -96,7 +122,35 @@
         </div>
 
         <!-- ── STREAMLINED RESPONSIVE TREE TABLE ── -->
-        <div class="w-full overflow-x-auto">
+        <div class="workspace-mouse-scroll w-full overflow-x-auto" x-data="{
+    panStart: null,
+    isPanning: false,
+    beginPan(event) {
+        const board = this.$el;
+        if (event.pointerType !== 'mouse' || event.button !== 0 || board.scrollWidth &lt;= board.clientWidth) return;
+        if (event.target.closest('a, button, input, select, textarea, [contenteditable], [role=button], [data-pan-ignore]')) return;
+        const rect = board.getBoundingClientRect();
+        if (event.clientX >= rect.left + board.clientWidth || event.clientY >= rect.top + board.clientHeight) return;
+        this.panStart = { id: event.pointerId, x: event.clientX, left: board.scrollLeft };
+        event.preventDefault();
+    },
+    movePan(event) {
+        if (!this.panStart || event.pointerId !== this.panStart.id) return;
+        if (!(event.buttons &amp; 1)) { this.endPan(); return; }
+        const delta = event.clientX - this.panStart.x;
+        if (!this.isPanning &amp;&amp; Math.abs(delta) &lt; 4) return;
+        const board = this.$el;
+        if (!this.isPanning) board.setPointerCapture(event.pointerId);
+        this.isPanning = true;
+        event.preventDefault();
+        board.scrollLeft = this.panStart.left - delta;
+    },
+    endPan() {
+        const board = this.$el;
+        if (this.panStart &amp;&amp; board.hasPointerCapture(this.panStart.id)) board.releasePointerCapture(this.panStart.id);
+        this.panStart = null;
+        this.isPanning = false;
+    }, }" @pointerdown="beginPan($event)" @pointermove.window="movePan($event)" @pointerup.window="endPan()" @pointercancel.window="endPan()" @blur.window="endPan()" @lostpointercapture="panStart = null; isPanning = false" :class="{ 'is-panning': isPanning }" tabindex="0" role="region" aria-label="Project tasks, drag empty space to scroll horizontally">
             <table class="w-full text-left border-collapse min-w-[760px] lg:min-w-full text-xs">
                 <thead class="bg-slate-50/80 border-b border-slate-200/80 select-none">
                     <tr class="text-slate-400 text-[10.5px] font-extrabold uppercase tracking-wider" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">

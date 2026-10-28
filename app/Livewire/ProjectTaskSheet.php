@@ -20,6 +20,164 @@ class ProjectTaskSheet extends Component
     // Collapsed node IDs (empty array means everything is fully expanded)
     public array $collapsedIds = [];
 
+    public bool $editing = false;
+    public array $drafts = [];
+    #[\Livewire\Attributes\Locked]
+    public array $cascadePreview = [];
+    public bool $showCascadeModal = false;
+
+
+    public function getCanEditProperty(): bool
+    {
+        $user = auth()->user();
+        return $user && ($user->isPmoAdmin() || $this->project->project_manager_id === $user->id || $this->project->userCan($user, 'task.edit'));
+    }
+
+    public function getCanAssignProperty(): bool
+    {
+        $user = auth()->user();
+        return $user && ($user->isPmoAdmin() || $this->project->userCan($user, 'task.assign'));
+    }
+
+    public function startEditing(): void
+    {
+        abort_unless($this->canEdit, 403);
+        $this->drafts = [];
+        foreach (WbsItem::where('project_id', $this->project->id)->get() as $item) {
+            $this->drafts[$item->id] = [
+                'assigned_user_id' => $item->assigned_user_id,
+                'title' => $item->title,
+                'start_date' => $item->start_date?->format('Y-m-d'),
+                'end_date' => $item->end_date?->format('Y-m-d'),
+                'start_time' => $item->start_time ? substr($item->start_time, 0, 5) : null,
+                'end_time' => $item->end_time ? substr($item->end_time, 0, 5) : null,
+                'progress' => $item->progress ?? 0,
+                'status' => $item->status?->value ?? 'not_started',
+                'priority' => $item->priority?->value ?? 'medium',
+            ];
+        }
+        $this->editing = true;
+        $this->resetValidation();
+    }
+
+    public function cancelEditing(): void
+    {
+        $this->editing = false;
+        $this->showCascadeModal = false;
+        $this->cascadePreview = [];
+        $this->drafts = [];
+        $this->resetValidation();
+    }
+
+    public function saveTasks(): void { $this->persistTasks(null); }
+
+    public function confirmCascade(): void
+    {
+        abort_unless($this->showCascadeModal, 403);
+        $this->persistTasks(true);
+    }
+
+    public function saveWithoutCascade(): void
+    {
+        abort_unless($this->showCascadeModal, 403);
+        $this->persistTasks(false);
+    }
+
+    public function cancelCascade(): void
+    {
+        $this->showCascadeModal = false;
+        $this->cascadePreview = [];
+    }
+
+    private function persistTasks(?bool $cascade): void
+    {
+        abort_unless($this->canEdit && $this->editing, 403);
+        // Moving only the start retains duration, even when it passes the old end.
+        foreach ($this->drafts as $id => $draft) {
+            $item = WbsItem::where('project_id', $this->project->id)->findOrFail($id);
+            $oldStart = $item->start_date?->toDateString();
+            $oldEnd = $item->end_date?->toDateString();
+            $start = $draft['start_date'] ?? null;
+            if ($oldStart && $oldEnd && $start && $start !== $oldStart && ($draft['end_date'] ?? null) === $oldEnd
+                && preg_match('/^\d{4}-\d{2}-\d{2}$/', $start)) {
+                try {
+                    $shift = (int) \Carbon\Carbon::parse($oldStart)->diffInDays(\Carbon\Carbon::createFromFormat('!Y-m-d', $start), false);
+                    $this->drafts[$id]['end_date'] = \Carbon\Carbon::parse($oldEnd)->addDays($shift)->toDateString();
+                } catch (\Throwable $e) {
+                    // Let the normal date validation report malformed input.
+                }
+            }
+        }
+        $rules = ['drafts' => 'required|array'];
+        foreach ($this->drafts as $id => $draft) {
+            $prefix = "drafts.$id.";
+            $memberIds = $this->project->members()->pluck('users.id')->push($this->project->project_manager_id)->filter()->all();
+            // Preserve existing assignees even if they have since left the team.
+            $currentAssignee = WbsItem::where('project_id', $this->project->id)->whereKey($id)->value('assigned_user_id');
+            if ($currentAssignee) $memberIds[] = $currentAssignee;
+            $rules[$prefix.'assigned_user_id'] = ['nullable', \Illuminate\Validation\Rule::in($memberIds)];
+            $rules[$prefix.'title'] = 'required|string|max:255';
+            $rules[$prefix.'start_date'] = 'nullable|date_format:Y-m-d';
+            $rules[$prefix.'end_date'] = 'nullable|date_format:Y-m-d'.(!empty($draft['start_date']) ? '|after_or_equal:'.$prefix.'start_date' : '');
+            $rules[$prefix.'start_time'] = 'nullable|date_format:H:i';
+            $rules[$prefix.'end_time'] = 'nullable|date_format:H:i';
+            $rules[$prefix.'progress'] = 'required|integer|min:0|max:100';
+            $rules[$prefix.'status'] = ['required', new \Illuminate\Validation\Rules\Enum(\App\Enums\WbsStatus::class)];
+            $rules[$prefix.'priority'] = ['required', new \Illuminate\Validation\Rules\Enum(\App\Enums\Priority::class)];
+            if (!empty($draft['start_date']) && $draft['start_date'] === ($draft['end_date'] ?? null) && !empty($draft['start_time']) && !empty($draft['end_time']) && $draft['end_time'] <= $draft['start_time']) {
+                $this->addError($prefix.'end_time', 'End time must be after start time.');
+                return;
+            }
+        }
+        $validated = $this->validate($rules)['drafts'];
+        $items = WbsItem::where('project_id', $this->project->id)->get();
+        $scheduleChanged = $items->contains(function ($item) use ($validated) {
+            $draft = $validated[$item->id] ?? [];
+            return (array_key_exists('start_date', $draft) && (($draft['start_date'] ?: null) !== $item->start_date?->toDateString()))
+                || (array_key_exists('end_date', $draft) && (($draft['end_date'] ?: null) !== $item->end_date?->toDateString()));
+        });
+        $plan = $scheduleChanged ? app(\App\Services\TaskSheetScheduleService::class)->plan($items, $validated) : ['updates' => [], 'tasks' => []];
+        if ($cascade === null && $scheduleChanged) {
+            $this->cascadePreview = [['tasks' => $plan['tasks'], 'deadline' => $plan['deadline']]];
+            $this->showCascadeModal = true;
+            return;
+        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $plan, $cascade) {
+            $changed = [];
+            foreach ($validated as $id => $data) {
+                $item = WbsItem::where('project_id', $this->project->id)->lockForUpdate()->findOrFail($id);
+                foreach (['start_date', 'end_date', 'start_time', 'end_time'] as $field) $data[$field] = ($data[$field] ?? null) ?: null;
+                if ($cascade && isset($plan['updates'][$id])) $data = array_replace($data, $plan['updates'][$id]);
+                if ((int) $data['progress'] === 100) $data['status'] = 'completed';
+                if ($data['status'] === 'completed') $data['progress'] = 100;
+                if (!$this->canAssign) unset($data['assigned_user_id']);
+                elseif (empty($data['assigned_user_id'])) $data['assigned_user_id'] = null;
+                $item->fill($data);
+                if ($item->isDirty()) {
+                    if ($item->isDirty('end_date') || $data['status'] === 'completed') $item->overdue_notified_at = null;
+                    if ($cascade && isset($plan['updates'][$id])) {
+                        $item->rescheduled_at = now();
+                        $item->rescheduled_reason = 'Task sheet dates recalculated in task order';
+                    }
+                    $item->updated_by = auth()->id();
+                    $item->save();
+                    $changed[] = $item;
+                }
+            }
+            // The plan also includes rows hidden by filters or collapsed branches.
+            if ($cascade) {
+                foreach (array_diff_key($plan['updates'], $validated) as $id => $dates) {
+                    WbsItem::where('project_id', $this->project->id)->findOrFail($id)->update($dates + ['updated_by' => auth()->id(), 'overdue_notified_at' => null]);
+                }
+                if (!empty($plan['deadline'])) $this->project->update(['deadline' => $plan['deadline']]);
+            }
+            foreach ($changed as $item) (new \App\Services\ProgressCalculationService())->updateItemProgress($item);
+        });
+        $this->cancelEditing();
+        $this->dispatch('wbsUpdated');
+        $this->dispatch('toast', message: 'Tasks saved successfully.', type: 'success');
+    }
+
     public function mount(Project $project): void
     {
         $this->project = $project;
@@ -62,6 +220,7 @@ class ProjectTaskSheet extends Component
 
     public function closeSheet(): void
     {
+        $this->cancelEditing();
         $this->dispatch('closeTaskSheet');
     }
 
