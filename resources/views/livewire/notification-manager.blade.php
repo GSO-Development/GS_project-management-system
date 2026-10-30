@@ -303,31 +303,31 @@
 
                 // Category Badges & Iconography
                 if ($isProjectLeaderAssignment) {
-                    $catLabel = '⭐ Leadership';
+                    $catLabel = 'Leadership';
                     $badgeStyle = 'bg-amber-50 text-amber-800 border-amber-200';
-                    $iconBg = 'bg-amber-100 text-amber-700';
+
                 } elseif ($cat === 'approvals' || str_contains($lowerMsg, 'approval') || str_contains($lowerMsg, 'request')) {
-                    $catLabel = '📋 Approval';
+                    $catLabel = 'Approval';
                     $badgeStyle = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-                    $iconBg = 'bg-indigo-100 text-indigo-700';
+
                 } elseif ($cat === 'task_completed' || str_contains($lowerMsg, 'completed') || str_contains($lowerMsg, 'done')) {
-                    $catLabel = '✅ Task Done';
+                    $catLabel = 'Task Done';
                     $badgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-                    $iconBg = 'bg-emerald-100 text-emerald-700';
+
                 } elseif ($cat === 'blocker' || str_contains($lowerMsg, 'blocker') || str_contains($lowerMsg, 'delay') || str_contains($lowerMsg, 'overdue')) {
-                    $catLabel = '🚨 Blocker';
+                    $catLabel = 'Blocker';
                     $badgeStyle = 'bg-rose-50 text-rose-800 border-rose-200';
-                    $iconBg = 'bg-rose-100 text-rose-700';
+
                 } else {
-                    $catLabel = '📢 Update';
+                    $catLabel = 'Update';
                     $badgeStyle = 'bg-sky-50 text-sky-800 border-sky-200';
-                    $iconBg = 'bg-sky-100 text-sky-700';
+
                 }
 
                 $isSelected = in_array($n->id, $selectedIds);
             @endphp
 
-            <div class="group relative p-4 rounded-2xl border transition-all cursor-pointer {{ $isUnread ? 'bg-white border-l-4 border-l-[#c3122e] border-slate-200 shadow-sm' : 'bg-slate-50/70 border-slate-200/80 hover:bg-white hover:border-slate-300' }} {{ $isSelected ? '!bg-rose-50/30 !border-[#c3122e]/40' : '' }}"
+            <div class="notification-row group relative p-4 rounded-2xl border transition-all cursor-pointer {{ $isUnread ? 'bg-white border-l-4 border-l-[#c3122e] border-slate-200 shadow-sm' : 'bg-slate-50/70 border-slate-200/80 hover:bg-white hover:border-slate-300' }} {{ $isSelected ? '!bg-rose-50/30 !border-[#c3122e]/40' : '' }}"
                  wire:click="markAsReadAndRedirect('{{ $n->id }}', '{{ addslashes($url) }}')">
 
                 <div class="flex items-start gap-3.5">
@@ -339,24 +339,9 @@
                             class="w-4 h-4 rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e]/20 cursor-pointer">
                     </div>
 
-                    {{-- Category Icon Avatar --}}
-                    <div class="w-9 h-9 rounded-xl {{ $iconBg }} flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs mt-0.5">
-                        @if($isProjectLeaderAssignment)
-                            ⭐
-                        @elseif($cat === 'approvals' || str_contains($lowerMsg, 'approval'))
-                            📋
-                        @elseif($cat === 'task_completed' || str_contains($lowerMsg, 'completed'))
-                            ✓
-                        @elseif($cat === 'blocker' || str_contains($lowerMsg, 'blocker'))
-                            ⚠️
-                        @else
-                            📢
-                        @endif
-                    </div>
-
                     {{-- Card Content --}}
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <div class="notification-content flex-1 min-w-0">
+                        <div class="notification-meta flex items-center justify-between gap-2 flex-wrap mb-1">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-lg border {{ $badgeStyle }}">
                                     {{ $catLabel }}
@@ -427,17 +412,12 @@
 
                         {{-- Special Action Card for Project Leadership Assignment --}}
                         @if($isProjectLeaderAssignment && $isUnread)
-                            <div class="mt-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50/60 border border-amber-200/80 flex items-center justify-between gap-3 flex-wrap shadow-2xs" wire:click.stop>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-base">⭐</span>
-                                    <span class="text-xs text-amber-950 font-bold">
-                                        You have been designated as Project Leader. Review details to accept leadership.
-                                    </span>
-                                </div>
+                            <div class="notification-leadership mt-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50/60 border border-amber-200/80 flex items-center justify-between gap-3 flex-wrap shadow-2xs" wire:click.stop>
+
                                 <button wire:click="acceptProjectAssignment('{{ $n->id }}', {{ $projectId }})"
                                     type="button"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-white bg-[#c3122e] hover:bg-[#a90f27] transition-all cursor-pointer shadow-md shadow-[#c3122e]/20 active:scale-95">
-                                    Accept Leadership &rarr;
+                                    Review assignment
                                 </button>
                             </div>
                         @endif

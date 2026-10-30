@@ -643,11 +643,11 @@
          7. MODAL: EVENT DETAILS & MICROSOFT 365 ACTIONS
          ═══════════════════════════════════════════════════════════════ -->
     @teleport('body')
-    <div x-data="{ open: @entangle('showEventModal') }" x-show="open" @keydown.escape.window="open = false; $wire.showEventModal = false" style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px); display: none;" x-cloak>
+    <div class="calendar-detail-backdrop" role="dialog" aria-modal="true" aria-labelledby="calendar-detail-title" x-data="{ open: @entangle('showEventModal') }" x-show="open" @keydown.escape.window="open = false; $wire.showEventModal = false" style="position: fixed; inset: 0; z-index: 2147483000; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px);" x-cloak>
         <div class="fixed inset-0 -z-10" @click="open = false; $wire.showEventModal = false"></div>
-        <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-lg p-5 sm:p-6 z-10 space-y-4 max-h-[90vh] overflow-y-auto" @click.outside="open = false; $wire.showEventModal = false">
+        <div class="calendar-detail-panel relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-lg p-5 sm:p-6 z-10 space-y-4 max-h-[90vh] overflow-y-auto" @click.outside="open = false; $wire.showEventModal = false">
             @if($selectedEvent)
-                <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                <div class="calendar-detail-header flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
                             <span class="px-2 py-0.5 rounded text-[10.5px] font-black uppercase tracking-wider bg-slate-100 text-slate-800">
@@ -658,31 +658,31 @@
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200">Synced to Outlook</span>
                             @endif
                         </div>
-                        <h3 class="text-base font-black text-slate-900 leading-snug">{{ $selectedEvent['title'] }}</h3>
+                        <h3 id="calendar-detail-title" class="text-base font-black text-slate-900 leading-snug">{{ $selectedEvent['title'] }}</h3>
                     </div>
-                    <button type="button" @click="open = false; $wire.showEventModal = false" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                    <button type="button" @click="open = false; $wire.showEventModal = false" aria-label="Close event details" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <div class="space-y-3 text-xs">
+                <div class="calendar-detail-body space-y-3 text-xs">
                     <!-- Schedule Info -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                    <div class="calendar-detail-facts p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-500">Date:</span>
+                            <span class="font-bold text-slate-500">Date</span>
                             <span class="font-bold text-slate-900">{{ $selectedEvent['start_date_formatted'] }} @if($selectedEvent['end_date_formatted'] !== $selectedEvent['start_date_formatted']) – {{ $selectedEvent['end_date_formatted'] }} @endif</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-500">Time Range:</span>
+                            <span class="font-bold text-slate-500">Time</span>
                             <span class="font-bold text-slate-900">{{ $selectedEvent['time_range'] }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-500">Project:</span>
+                            <span class="font-bold text-slate-500">Project</span>
                             <span class="font-bold text-slate-900">{{ $selectedEvent['project'] }}</span>
                         </div>
                         @if(!empty($selectedEvent['location']))
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-500">Location:</span>
+                                <span class="font-bold text-slate-500">Location</span>
                                 <span class="font-bold text-slate-900">{{ $selectedEvent['location'] }}</span>
                             </div>
                         @endif
@@ -711,15 +711,15 @@
 
                     @if(!empty($selectedEvent['attendee_names']))
                         <div>
-                            <span class="font-bold text-slate-700 block mb-1">Attendees / Assignees:</span>
-                            <div class="text-slate-600 font-medium p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                                {{ $selectedEvent['attendee_names'] }}
+                            <span class="font-bold text-slate-700 block mb-1">Assigned to</span>
+                            <div class="calendar-detail-assignees text-slate-600 font-medium p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                                <span class="calendar-assignee-avatar" aria-hidden="true">{{ strtoupper(substr($selectedEvent['attendee_names'], 0, 1)) }}</span><span>{{ $selectedEvent['attendee_names'] }}</span>
                             </div>
                         </div>
                     @endif
                 </div>
 
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <div class="calendar-detail-footer flex items-center justify-between pt-3 border-t border-slate-100">
                     <div class="flex items-center gap-2">
                         @if(!empty($selectedEvent['can_manage']))
                             @if($selectedEvent['source_type'] === 'calendar_event')
