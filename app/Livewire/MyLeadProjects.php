@@ -76,12 +76,9 @@ class MyLeadProjects extends Component
         $project = Project::findOrFail($projectId);
         $user = auth()->user();
 
-        if ($project->project_manager_id !== $user->id && !$user->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
-            return;
-        }
+        abort_unless($project->canApproveAssignment($user), 403, 'Only the assigned Project Manager can approve this assignment.');
 
-        $project->acceptByPm($user);
+        abort_unless($project->acceptByPm($user), 403);
         $this->closeReviewModal();
         $this->dispatch('toast', message: '🎉 Project leadership accepted! You can now access and manage this project workspace.', type: 'success');
     }
@@ -105,12 +102,12 @@ class MyLeadProjects extends Component
         $project = Project::findOrFail($this->reviewProjectId);
         $user = auth()->user();
 
-        if ($project->project_manager_id !== $user->id && !$user->isSuperAdmin()) {
+        if ($project->project_manager_id !== $user->id) {
             $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
             return;
         }
 
-        $project->rejectByPm($user, $this->rejectionReasonInput);
+        abort_unless($project->rejectByPm($user, $this->rejectionReasonInput), 403);
         $this->closeReviewModal();
         $this->dispatch('toast', message: 'Project assignment declined. PMO Admin has been notified of your issue report.', type: 'warning');
     }

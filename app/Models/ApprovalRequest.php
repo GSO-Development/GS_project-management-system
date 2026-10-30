@@ -39,6 +39,23 @@ class ApprovalRequest extends Model
         ];
     }
 
+    public function scopeVisibleTo(\Illuminate\Database\Eloquent\Builder $query, User $user): \Illuminate\Database\Eloquent\Builder
+    {
+        if ($user->isPmoAdmin()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->where('requested_by', $user->id)
+                ->orWhereHas('project', fn ($project) => $project->where('project_manager_id', $user->id))
+                ->orWhere(function ($memberQuery) use ($user) {
+                    $memberQuery->where('request_type', '!=', ApprovalType::NEW_PROJECT_PLAN)
+                        ->whereHas('project', fn ($project) => $project->where('pm_accepted', true)
+                            ->whereHas('members', fn ($members) => $members->where('users.id', $user->id)));
+                });
+        });
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

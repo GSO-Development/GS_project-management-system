@@ -1,5 +1,17 @@
 <div data-ui-page="templates" class="ui-page ui-page-admin max-w-7xl mx-auto space-y-6" x-data="{ viewMode: 'grid' }">
 
+    @if($selectForProject)
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50/70 px-4 py-3">
+            <div>
+                <p class="text-sm font-extrabold text-slate-900">Choose a template for your project</p>
+                <p class="mt-0.5 text-xs font-medium text-slate-600">Select an existing template, or create and configure a new one.</p>
+            </div>
+            <button type="button" wire:click="returnToProjectCreate" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                Back to Project
+            </button>
+        </div>
+    @endif
+
     <!-- Flash Message Notification -->
     @if(session()->has('message'))
         <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between shadow-xs animate-fadeIn">
@@ -155,20 +167,19 @@
     </div>
 
     <!-- Template Cards Grid (Grid View) -->
-    <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($templates as $template)
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-5 hover:border-[#c3122e]/40 hover:shadow-lg transition-all duration-200 group flex flex-col justify-between relative overflow-hidden shadow-2xs min-h-[350px]">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 transition-colors duration-200 group flex flex-col justify-between min-h-[320px]">
                 <!-- Top Header & Quick Actions -->
                 <div class="space-y-3.5 flex-1 flex flex-col">
                     <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#c3122e] to-[#9e0c23] text-white flex items-center justify-center font-black text-sm shadow-xs flex-shrink-0">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 border border-rose-200 flex items-center justify-center font-black text-sm flex-shrink-0">
                                 {{ strtoupper(substr($template->name, 0, 2)) }}
                             </div>
-                            <div>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-100">
-                                    WBS Master
-                                </span>
+                            <div class="min-w-0">
+                                <h3 class="truncate text-sm font-black text-slate-900" title="{{ $template->name }}">{{ $template->name }}</h3>
+                                <span class="text-[10px] font-semibold text-slate-400">Task template</span>
                             </div>
                         </div>
 
@@ -176,12 +187,12 @@
                         @if(auth()->user()?->isSuperAdmin())
                             <div class="flex items-center gap-1 text-slate-400">
                                 <button wire:click="duplicateTemplate({{ $template->id }})" 
-                                        class="p-1.5 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer" 
+                                        class="p-1.5 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                                         title="Duplicate Template">
                                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                 </button>
                                 <button wire:click="editTemplate({{ $template->id }})" 
-                                        class="p-1.5 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" 
+                                        class="p-1.5 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                                         title="Edit Details">
                                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 </button>
@@ -196,45 +207,36 @@
                     </div>
 
                     <!-- Title & Description -->
-                    <div class="space-y-1">
-                        <h3 class="text-base font-black text-slate-900 leading-snug group-hover:text-[#c3122e] transition-colors line-clamp-1" title="{{ $template->name }}">
-                            {{ $template->name }}
-                        </h3>
+                    <div class="min-h-10">
                         <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed font-medium">
                             {{ $template->description ?: 'No description provided. View WBS to inspect phase structure.' }}
                         </p>
                     </div>
 
                     <!-- Clean Metrics Strip -->
-                    <div class="grid grid-cols-2 gap-2 py-2.5 px-3 bg-slate-50 rounded-xl border border-slate-100 text-xs mt-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6.5 h-6.5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0 font-bold">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                            </div>
+                    <div class="grid grid-cols-2 divide-x divide-slate-200 rounded-xl bg-slate-50 px-1 py-2.5 text-xs">
+                        <div class="px-2.5">
                             <div class="min-w-0">
-                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Phases</span>
+                                <span class="text-[9px] font-bold text-slate-400 block">Phases</span>
                                 <span class="text-[11px] font-black text-slate-800 truncate block">{{ $template->phases_count }} Root Gates</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-6.5 h-6.5 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 font-bold">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            </div>
+                        <div class="px-2.5">
                             <div class="min-w-0">
-                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Deliverables</span>
+                                <span class="text-[9px] font-bold text-slate-400 block">Tasks</span>
                                 <span class="text-[11px] font-black text-slate-800 truncate block">{{ $template->tasks_count }} Tasks</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Phase Structure Pills -->
-                    <div class="space-y-1 mt-3">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Phase Breakdown</span>
+                    <div class="space-y-1.5 mt-2 min-h-14">
+                        <span class="text-[9px] font-bold text-slate-400 block">Phases</span>
                         @if($template->tasks->count() > 0)
                             <div class="flex flex-wrap gap-1.5">
                                 @foreach($template->tasks as $phase)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200/80 truncate max-w-[130px]" title="{{ $phase->name }}">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e] mr-1.5 flex-shrink-0"></span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold text-slate-600 bg-white border border-slate-200 truncate max-w-[130px]" title="{{ $phase->name }}">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 flex-shrink-0"></span>
                                         {{ $phase->name }}
                                     </span>
                                 @endforeach
@@ -245,23 +247,31 @@
                                 @endif
                             </div>
                         @else
-                            <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-md inline-block border border-amber-100">⚡ Pending WBS structure setup</span>
+                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Pending WBS structure setup</span>
                         @endif
                     </div>
                 </div>
 
                 <!-- Footer & Action Button (Pushed to bottom via mt-auto) -->
-                <div class="pt-3.5 mt-4 border-t border-slate-100 flex items-center justify-between gap-3 text-xs">
+                <div class="pt-3 mt-3 border-t border-slate-100 space-y-2.5 text-xs">
                     <span class="text-slate-400 font-medium text-[11px] flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         {{ $template->created_at->diffForHumans() }}
                     </span>
 
-                    <a href="{{ route('templates.manage', $template->id) }}" 
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#c3122e] hover:text-white border border-[#faeaea] transition-all shadow-2xs group/btn">
+                    <div class="grid {{ $selectForProject ? 'grid-cols-2' : 'grid-cols-1' }} gap-2">
+                    @if($selectForProject)
+                        <button type="button" wire:click="selectTemplateForProject({{ $template->id }})"
+                            class="inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors">
+                            Use Template
+                        </button>
+                    @endif
+                    <a href="{{ route('templates.manage', ['template' => $template->id] + ($selectForProject ? ['select_for' => 'project'] : [])) }}"
+                       class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors group/btn">
                         <span>{{ auth()->user()?->isSuperAdmin() ? 'Configure WBS' : 'View WBS' }}</span>
                         <svg class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
+                    </div>
                 </div>
             </div>
         @empty
@@ -307,7 +317,7 @@
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="py-3.5 px-4 font-bold text-slate-900">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#c3122e] to-[#9e0c23] text-white flex items-center justify-center font-black text-xs flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 border border-rose-200 flex items-center justify-center font-black text-xs flex-shrink-0">
                                         {{ strtoupper(substr($template->name, 0, 2)) }}
                                     </div>
                                     <span>{{ $template->name }}</span>
@@ -317,12 +327,12 @@
                                 {{ $template->description ?: 'No description provided.' }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-extrabold text-slate-700 bg-slate-100 border border-slate-200">
                                     {{ $template->phases_count }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-extrabold text-slate-700 bg-slate-100 border border-slate-200">
                                     {{ $template->tasks_count }}
                                 </span>
                             </td>
@@ -331,12 +341,17 @@
                             </td>
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('templates.manage', $template->id) }}" 
-                                       class="px-2.5 py-1 rounded-lg text-xs font-bold text-[#c3122e] bg-[#fdf4f4] hover:bg-[#c3122e] hover:text-white border border-[#faeaea] transition-all">
+                                    @if($selectForProject)
+                                        <button type="button" wire:click="selectTemplateForProject({{ $template->id }})" class="px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-900 hover:bg-slate-700 transition-colors">
+                                            Use Template
+                                        </button>
+                                    @endif
+                                    <a href="{{ route('templates.manage', ['template' => $template->id] + ($selectForProject ? ['select_for' => 'project'] : [])) }}"
+                                       class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 transition-colors">
                                         {{ auth()->user()?->isSuperAdmin() ? 'Configure WBS' : 'View WBS' }}
                                     </a>
                                     @if(auth()->user()?->isSuperAdmin())
-                                        <button wire:click="duplicateTemplate({{ $template->id }})" class="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg" title="Duplicate">
+                                        <button wire:click="duplicateTemplate({{ $template->id }})" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg" title="Duplicate">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                         </button>
                                         <button wire:click="editTemplate({{ $template->id }})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg" title="Edit">

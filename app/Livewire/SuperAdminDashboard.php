@@ -703,7 +703,11 @@ class SuperAdminDashboard extends Component
         $reassignProjectId = $this->reassignProjectId;
         $newLeaderId = $this->newLeaderId;
 
+        $selectedApprovalForReview = $this->selectedRequestId ? ApprovalRequest::with('project')->find($this->selectedRequestId) : null;
+        $canApproveSelectedRequest = $selectedApprovalForReview && ($selectedApprovalForReview->request_type !== \App\Enums\ApprovalType::NEW_PROJECT_PLAN || $selectedApprovalForReview->project?->canApproveAssignment(auth()->user()));
+
         return view('livewire.super-admin-dashboard', compact(
+            'canApproveSelectedRequest',
             'declinedProjects',
             'reassignProject',
             'totalProjects',

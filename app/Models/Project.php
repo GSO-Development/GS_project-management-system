@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -86,9 +87,9 @@ class Project extends Model
         }
 
         // Check if project deadline is overdue
-        $isOverdue = $this->deadline 
-            && \Carbon\Carbon::parse($this->deadline)->endOfDay()->isPast() 
-            && ($this->overall_progress ?? 0) < 100 
+        $isOverdue = $this->deadline
+            && \Carbon\Carbon::parse($this->deadline)->endOfDay()->isPast()
+            && ($this->overall_progress ?? 0) < 100
             && !in_array($statusVal, ['completed', 'cancelled']);
 
         if ($statusVal === 'delayed' || $isOverdue) {
@@ -96,8 +97,8 @@ class Project extends Model
         }
 
         // Check if project has open risks or blocked tasks
-        $hasOpenRisks = $this->relationLoaded('risks') 
-            ? $this->risks->where('status', 'open')->isNotEmpty() 
+        $hasOpenRisks = $this->relationLoaded('risks')
+            ? $this->risks->where('status', 'open')->isNotEmpty()
             : $this->risks()->where('status', 'open')->exists();
 
         $hasBlockedTasks = $this->relationLoaded('wbsItems')
@@ -138,73 +139,86 @@ class Project extends Model
         return !$this->pm_accepted && empty($this->pm_rejection_reason);
     }
 
+    public function canApproveAssignment(User $user): bool
+    {
+        return $this->project_manager_id === $user->id;
+    }
+
     public function acceptByPm(User $user): bool
     {
-        if ($this->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
-            return false;
-        }
+        return DB::transaction(function () use ($user): bool {
+            $current = static::query()->lockForUpdate()->findOrFail($this->getKey());
+            if (!$current->canApproveAssignment($user)) {
+                return false;
+            }
+            $this->setRawAttributes($current->getAttributes(), true);
 
-        $this->update([
-            'pm_accepted' => true,
-            'pm_accepted_at' => now(),
-            'pm_rejection_reason' => null,
-            'pm_rejected_at' => null,
-        ]);
-
-        ActivityLog::create([
-            'user_id' => $user->id,
-            'action' => 'accepted_project_assignment',
-            'module' => 'projects',
-            'record_type' => self::class,
-            'record_id' => $this->id,
-            'new_values' => [
+            $this->update([
                 'pm_accepted' => true,
-                'pm_accepted_at' => now()->toDateTimeString(),
-            ],
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
-
-        // Sync any pending ApprovalRequest of type NEW_PROJECT_PLAN
-        ApprovalRequest::where('project_id', $this->id)
-            ->where('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN)
-            ->where('status', \App\Enums\ApprovalStatus::PENDING)
-            ->update([
-                'status' => \App\Enums\ApprovalStatus::APPROVED,
-                'reviewed_by' => $user->id,
-                'reviewed_at' => now(),
-                'review_comment' => 'Project Leadership Accepted & Confirmed by ' . $user->name,
+                'pm_accepted_at' => now(),
+                'pm_rejection_reason' => null,
+                'pm_rejected_at' => null,
             ]);
 
-        // Notify PMO Super Admins that the project was accepted
-        $pmoAdmins = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin'))->get();
-        foreach ($pmoAdmins as $admin) {
-            $admin->notify(new \App\Notifications\ProjectLeaderDecisionNotification($this, $user, 'accepted'));
-        }
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'accepted_project_assignment',
+                'module' => 'projects',
+                'record_type' => self::class,
+                'record_id' => $this->id,
+                'new_values' => [
+                    'pm_accepted' => true,
+                    'pm_accepted_at' => now()->toDateTimeString(),
+                ],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
 
-        // Notify all team members (sponsors, owners, committee, members) that project is now active & accepted
-        try {
-            $members = $this->members()->where('users.id', '!=', $user->id)->get();
-            foreach ($members as $member) {
-                $role = $member->pivot->role ?? 'member';
-                $member->notify(new \App\Notifications\ProjectAssignmentNotification($this, $role));
-                \Illuminate\Support\Facades\Mail::to($member->email)
-                    ->send(new \App\Mail\ProjectAssignedMail($this, $member, $role));
+            // Sync any pending ApprovalRequest of type NEW_PROJECT_PLAN
+            ApprovalRequest::where('project_id', $this->id)
+                ->where('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN)
+                ->where('status', \App\Enums\ApprovalStatus::PENDING)
+                ->update([
+                    'status' => \App\Enums\ApprovalStatus::APPROVED,
+                    'reviewed_by' => $user->id,
+                    'reviewed_at' => now(),
+                    'review_comment' => 'Project Leadership Accepted & Confirmed by ' . $user->name,
+                ]);
+
+            // Notify PMO Super Admins that the project was accepted
+            $pmoAdmins = User::whereHas('roles', fn($q) => $q->where('name', 'super_admin'))->get();
+            foreach ($pmoAdmins as $admin) {
+                $admin->notify(new \App\Notifications\ProjectLeaderDecisionNotification($this, $user, 'accepted'));
             }
-        } catch (\Throwable $e) {
-            \Log::error('ProjectAssignmentNotification upon PM acceptance failed: ' . $e->getMessage());
-        }
 
-        return true;
+            // Notify all team members (sponsors, owners, committee, members) that project is now active & accepted
+            try {
+                $members = $this->members()->where('users.id', '!=', $user->id)->get();
+                foreach ($members as $member) {
+                    $role = $member->pivot->role ?? 'member';
+                    $member->notify(new \App\Notifications\ProjectAssignmentNotification($this, $role));
+                    \Illuminate\Support\Facades\Mail::to($member->email)
+                        ->send(new \App\Mail\ProjectAssignedMail($this, $member, $role));
+                }
+            } catch (\Throwable $e) {
+                \Log::error('ProjectAssignmentNotification upon PM acceptance failed: ' . $e->getMessage());
+            }
+
+
+            return true;
+        });
     }
 
     public function rejectByPm(User $user, string $reason): bool
     {
-        if ($this->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
-            return false;
-        }
+        return DB::transaction(function () use ($user, $reason): bool {
+            $current = static::query()->lockForUpdate()->findOrFail($this->getKey());
+            if ($current->project_manager_id !== $user->id) {
+                return false;
+            }
+            $this->setRawAttributes($current->getAttributes(), true);
 
-        $this->update([
+            $this->update([
             'pm_accepted' => false,
             'pm_accepted_at' => null,
             'pm_rejection_reason' => $reason,
@@ -243,7 +257,8 @@ class Project extends Model
             $admin->notify(new \App\Notifications\ProjectLeaderDecisionNotification($this, $user, 'rejected', $reason));
         }
 
-        return true;
+            return true;
+        });
     }
 
     public static function generateCodeForSubsidiary(?int $subsidiaryId): string

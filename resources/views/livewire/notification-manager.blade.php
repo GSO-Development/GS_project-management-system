@@ -269,7 +269,7 @@
                 $isUnread = is_null($n->read_at);
                 $rawMsg   = $n->data['message'] ?? $n->data['title'] ?? 'System Notification';
                 $rawTitle = $n->data['title'] ?? null;
-                
+
                 $cleanTitle = $rawTitle ? trim(str_replace(['🎉', '🚨', '⚠️'], '', $rawTitle)) : null;
                 $cleanMsg   = trim(str_replace(['🎉', '🚨', '⚠️'], '', $rawMsg));
 
@@ -282,7 +282,7 @@
                     if ($projectId) {
                         $url = route('projects.show', $projectId);
                     } elseif ($cat === 'approvals') {
-                        $url = route('approvals.index');
+                        $url = route('projects.index');
                     } elseif ($cat === 'blocker' || $cat === 'task_delay') {
                         $url = route('risks.index');
                     } elseif ($cat === 'task_completed' || $cat === 'task_assigned') {
@@ -411,7 +411,7 @@
                         </p>
 
                         {{-- Special Action Card for Project Leadership Assignment --}}
-                        @if($isProjectLeaderAssignment && $isUnread)
+                        @if($isProjectLeaderAssignment && $isUnread && in_array((int) $projectId, $assignedLeadershipProjectIds, true))
                             <div class="notification-leadership mt-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50/60 border border-amber-200/80 flex items-center justify-between gap-3 flex-wrap shadow-2xs" wire:click.stop>
 
                                 <button wire:click="acceptProjectAssignment('{{ $n->id }}', {{ $projectId }})"

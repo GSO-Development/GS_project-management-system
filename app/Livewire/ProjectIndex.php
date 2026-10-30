@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\Priority;
+use Livewire\Attributes\On;
 use App\Enums\ProjectStatus;
 use App\Models\ActivityLog;
 use App\Models\Project;
@@ -32,6 +33,7 @@ class ProjectIndex extends Component
     public string $managerFilter = 'all';
     public string $statusFilter = 'all';
     public string $priorityFilter = 'all';
+    public string $approvalFilter = 'all';
     public string $healthFilter = 'all';
     public string $roleFilter = 'all';
     public int $perPage = 10;
@@ -89,6 +91,7 @@ class ProjectIndex extends Component
         'managerFilter' => ['except' => 'all'],
         'statusFilter' => ['except' => 'all'],
         'priorityFilter' => ['except' => 'all'],
+        'approvalFilter' => ['except' => 'all'],
         'healthFilter' => ['except' => 'all'],
         'roleFilter' => ['except' => 'all'],
         'stuckTypeFilter' => ['except' => 'all'],
@@ -131,6 +134,13 @@ class ProjectIndex extends Component
         ];
     }
 
+    #[On('project-approval-updated')]
+    public function refreshApprovalStatus(): void
+    {
+        // The Projects table reloads after a decision or reassignment.
+    }
+
+    public function updatedApprovalFilter() { $this->resetPage(); }
     public function updatedSearch() { $this->resetPage(); }
     public function updatedSubsidiaryFilter() { $this->resetPage(); }
     public function updatedManagerFilter() { $this->resetPage(); }
@@ -331,6 +341,7 @@ class ProjectIndex extends Component
         $this->priorityFilter = 'all';
         $this->healthFilter = 'all';
         $this->roleFilter = 'all';
+        $this->approvalFilter = 'all';
         $this->resetPage();
     }
 
@@ -352,17 +363,17 @@ class ProjectIndex extends Component
         $this->reset(['code', 'name', 'description', 'subsidiary_id', 'project_manager_id', 'priority', 'status', 'start_date', 'deadline', 'estimated_budget', 'editingId', 'selectedMembers']);
         $this->priority = 'medium';
         $this->status = 'planning';
-        
+
         $count = Project::withTrashed()->count() + 1;
         $this->code = 'GS-PRJ-' . str_pad($count, 3, '0', STR_PAD_LEFT);
-        
+
         $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
     {
         $project = Project::with('members')->findOrFail($id);
-        
+
         $user = auth()->user();
         $isSuperAdmin = $user && ($user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1);
         $isPM = $user && $project->project_manager_id === $user->id;
@@ -385,7 +396,7 @@ class ProjectIndex extends Component
         $this->deadline = $project->deadline ? $project->deadline->format('Y-m-d') : null;
         $this->estimated_budget = $project->estimated_budget;
         $this->selectedMembers = $project->members->pluck('id')->toArray();
-        
+
         $this->showModal = true;
     }
 
@@ -424,7 +435,7 @@ class ProjectIndex extends Component
 
             $oldValues = $project->toArray();
             $project->update($data);
-            
+
             if (isset($this->selectedMembers)) {
                 $syncData = [];
                 foreach ($this->selectedMembers as $userId) {
@@ -605,7 +616,7 @@ class ProjectIndex extends Component
     public function toggleDrawerTask(int $taskId): void
     {
         $task = \App\Models\WbsItem::findOrFail($taskId);
-        
+
         if ($task->status->value === 'completed') {
             $task->status = \App\Enums\WbsStatus::IN_PROGRESS;
             $task->progress = 50;
@@ -742,6 +753,7 @@ class ProjectIndex extends Component
         // ═══════════════════════════════════════════════════════════════
         $query = (clone $baseQuery)->with([
             'subsidiary', 'projectManager', 'members', 'risks',
+            'approvalRequests' => fn ($requests) => $requests->visibleTo($user)->with('reviewer')->orderByDesc('id'),
             'wbsItems.assignedUser', 'wbsItems.blockers', 'wbsItems.successors.successor',
         ]);
 
@@ -766,6 +778,19 @@ class ProjectIndex extends Component
             $query->whereIn('status', ['planning', 'in_progress', 'under_review', 'at_risk']);
         } elseif ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
+        }
+
+        if (in_array($this->approvalFilter, ['pending', 'approved', 'rejected'], true)) {
+            $query->where(function ($approvalQuery) use ($user) {
+                if ($this->approvalFilter === 'approved') {
+                    $approvalQuery->where('pm_accepted', true);
+                } elseif ($this->approvalFilter === 'rejected') {
+                    $approvalQuery->where('pm_accepted', false)->whereNotNull('pm_rejection_reason')->where('pm_rejection_reason', '!=', '');
+                } else {
+                    $approvalQuery->where('pm_accepted', false)->where(fn ($pending) => $pending->whereNull('pm_rejection_reason')->orWhere('pm_rejection_reason', ''));
+                }
+                $approvalQuery->orWhereHas('approvalRequests', fn ($requests) => $requests->visibleTo($user)->where('status', $this->approvalFilter));
+            });
         }
 
         if ($this->priorityFilter !== 'all') {
@@ -818,7 +843,7 @@ class ProjectIndex extends Component
         // ═══════════════════════════════════════════════════════════════
         // 🔍 WBS TASK INSPECTOR DATA PREPARATION
         // ═══════════════════════════════════════════════════════════════
-        $selectedDrawerProject = $this->drawerProjectId 
+        $selectedDrawerProject = $this->drawerProjectId
             ? Project::with([
                 'subsidiary',
                 'projectManager',
@@ -986,12 +1011,12 @@ class ProjectIndex extends Component
         }
 
         $ganttProjectsData = $ganttProjectsList->map(function($project) use ($ganttStart, $ganttEnd, $totalGanttDays, $now) {
-            $pStart = $project->start_date 
-                ? Carbon::parse($project->start_date)->startOfDay() 
+            $pStart = $project->start_date
+                ? Carbon::parse($project->start_date)->startOfDay()
                 : ($project->created_at ? Carbon::parse($project->created_at)->startOfDay() : $now->copy()->startOfDay());
-            
-            $pEnd = $project->deadline 
-                ? Carbon::parse($project->deadline)->endOfDay() 
+
+            $pEnd = $project->deadline
+                ? Carbon::parse($project->deadline)->endOfDay()
                 : ($project->end_date ? Carbon::parse($project->end_date)->endOfDay() : $pStart->copy()->addDays(30)->endOfDay());
 
             if ($pEnd->lt($pStart)) {

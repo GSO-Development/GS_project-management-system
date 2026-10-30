@@ -50,7 +50,7 @@ class ProjectAssignmentNotification extends Notification
                 'role_label' => 'Project Leader',
                 'message' => "You have been designated as Project Leader for '{$this->project->name}' ({$this->project->code}). Please review and accept leadership to begin execution.",
                 'action' => 'project_assignment',
-                'url' => route('approvals.index'),
+                'url' => route('projects.index', ['approval_project' => $this->project->id]),
             ],
             'sponsor' => [
                 'category' => 'updates',

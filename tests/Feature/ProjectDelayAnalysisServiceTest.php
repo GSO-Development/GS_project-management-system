@@ -32,7 +32,11 @@ it('identifies an overdue task reason and responsible person', function () {
 
     expect($analysis['is_delayed'])->toBeFalse()
         ->and($analysis['has_task_delays'])->toBeTrue()
+        ->and($analysis['delayed_task_count'])->toBe(1)
+        ->and($analysis['critical_issue_count'])->toBe(0)
         ->and($analysis['issues'])->toHaveCount(1)
+        ->and($analysis['issues'][0]['is_delayed'])->toBeTrue()
+        ->and($analysis['issues'][0]['is_critical'])->toBeFalse()
         ->and($analysis['issues'][0]['reason'])->toBe('Supplier delivery is late')
         ->and($analysis['issues'][0]['responsible'])->toBe($user->name);
 });
@@ -75,6 +79,9 @@ it('explains incomplete dependencies and every detected delay cause', function (
     $issue = collect($analysis['issues'])->firstWhere('task_id', $task->id);
 
     expect($issue)->not->toBeNull()
+        ->and($analysis['critical_issue_count'])->toBeGreaterThan(0)
+        ->and($issue['is_delayed'])->toBeTrue()
+        ->and($issue['is_critical'])->toBeTrue()
         ->and($issue['incomplete_dependencies'])->toHaveCount(1)
         ->and($issue['incomplete_dependencies'][0]['wbs_code'])->toBe('1')
         ->and(collect($issue['causes'])->pluck('type'))->toContain('dependency')
@@ -101,6 +108,10 @@ it('opens the delay analysis popup from the projects list', function () {
         ->assertSet('showDelayAnalysis', true)
         ->assertSet('delayProjectId', $project->id)
         ->assertSee('Critical delay analysis')
+        ->assertSee('Delayed Tasks')
+        ->assertSee('Critical Tasks')
+        ->assertSee("taskFilter === 'delayed'", false)
+        ->assertSee("taskFilter === 'critical'", false)
         ->assertSee('Popup Delayed Project');
 });
 

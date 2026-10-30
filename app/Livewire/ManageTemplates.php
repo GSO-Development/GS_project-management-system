@@ -14,6 +14,7 @@ class ManageTemplates extends Component
     public $sortBy = 'latest';
     public $showModal = false;
     public $editId = null;
+    public bool $selectForProject = false;
 
     protected $rules = [
         'name' => 'required|min:3',
@@ -30,6 +31,22 @@ class ManageTemplates extends Component
     public function mount(): void
     {
         $this->checkSuperAdmin();
+        $this->selectForProject = request()->query('select_for') === 'project'
+            && session()->has('project_create_draft');
+    }
+
+    public function selectTemplateForProject(int $id)
+    {
+        $this->checkSuperAdmin();
+        ProjectTemplate::findOrFail($id);
+        session()->put('project_create_selected_template_id', $id);
+
+        return redirect()->to(route('projects.create').'#project-blueprint');
+    }
+
+    public function returnToProjectCreate()
+    {
+        return redirect()->to(route('projects.create').'#project-blueprint');
     }
 
     public function editTemplate($id)
@@ -93,6 +110,14 @@ class ManageTemplates extends Component
                 'description' => $this->description,
             ]);
             session()->flash('message', 'Template created successfully!');
+
+            if ($this->selectForProject) {
+                $this->reset(['name', 'description', 'showModal', 'editId']);
+                return redirect()->route('templates.manage', [
+                    'template' => $newTemplate->id,
+                    'select_for' => 'project',
+                ]);
+            }
         }
 
         $this->reset(['name', 'description', 'showModal', 'editId']);

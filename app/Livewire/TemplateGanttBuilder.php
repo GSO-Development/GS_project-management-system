@@ -19,6 +19,7 @@ class TemplateGanttBuilder extends Component
     public bool $divideByHours = false;
     public $showSetupModal = false;
     public $isConfigured = false;
+    public bool $selectForProject = false;
 
     // Level 4 working time config
     public string $workStartTime = '08:30';
@@ -42,6 +43,8 @@ class TemplateGanttBuilder extends Component
         }
 
         $this->template = $template;
+        $this->selectForProject = request()->query('select_for') === 'project'
+            && session()->has('project_create_draft');
 
         // Restore working-time config from template
         $this->divideByHours = (bool) $template->divide_by_hours;
@@ -617,7 +620,7 @@ class TemplateGanttBuilder extends Component
         }
 
         session()->flash('message', 'Gantt chart saved successfully!');
-        return redirect()->route('templates.index');
+        return redirect()->route('templates.index', $this->selectForProject ? ['select_for' => 'project'] : []);
     }
 
     public function render()

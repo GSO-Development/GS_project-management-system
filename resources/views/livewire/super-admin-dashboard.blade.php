@@ -616,7 +616,9 @@
                     <div class="flex items-center justify-end gap-2 pt-2">
                         <button wire:click="$set('showReviewModal', false)" type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer">Cancel</button>
                         <button wire:click="submitReview(false)" type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 cursor-pointer">Reject</button>
+                        @if($canApproveSelectedRequest)
                         <button wire:click="submitReview(true)" type="button" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs cursor-pointer">Approve</button>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -34,7 +34,7 @@ class ProjectLeaderDecisionNotification extends Notification
                 'decision'     => 'accepted',
                 'message'      => "Project Leader {$this->leader->name} accepted project '{$this->project->name}' ({$this->project->code}). Execution has been initialized.",
                 'action'       => 'project_accepted',
-                'url'          => route('projects.show', $this->project->id),
+                'url'          => route('projects.index', ['approval_project' => $this->project->id]),
             ];
         }
 
@@ -47,7 +47,7 @@ class ProjectLeaderDecisionNotification extends Notification
             'reason'       => $this->reason,
             'message'      => "⚠️ Project Leader {$this->leader->name} declined assignment for '{$this->project->name}' ({$this->project->code}). Issue/Feedback: \"{$this->reason}\"",
             'action'       => 'project_rejected',
-            'url'          => route('projects.show', $this->project->id),
+            'url'          => route('projects.index', ['approval_project' => $this->project->id]),
         ];
     }
 }

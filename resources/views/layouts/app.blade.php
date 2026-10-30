@@ -99,8 +99,8 @@
         <div class="h-16 flex items-center flex-shrink-0 transition-all"
              style="border-bottom: 1px solid #e2e8f0;"
              :class="{ 'justify-center px-2': sidebarCollapsed && !mobileSidebarOpen, 'justify-between px-4': !sidebarCollapsed || mobileSidebarOpen }">
-            <a href="{{ route('dashboard') }}" 
-               wire:navigate.hover 
+            <a href="{{ route('dashboard') }}"
+               wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
                class="flex items-center gap-3 min-w-0 group"
                title="{{ $appName }}">
@@ -125,9 +125,9 @@
             </a>
 
             <!-- Mobile Drawer Close Button -->
-            <button @click="mobileSidebarOpen = false" 
+            <button @click="mobileSidebarOpen = false"
                     type="button"
-                    class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer" 
+                    class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer"
                     title="Close Menu">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -144,21 +144,6 @@
                 $isSuperAdmin = $user ? ($user->isPmoAdmin() || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
                 $isPM = $user ? $user->hasRole('project_manager') : false;
 
-                // Pending Approvals Count
-                $pendingApprovalsCount = 0;
-                if ($user) {
-                    if ($isSuperAdmin) {
-                        $pendingApprovalsCount = \App\Models\ApprovalRequest::where('status', 'pending')->count();
-                    } else {
-                        $pendingApprovalsCount = \App\Models\ApprovalRequest::where('status', 'pending')
-                            ->where(function($q) use ($user) {
-                                $q->where('requested_by', $user->id)
-                                  ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id));
-                            })
-                            ->count();
-                    }
-                }
-
                 // Unread Notifications Count
                 $unreadNotificationsCount = $user ? $user->unreadNotifications()->count() : 0;
 
@@ -166,7 +151,7 @@
                 $openRisksAndBlockersCount = 0;
                 if ($user) {
                     if ($isSuperAdmin) {
-                        $openRisksAndBlockersCount = \App\Models\ProjectRisk::where('status', 'open')->whereHas('project')->count() 
+                        $openRisksAndBlockersCount = \App\Models\ProjectRisk::where('status', 'open')->whereHas('project')->count()
                             + \App\Models\TaskBlocker::where('status', '!=', 'resolved')->whereHas('wbsItem.project')->count();
                     } else {
                         $allowedProjectIds = \App\Models\Project::where('project_manager_id', $user->id)
@@ -175,7 +160,7 @@
                                      ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
                             })
                             ->pluck('id');
-                        $openRisksAndBlockersCount = \App\Models\ProjectRisk::where('status', 'open')->whereIn('project_id', $allowedProjectIds)->whereHas('project')->count() 
+                        $openRisksAndBlockersCount = \App\Models\ProjectRisk::where('status', 'open')->whereIn('project_id', $allowedProjectIds)->whereHas('project')->count()
                             + \App\Models\TaskBlocker::where('status', '!=', 'resolved')->whereHas('wbsItem', fn($wq) => $wq->whereIn('project_id', $allowedProjectIds)->whereHas('project'))->count();
                     }
                 }
@@ -216,12 +201,12 @@
             @endphp
 
             <!-- 1. Dashboard -->
-            <a href="{{ route('dashboard') }}" 
+            <a href="{{ route('dashboard') }}"
                wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('dashboard')) }}" 
+               class="{{ $navItemClass(request()->routeIs('dashboard')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('dashboard')) }}" 
+               style="{{ $navItemStyle(request()->routeIs('dashboard')) }}"
                title="Dashboard">
                 <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('dashboard') ? '2.5' : '2' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -234,11 +219,11 @@
                 <!-- PMO Admin: Projects Directory Accordion -->
                 <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
                     <button @click="if (sidebarCollapsed && !mobileSidebarOpen) { sidebarCollapsed = false; open = true } else { open = !open }"
-                            type="button" 
+                            type="button"
                             :aria-expanded="open && (!sidebarCollapsed || mobileSidebarOpen)"
-                            class="{{ $navItemClass(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full cursor-pointer" 
+                            class="{{ $navItemClass(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full cursor-pointer"
                             :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                            style="{{ $navItemStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}" 
+                            style="{{ $navItemStyle(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }}"
                             title="Projects Directory">
                         <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                             <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? '2.5' : '2' }}">
@@ -251,14 +236,14 @@
                         </svg>
                     </button>
                     <div x-show="open && (!sidebarCollapsed || mobileSidebarOpen)" x-collapse class="mt-1 space-y-0.5 pl-7 pr-1 border-l-2 border-slate-100 ml-4">
-                        <a href="{{ route('projects.index') }}" 
-                           wire:navigate.hover 
+                        <a href="{{ route('projects.index') }}"
+                           wire:navigate.hover
                            @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
                            class="block px-3 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('projects.index') ? 'text-[#c3122e] bg-rose-50 font-bold' : 'text-slate-500 hover:text-[#c3122e] hover:bg-rose-50/50' }}">
                             Manage All Projects
                         </a>
-                        <a href="{{ route('templates.index') }}" 
-                           wire:navigate.hover 
+                        <a href="{{ route('templates.index') }}"
+                           wire:navigate.hover
                            @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
                            class="block px-3 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('templates.*') ? 'text-[#c3122e] bg-rose-50 font-bold' : 'text-slate-500 hover:text-[#c3122e] hover:bg-rose-50/50' }}">
                             Manage Templates
@@ -281,7 +266,7 @@
                         <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Projects</span>
                     </div>
                     @if($myProjectCount > 0)
-                        <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                        <span x-show="!sidebarCollapsed || mobileSidebarOpen"
                               class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('projects.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">
                             {{ $myProjectCount }}
                         </span>
@@ -292,12 +277,12 @@
 
             <!-- 3. Tasks (For Non-Super Admins) -->
             @if(!($user && $user->isPmoAdmin()))
-                <a href="{{ route('my-tasks.index') }}" 
+                <a href="{{ route('my-tasks.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('my-tasks.*')) }}" 
+                   class="{{ $navItemClass(request()->routeIs('my-tasks.*')) }}"
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('my-tasks.*')) }}" 
+                   style="{{ $navItemStyle(request()->routeIs('my-tasks.*')) }}"
                    title="Tasks">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('my-tasks.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('my-tasks.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
@@ -307,12 +292,12 @@
             @endif
 
             <!-- 4. Daily Updates -->
-            <a href="{{ route('daily-updates.index') }}" 
+            <a href="{{ route('daily-updates.index') }}"
                wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('daily-updates.*')) }}" 
+               class="{{ $navItemClass(request()->routeIs('daily-updates.*')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('daily-updates.*')) }}" 
+               style="{{ $navItemStyle(request()->routeIs('daily-updates.*')) }}"
                title="Daily Updates">
                 <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('daily-updates.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('daily-updates.*') ? '2.5' : '2' }}">
@@ -321,7 +306,7 @@
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Daily Updates</span>
                 </div>
                 @if($unreadDailyUpdatesCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen"
                           class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('daily-updates.*') ? 'bg-white text-[#c3122e]' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70 shadow-2xs' }}">
                         {{ $unreadDailyUpdatesCount }}
                     </span>
@@ -330,12 +315,12 @@
             </a>
 
             <!-- 5. Calendar -->
-            <a href="{{ route('calendar.index') }}" 
+            <a href="{{ route('calendar.index') }}"
                wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('calendar.*')) }}" 
+               class="{{ $navItemClass(request()->routeIs('calendar.*')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('calendar.*')) }}" 
+               style="{{ $navItemStyle(request()->routeIs('calendar.*')) }}"
                title="Corporate Calendar">
                 <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('calendar.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('calendar.*') ? '2.5' : '2' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -343,39 +328,16 @@
                 <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Calendar</span>
             </a>
 
-            <!-- Approvals Hub -->
-            <a href="{{ route('approvals.index') }}" 
-               wire:navigate.hover
-               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('approvals.*')) }}" 
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('approvals.*')) }}" 
-               title="Approvals Hub">
-                <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('approvals.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('approvals.*') ? '2.5' : '2' }}">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Approvals Hub</span>
-                </div>
-                @if($pendingApprovalsCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('approvals.*') ? 'bg-white text-[#c3122e]' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70 shadow-2xs' }}">
-                        {{ $pendingApprovalsCount }}
-                    </span>
-                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#c3122e] ring-2 ring-white animate-pulse"></span>
-                @endif
-            </a>
-
             {{-- Risks & Blockers removed from sidebar — accessible via dashboard KPI card --}}
 
             <!-- Subsidiaries (Super Admin Only) -->
             @if($isSuperAdmin)
-                <a href="{{ route('subsidiaries.index') }}" 
+                <a href="{{ route('subsidiaries.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('subsidiaries.*')) }}" 
+                   class="{{ $navItemClass(request()->routeIs('subsidiaries.*')) }}"
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('subsidiaries.*')) }}" 
+                   style="{{ $navItemStyle(request()->routeIs('subsidiaries.*')) }}"
                    title="Subsidiaries">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('subsidiaries.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('subsidiaries.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -386,12 +348,12 @@
 
             <!-- Participants (Super Admin Only) -->
             @if($isSuperAdmin)
-                <a href="{{ route('users.index') }}" 
+                <a href="{{ route('users.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('users.*')) }}" 
+                   class="{{ $navItemClass(request()->routeIs('users.*')) }}"
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('users.*')) }}" 
+                   style="{{ $navItemStyle(request()->routeIs('users.*')) }}"
                    title="Participants & Users">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('users.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('users.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -401,12 +363,12 @@
             @endif
 
             <!-- Reports -->
-            <a href="{{ route('reports.index') }}" 
+            <a href="{{ route('reports.index') }}"
                wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('reports.*')) }}" 
+               class="{{ $navItemClass(request()->routeIs('reports.*')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('reports.*')) }}" 
+               style="{{ $navItemStyle(request()->routeIs('reports.*')) }}"
                title="Reports">
                 <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('reports.*') ? '2.5' : '2' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -415,12 +377,12 @@
             </a>
 
             <!-- Notifications -->
-            <a href="{{ route('notifications.index') }}" 
+            <a href="{{ route('notifications.index') }}"
                wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('notifications.*')) }}" 
+               class="{{ $navItemClass(request()->routeIs('notifications.*')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('notifications.*')) }}" 
+               style="{{ $navItemStyle(request()->routeIs('notifications.*')) }}"
                title="Notifications">
                 <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('notifications.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('notifications.*') ? '2.5' : '2' }}">
@@ -429,7 +391,7 @@
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Notifications</span>
                 </div>
                 @if($unreadNotificationsCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" 
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen"
                           class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('notifications.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">
                         {{ $unreadNotificationsCount }}
                     </span>
@@ -440,12 +402,12 @@
             <!-- ================= ADMINISTRATION (Super Admin Only) ================= -->
             @if($isSuperAdmin)
                 <!-- Roles & Permissions -->
-                <a href="{{ route('roles-permissions.index') }}" 
+                <a href="{{ route('roles-permissions.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('roles-permissions.*')) }}" 
+                   class="{{ $navItemClass(request()->routeIs('roles-permissions.*')) }}"
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('roles-permissions.*')) }}" 
+                   style="{{ $navItemStyle(request()->routeIs('roles-permissions.*')) }}"
                    title="Roles & Permissions">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('roles-permissions.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" width="18" height="18" style="width: 18px; height: 18px; max-width: 18px; max-height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('roles-permissions.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -454,12 +416,12 @@
                 </a>
 
                 <!-- Audit Logs -->
-                <a href="{{ route('audit-logs.index') }}" 
+                <a href="{{ route('audit-logs.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('audit-logs.*')) }}" 
+                   class="{{ $navItemClass(request()->routeIs('audit-logs.*')) }}"
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('audit-logs.*')) }}" 
+                   style="{{ $navItemStyle(request()->routeIs('audit-logs.*')) }}"
                    title="Audit Logs">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('audit-logs.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('audit-logs.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
@@ -468,12 +430,12 @@
                 </a>
 
                 <!-- Settings -->
-                <a href="{{ route('settings.index') }}" 
+                <a href="{{ route('settings.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                   class="{{ $navItemClass(request()->routeIs('settings.*')) }}" 
+                   class="{{ $navItemClass(request()->routeIs('settings.*')) }}"
                    :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-                   style="{{ $navItemStyle(request()->routeIs('settings.*')) }}" 
+                   style="{{ $navItemStyle(request()->routeIs('settings.*')) }}"
                    title="Settings">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('settings.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -494,12 +456,12 @@
                  }">
                 <div class="flex items-center gap-2.5 min-w-0 w-full" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                     <!-- Circular Avatar -->
-                    <a href="{{ route('profile.edit') }}" 
+                    <a href="{{ route('profile.edit') }}"
                        wire:navigate.hover
                        @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                       class="relative flex-shrink-0 group" 
+                       class="relative flex-shrink-0 group"
                        title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
-                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-extrabold text-xs shadow-xs ring-2 ring-rose-100 group-hover:ring-rose-300 transition-all transform group-hover:scale-105" 
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-extrabold text-xs shadow-xs ring-2 ring-rose-100 group-hover:ring-rose-300 transition-all transform group-hover:scale-105"
                              style="background: linear-gradient(135deg, #c3122e 0%, #99001a 100%);">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         </div>
@@ -508,10 +470,10 @@
 
                     <!-- User Name & Email -->
                     <div class="min-w-0 flex-1" x-show="!sidebarCollapsed || mobileSidebarOpen">
-                        <a href="{{ route('profile.edit') }}" 
-                           wire:navigate.hover 
+                        <a href="{{ route('profile.edit') }}"
+                           wire:navigate.hover
                            @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-                           class="text-xs font-bold text-slate-900 truncate leading-snug hover:text-[#c3122e] transition-colors block" 
+                           class="text-xs font-bold text-slate-900 truncate leading-snug hover:text-[#c3122e] transition-colors block"
                            title="{{ auth()->user()->name }}">
                             {{ auth()->user()->name }}
                         </a>
@@ -523,8 +485,8 @@
                     <!-- Quick Logout Action Button -->
                     <form method="POST" action="{{ route('logout') }}" class="flex-shrink-0 ml-auto" x-show="!sidebarCollapsed || mobileSidebarOpen">
                         @csrf
-                        <button type="submit" 
-                                class="w-8 h-8 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 text-slate-400 hover:text-[#c3122e] flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:shadow-xs" 
+                        <button type="submit"
+                                class="w-8 h-8 rounded-xl bg-white hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 text-slate-400 hover:text-[#c3122e] flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:shadow-xs"
                                 title="Sign Out">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -535,9 +497,9 @@
             </div>
 
             <!-- Desktop Collapse / Expand Toggle Button -->
-            <button @click="sidebarCollapsed = !sidebarCollapsed" 
+            <button @click="sidebarCollapsed = !sidebarCollapsed"
                     type="button"
-                    class="hidden lg:flex items-center justify-center w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 text-slate-500 hover:text-slate-800 transition-all duration-200 cursor-pointer gap-2 group shadow-2xs" 
+                    class="hidden lg:flex items-center justify-center w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 text-slate-500 hover:text-slate-800 transition-all duration-200 cursor-pointer gap-2 group shadow-2xs"
                     :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
                 <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform duration-300" :class="{ 'rotate-180': sidebarCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
@@ -582,10 +544,6 @@
                         <span class="font-bold text-[#c3122e]">Workspace</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         <span class="text-slate-900 font-black">{{ auth()->user()?->isPmoAdmin() ? 'Executive Dashboard' : 'Project Dashboard' }}</span>
-                    @elseif(request()->routeIs('approvals*'))
-                        <span class="font-bold text-[#c3122e]">Governance</span>
-                        <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">Approval Workflows</span>
                     @elseif(request()->routeIs('my-tasks*'))
                         <span class="font-bold text-[#c3122e]">Execution</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -715,9 +673,9 @@
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </button>
                     <!-- Mobile Search Modal Overlay -->
-                    <div 
-                        x-show="mobileSearchOpen" 
-                        @click.away="mobileSearchOpen = false" 
+                    <div
+                        x-show="mobileSearchOpen"
+                        @click.away="mobileSearchOpen = false"
                         x-transition:enter="transition duration-150 ease-out"
                         x-transition:enter-start="opacity-0 -translate-y-2"
                         x-transition:enter-end="opacity-100 translate-y-0"
@@ -825,8 +783,8 @@
 
     <!-- Project Not Found Modal Popup -->
     @if(session('project_not_found') || (session('error') && str_contains(strtolower(session('error')), 'project is not found')))
-    <div x-data="{ open: true }" 
-         x-show="open" 
+    <div x-data="{ open: true }"
+         x-show="open"
          x-cloak
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 scale-95"
@@ -834,13 +792,13 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="fixed inset-0 z-[9999999] flex items-center justify-center p-4" 
+         class="fixed inset-0 z-[9999999] flex items-center justify-center p-4"
          style="background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px);">
-        
-        <div @click.away="open = false" 
+
+        <div @click.away="open = false"
              class="relative w-full max-w-md overflow-hidden bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 text-center transform transition-all"
              style="box-shadow: 0 25px 80px -15px rgba(195, 18, 46, 0.25), 0 10px 30px -10px rgba(0, 0, 0, 0.2);">
-            
+
             <!-- Top Gradient Accent -->
             <div class="absolute top-0 left-0 right-0 h-1.5" style="background: linear-gradient(90deg, #c3122e 0%, #f43f5e 50%, #b8860b 100%);"></div>
 
@@ -856,15 +814,15 @@
             <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mt-3">
                 Project Not Found
             </h3>
-            
+
             <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed font-medium">
                 {{ session('project_not_found') ?? session('error') ?? 'The requested project does not exist, may have been deleted, or the link is invalid.' }}
             </p>
 
             <!-- Actions -->
             <div class="mt-6 flex items-center justify-center gap-3">
-                <button @click="open = false" 
-                        type="button" 
+                <button @click="open = false"
+                        type="button"
                         class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all duration-200"
                         style="background: linear-gradient(135deg, #c3122e 0%, #a00e25 100%); box-shadow: 0 8px 20px rgba(195, 18, 46, 0.3);"
                         onmouseover="this.style.transform='translateY(-1px)'"
@@ -1027,7 +985,7 @@
         // Content
         const contentWrap = document.createElement('div');
         contentWrap.style.cssText = 'flex: 1; min-width: 0; padding-right: 4px;';
-        
+
         const titleEl = document.createElement('div');
         titleEl.style.cssText = `font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: ${c.titleColor}; margin-bottom: 2px;`;
         titleEl.textContent = c.title;
@@ -1138,7 +1096,7 @@
                             let message = 'You do not have permission to perform this action.';
                             try {
                                 if (content) {
-                                    const match = content.match(/<div class="[^"]*message[^"]*"[^>]*>\s*([^<]+)\s*<\/div>/i) 
+                                    const match = content.match(/<div class="[^"]*message[^"]*"[^>]*>\s*([^<]+)\s*<\/div>/i)
                                                || content.match(/403\s*\|\s*([^<]+)/i)
                                                || content.match(/"message"\s*:\s*"([^"]+)"/i);
                                     if (match && match[1]) {

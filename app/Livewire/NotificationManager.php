@@ -171,15 +171,12 @@ class NotificationManager extends Component
     public function acceptProjectAssignment(string $notificationId, int $projectId)
     {
         $user = auth()->user();
-        $notification = $user->notifications()->where('id', $notificationId)->first();
-        if ($notification) {
-            $notification->markAsRead();
-        }
-
         $project = \App\Models\Project::findOrFail($projectId);
-        $project->acceptByPm($user);
+        abort_unless($project->canApproveAssignment($user), 403, 'Only the assigned Project Manager can approve this assignment.');
+        abort_unless($project->acceptByPm($user), 403);
+        $user->notifications()->where('id', $notificationId)->first()?->markAsRead();
 
-        $this->dispatch('toast', message: "🎉 Project '{$project->name}' leadership accepted successfully!", type: 'success');
+        $this->dispatch('toast', message: "Project '{$project->name}' leadership accepted successfully!", type: 'success');
         return redirect()->route('projects.show', $project->id);
     }
 
@@ -226,7 +223,7 @@ class NotificationManager extends Component
                 'title' => 'Baseline Approval Required',
                 'message' => 'New WBS Baseline v2.0 for "GS Health Distribution ERP" is pending your review.',
                 'type' => 'approval',
-                'url' => route('approvals.index'),
+                'url' => route('projects.index'),
             ],
             'read_at' => null,
             'created_at' => now()->subHours(1),
@@ -240,7 +237,7 @@ class NotificationManager extends Component
                 'title' => 'Budget Extension Approved',
                 'message' => 'Your budget extension request for "GS Teas Supply Chain Portal" was approved.',
                 'type' => 'approval',
-                'url' => route('approvals.index'),
+                'url' => route('projects.index'),
             ],
             'read_at' => now()->subDay(),
             'created_at' => now()->subDays(1),
@@ -363,7 +360,10 @@ class NotificationManager extends Component
 
         $hasActiveFilters = !empty($this->search) || $this->categoryTab !== 'all' || $this->projectFilter !== 'all' || $this->statusFilter !== 'unread';
 
+        $assignedLeadershipProjectIds = \App\Models\Project::where('project_manager_id', $user->id)->where('pm_accepted', false)->pluck('id')->all();
+
         return view('livewire.notification-manager', [
+            'assignedLeadershipProjectIds' => $assignedLeadershipProjectIds,
             'notifications'      => $paginatedNotifications,
             'projectsList'       => $projectsList,
             'totalCount'         => $totalCount,

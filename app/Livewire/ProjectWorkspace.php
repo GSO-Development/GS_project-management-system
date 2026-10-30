@@ -180,12 +180,9 @@ class ProjectWorkspace extends Component
     public function acceptAssignment(): void
     {
         $user = auth()->user();
-        if ($this->project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
-            $this->dispatch('toast', message: 'Unauthorized. Only the designated Project Manager can accept this assignment.', type: 'error');
-            return;
-        }
+        abort_unless($this->project->canApproveAssignment($user), 403, 'Only the assigned Project Manager can approve this assignment.');
 
-        $this->project->acceptByPm($user);
+        abort_unless($this->project->acceptByPm($user), 403);
         $this->project->refresh();
 
         $this->dispatch('toast', message: '🎉 Project leadership accepted! You now have full Project Manager workspace control.', type: 'success');
@@ -193,6 +190,7 @@ class ProjectWorkspace extends Component
 
     public function openRejectionModal(): void
     {
+        abort_unless($this->project->canApproveAssignment(auth()->user()), 403, 'Only the assigned Project Manager can reject this assignment.');
         $this->rejectionReasonInput = '';
         $this->showRejectionModal = true;
     }
@@ -207,12 +205,12 @@ class ProjectWorkspace extends Component
         ]);
 
         $user = auth()->user();
-        if ($this->project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+        if ($this->project->project_manager_id !== $user->id) {
             $this->dispatch('toast', message: 'Unauthorized. Only the designated Project Leader can decline this assignment.', type: 'error');
             return;
         }
 
-        $this->project->rejectByPm($user, $this->rejectionReasonInput);
+        abort_unless($this->project->rejectByPm($user, $this->rejectionReasonInput), 403);
         $this->project->refresh();
         $this->showRejectionModal = false;
 

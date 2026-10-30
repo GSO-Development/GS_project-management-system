@@ -6,7 +6,6 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportExportController;
 use App\Livewire\AllTasksViewer;
-use App\Livewire\ApprovalManager;
 use App\Livewire\AuditLogViewer;
 use App\Livewire\CalendarView;
 use App\Livewire\DocumentManager;
@@ -62,8 +61,9 @@ Route::middleware(['auth', 'verified', 'must_change_password'])->group(function 
     // Notifications
     Route::get('/notifications', NotificationManager::class)->name('notifications.index');
 
-    // Approvals (Accessible by all authenticated users)
-    Route::get('/approvals', ApprovalManager::class)->name('approvals.index');
+    // Legacy approval links now open the Projects directory.
+    Route::get('/approvals', fn (\Illuminate\Http\Request $request) => redirect()->route('projects.index', array_merge($request->query(), ['viewMode' => 'table'])))
+        ->name('approvals.index');
 
     // Risks & Blockers Hub
     Route::get('/risks', RiskBlockerManager::class)->name('risks.index');

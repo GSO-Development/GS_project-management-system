@@ -366,7 +366,7 @@
         >
             <div
                 wire:key="lead-delay-analysis-{{ $delayProjectId }}"
-                x-data
+                x-data="{ taskFilter: 'all' }"
                 x-init="$nextTick(() => { if ($refs.delayList) $refs.delayList.scrollTop = 0 })"
                 style="width: min(1040px, calc(100vw - 32px)); height: min(760px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); overflow: hidden; border-radius: 22px; background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22); border: 1px solid #e2e8f0; display: flex; flex-direction: column;"
             >
@@ -377,8 +377,12 @@
                         <div class="flex items-center gap-2.5 mt-1 flex-wrap">
                             <h2 id="delay-analysis-title-myleads" class="text-base font-black">{{ $delayAnalysis['project_name'] ?? '' }}</h2>
                             <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">{{ $delayAnalysis['project_code'] ?? '' }}</span>
-                            <span class="text-[11px] text-slate-500">{{ $delayAnalysis['critical_issue_count'] ?? 0 }} critical issue(s)</span>
-                            <span class="text-[11px] text-slate-500">&bull; {{ count($delayAnalysis['issues'] ?? []) }} delayed task(s)</span>
+                            <button type="button" @click="taskFilter = taskFilter === 'delayed' ? 'all' : 'delayed'" :aria-pressed="taskFilter === 'delayed'" :class="taskFilter === 'delayed' ? 'ring-2 ring-amber-400 ring-offset-1 bg-amber-100' : 'hover:bg-amber-100'" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-[10px] font-black text-amber-800 cursor-pointer transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{{ $delayAnalysis['delayed_task_count'] ?? count($delayAnalysis['issues'] ?? []) }} Delayed Tasks
+                            </button>
+                            <button type="button" @click="taskFilter = taskFilter === 'critical' ? 'all' : 'critical'" :aria-pressed="taskFilter === 'critical'" :class="taskFilter === 'critical' ? 'ring-2 ring-rose-400 ring-offset-1 bg-rose-100' : 'hover:bg-rose-100'" class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-1 text-[10px] font-black text-rose-700 cursor-pointer transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{{ $delayAnalysis['critical_issue_count'] ?? 0 }} Critical Tasks
+                            </button>
                         </div>
                     </div>
                     <button type="button" wire:click="closeDelayAnalysis" class="w-9 h-9 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-[#c3122e] font-black cursor-pointer inline-flex items-center justify-center transition-colors" aria-label="Close delay analysis">&times;</button>
@@ -446,12 +450,19 @@
                         </section>
                     @endif
 
+                    <div x-cloak x-show="taskFilter === 'critical' && {{ (int) ($delayAnalysis['critical_issue_count'] ?? 0) }} === 0" class="rounded-xl border border-dashed border-rose-200 bg-white px-4 py-8 text-center text-xs font-bold text-slate-500">No critical tasks were detected.</div>
+                    <div x-cloak x-show="taskFilter === 'delayed' && {{ (int) ($delayAnalysis['delayed_task_count'] ?? 0) }} === 0" class="rounded-xl border border-dashed border-amber-200 bg-white px-4 py-8 text-center text-xs font-bold text-slate-500">No delayed tasks were detected.</div>
                     @forelse(($delayAnalysis['issues'] ?? []) as $issue)
-                        <article class="bg-white rounded-xl border border-slate-200 px-4 py-3.5 shadow-xs">
+                        <article x-show="taskFilter === 'all' || (taskFilter === 'delayed' && {{ !empty($issue['is_delayed']) ? 'true' : 'false' }}) || (taskFilter === 'critical' && {{ !empty($issue['is_critical']) ? 'true' : 'false' }})" x-transition.opacity class="bg-white rounded-xl border border-slate-200 px-4 py-3.5 shadow-xs">
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $issue['is_critical'] ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800' }}">{{ $issue['is_critical'] ? 'CRITICAL PATH IMPACT' : 'DELAY' }}</span>
+                                        @if($issue['is_delayed'] ?? true)
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-800">DELAYED TASK</span>
+                                        @endif
+                                        @if($issue['is_critical'] ?? false)
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">CRITICAL TASK</span>
+                                        @endif
                                         @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
                                     </div>
                                     <h3 class="text-sm font-extrabold text-slate-900 mt-1 leading-snug break-words">{{ $issue['task'] }}</h3>
@@ -774,12 +785,14 @@
                             class="px-4 py-2.5 rounded-xl text-xs font-black text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer flex-shrink-0">
                             ✕ Decline Assignment
                         </button>
+                        @if($reviewProject->canApproveAssignment(auth()->user()))
                         <button type="button" wire:click="acceptProject({{ $reviewProject->id }})"
                             class="px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:scale-105 transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
                             style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
                             <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>Accept &amp; Launch Workspace →</span>
                         </button>
+                        @endif
                     @else
                         <button type="button" wire:click="$set('showRejectModal', false)"
                             class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer">

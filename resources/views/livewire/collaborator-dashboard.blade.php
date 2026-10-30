@@ -17,9 +17,9 @@
             </div>
             <div class="flex items-center gap-2">
                 @foreach($pendingInvitations as $inv)
-                    <button 
+                    <button
                         wire:click="acceptProjectAssignment({{ $inv->id }})"
-                        type="button" 
+                        type="button"
                         class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] cursor-pointer transition-colors shadow-2xs"
                     >
                         Accept {{ $inv->code }}
@@ -39,13 +39,13 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <a href="{{ route('approvals.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer no-underline active:scale-98">
+            <a href="{{ route('projects.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer no-underline active:scale-98">
                 <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span>Submit Approval</span>
             </a>
-            
+
             <a href="{{ route('calendar.index') }}" class="px-3.5 py-2 rounded-xl font-bold text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer no-underline">
                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -159,7 +159,7 @@
                     };
                 @endphp
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    
+
                     {{-- Card Top Row: Code Badge & Status Pill --}}
                     <div>
                         <div class="flex items-center justify-between gap-2">
@@ -276,19 +276,19 @@
                 @endphp
                 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs space-y-3 hover:border-slate-300 transition-all">
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        
+
                         {{-- Left Side: Code, Title, Badges & Meta --}}
                         <div class="flex items-start gap-3 min-w-0">
                             <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-mono text-xs font-bold shrink-0 mt-0.5">
                                 {{ $task->wbs_code ?? '1.1' }}
                             </span>
-                            
+
                             <div class="min-w-0 space-y-1">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
                                         {{ $task->title }}
                                     </h4>
-                                    
+
                                     {{-- Status Badge --}}
                                     <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold border {{ $statusStyles }} flex items-center gap-1">
                                         {{ $task->status->label() }}
@@ -323,7 +323,7 @@
 
                         {{-- Right Side: Controls (Status Select, + Sub-Task, Range Slider) --}}
                         <div class="flex items-center gap-3 flex-wrap lg:justify-end shrink-0">
-                            
+
                             {{-- Status Dropdown Pill --}}
                             @php
                                 $stVal = $task->status->value ?? (string) $task->status;
@@ -339,7 +339,7 @@
                             @endphp
                             <div class="relative flex items-center shrink-0">
                                 <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full z-10 {{ $stStyle['dot'] }}"></span>
-                                <select 
+                                <select
                                     wire:change="updateTaskStatus({{ $task->id }}, $event.target.value)"
                                     class="text-xs font-bold py-1.5 pl-7 pr-7 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300/30 transition-all appearance-none cursor-pointer shadow-2xs"
                                     style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important; {{ $stStyle['style'] }}"
@@ -354,9 +354,9 @@
                             </div>
 
                             {{-- Sub-Task Button --}}
-                            <button 
+                            <button
                                 wire:click="openSubTaskModal({{ $task->id }})"
-                                type="button" 
+                                type="button"
                                 class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center gap-1 cursor-pointer"
                             >
                                 <span>+ Sub-Task</span>
@@ -364,10 +364,10 @@
 
                             {{-- Progress Range Slider --}}
                             <div class="flex items-center gap-2 bg-slate-50/80 border border-slate-200/70 rounded-xl px-3 py-1.5 shadow-2xs">
-                                <input 
-                                    type="range" 
-                                    min="0" 
-                                    max="100" 
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
                                     step="5"
                                     value="{{ $task->progress }}"
                                     wire:change="updateTaskProgress({{ $task->id }}, $event.target.value)"
@@ -416,7 +416,7 @@
 
                                         <div class="relative shrink-0 flex items-center">
                                             <span class="pointer-events-none absolute left-2 w-1.5 h-1.5 rounded-full z-10 {{ $subStStyle['dot'] }}"></span>
-                                            <select 
+                                            <select
                                                 wire:change="updateTaskStatus({{ $sub->id }}, $event.target.value)"
                                                 class="text-[10px] font-bold py-1 pl-5 pr-6 rounded-lg border outline-none appearance-none cursor-pointer"
                                                 style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important; {{ $subStStyle['style'] }}"
@@ -462,9 +462,9 @@
                             <p class="text-xs text-slate-400 font-medium mt-0.5">Break down your assigned task</p>
                         </div>
                     </div>
-                    <button 
-                        wire:click="$set('showSubTaskModal', false)" 
-                        type="button" 
+                    <button
+                        wire:click="$set('showSubTaskModal', false)"
+                        type="button"
                         class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                     >
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>

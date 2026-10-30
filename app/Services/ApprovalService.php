@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ApprovalStatus;
+use App\Enums\ApprovalType;
 use App\Models\ActivityLog;
 use App\Models\ApprovalRequest;
 use App\Models\Project;
@@ -30,6 +31,22 @@ class ApprovalService
      */
     public function approve(ApprovalRequest $request, User $reviewer, ?string $comment = null): void
     {
+        if ($request->request_type === ApprovalType::NEW_PROJECT_PLAN) {
+            DB::transaction(function () use ($request, $reviewer, $comment) {
+                $project = Project::lockForUpdate()->findOrFail($request->project_id);
+                abort_unless($project->canApproveAssignment($reviewer), 403, 'Only the assigned Project Manager can approve this assignment.');
+                $lockedRequest = ApprovalRequest::lockForUpdate()->findOrFail($request->id);
+                if ($lockedRequest->status !== ApprovalStatus::PENDING) {
+                    throw new InvalidArgumentException('This assignment has already been reviewed.');
+                }
+                abort_unless($project->acceptByPm($reviewer), 403);
+                if ($comment !== null) {
+                    $lockedRequest->update(['review_comment' => $comment]);
+                }
+            });
+            return;
+        }
+
         if ($request->requested_by === $reviewer->id && !$reviewer->hasRole('super_admin')) {
             throw new InvalidArgumentException("Users cannot approve their own requests.");
         }
@@ -73,12 +90,6 @@ class ApprovalService
                 case 'project_completion':
                     $project->status = \App\Enums\ProjectStatus::COMPLETED;
                     $project->overall_progress = 100;
-                    $project->save();
-                    break;
-
-                case 'new_project_plan':
-                    $project->pm_accepted = true;
-                    $project->pm_accepted_at = now();
                     $project->save();
                     break;
 
@@ -164,6 +175,19 @@ class ApprovalService
      */
     public function reject(ApprovalRequest $request, User $reviewer, string $reason): void
     {
+        if ($request->request_type === ApprovalType::NEW_PROJECT_PLAN) {
+            DB::transaction(function () use ($request, $reviewer, $reason) {
+                $project = Project::lockForUpdate()->findOrFail($request->project_id);
+                abort_unless($project->canApproveAssignment($reviewer), 403, 'Only the assigned Project Manager can reject this assignment.');
+                $lockedRequest = ApprovalRequest::lockForUpdate()->findOrFail($request->id);
+                if ($lockedRequest->status !== ApprovalStatus::PENDING) {
+                    throw new InvalidArgumentException('This assignment has already been reviewed.');
+                }
+                abort_unless($project->rejectByPm($reviewer, $reason), 403);
+            });
+            return;
+        }
+
         if ($request->requested_by === $reviewer->id && !$reviewer->hasRole('super_admin')) {
             throw new InvalidArgumentException("Users cannot reject their own requests.");
         }

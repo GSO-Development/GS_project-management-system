@@ -48,7 +48,7 @@ class ApprovalStatusNotification extends Notification
             'message'             => $message,
             'action'              => $this->action,
             'type'                => $type,
-            'url'                 => route('approvals.index'),
+            'url'                 => route('projects.index', ['approval_project' => $this->approvalRequest->project_id]),
         ];
     }
 }

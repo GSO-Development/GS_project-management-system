@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\ProjectCreate;
+use App\Livewire\ManageTemplates;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\Subsidiary;
@@ -40,9 +41,54 @@ class ProjectCreateTest extends TestCase
         $testable = Livewire::actingAs($admin)
             ->test(ProjectCreate::class)
             ->assertOk()
-            ->assertSet('selected_template_id', $template->id);
+            ->assertSet('creation_option', 'manual')
+            ->assertSet('selected_template_id', null)
+            ->assertSee('Project Name')
+            ->assertSee('Project Manager')
+            ->assertSee('Select Your Tasks Template')
+            ->assertSee('Blank')
+            ->assertSee('Select Templates')
+            ->assertSee('Create Project')
+            ->assertSee('wire:model="name"', false)
+            ->assertSee('wire:click="selectBlankCanvas"', false)
+            ->assertSee('wire:model.live="start_date"', false)
+            ->assertDontSee('Next Step')
+            ->assertDontSee('Previous Step');
 
-        $this->assertNotNull($testable->get('calculatedDeadline'));
+        $this->assertNull($testable->get('calculatedDeadline'));
+    }
+
+    public function test_template_library_selection_restores_project_draft(): void
+    {
+        Role::findOrCreate('super_admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $subsidiary = Subsidiary::create(['name' => 'Selection Sub', 'code' => 'SEL']);
+        $template = ProjectTemplate::create(['name' => 'Selected Delivery Template']);
+
+        Livewire::actingAs($admin)
+            ->test(ProjectCreate::class)
+            ->set('name', 'Preserved Project Name')
+            ->set('subsidiary_id', $subsidiary->id)
+            ->call('openTemplateLibrary')
+            ->assertRedirect(route('templates.index', ['select_for' => 'project']));
+
+        $this->assertSame('Preserved Project Name', session('project_create_draft.name'));
+
+        Livewire::actingAs($admin)
+            ->withQueryParams(['select_for' => 'project'])
+            ->test(ManageTemplates::class)
+            ->assertSet('selectForProject', true)
+            ->assertSee('Use Template')
+            ->call('selectTemplateForProject', $template->id)
+            ->assertRedirect(route('projects.create').'#project-blueprint');
+
+        Livewire::actingAs($admin)
+            ->test(ProjectCreate::class)
+            ->assertSet('name', 'Preserved Project Name')
+            ->assertSet('creation_option', 'template')
+            ->assertSet('selected_template_id', $template->id)
+            ->assertSee('Selected Delivery Template');
     }
 
     public function test_project_creation_with_template_creates_tasks_and_subtasks(): void
@@ -90,7 +136,7 @@ class ProjectCreateTest extends TestCase
             ->set('start_date', '2026-11-01')
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect();
+            ->assertRedirect(route('projects.index'));
 
         $project = Project::where('name', 'E2E Creation Project')->first();
         $this->assertNotNull($project);
@@ -112,5 +158,45 @@ class ProjectCreateTest extends TestCase
         $this->assertNotNull($p2);
         $this->assertEquals(\App\Enums\ItemType::TASK, $p2->item_type);
         $this->assertCount(0, $wbsItems->where('parent_id', $p2->id));
+    }
+
+    public function test_single_page_manual_creation_preserves_input_after_validation_errors(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        \Illuminate\Support\Facades\Notification::fake();
+        Role::findOrCreate('super_admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        Subsidiary::create(['name' => 'Manual Sub', 'code' => 'MAN']);
+
+        $form = Livewire::actingAs($admin)
+            ->test(ProjectCreate::class)
+            ->call('selectBlankCanvas')
+            ->set('name', 'Single Page Manual Project')
+            ->set('project_manager_id', $admin->id)
+            ->set('start_date', '2026-11-10')
+            ->set('deadline', '2026-11-01')
+            ->call('save')
+            ->assertHasErrors(['deadline'])
+            ->assertSet('name', 'Single Page Manual Project')
+            ->assertSee('Please review the following')
+            ->assertSee('Project Name')
+            ->assertSee('Project Manager')
+            ->assertSee('Select Your Tasks Template')
+            ->assertSee('Create Project');
+
+        $this->assertDatabaseMissing('projects', ['name' => 'Single Page Manual Project']);
+
+        $form->set('deadline', '2026-12-10')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('projects.index'));
+
+        $project = Project::where('name', 'Single Page Manual Project')->firstOrFail();
+        $this->assertSame('manual', $project->wbs_breakdown_type);
+        $this->assertNull($project->template_id);
+        $this->assertSame('2026-11-10', $project->start_date->toDateString());
+        $this->assertSame('2026-12-10', $project->deadline->toDateString());
+        $this->assertCount(0, $project->wbsItems);
     }
 }

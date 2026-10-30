@@ -68,7 +68,7 @@ class ProjectManagerDashboard extends Component
         $user = auth()->user();
         $project = Project::where('project_manager_id', $user->id)->findOrFail($projectId);
 
-        $project->acceptByPm($user);
+        abort_unless($project->acceptByPm($user), 403);
         $this->closeReviewModal();
 
         $this->dispatch('toast', message: '🎉 Project leadership accepted! Workspace is now unlocked.', type: 'success');
@@ -97,12 +97,12 @@ class ProjectManagerDashboard extends Component
         $project = Project::findOrFail($this->reviewProjectId);
         $user = auth()->user();
 
-        if ($project->project_manager_id !== $user->id && !$user->hasRole('super_admin')) {
+        if ($project->project_manager_id !== $user->id) {
             $this->dispatch('toast', message: 'Unauthorized action.', type: 'error');
             return;
         }
 
-        $project->rejectByPm($user, $this->rejectionReasonInput);
+        abort_unless($project->rejectByPm($user, $this->rejectionReasonInput), 403);
         $this->closeReviewModal();
         $this->dispatch('toast', message: 'Project assignment declined. PMO Admin has been notified with your issue report.', type: 'warning');
     }

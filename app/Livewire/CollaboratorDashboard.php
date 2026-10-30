@@ -111,7 +111,7 @@ class CollaboratorDashboard extends Component
         $user = auth()->user();
         $project = Project::where('project_manager_id', $user->id)->findOrFail($projectId);
 
-        $project->acceptByPm($user);
+        abort_unless($project->acceptByPm($user), 403);
 
         $this->dispatch('toast', message: '🎉 Project assignment accepted! Opening project workspace...', type: 'success');
 

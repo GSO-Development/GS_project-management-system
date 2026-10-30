@@ -130,6 +130,7 @@
                 @endif
 
                 @if($project->project_manager_id === auth()->id())
+                    @if($project->canApproveAssignment(auth()->user()))
                     <button
                         wire:click="acceptAssignment"
                         type="button"
@@ -138,6 +139,7 @@
                         <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         <span>Re-evaluate &amp; Accept</span>
                     </button>
+                    @endif
                 @endif
             </div>
         </div>
@@ -169,7 +171,7 @@
             </div>
 
             <div class="flex items-center gap-2.5 shrink-0 flex-wrap pl-1.5 sm:pl-0">
-                @if($project->project_manager_id === auth()->id() || auth()->user()->isSuperAdmin())
+                @if($project->project_manager_id === auth()->id())
                     <button
                         wire:click="openRejectionModal"
                         type="button"
@@ -179,6 +181,7 @@
                         <span>Decline</span>
                     </button>
 
+                    @if($project->canApproveAssignment(auth()->user()))
                     <button
                         wire:click="acceptAssignment"
                         type="button"
@@ -189,6 +192,7 @@
                         </svg>
                         <span>Accept Leadership →</span>
                     </button>
+                    @endif
                 @endif
             </div>
         </div>
@@ -392,6 +396,7 @@
                         <span>Full Brief</span>
                     </button>
 
+                    @if($project->canApproveAssignment(auth()->user()))
                     <button
                         wire:click="acceptAssignment"
                         type="button"
@@ -402,6 +407,7 @@
                         </svg>
                         <span>Accept Leadership →</span>
                     </button>
+                    @endif
                 </div>
             </div>
 
@@ -595,7 +601,8 @@
 
                         <div class="space-y-2 pt-2 border-t border-slate-100">
                             <!-- Primary Accept Button -->
-                            <button
+                            @if($project->canApproveAssignment(auth()->user()))
+                    <button
                                 wire:click="acceptAssignment"
                                 type="button"
                                 class="w-full py-3 px-5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a50e26] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
@@ -605,9 +612,11 @@
                                 </svg>
                                 <span>Accept Leadership &amp; Unlock Workspace →</span>
                             </button>
+                    @endif
 
                             <!-- Decline / Full Brief Buttons -->
                             <div class="grid grid-cols-2 gap-2">
+                                @if($project->canApproveAssignment(auth()->user()))
                                 <button
                                     wire:click="openRejectionModal"
                                     type="button"
@@ -615,6 +624,7 @@
                                 >
                                     ✕ Decline &amp; Report
                                 </button>
+                                @endif
                                 <button
                                     wire:click="openProjectDetailsModal"
                                     type="button"
@@ -1489,10 +1499,12 @@
                                     {{-- Actions: Approve/Reject only if user has approval.approve permission; Withdraw if requester --}}
                                     @if($req->status->value === 'pending')
                                         @if($project->userCan(auth()->user(), 'approval.approve'))
+                                            @if($req->request_type !== \App\Enums\ApprovalType::NEW_PROJECT_PLAN || $project->canApproveAssignment(auth()->user()))
                                             <button wire:click="approveRequestInWorkspace({{ $req->id }})"
                                                     class="px-3 py-1 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs cursor-pointer transition-all">
                                                 Approve
                                             </button>
+                                            @endif
                                             <button wire:click="rejectRequestInWorkspace({{ $req->id }})"
                                                     class="px-3 py-1 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-2xs cursor-pointer transition-all">
                                                 Reject

@@ -27,6 +27,32 @@
         body:has(.delay-analysis-backdrop),
         html:has(.delete-project-backdrop),
         body:has(.delete-project-backdrop) { overflow: hidden !important; }
+        .project-approval-register { table-layout: fixed; min-width: 1180px; width: 100%; }
+        .project-approval-register th { padding: 14px 12px; text-align: left; white-space: nowrap; }
+        .project-approval-register td { padding: 16px 12px; vertical-align: middle; }
+        .project-approval-register th:first-child, .project-approval-register td:first-child { padding-inline: 8px; text-align: center; }
+        .project-approval-register .project-name-link { display: block; font-size: 13px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+        .project-approval-register .project-metadata { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 5px; }
+        .project-approval-register .project-code { max-width: 100%; overflow-wrap: anywhere; white-space: normal; line-height: 1.5; }
+        .project-approval-register .project-subsidiary-name, .project-approval-register .project-manager-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }
+        .project-approval-register .project-manager-name { flex: 1; }
+        .project-approval-register .project-status-pill { max-width: 100%; gap: 5px; padding: 4px 8px; font-size: 11px; line-height: 1.3; }
+        .project-approval-register .project-progress { display: grid; gap: 5px; width: 100%; min-width: 0; }
+        .project-approval-register .project-progress-value { font-size: 12px; font-weight: 750; line-height: 1.2; color: #0f172a; }
+        .project-approval-register .project-task-count { font-size: 11px; line-height: 1.4; color: #64748b; }
+        .project-approval-register .project-deadline-cell { white-space: normal; }
+        .project-approval-register .project-deadline-alert { max-width: 100%; flex-wrap: wrap; gap: 4px; }
+        .project-approval-register .project-approval-cell { min-width: 0; }
+        .project-approval-register .project-approval-cell p, .project-approval-register .project-approval-cell summary { overflow-wrap: anywhere; white-space: normal; }
+        .project-approval-register .project-approval-actions { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+        .project-approval-register .project-approval-actions button { text-align: left; line-height: 1.5; }
+        .project-approval-register th:last-child, .project-approval-register td:last-child:not([colspan]) { position: sticky; right: 0; background: #fff; box-shadow: -1px 0 0 #edf0f4; z-index: 2; }
+        .project-approval-register th:last-child { z-index: 3; background: #f8fafc; text-align: right; }
+        .project-approval-register tbody tr:hover td:last-child { background: #fafafa; }
+        .project-approval-register .project-row-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 72px; margin-left: auto; }
+        .projects-drag-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
+        .projects-drag-scroll::-webkit-scrollbar { height: 8px; }
+        .projects-drag-scroll::-webkit-scrollbar-thumb { border: 2px solid #f8fafc; border-radius: 8px; background: #cbd5e1; }
     </style>
 
     <!-- Flash Success / Error Toast Banners -->
@@ -52,7 +78,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-4 mb-6">
+    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-4 mb-6">
         <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Title -->
@@ -86,7 +112,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                     </svg>
                     <span>Filter</span>
-                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all')
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all')
                         <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
                     @endif
                 </button>
@@ -174,6 +200,15 @@
                         <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                     </div>
 
+                    <div class="relative flex-1 sm:flex-initial min-w-[150px]">
+                        <select wire:model.live="approvalFilter" aria-label="Filter by approval status" class="custom-select w-full bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700">
+                            <option value="all">All Approvals</option>
+                            <option value="pending">Pending Approval</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+
                     <!-- Priority Filter -->
                     <div class="relative flex-1 sm:flex-initial min-w-[120px]">
                         <select wire:model.live="priorityFilter"
@@ -187,7 +222,7 @@
                     </div>
 
                     <!-- Clear Filters Button -->
-                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $healthFilter !== 'all' || $roleFilter !== 'all')
+                    @if($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all' || $roleFilter !== 'all')
                         <button type="button" wire:click="resetFilters"
                                 class="bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl px-3 py-2 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
                                 title="Reset Filters">
@@ -212,7 +247,7 @@
                     dragging: false,
                     beginPan(event) {
                         if (event.pointerType !== 'mouse' || event.button !== 0 || this.$el.scrollWidth &lt;= this.$el.clientWidth) return;
-                        if (event.target.closest('a, button, input, select, textarea, [contenteditable], [role=button]')) return;
+                        if (event.target.closest('a, button, input, select, textarea, summary, [contenteditable], [role=button]')) return;
                         const rect = this.$el.getBoundingClientRect();
                         if (event.clientX >= rect.left + this.$el.clientWidth || event.clientY >= rect.top + this.$el.clientHeight) return;
                         this.drag = { id: event.pointerId, x: event.clientX, left: this.$el.scrollLeft };
@@ -243,27 +278,29 @@
                     .projects-drag-scroll a, .projects-drag-scroll button { cursor: pointer; }
                     .projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
                 </style>
-                <table class="w-full text-left border-collapse min-w-[720px] lg:min-w-full">
+                <table class="project-approval-register w-full text-left border-collapse">
                     <colgroup>
-                        <col class="w-[4%]">
-                        <col class="w-[19%]">
-                        <col class="w-[13%]">
-                        <col class="w-[15%]">
-                        <col class="w-[10%]">
-                        <col class="w-[12%]">
-                        <col class="w-[20%]">
-                        <col class="w-[5%]">
+                        <col style="width: 44px">
+                        <col>
+                        <col style="width: 140px">
+                        <col style="width: 160px">
+                        <col style="width: 126px">
+                        <col style="width: 108px">
+                        <col style="width: 150px">
+                        <col style="width: 178px">
+                        <col style="width: 96px">
                     </colgroup>
                     <thead>
                         <tr class="bg-slate-50/70 border-b border-slate-200/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider select-none">
                             <th class="py-3.5 pl-5 sm:pl-6 pr-2 text-center whitespace-nowrap">#</th>
-                            <th class="py-3.5 pl-2 pr-3 w-[30%] sm:w-[26%] lg:w-[25%]">Project</th>
-                            <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Subsidiary</th>
-                            <th class="py-3.5 px-3 w-[20%] sm:w-[18%] lg:w-[16%]">Project Manager</th>
-                            <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden sm:table-cell">Status</th>
-                            <th class="py-3.5 px-3 w-[14%] lg:w-[12%] hidden lg:table-cell">Progress</th>
-                            <th class="py-3.5 px-3 w-[20%] hidden lg:table-cell whitespace-nowrap">Deadline</th>
-                            <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[10%] whitespace-nowrap">Action</th>
+                            <th class="py-3.5 pl-2 pr-3">Project</th>
+                            <th class="py-3.5 px-3">Subsidiary</th>
+                            <th class="py-3.5 px-3">Project Manager</th>
+                            <th class="py-3.5 px-3">Status</th>
+                            <th class="py-3.5 px-3">Progress</th>
+                            <th class="py-3.5 px-3 whitespace-nowrap">Deadline</th>
+                            <th class="py-3.5 px-3">Approval</th>
+                            <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -280,11 +317,11 @@
                                 <!-- Project Name & Clean Metadata -->
                                 <td class="py-3.5 pl-2 pr-3 align-middle">
                                     <div class="min-w-0 space-y-1">
-                                        <a href="{{ route('projects.show', $project->id) }}" class="font-bold text-sm text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline" title="Open {{ $project->name }} workspace">
+                                        <a href="{{ route('projects.show', $project->id) }}" class="project-name-link font-bold text-slate-900 hover:text-[#c3122e] transition-colors no-underline" title="Open {{ $project->name }} workspace">
                                             {{ $project->name }}
                                         </a>
-                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 whitespace-nowrap">
-                                            <span class="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60 leading-none">
+                                        <div class="project-metadata text-[11px] text-slate-500">
+                                            <span class="project-code font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60 leading-none">
                                                 {{ $project->code }}
                                             </span>
                                             <span class="text-slate-300">•</span>
@@ -305,8 +342,8 @@
                                 </td>
 
                                 <!-- Subsidiary -->
-                                <td class="py-3.5 px-3 hidden md:table-cell align-middle">
-                                    <span class="text-xs font-medium text-slate-600 truncate block" title="{{ $project->subsidiary->name ?? '—' }}">
+                                <td class="py-3.5 px-3 align-middle">
+                                    <span class="project-subsidiary-name text-xs font-medium text-slate-600 block" title="{{ $project->subsidiary->name ?? '—' }}">
                                         {{ $project->subsidiary->name ?? '—' }}
                                     </span>
                                 </td>
@@ -318,7 +355,7 @@
                                             <div class="w-6 h-6 rounded-full bg-rose-50 text-[#c3122e] font-extrabold text-[10px] flex items-center justify-center shrink-0 border border-rose-100 shadow-2xs">
                                                 {{ strtoupper(substr($project->projectManager->name, 0, 1)) }}
                                             </div>
-                                            <span class="text-xs font-semibold text-slate-700 truncate" title="{{ $project->projectManager->name }}">
+                                            <span class="project-manager-name text-xs font-semibold text-slate-700" title="{{ $project->projectManager->name }}">
                                                 {{ $project->projectManager->name }}
                                             </span>
                                         </div>
@@ -328,7 +365,7 @@
                                 </td>
 
                                 <!-- Status -->
-                                <td class="py-3.5 px-3 hidden sm:table-cell align-middle">
+                                <td class="py-3.5 px-3 align-middle">
                                     @php
                                         $stConfig = match($project->status->value) {
                                             'completed'    => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200/60', 'dot' => 'bg-emerald-500', 'bar' => 'bg-emerald-500'],
@@ -341,27 +378,25 @@
                                             default        => ['cls' => 'bg-slate-100 text-slate-500 border-slate-200/60',       'dot' => 'bg-slate-400', 'bar' => 'bg-slate-400'],
                                         };
                                     @endphp
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $stConfig['cls'] }} whitespace-nowrap">
+                                    <span class="project-status-pill inline-flex items-center rounded-full font-bold border {{ $stConfig['cls'] }} whitespace-nowrap">
                                         <span class="w-1.5 h-1.5 rounded-full {{ $stConfig['dot'] }} shrink-0"></span>
                                         {{ $project->status->label() }}
                                     </span>
                                 </td>
 
                                 <!-- Progress -->
-                                <td class="py-3.5 px-3 hidden lg:table-cell align-middle">
-                                    <div class="space-y-1 w-full min-w-[120px] max-w-[160px]">
-                                        <div class="flex items-center justify-between text-xs font-semibold">
-                                            <span class="text-slate-900 font-extrabold">{{ $project->overall_progress }}%</span>
-                                            <span class="text-slate-400 text-[11px] font-medium truncate pl-1">{{ $project->wbsItems->count() }} Tasks</span>
-                                        </div>
-                                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <td class="py-3.5 px-3 align-middle">
+                                    <div class="project-progress">
+                                        <span class="project-progress-value">{{ $project->overall_progress }}%</span>
+                                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-label="Project progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ min(100, max(0, $project->overall_progress)) }}">
                                             <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress >= 100 ? 'bg-emerald-500' : $stConfig['bar'] }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
                                         </div>
+                                        <span class="project-task-count">{{ number_format($project->wbsItems->count()) }} Tasks</span>
                                     </div>
                                 </td>
 
                                 <!-- Deadline -->
-                                <td class="py-3.5 px-3 hidden lg:table-cell align-middle whitespace-nowrap">
+                                <td class="project-deadline-cell py-3.5 px-3 align-middle">
                                     @if($project->deadline)
                                         @php $isOverdue = $project->deadline->isPast() && $project->overall_progress < 100; @endphp
                                         <span class="block text-xs font-extrabold tracking-tight {{ $isOverdue ? 'text-[#d10a32]' : 'text-slate-700' }}">
@@ -370,7 +405,7 @@
                                         @if($delaySummary['is_delayed'])
                                             <a
                                                 href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
-                                                class="group/delay mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-600 no-underline transition-colors hover:text-[#a80e27]"
+                                                class="project-deadline-alert group/delay mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-600 no-underline transition-colors hover:text-[#a80e27]"
                                                 title="Review delayed tasks and reasons"
                                                 aria-label="Review {{ $delaySummary['project_overdue_days'] ?? 0 }} overdue days and {{ count($delaySummary['issues'] ?? []) }} delay issues for {{ $project->name }}"
                                             >
@@ -394,9 +429,58 @@
                                     @endif
                                 </td>
 
+                                <!-- Assignment approval and formal requests -->
+                                <td class="py-3.5 px-3 align-middle project-approval-cell">
+                                    @php
+                                        $leadApproval = $project->approvalRequests->firstWhere('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                                        $leadState = $project->pm_accepted ? 'approved' : ($project->isPmRejected() ? 'rejected' : ($leadApproval?->status->value ?? 'pending'));
+                                        $leadColor = match($leadState) {
+                                            'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                            'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
+                                            'pending' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                            default => 'bg-slate-50 text-slate-600 border-slate-200',
+                                        };
+                                        $formalRequests = $project->approvalRequests->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                                        $pendingRequests = $formalRequests->where('status', \App\Enums\ApprovalStatus::PENDING)->count();
+                                        $rejectedRequests = $formalRequests->where('status', \App\Enums\ApprovalStatus::REJECTED);
+                                    @endphp
+                                    <div class="space-y-2">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold {{ $leadColor }}">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                            {{ ucfirst(str_replace('_', ' ', $leadState)) }}
+                                        </span>
+                                        @if($project->pm_rejection_reason || ($leadState === 'rejected' && $leadApproval?->review_comment))
+                                            <details class="text-[11px] leading-relaxed text-rose-700">
+                                                <summary class="cursor-pointer"><strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($project->pm_rejection_reason ?: $leadApproval->review_comment, 55) }}</summary>
+                                                <p class="mt-1">{{ $project->pm_rejection_reason ?: $leadApproval->review_comment }}</p>
+                                            </details>
+                                        @endif
+                                        @if($pendingRequests)
+                                            <p class="text-[11px] font-semibold text-amber-700">{{ $pendingRequests }} pending {{ \Illuminate\Support\Str::plural('request', $pendingRequests) }}</p>
+                                        @endif
+                                        @if($rejectedRequests->isNotEmpty())
+                                            <details class="text-[11px] text-rose-700">
+                                                <summary class="cursor-pointer">{{ $rejectedRequests->count() }} rejected {{ \Illuminate\Support\Str::plural('request', $rejectedRequests->count()) }}</summary>
+                                                @foreach($rejectedRequests as $rejectedRequest)
+                                                    <p class="mt-1 whitespace-normal break-words"><strong>{{ $rejectedRequest->request_type->label() }}:</strong> {{ $rejectedRequest->review_comment ?: 'No reason recorded.' }}</p>
+                                                @endforeach
+                                            </details>
+                                        @endif
+                                        <div class="project-approval-actions">
+                                            <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }} })" class="text-[11px] font-bold text-[#c3122e] hover:underline">Review</button>
+                                            @if($project->isPmRejected() && auth()->user()->isPmoAdmin())
+                                                <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'reassign' })" class="text-[11px] font-bold text-amber-700 hover:underline">Reassign PM</button>
+                                            @elseif($project->isPendingPmAcceptance() && $project->canApproveAssignment(auth()->user()))
+                                                <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'accept' })" wire:confirm="Approve this project manager assignment?" class="text-[11px] font-bold text-emerald-700 hover:underline">Approve</button>
+                                                <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'reject' })" class="text-[11px] font-bold text-rose-700 hover:underline">Reject</button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+
                                 <!-- Action Buttons -->
                                 <td class="py-3.5 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
-                                    <div class="inline-flex items-center justify-end gap-1">
+                                    <div class="project-row-actions">
                                         @if($delaySummary['is_delayed'])
                                             <a
                                                 href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
@@ -440,7 +524,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-16 text-center">
+                                <td colspan="9" class="py-16 text-center">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -512,7 +596,7 @@
                     </div>
 
                     <!-- Subsidiary Filter -->
-                    <select wire:model.live="subsidiaryFilter" 
+                    <select wire:model.live="subsidiaryFilter"
                             class="custom-select px-3 py-1.5 bg-white border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-1 focus:ring-[#c3122e] shadow-2xs cursor-pointer max-w-[140px] truncate">
                         <option value="all">All Subsidiaries</option>
                         @foreach($subsidiaries as $sub)
@@ -570,7 +654,7 @@
                                 @php
                                     $proj = $gp['project'];
                                     $health = $proj->computed_health ?? ($gp['health'] ?? 'in_progress');
-                                    
+
                                     $hBadge = match($health) {
                                         'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
                                         'in_progress' => 'bg-blue-50 text-blue-700 border-blue-200/80',
@@ -600,7 +684,7 @@
                                         'on_hold'     => 'On Hold',
                                         default       => 'In Progress',
                                     };
-                                    
+
                                     // Soft Modern Capsule Bar Styles
                                     $barBgStyle = match($health) {
                                         'completed'   => 'background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 2px 10px rgba(5,150,105,0.22);',
@@ -631,7 +715,7 @@
                                                 </svg>
                                             </button>
 
-                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs" 
+                                            <a href="{{ route('projects.show', $proj->id) }}?tab=wbs"
                                                class="font-bold text-sm text-slate-900 hover:text-[#c3122e] truncate transition-colors no-underline leading-tight flex-1 min-w-0"
                                                title="{{ $proj->name }}">
                                                 {{ $proj->name }}
@@ -665,7 +749,7 @@
 
                                         <!-- Red Vertical Today Line -->
                                         @if($ganttTimeline['today_visible'])
-                                            <div class="absolute top-0 bottom-0 pointer-events-none z-10 flex flex-col items-center" 
+                                            <div class="absolute top-0 bottom-0 pointer-events-none z-10 flex flex-col items-center"
                                                  style="left: {{ $ganttTimeline['today_pct'] }}%;">
                                                 <div class="w-[2px] h-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"></div>
                                             </div>
@@ -689,7 +773,7 @@
                                                    class="absolute h-full rounded-lg transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer z-20 text-white no-underline hover:brightness-105 shadow-xs"
                                                    style="left: {{ $barLeftPct }}%; width: {{ $barWidthPct }}%; {{ $barBgStyle }}"
                                                    title="{{ $proj->name }} • {{ $gp['start_date']->format('M d, Y') }} – {{ $gp['end_date']->format('M d, Y') }} ({{ $gp['progress'] }}% Complete)">
-                                                    
+
                                                     @if($gp['progress'] > 0)
                                                         <div class="absolute inset-y-0 left-0 bg-white/25 rounded-l-lg pointer-events-none transition-all"
                                                              style="width: {{ $gp['progress'] }}%;"></div>
@@ -1020,7 +1104,7 @@
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" wire:click="closeQuickDrawer"></div>
             <div class="fixed inset-y-0 right-0 pl-6 sm:pl-10 max-w-full flex">
                 <div class="w-screen max-w-3xl lg:max-w-4xl bg-white shadow-2xl border-l border-slate-200 flex flex-col justify-between animate-in slide-in-from-right duration-200">
-                    
+
                     <!-- 1. Drawer Header -->
                     <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/70 flex items-start justify-between gap-4 flex-shrink-0">
                         <div class="min-w-0 flex-1">
@@ -1028,7 +1112,7 @@
                                 <span class="px-2 py-0.5 rounded-md font-mono font-bold text-[10px] text-[#c3122e] bg-rose-50 border border-rose-200/80">
                                     {{ $selectedDrawerProject->code }}
                                 </span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border 
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border
                                     {{ match($selectedDrawerProject->status->value) {
                                         'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                         'in_progress' => 'bg-blue-50 text-blue-700 border-blue-200',
@@ -1055,7 +1139,7 @@
 
                         <!-- Right Header Actions & Close -->
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <a href="{{ route('projects.show', $selectedDrawerProject->id) }}?tab=wbs" 
+                            <a href="{{ route('projects.show', $selectedDrawerProject->id) }}?tab=wbs"
                                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 shadow-2xs transition-all no-underline">
                                 <span>Full Workspace</span>
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
@@ -1118,9 +1202,9 @@
                         <!-- Search Deliverables -->
                         <div class="relative flex-1">
                             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input 
+                            <input
                                 wire:model.live.debounce.250ms="drawerWbsSearch"
-                                type="text" 
+                                type="text"
                                 placeholder="Search deliverables, WBS code, assignee..."
                                 class="w-full pl-8.5 pr-3 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-1.5 focus:ring-[#c3122e]/20 text-slate-800 placeholder-slate-400"
                             >
@@ -1128,32 +1212,32 @@
 
                         <!-- Status Filter Segment Buttons -->
                         <div class="inline-flex p-0.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold shrink-0 overflow-x-auto">
-                            <button 
-                                wire:click="setDrawerWbsStatusFilter('all')" 
-                                type="button" 
+                            <button
+                                wire:click="setDrawerWbsStatusFilter('all')"
+                                type="button"
                                 class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $drawerWbsStatusFilter === 'all' ? 'bg-[#c3122e] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900' }}"
                             >
                                 All ({{ $drawerWbsStats['total'] }})
                             </button>
-                            <button 
-                                wire:click="setDrawerWbsStatusFilter('in_progress')" 
-                                type="button" 
+                            <button
+                                wire:click="setDrawerWbsStatusFilter('in_progress')"
+                                type="button"
                                 class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $drawerWbsStatusFilter === 'in_progress' ? 'bg-[#c3122e] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900' }}"
                             >
                                 Active ({{ $drawerWbsStats['in_progress'] }})
                             </button>
                             @if($drawerWbsStats['blocked'] > 0 || $drawerWbsStats['overdue'] > 0)
-                                <button 
-                                    wire:click="setDrawerWbsStatusFilter('blocked')" 
-                                    type="button" 
+                                <button
+                                    wire:click="setDrawerWbsStatusFilter('blocked')"
+                                    type="button"
                                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $drawerWbsStatusFilter === 'blocked' ? 'bg-rose-600 text-white font-bold shadow-2xs' : 'text-rose-700 hover:bg-rose-50' }}"
                                 >
                                     Blocked ({{ $drawerWbsStats['blocked'] }})
                                 </button>
                             @endif
-                            <button 
-                                wire:click="setDrawerWbsStatusFilter('completed')" 
-                                type="button" 
+                            <button
+                                wire:click="setDrawerWbsStatusFilter('completed')"
+                                type="button"
                                 class="px-2.5 py-1 rounded-lg transition-all cursor-pointer {{ $drawerWbsStatusFilter === 'completed' ? 'bg-[#c3122e] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900' }}"
                             >
                                 Done ({{ $drawerWbsStats['completed'] }})
@@ -1168,7 +1252,7 @@
                                 $itemStatus = is_object($item->status) ? $item->status->value : (string)$item->status;
                                 $itemType = is_object($item->item_type) ? $item->item_type->value : (string)$item->item_type;
                                 $isExpanded = $selectedInspectorTaskId === $item->id;
-                                
+
                                 $statusBadge = match($itemStatus) {
                                     'completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                     'in_progress' => 'bg-amber-50 text-amber-800 border-amber-200',
@@ -1184,9 +1268,9 @@
                                     <!-- Left: Checkbox + WBS Code + Title + Assignee -->
                                     <div class="flex items-center gap-3 min-w-0 flex-1">
                                         <!-- Checkbox toggle -->
-                                        <input 
-                                            type="checkbox" 
-                                            wire:click.stop="toggleDrawerTask({{ $item->id }})" 
+                                        <input
+                                            type="checkbox"
+                                            wire:click.stop="toggleDrawerTask({{ $item->id }})"
                                             @checked($itemStatus === 'completed')
                                             class="w-4.5 h-4.5 rounded text-[#c3122e] focus:ring-[#c3122e] border-slate-300 cursor-pointer flex-shrink-0"
                                             title="Mark as Completed"
@@ -1353,7 +1437,7 @@
         >
             <div
                 wire:key="delay-analysis-{{ $delayProjectId }}"
-                x-data
+                x-data="{ taskFilter: 'all' }"
                 x-init="$nextTick(() => { $refs.delayList.scrollTop = 0 })"
                 style="width: min(1040px, calc(100vw - 32px)); height: min(760px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); overflow: hidden; border-radius: 22px; background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22); border: 1px solid #e2e8f0; display: flex; flex-direction: column;"
             >
@@ -1363,8 +1447,12 @@
                         <div class="flex items-center gap-2.5 mt-1 flex-wrap">
                             <h2 id="delay-analysis-title" class="text-base font-black">{{ $delayAnalysis['project_name'] ?? '' }}</h2>
                             <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">{{ $delayAnalysis['project_code'] ?? '' }}</span>
-                            <span class="text-[11px] text-slate-500">{{ $delayAnalysis['critical_issue_count'] ?? 0 }} critical issue(s)</span>
-                            <span class="text-[11px] text-slate-500">&bull; {{ count($delayAnalysis['issues'] ?? []) }} delayed task(s)</span>
+                            <button type="button" @click="taskFilter = taskFilter === 'delayed' ? 'all' : 'delayed'" :aria-pressed="taskFilter === 'delayed'" :class="taskFilter === 'delayed' ? 'ring-2 ring-amber-400 ring-offset-1 bg-amber-100' : 'hover:bg-amber-100'" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-[10px] font-black text-amber-800 cursor-pointer transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{{ $delayAnalysis['delayed_task_count'] ?? count($delayAnalysis['issues'] ?? []) }} Delayed Tasks
+                            </button>
+                            <button type="button" @click="taskFilter = taskFilter === 'critical' ? 'all' : 'critical'" :aria-pressed="taskFilter === 'critical'" :class="taskFilter === 'critical' ? 'ring-2 ring-rose-400 ring-offset-1 bg-rose-100' : 'hover:bg-rose-100'" class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-1 text-[10px] font-black text-rose-700 cursor-pointer transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{{ $delayAnalysis['critical_issue_count'] ?? 0 }} Critical Tasks
+                            </button>
                         </div>
                     </div>
                     <button type="button" wire:click="closeDelayAnalysis" class="w-9 h-9 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-[#c3122e] font-black cursor-pointer inline-flex items-center justify-center transition-colors" aria-label="Close delay analysis">&times;</button>
@@ -1430,12 +1518,19 @@
                             </div>
                         </section>
                     @endif
+                    <div x-cloak x-show="taskFilter === 'critical' && {{ (int) ($delayAnalysis['critical_issue_count'] ?? 0) }} === 0" class="rounded-xl border border-dashed border-rose-200 bg-white px-4 py-8 text-center text-xs font-bold text-slate-500">No critical tasks were detected.</div>
+                    <div x-cloak x-show="taskFilter === 'delayed' && {{ (int) ($delayAnalysis['delayed_task_count'] ?? 0) }} === 0" class="rounded-xl border border-dashed border-amber-200 bg-white px-4 py-8 text-center text-xs font-bold text-slate-500">No delayed tasks were detected.</div>
                     @forelse(($delayAnalysis['issues'] ?? []) as $issue)
-                        <article class="bg-white rounded-xl border border-slate-200 px-4 py-3.5 shadow-xs">
+                        <article x-show="taskFilter === 'all' || (taskFilter === 'delayed' && {{ !empty($issue['is_delayed']) ? 'true' : 'false' }}) || (taskFilter === 'critical' && {{ !empty($issue['is_critical']) ? 'true' : 'false' }})" x-transition.opacity class="bg-white rounded-xl border border-slate-200 px-4 py-3.5 shadow-xs">
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black {{ $issue['is_critical'] ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800' }}">{{ $issue['is_critical'] ? 'CRITICAL PATH IMPACT' : 'DELAY' }}</span>
+                                        @if($issue['is_delayed'] ?? true)
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-800">DELAYED TASK</span>
+                                        @endif
+                                        @if($issue['is_critical'] ?? false)
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">CRITICAL TASK</span>
+                                        @endif
                                         @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
                                     </div>
                                     <h3 class="text-sm font-extrabold text-slate-900 mt-1 leading-snug break-words">{{ $issue['task'] }}</h3>
@@ -1556,10 +1651,10 @@
                     <button wire:click="cancelDelete" type="button" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer">
                         Cancel
                     </button>
-                    <button 
-                        wire:click="deleteProject" 
+                    <button
+                        wire:click="deleteProject"
                         wire:loading.attr="disabled"
-                        type="button" 
+                        type="button"
                         class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#c3122e] to-rose-700 hover:from-rose-700 hover:to-rose-800 shadow-md shadow-rose-600/20 hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
                     >
                         <svg wire:loading wire:target="deleteProject" class="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
@@ -1574,4 +1669,5 @@
         </div>
         @endteleport
     @endif
+    <livewire:project-approval-actions :project-id="request()->integer('approval_project') ?: null" />
 </div>

@@ -16,9 +16,6 @@ use App\Services\TemplateWbsGeneratorService;
 
 class ProjectCreate extends Component
 {
-    // Step Wizard state
-    public int $currentStep = 1;
-
     public string $code = '';
     public string $name = '';
     public ?string $description = null;
@@ -43,7 +40,7 @@ class ProjectCreate extends Component
     public array $customRoleSearch = [];
 
     // Breakdown Method Properties
-    public string $creation_option = 'template'; // 'template' or 'manual'
+    public string $creation_option = 'manual'; // 'template' or 'manual'
     public ?int $selected_template_id = null;
     public bool $showManualDatesModal = false;
     public ?string $calculatedDeadline = null;
@@ -56,9 +53,8 @@ class ProjectCreate extends Component
             return redirect()->route('projects.index');
         }
 
-        $this->currentStep = 1;
         $this->start_date = now()->format('Y-m-d');
-        $this->deadline = null;
+        $this->deadline = now()->addMonths(3)->format('Y-m-d');
 
         $firstSub = Subsidiary::first();
         if ($firstSub) {
@@ -68,9 +64,19 @@ class ProjectCreate extends Component
         $this->project_manager_id = null;
         $this->selected_participant_ids = [];
 
-        $firstTpl = \App\Models\ProjectTemplate::first();
-        if ($firstTpl) {
-            $this->selected_template_id = $firstTpl->id;
+        if ($draft = session()->pull('project_create_draft')) {
+            foreach ($this->draftPropertyNames() as $property) {
+                if (array_key_exists($property, $draft)) {
+                    $this->{$property} = $draft[$property];
+                }
+            }
+        }
+
+        if ($selectedTemplateId = session()->pull('project_create_selected_template_id')) {
+            if (\App\Models\ProjectTemplate::whereKey($selectedTemplateId)->exists()) {
+                $this->creation_option = 'template';
+                $this->selected_template_id = (int) $selectedTemplateId;
+            }
         }
 
         $this->generateCode();
@@ -102,33 +108,6 @@ class ProjectCreate extends Component
             if (!isset($this->customRoleSearch[$code])) {
                 $this->customRoleSearch[$code] = '';
             }
-        }
-    }
-
-    public function nextStep(): void
-    {
-        if ($this->currentStep === 1) {
-            $this->validate([
-                'subsidiary_id' => 'required|exists:subsidiaries,id',
-                'name'          => 'required|string|max:255',
-            ]);
-        }
-
-        if ($this->currentStep === 2) {
-            $this->validate([
-                'project_manager_id' => 'required|exists:users,id',
-            ]);
-        }
-
-        if ($this->currentStep < 3) {
-            $this->currentStep++;
-        }
-    }
-
-    public function prevStep(): void
-    {
-        if ($this->currentStep > 1) {
-            $this->currentStep--;
         }
     }
 
@@ -170,6 +149,28 @@ class ProjectCreate extends Component
         $this->creation_option = 'template';
         $this->selected_template_id = $templateId;
         $this->calculateTemplateDeadline();
+    }
+
+    public function openTemplateLibrary()
+    {
+        $draft = [];
+        foreach ($this->draftPropertyNames() as $property) {
+            $draft[$property] = $this->{$property};
+        }
+
+        session()->put('project_create_draft', $draft);
+
+        return redirect()->route('templates.index', ['select_for' => 'project']);
+    }
+
+    private function draftPropertyNames(): array
+    {
+        return [
+            'code', 'name', 'description', 'subsidiary_id', 'project_manager_id',
+            'sponsor_ids', 'owner_ids', 'steering_committee_ids',
+            'selected_participant_ids', 'start_date', 'deadline',
+            'customRoleAssignments', 'creation_option', 'selected_template_id',
+        ];
     }
 
     public function setQuickStartDate(string $preset): void
@@ -511,6 +512,11 @@ class ProjectCreate extends Component
         }
 
         session()->flash('message', 'Project initialized successfully!');
+
+        if (auth()->user()?->isSuperAdmin()) {
+            return redirect()->route('projects.index');
+        }
+
         return redirect()->route('projects.show', $project->id);
     }
 

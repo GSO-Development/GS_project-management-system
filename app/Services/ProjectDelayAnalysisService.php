@@ -203,6 +203,21 @@ class ProjectDelayAnalysisService
                         ? 'Task is marked as blocked; a detailed blocker reason has not been recorded.'
                         : "Task missed its planned end date by {$overdueDays} day(s).");
 
+                // A delayed task has missed its schedule or has an explicit
+                // execution delay. Being delayed alone does not make it critical.
+                $isDelayed = $overdueDays > 0
+                    || filled($task->delay_reason)
+                    || in_array($taskStatus, ['blocked', 'on_hold'], true)
+                    || $openBlocker
+                    || count($incompleteDependencies) > 0;
+
+                // A critical task actively threatens other work: it is blocked,
+                // waiting on an unfinished dependency, or holds up successors.
+                $isCritical = in_array($taskStatus, ['blocked', 'on_hold'], true)
+                    || (bool) $openBlocker
+                    || count($incompleteDependencies) > 0
+                    || $downstreamCount > 0;
+
                 return [
                     'task_id' => $task->id,
                     'wbs_code' => $task->wbs_code,
@@ -221,7 +236,8 @@ class ProjectDelayAnalysisService
                     'progress' => $progress,
                     'start_date' => $task->start_date?->format('M d, Y'),
                     'end_date' => $task->end_date?->format('M d, Y'),
-                    'is_critical' => $taskStatus === 'blocked' || $downstreamCount > 0 || $overdueDays > 0 || count($incompleteDependencies) > 0,
+                    'is_delayed' => (bool) $isDelayed,
+                    'is_critical' => $isCritical,
                     'is_dependency_delay' => count($incompleteDependencies) > 0,
                     'status' => $taskStatus,
                 ];
@@ -239,6 +255,7 @@ class ProjectDelayAnalysisService
                 'responsible_email' => $project->projectManager?->email,
                 'overdue_days' => (int) Carbon::parse($project->deadline)->startOfDay()->diffInDays($today),
                 'downstream_count' => 0,
+                'is_delayed' => true,
                 'is_critical' => true,
                 'status' => 'delayed',
             ]);
@@ -254,7 +271,12 @@ class ProjectDelayAnalysisService
             'project_overdue_days' => $projectOverdue
                 ? (int) Carbon::parse($project->deadline)->startOfDay()->diffInDays($today)
                 : 0,
-            'critical_issue_count' => $issues->where('is_critical', true)->count(),
+            'critical_issue_count' => $issues
+                ->filter(fn ($issue) => !empty($issue['task_id']) && !empty($issue['is_critical']))
+                ->count(),
+            'delayed_task_count' => $issues
+                ->filter(fn ($issue) => !empty($issue['task_id']) && !empty($issue['is_delayed']))
+                ->count(),
             'summary' => $this->buildSummary($project, $issues, $allTasks, $projectOverdue, $today, $lateDays),
             'issues' => $issues->all(),
         ];
