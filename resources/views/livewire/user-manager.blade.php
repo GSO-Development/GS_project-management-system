@@ -271,25 +271,29 @@
     </div>
 
     <!-- Add / Edit User Modal -->
-    <div x-data="{ open: @entangle('showModal') }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none">
+    @teleport('body')
+    <div x-data="{ open: @entangle('showModal') }" x-show="open" x-trap.inert.noscroll="open" @keydown.escape.window="open = false; $wire.showModal = false" class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5" style="display:none" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="open = false; $wire.showModal = false"></div>
+        <div class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm transition-opacity" @click="open = false; $wire.showModal = false"></div>
 
         <!-- Modal Content -->
-        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10 p-5 sm:p-8 mx-3 sm:mx-auto">
+        <div class="relative z-10 flex h-[min(92dvh,760px)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,.28)]">
 
             <!-- Header -->
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+            <header class="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900">
+                    <h3 id="user-modal-title" class="text-lg font-black text-slate-900">
                         @if($editingId) Edit User Member @else Add New User Member @endif
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Configure member details, system role, and subsidiary access</p>
                 </div>
-                <button type="button" @click="open = false; $wire.showModal = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                <button type="button" @click="open = false; $wire.showModal = false" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close user form">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
-            </div>
+            </header>
+
+            <form wire:submit="save" class="flex min-h-0 flex-1 flex-col">
+                <div class="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
 
             <!-- Creation Type Selector (only on create, not edit) -->
             @if(!$editingId)
@@ -311,8 +315,6 @@
                 </label>
             </div>
             @endif
-
-            <form wire:submit="save" class="space-y-4">
 
                 {{-- ===== AZURE USER MODE ===== --}}
                 @if($creationType === 'azure' && !$editingId)
@@ -512,17 +514,22 @@
                     </div>
                 @endif
 
-                <!-- Actions -->
-                <div class="flex justify-end gap-3 pt-5 border-t border-slate-100 mt-2">
-                    <button type="button" @click="open = false; $wire.showModal = false" class="btn-secondary">Cancel</button>
-                    @if($creationType === 'system' || $editingId || ($creationType === 'azure' && $selectedAzureUser))
-                    <button type="submit" class="btn-primary px-6" wire:loading.attr="disabled">
-                        <span wire:loading.remove>{{ $editingId ? 'Update User' : 'Save User' }}</span>
-                        <span wire:loading>Saving...</span>
-                    </button>
-                    @endif
                 </div>
+
+                <!-- Actions -->
+                <footer class="grid shrink-0 grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:px-6">
+                    <button type="button" @click="open = false; $wire.showModal = false" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
+                    @if($creationType === 'system' || $editingId || ($creationType === 'azure' && $selectedAzureUser))
+                    <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-5 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60" wire:loading.attr="disabled" wire:target="save">
+                        <span wire:loading.remove wire:target="save">{{ $editingId ? 'Update User' : 'Save User' }}</span>
+                        <span wire:loading wire:target="save">Saving...</span>
+                    </button>
+                    @else
+                    <span></span>
+                    @endif
+                </footer>
             </form>
         </div>
     </div>
+    @endteleport
 </div>

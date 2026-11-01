@@ -640,6 +640,6 @@ class DailyStatusUpdates extends Component
             'selectedSubsidiaryId' => $this->selectedSubsidiaryId,
             'selectedScope' => $this->selectedScope,
             'dateFilter' => $this->dateFilter,
-        ])->layout('layouts.app', ['title' => 'Daily Status Updates']);
+        ])->layout('layouts.app', ['title' => 'Latest Updates']);
     }
 }

@@ -817,21 +817,31 @@
                     @endif
                 @endif
 
-                {{-- Date & Timeline Configuration --}}
-                <div class="space-y-4">
+                {{-- Date & Timeline Configuration (Redesigned & Beautified) --}}
+                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50/70 via-white to-slate-50/40 border border-slate-200/90 shadow-2xs space-y-4">
 
                     {{-- Header with Presets --}}
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                        <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                            Project dates <span class="text-[#c3122e]">*</span>
-                        </label>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200/70 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                                    Project dates <span class="text-[#c3122e]">*</span>
+                                </label>
+                                <span class="text-[11px] text-slate-400 font-medium">Configure kick-off and delivery schedule</span>
+                            </div>
+                        </div>
 
-                        {{-- Presets --}}
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[10px] font-bold text-slate-400">Quick Start:</span>
-                            <button type="button" wire:click="setQuickStartDate('today')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-[#c3122e] hover:text-white transition-all cursor-pointer">Today</button>
-                            <button type="button" wire:click="setQuickStartDate('next_monday')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-[#c3122e] hover:text-white transition-all cursor-pointer">Next Mon</button>
-                            <button type="button" wire:click="setQuickStartDate('next_month')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-[#c3122e] hover:text-white transition-all cursor-pointer">1st Next Mo</button>
+                        {{-- Presets Pill Group --}}
+                        <div class="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60 self-start sm:self-auto">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1.5">Quick Start:</span>
+                            <button type="button" wire:click="setQuickStartDate('today')" class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold text-slate-700 bg-white hover:bg-[#c3122e] hover:text-white border border-slate-200/60 hover:border-[#c3122e] transition-all shadow-2xs cursor-pointer active:scale-95">Today</button>
+                            <button type="button" wire:click="setQuickStartDate('next_monday')" class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold text-slate-700 bg-white hover:bg-[#c3122e] hover:text-white border border-slate-200/60 hover:border-[#c3122e] transition-all shadow-2xs cursor-pointer active:scale-95">Next Mon</button>
+                            <button type="button" wire:click="setQuickStartDate('next_month')" class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold text-slate-700 bg-white hover:bg-[#c3122e] hover:text-white border border-slate-200/60 hover:border-[#c3122e] transition-all shadow-2xs cursor-pointer active:scale-95">1st Next Mo</button>
                         </div>
                     </div>
 
@@ -840,29 +850,94 @@
 
                         {{-- Start Date --}}
                         <div class="space-y-1.5">
-                            <label for="project-start-date" class="text-xs font-bold text-slate-700 block">Start Date <span class="text-[#c3122e]">*</span></label>
-                            <input id="project-start-date" type="date" wire:model.live="start_date" class="project-field-input" required>
+                            <div class="flex items-center justify-between">
+                                <label for="project-start-date" class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                    <span>Start Date</span>
+                                    <span class="text-[#c3122e]">*</span>
+                                </label>
+                                <span class="text-[10px] font-semibold text-slate-400">Kick-off Date</span>
+                            </div>
+
+                            <div class="relative flex items-center rounded-xl border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 focus-within:border-[#c3122e] focus-within:ring-2 focus-within:ring-[#c3122e]/10 transition-all overflow-hidden group">
+                                <div class="pl-3.5 pr-2 flex items-center justify-center text-slate-400 group-focus-within:text-[#c3122e] transition-colors pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <input id="project-start-date" type="date" wire:model.live="start_date" class="w-full h-11 pr-3 text-xs font-bold text-slate-800 bg-transparent border-0 outline-none cursor-pointer" required>
+                            </div>
                             @error('start_date') <span class="text-xs text-[#c3122e] font-bold block">{{ $message }}</span> @enderror
                         </div>
 
                         {{-- Target Deadline --}}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <label for="project-deadline" class="text-xs font-bold text-slate-700 block">Target Deadline <span class="text-[#c3122e]">*</span></label>
+                                <label for="project-deadline" class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    <span>Target Deadline</span>
+                                    <span class="text-[#c3122e]">*</span>
+                                </label>
                                 @if($creation_option === 'manual')
-                                    <div class="flex items-center gap-1">
-                                        <button type="button" wire:click="setManualDuration(1)" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 hover:bg-[#c3122e] hover:text-white transition-all cursor-pointer">+1M</button>
-                                        <button type="button" wire:click="setManualDuration(3)" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 hover:bg-[#c3122e] hover:text-white transition-all cursor-pointer">+3M</button>
-                                        <button type="button" wire:click="setManualDuration(6)" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 hover:bg-[#c3122e] hover:text-white transition-all cursor-pointer">+6M</button>
+                                    <div class="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
+                                        <button type="button" wire:click="setManualDuration(1)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 hover:bg-[#c3122e] hover:text-white border border-slate-200/60 transition-all cursor-pointer shadow-2xs active:scale-95" title="Add 1 Month">+1M</button>
+                                        <button type="button" wire:click="setManualDuration(3)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 hover:bg-[#c3122e] hover:text-white border border-slate-200/60 transition-all cursor-pointer shadow-2xs active:scale-95" title="Add 3 Months">+3M</button>
+                                        <button type="button" wire:click="setManualDuration(6)" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 hover:bg-[#c3122e] hover:text-white border border-slate-200/60 transition-all cursor-pointer shadow-2xs active:scale-95" title="Add 6 Months">+6M</button>
                                     </div>
+                                @else
+                                    <span class="text-[10px] font-semibold text-slate-400">Target Completion</span>
                                 @endif
                             </div>
-                            <input id="project-deadline" type="date" wire:model.live="deadline" class="project-field-input" @required($creation_option === 'manual') @readonly($creation_option === 'template')>
-                            @if($creation_option === 'template')<p class="text-[11px] text-slate-500">Calculated from the selected blueprint.</p>@endif
+
+                            <div class="relative flex items-center rounded-xl border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 focus-within:border-[#c3122e] focus-within:ring-2 focus-within:ring-[#c3122e]/10 transition-all overflow-hidden group">
+                                <div class="pl-3.5 pr-2 flex items-center justify-center text-slate-400 group-focus-within:text-[#c3122e] transition-colors pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <input id="project-deadline" type="date" wire:model.live="deadline" class="w-full h-11 pr-3 text-xs font-bold text-slate-800 bg-transparent border-0 outline-none cursor-pointer" @required($creation_option === 'manual') @readonly($creation_option === 'template')>
+                            </div>
+                            @if($creation_option === 'template')
+                                <p class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-1">
+                                    <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Auto-calculated from selected blueprint template.</span>
+                                </p>
+                            @endif
                             @error('deadline') <span class="text-xs text-[#c3122e] font-bold block">{{ $message }}</span> @enderror
                         </div>
 
                     </div>
+
+                    {{-- Live Duration Preview Ribbon --}}
+                    @php
+                        $durationDays = null;
+                        if ($start_date && $deadline) {
+                            try {
+                                $s = \Carbon\Carbon::parse($start_date);
+                                $d = \Carbon\Carbon::parse($deadline);
+                                $durationDays = (int) $s->diffInDays($d, false);
+                            } catch (\Exception $e) {}
+                        }
+                    @endphp
+                    @if($durationDays !== null && $durationDays >= 0)
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-slate-600 font-medium">Estimated Project Span:</span>
+                                <span class="font-extrabold text-slate-900 font-mono">
+                                    {{ $durationDays }} {{ \Illuminate\Support\Str::plural('day', $durationDays) }}
+                                    @if($durationDays >= 30)
+                                        <span class="text-slate-400 font-normal">({{ round($durationDays / 30, 1) }} mo)</span>
+                                    @endif
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 font-mono self-end sm:self-auto">
+                                <span>{{ \Carbon\Carbon::parse($start_date)->format('M d, Y') }}</span>
+                                <span class="text-slate-300">&rarr;</span>
+                                <span class="text-[#c3122e]">{{ \Carbon\Carbon::parse($deadline)->format('M d, Y') }}</span>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- Calculated Deadline Alert Banner --}}
                     @if($calculatedDeadline)

@@ -15,6 +15,11 @@ class ManageTemplates extends Component
     public $showModal = false;
     public $editId = null;
     public bool $selectForProject = false;
+    public bool $showDeleteModal = false;
+    public ?int $templateToDeleteId = null;
+    public string $templateToDeleteName = '';
+    public int $templateToDeletePhasesCount = 0;
+    public int $templateToDeleteTasksCount = 0;
 
     protected $rules = [
         'name' => 'required|min:3',
@@ -59,11 +64,47 @@ class ManageTemplates extends Component
         $this->showModal = true;
     }
 
-    public function deleteTemplate($id)
+    public function closeTemplateModal(): void
+    {
+        $this->reset(['name', 'description', 'showModal', 'editId']);
+        $this->resetValidation();
+    }
+
+    public function promptDeleteTemplate(int $id)
     {
         $this->checkSuperAdmin();
-        ProjectTemplate::findOrFail($id)->delete();
-        session()->flash('message', 'Template deleted successfully!');
+        $template = ProjectTemplate::withCount([
+            'tasks',
+            'tasks as phases_count' => function ($q) {
+                $q->whereNull('parent_id');
+            }
+        ])->findOrFail($id);
+
+        $this->templateToDeleteId = $template->id;
+        $this->templateToDeleteName = $template->name;
+        $this->templateToDeletePhasesCount = (int) $template->phases_count;
+        $this->templateToDeleteTasksCount = (int) $template->tasks_count;
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDeleteTemplate()
+    {
+        $this->showDeleteModal = false;
+        $this->templateToDeleteId = null;
+        $this->templateToDeleteName = '';
+        $this->templateToDeletePhasesCount = 0;
+        $this->templateToDeleteTasksCount = 0;
+    }
+
+    public function deleteTemplate(?int $id = null)
+    {
+        $this->checkSuperAdmin();
+        $targetId = $id ?? $this->templateToDeleteId;
+        if ($targetId) {
+            ProjectTemplate::findOrFail($targetId)->delete();
+            session()->flash('message', 'Template deleted successfully!');
+        }
+        $this->cancelDeleteTemplate();
     }
 
     public function duplicateTemplate($id)
@@ -120,7 +161,7 @@ class ManageTemplates extends Component
             }
         }
 
-        $this->reset(['name', 'description', 'showModal', 'editId']);
+        $this->closeTemplateModal();
     }
 
 
@@ -160,17 +201,8 @@ class ManageTemplates extends Component
 
         $templates = $query->get();
 
-        $totalTemplates = ProjectTemplate::count();
-        $totalTasks = TemplateTask::count();
-        $totalPhases = TemplateTask::whereNull('parent_id')->count();
-        $avgTasks = $totalTemplates > 0 ? round($totalTasks / $totalTemplates, 1) : 0;
-
         return view('livewire.manage-templates', [
             'templates' => $templates,
-            'totalTemplates' => $totalTemplates,
-            'totalTasks' => $totalTasks,
-            'totalPhases' => $totalPhases,
-            'avgTasks' => $avgTasks,
         ])->layout('layouts.app');
     }
 }

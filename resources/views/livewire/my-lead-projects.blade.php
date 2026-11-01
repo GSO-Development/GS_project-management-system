@@ -622,7 +622,14 @@
                                     <div class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
                                         📋
                                     </div>
-                                    <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">WBS Execution Structure</h5>
+                                    <div>
+                                        <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">WBS Execution Structure</h5>
+                                        @if($reviewProject->template)
+                                            <span class="text-[10px] font-semibold text-slate-500 block">
+                                                Template: <strong class="text-indigo-700 font-bold">{{ $reviewProject->template->name }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="px-2 py-0.5 rounded-lg text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">

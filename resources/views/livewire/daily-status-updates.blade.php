@@ -52,32 +52,33 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & ACTION CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="daily-updates-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-slate-200/80">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c3122e]/10 text-[#c3122e] tracking-wide uppercase">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
-                    Progress Tracking
-                </span>
-            </div>
+    <div class="daily-updates-heading flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+        <div class="min-w-0">
             <div class="flex items-center gap-2.5 flex-wrap">
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                    Daily Status Updates
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Latest Updates
                 </h1>
-                <span class="px-2 py-0.5 rounded-full text-xs font-bold text-[#c3122e] bg-rose-50 border border-rose-200/60">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#c3122e]/10 text-[#c3122e] border border-rose-200/60 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
+                    <span>Progress Tracking</span>
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200/80 shadow-2xs">
                     {{ $totalUpdatesCount }} Total Logs
                 </span>
                 @if($updatedTodayCount > 0)
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 inline-flex items-center gap-1.5">
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 inline-flex items-center gap-1.5 shadow-2xs">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>{{ $updatedTodayCount }} today</span>
                     </span>
                 @endif
             </div>
+            <p class="text-xs text-slate-500 font-medium mt-1.5">
+                Real-time activity logs, operational progress, and execution highlights across all corporate projects.
+            </p>
         </div>
 
-        <!-- Top Right Action Controls (Filter toggle button only, post update button removed per user request) -->
-        <div class="flex items-center gap-2 self-start sm:self-center">
+        <!-- Top Right Action Controls -->
+        <div class="flex items-center gap-2 self-start sm:self-center shrink-0">
             <!-- Filter Toggle Button -->
             <button wire:click="toggleFilters" type="button" aria-expanded="{{ $showFilters ? 'true' : 'false' }}" aria-controls="daily-update-filters"
                     class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
@@ -327,7 +328,7 @@
                                         wire:click="openStatusUpdateModal({{ $project->id }})"
                                         type="button"
                                         class="daily-update-button inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold text-white active:scale-95 transition-all cursor-pointer"
-                                        title="Log new daily progress update"
+                                        title="Log latest progress update"
                                     >
                                         <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                         <span>Add update</span>
@@ -722,7 +723,7 @@
                             <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </div>
                         <div>
-                            <h3 id="daily-publish-title" class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Publish Daily Progress Log</h3>
+                            <h3 id="daily-publish-title" class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Publish Latest Progress Log</h3>
                             <p class="text-xs text-slate-500 font-normal mt-0.5">Log task execution progress or overall project status update</p>
                         </div>
                     </div>
@@ -730,7 +731,7 @@
                         wire:click="$set('showUpdateModal', false)" 
                         type="button" 
                         class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Close Window" aria-label="Close daily update" autofocus
+                        title="Close Window" aria-label="Close latest update" autofocus
                     >
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -811,9 +812,9 @@
                         @error('updateTitle') <span class="text-rose-500 text-[10px] font-bold block mt-1">⚠ {{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Daily Executive Summary -->
+                    <!-- Latest Executive Summary -->
                     <div class="space-y-1.5">
-                        <label for="daily-updateSummary" class="block text-xs font-black text-slate-700">Daily Executive Summary <span class="text-rose-500">*</span></label>
+                        <label for="daily-updateSummary" class="block text-xs font-black text-slate-700">Latest Executive Summary <span class="text-rose-500">*</span></label>
                         <textarea
                             id="daily-updateSummary" wire:model="updateSummary"
                             rows="3"

@@ -26,7 +26,7 @@
     @endif
 
     <!-- Clean Standard Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                 Project Blueprint Templates
@@ -45,65 +45,6 @@
                     <span>Create New Template</span>
                 </button>
             @endif
-        </div>
-    </div>
-
-    <!-- Summary Statistics Console (4 Clean Responsive Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Active Templates -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 flex items-center justify-between shadow-xs hover:border-slate-300 transition-all">
-            <div class="space-y-1">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Active Templates</span>
-                <div class="text-2xl font-black text-slate-900 tracking-tight leading-none">{{ $totalTemplates }}</div>
-                <div class="text-[10px] font-bold text-emerald-600">Master Workflows</div>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e] flex-shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Card 2: Root WBS Phases -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 flex items-center justify-between shadow-xs hover:border-slate-300 transition-all">
-            <div class="space-y-1">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Root WBS Phases</span>
-                <div class="text-2xl font-black text-slate-900 tracking-tight leading-none">{{ $totalPhases }}</div>
-                <div class="text-[10px] font-bold text-indigo-600">Stage Gate Milestones</div>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Card 3: Configured Deliverables -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 flex items-center justify-between shadow-xs hover:border-slate-300 transition-all">
-            <div class="space-y-1">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Configured Deliverables</span>
-                <div class="text-2xl font-black text-slate-900 tracking-tight leading-none">{{ $totalTasks }}</div>
-                <div class="text-[10px] font-bold text-emerald-600">Avg {{ $avgTasks }} Tasks / Template</div>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Card 4: WBS Engine Banner -->
-        <div class="bg-gradient-to-br from-amber-50/80 to-white border border-amber-200/70 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
-            <div class="space-y-0.5 min-w-0 pr-1">
-                <span class="text-[10px] font-extrabold text-amber-700 uppercase tracking-wider block">WBS Engine</span>
-                <div class="text-xs font-black text-slate-900 tracking-tight">Auto Gantt Launch</div>
-                <div class="text-[10px] font-medium text-slate-500 truncate">Sequential date alignment</div>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-100/80 border border-amber-200 flex items-center justify-center text-amber-600 flex-shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
         </div>
     </div>
 
@@ -196,8 +137,8 @@
                                         title="Edit Details">
                                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 </button>
-                                <button wire:click="deleteTemplate({{ $template->id }})" 
-                                        wire:confirm="Are you sure you want to delete this template?" 
+                                <button wire:click="promptDeleteTemplate({{ $template->id }})"
+                                        type="button"
                                         class="p-1.5 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer" 
                                         title="Delete Template">
                                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -357,7 +298,10 @@
                                         <button wire:click="editTemplate({{ $template->id }})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg" title="Edit">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                         </button>
-                                        <button wire:click="deleteTemplate({{ $template->id }})" wire:confirm="Are you sure?" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg" title="Delete">
+                                        <button wire:click="promptDeleteTemplate({{ $template->id }})"
+                                                type="button"
+                                                class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                                                title="Delete Template">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     @endif
@@ -374,56 +318,126 @@
         </div>
     </div>
 
-    <!-- Create / Edit Template Modal (PMO Admin Only) -->
     @if($showModal && auth()->user()?->isSuperAdmin())
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
-            <!-- Background overlay -->
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="$set('showModal', false)"></div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <!-- Modal panel -->
-            <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-slate-100">
-                <form wire:submit.prevent="createTemplate">
-                    <div class="bg-white px-5 pt-5 pb-4 sm:p-6 sm:pb-6">
-                        <div class="sm:flex sm:items-start">
-                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl bg-[#fdf4f4] sm:mx-0 text-[#c3122e] border border-[#faeaea]">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                            </div>
-                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                                <h3 class="text-lg leading-6 font-extrabold text-slate-900" id="modal-title">
-                                    {{ $editId ? 'Edit Template Info' : 'Create New Template' }}
-                                </h3>
-                                <div class="mt-4 space-y-4">
-                                    <div>
-                                        <label for="name" class="block text-xs font-bold text-slate-700 mb-1">Template Name <span class="text-[#c3122e]">*</span></label>
-                                        <input type="text" wire:model="name" id="name" class="w-full px-3 py-2 text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 focus:border-[#c3122e]" placeholder="e.g. IT Software Implementation Framework" required autofocus>
-                                        @error('name') <span class="text-xs text-red-500 mt-1 block font-medium">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
-                                        <label for="description" class="block text-xs font-bold text-slate-700 mb-1">Description</label>
-                                        <textarea wire:model="description" id="description" rows="3" class="w-full px-3 py-2 text-xs font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 focus:border-[#c3122e] h-24" placeholder="Brief description of this template..."></textarea>
-                                        @error('description') <span class="text-xs text-red-500 mt-1 block font-medium">{{ $message }}</span> @enderror
-                                    </div>
-                                </div>
-                            </div>
+        @teleport('body')
+        <div class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-sm"
+             x-data
+             x-trap.inert.noscroll="true"
+             @keydown.escape.window="$wire.closeTemplateModal()"
+             wire:click.self="closeTemplateModal"
+             aria-labelledby="template-modal-title"
+             aria-describedby="template-modal-description"
+             role="dialog"
+             aria-modal="true">
+            <form wire:submit.prevent="createTemplate" class="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,.26)]">
+                <header class="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-700">
+                            @if($editId)
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 7.125 16.862 4.487M18 14.25V19.5A2.25 2.25 0 0 1 15.75 21h-9A2.25 2.25 0 0 1 4.5 18.75v-12A2.25 2.25 0 0 1 6.75 4.5H12"/></svg>
+                            @else
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            @endif
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-base font-black text-slate-900" id="template-modal-title">{{ $editId ? 'Edit template' : 'Create template' }}</h3>
+                            <p class="mt-0.5 text-xs text-slate-500" id="template-modal-description">{{ $editId ? 'Update the template name and description.' : 'Add a reusable task template for future projects.' }}</p>
                         </div>
                     </div>
-                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-100 gap-2">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-[#c3122e] text-xs font-bold text-white hover:bg-[#a00e24] focus:outline-none sm:w-auto transition-colors cursor-pointer">
-                            {{ $editId ? 'Save Changes' : 'Create Template' }}
-                        </button>
-                        <button type="button" wire:click="$set('showModal', false); $set('editId', null)" class="mt-2 sm:mt-0 w-full inline-flex justify-center rounded-xl border border-slate-200 shadow-sm px-4 py-2 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto transition-colors cursor-pointer">
-                            Cancel
-                        </button>
+                    <button wire:click="closeTemplateModal" type="button" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-lg text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close template form">&times;</button>
+                </header>
+
+                <div class="flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+                    @if($errors->any())
+                        <div class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700" role="alert">Please review the highlighted fields.</div>
+                    @endif
+                    <div>
+                        <label for="template-name" class="mb-1.5 block text-xs font-bold text-slate-700">Template name <span class="text-rose-600">*</span></label>
+                        <input type="text" wire:model="name" id="template-name" maxlength="255" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" placeholder="e.g. IT Software Implementation Framework" required autofocus>
+                        @error('name') <span class="mt-1.5 block text-[11px] font-medium text-rose-600">{{ $message }}</span> @enderror
                     </div>
-                </form>
+                    <div>
+                        <div class="mb-1.5 flex items-center justify-between gap-3"><label for="template-description" class="text-xs font-bold text-slate-700">Description</label><span class="text-[10px] text-slate-400">Optional</span></div>
+                        <textarea wire:model="description" id="template-description" rows="5" maxlength="1000" class="w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium leading-relaxed text-slate-900 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" placeholder="Describe when this template should be used..."></textarea>
+                        @error('description') <span class="mt-1.5 block text-[11px] font-medium text-rose-600">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <footer class="grid shrink-0 grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:px-6">
+                    <button type="button" wire:click="closeTemplateModal" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="createTemplate" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60">
+                        <span wire:loading.remove wire:target="createTemplate">{{ $editId ? 'Save changes' : 'Create template' }}</span>
+                        <span wire:loading wire:target="createTemplate" class="inline-flex items-center gap-2"><svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>Saving...</span>
+                    </button>
+                </footer>
+            </form>
+        </div>
+        @endteleport
+    @endif
+
+    @if($showDeleteModal && auth()->user()?->isSuperAdmin())
+        @teleport('body')
+        <div class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-sm"
+             x-data
+             x-trap.inert.noscroll="true"
+             @keydown.escape.window="$wire.cancelDeleteTemplate()"
+             wire:click.self="cancelDeleteTemplate"
+             aria-labelledby="delete-modal-title"
+             aria-describedby="delete-modal-description"
+             role="alertdialog"
+             aria-modal="true">
+            <div class="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-[0_30px_80px_rgba(15,23,42,.28)]">
+                <header class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-base font-black text-slate-900" id="delete-modal-title">Delete this template?</h3>
+                            <p class="mt-0.5 text-xs text-slate-500" id="delete-modal-description">Review the affected content before continuing.</p>
+                        </div>
+                    </div>
+                    <button wire:click="cancelDeleteTemplate" type="button" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-lg text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close delete confirmation">&times;</button>
+                </header>
+
+                <div class="space-y-4 px-5 py-5 sm:px-6">
+                    <section class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <p class="text-[10px] font-black uppercase tracking-[.14em] text-slate-400">Template selected</p>
+                        <div class="mt-2 flex items-center gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-xs font-black text-rose-700">{{ strtoupper(substr($templateToDeleteName, 0, 2)) }}</div>
+                            <p class="min-w-0 truncate text-sm font-black text-slate-900" title="{{ $templateToDeleteName }}">{{ $templateToDeleteName }}</p>
+                        </div>
+                        <dl class="mt-4 grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 pt-3">
+                            <div class="pr-3">
+                                <dt class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Root phases</dt>
+                                <dd class="mt-0.5 text-sm font-black text-slate-800">{{ $templateToDeletePhasesCount }}</dd>
+                            </div>
+                            <div class="pl-3">
+                                <dt class="text-[9px] font-bold uppercase tracking-wider text-slate-400">WBS tasks</dt>
+                                <dd class="mt-0.5 text-sm font-black text-slate-800">{{ $templateToDeleteTasksCount }}</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                        <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                        <div>
+                            <p class="text-xs font-black text-rose-800">This action cannot be undone</p>
+                            <p class="mt-1 text-[11px] leading-relaxed text-rose-700">The template, its task hierarchy, phases and configured milestones will be permanently removed.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:px-6">
+                    <button type="button" wire:click="cancelDeleteTemplate" autofocus class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
+                    <button type="button" wire:click="deleteTemplate" wire:loading.attr="disabled" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-700 px-4 text-xs font-bold text-white transition-colors hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-60">
+                        <span wire:loading.remove wire:target="deleteTemplate">Delete permanently</span>
+                        <span wire:loading wire:target="deleteTemplate" class="inline-flex items-center gap-2"><svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>Deleting...</span>
+                    </button>
+                </footer>
             </div>
         </div>
-    </div>
+        @endteleport
     @endif
 
 </div>

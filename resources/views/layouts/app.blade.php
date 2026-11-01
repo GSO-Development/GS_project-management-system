@@ -291,19 +291,19 @@
                 </a>
             @endif
 
-            <!-- 4. Daily Updates -->
+            <!-- 4. Latest Updates -->
             <a href="{{ route('daily-updates.index') }}"
                wire:navigate.hover
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
                class="{{ $navItemClass(request()->routeIs('daily-updates.*')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
                style="{{ $navItemStyle(request()->routeIs('daily-updates.*')) }}"
-               title="Daily Updates">
+               title="Latest Updates">
                 <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
                     <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('daily-updates.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('daily-updates.*') ? '2.5' : '2' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Daily Updates</span>
+                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Latest Updates</span>
                 </div>
                 @if($unreadDailyUpdatesCount > 0)
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen"
@@ -374,29 +374,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
                 <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
-            </a>
-
-            <!-- Notifications -->
-            <a href="{{ route('notifications.index') }}"
-               wire:navigate.hover
-               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('notifications.*')) }}"
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('notifications.*')) }}"
-               title="Notifications">
-                <div class="flex items-center gap-3 min-w-0" :class="{ 'justify-center': sidebarCollapsed && !mobileSidebarOpen }">
-                    <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('notifications.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('notifications.*') ? '2.5' : '2' }}">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Notifications</span>
-                </div>
-                @if($unreadNotificationsCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen"
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('notifications.*') ? 'bg-white/20 text-white' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70' }}">
-                        {{ $unreadNotificationsCount }}
-                    </span>
-                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#c3122e] ring-2 ring-white"></span>
-                @endif
             </a>
 
             <!-- ================= ADMINISTRATION (Super Admin Only) ================= -->
@@ -551,7 +528,7 @@
                     @elseif(request()->routeIs('daily-updates*'))
                         <span class="font-bold text-[#c3122e]">Execution</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">Daily Updates</span>
+                        <span class="text-slate-900 font-black">Latest Updates</span>
                     @elseif(request()->routeIs('calendar*'))
                         <span class="font-bold text-[#c3122e]">Planning</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

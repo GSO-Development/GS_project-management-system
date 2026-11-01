@@ -319,12 +319,17 @@
                             
                             <!-- 1. Project Info (Left 28%) -->
                             <div style="width: 28%; min-width: 140px; padding-right: 12px; padding-left: 4px; overflow: hidden;">
-                                <a href="{{ route('projects.show', $proj->id) }}" 
-                                   style="font-size: 13px; font-weight: 800; color: #0f172a; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 1.3;"
-                                   class="hover:text-[#c3122e] transition-colors"
-                                   title="{{ $proj->name }}">
-                                    {{ $proj->name }}
-                                </a>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <a href="{{ route('projects.show', $proj->id) }}"
+                                       style="font-size: 13px; font-weight: 800; color: #0f172a; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;"
+                                       class="hover:text-[#c3122e] transition-colors"
+                                       title="{{ $proj->name }}">
+                                        {{ $proj->name }}
+                                    </a>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded font-mono text-[10px] font-extrabold shrink-0 {{ (int)$proj->overall_progress >= 100 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ((int)$proj->overall_progress > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-500 border border-slate-200') }}">
+                                        {{ (int) ($proj->overall_progress ?? 0) }}%
+                                    </span>
+                                </div>
                                 <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-top: 2px;">
                                     {{ $proj->subsidiary->code ?? ($proj->subsidiary->name ?? 'GS') }}
                                 </span>
@@ -341,10 +346,10 @@
                                 <!-- Full Width Soft Background Track -->
                                 <div style="width: 100%; height: 28px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9999px; position: relative; overflow: hidden; display: flex; align-items: center;">
                                     
-                                    <!-- Solid Status-Colored Pill with Legible Date Range Text -->
+                                    <!-- Solid Status-Colored Pill with Legible Date Range Text & Progress -->
                                     <div style="position: absolute; left: {{ $leftPct }}%; width: {{ $spanWidthPct }}%; height: 100%; border-radius: 9999px; background: {{ $pillBg }}; display: flex; align-items: center; justify-content: center; padding: 0 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease;">
                                         <span style="font-size: 11px; font-weight: 700; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.01em; font-family: monospace;">
-                                            {{ $dateRangeLabel }}
+                                            {{ $dateRangeLabel }} &bull; {{ (int) ($proj->overall_progress ?? 0) }}%
                                         </span>
                                     </div>
 

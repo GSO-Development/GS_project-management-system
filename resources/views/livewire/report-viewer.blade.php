@@ -134,6 +134,45 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($projects as $p)
+                        @php
+                            $progress = (int) ($p->overall_progress ?? 0);
+
+                            // Semantic progress bar color logic
+                            if ($p->status->value === 'completed' || $progress >= 100) {
+                                $progressBarColor = 'bg-emerald-500';
+                                $progressTextColor = 'text-emerald-700 font-bold';
+                            } elseif ($p->status->value === 'delayed' || $p->status->value === 'cancelled') {
+                                $progressBarColor = 'bg-rose-500';
+                                $progressTextColor = 'text-rose-700 font-bold';
+                            } elseif ($p->status->value === 'at_risk') {
+                                $progressBarColor = 'bg-amber-500';
+                                $progressTextColor = 'text-amber-800 font-bold';
+                            } elseif ($progress >= 70) {
+                                $progressBarColor = 'bg-teal-500';
+                                $progressTextColor = 'text-teal-800 font-bold';
+                            } elseif ($progress >= 40) {
+                                $progressBarColor = 'bg-blue-600';
+                                $progressTextColor = 'text-blue-800 font-bold';
+                            } elseif ($progress > 0) {
+                                $progressBarColor = 'bg-sky-500';
+                                $progressTextColor = 'text-sky-800 font-bold';
+                            } else {
+                                $progressBarColor = 'bg-slate-200';
+                                $progressTextColor = 'text-slate-400 font-medium';
+                            }
+
+                            // Status badge config
+                            $statusConfig = match($p->status->value) {
+                                'completed'    => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'dot' => 'bg-emerald-500'],
+                                'in_progress'  => ['cls' => 'bg-blue-50 text-blue-700 border-blue-200',         'dot' => 'bg-blue-500 animate-pulse'],
+                                'at_risk'      => ['cls' => 'bg-amber-50 text-amber-800 border-amber-200',       'dot' => 'bg-amber-500 animate-pulse'],
+                                'planning'     => ['cls' => 'bg-sky-50 text-sky-700 border-sky-200',             'dot' => 'bg-sky-500'],
+                                'on_hold'      => ['cls' => 'bg-slate-100 text-slate-600 border-slate-200',       'dot' => 'bg-slate-400'],
+                                'under_review' => ['cls' => 'bg-purple-50 text-purple-700 border-purple-200',    'dot' => 'bg-purple-500'],
+                                'delayed'      => ['cls' => 'bg-rose-50 text-rose-700 border-rose-200',          'dot' => 'bg-rose-500 animate-pulse'],
+                                default        => ['cls' => 'bg-slate-100 text-slate-600 border-slate-200',       'dot' => 'bg-slate-400'],
+                            };
+                        @endphp
                         <tr class="hover:bg-[#fdf4f4]/20 transition-colors">
                             <td>
                                 <a href="{{ route('projects.show', $p->id) }}" class="font-bold text-slate-900 hover:text-[#c3122e] text-xs no-underline transition-colors block">
@@ -142,25 +181,26 @@
                                 <div class="text-[10px] text-[#c3122e] font-mono font-semibold">{{ $p->code }}</div>
                             </td>
                             <td class="text-xs text-slate-700 font-medium">{{ $p->subsidiary->name ?? '-' }}</td>
-                            <td class="text-xs text-[#c3122e] font-semibold">
+                            <td class="text-xs font-semibold">
                                 <div class="flex items-center gap-1.5">
                                     <span class="w-5 h-5 rounded-full bg-rose-100 text-[#c3122e] font-bold text-[10px] flex items-center justify-center">
                                         {{ strtoupper(substr($p->projectManager->name ?? 'U', 0, 1)) }}
                                     </span>
-                                    <span>{{ $p->projectManager->name ?? '-' }}</span>
+                                    <span class="text-slate-800">{{ $p->projectManager->name ?? '-' }}</span>
                                 </div>
                             </td>
                             <td>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-700">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border {{ $statusConfig['cls'] }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
                                     {{ $p->status->label() }}
                                 </span>
                             </td>
                             <td>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="bg-[#c3122e] h-1.5 rounded-full" style="width: {{ min(100, max(0, $p->overall_progress)) }}%"></div>
+                                <div class="flex items-center gap-2.5 min-w-[120px]">
+                                    <div class="w-20 bg-slate-100 rounded-full h-2 overflow-hidden shadow-2xs">
+                                        <div class="h-2 rounded-full transition-all duration-500 {{ $progressBarColor }}" style="width: {{ min(100, max(0, $progress)) }}%"></div>
                                     </div>
-                                    <span class="font-bold text-xs text-slate-900">{{ $p->overall_progress }}%</span>
+                                    <span class="font-mono text-xs {{ $progressTextColor }}">{{ $progress }}%</span>
                                 </div>
                             </td>
                             <td class="text-xs font-mono font-semibold text-slate-900">LKR {{ number_format($p->estimated_budget, 2) }}</td>

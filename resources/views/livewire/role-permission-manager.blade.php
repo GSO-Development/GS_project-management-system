@@ -453,41 +453,43 @@
          6. CREATE NEW ROLE MODAL
          ═══════════════════════════════════════════════════════════════ -->
     @if($showCreateRoleModal)
-        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999;">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" style="z-index: 9999;" wire:click="$set('showCreateRoleModal', false)"></div>
+        @teleport('body')
+        <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5" x-data x-trap.inert.noscroll="true" @keydown.escape.window="$wire.set('showCreateRoleModal', false)" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
+            <div class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm" wire:click="$set('showCreateRoleModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 mx-3 sm:mx-auto" style="z-index: 10000;">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,.28)]">
+                <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-lg">
                             🏷️
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-slate-900">Create New Project Role</h3>
-                            <p class="text-xs text-slate-500 font-medium">Define a custom governance or squad role</p>
+                            <h3 id="role-modal-title" class="text-base font-black text-slate-900">Create project role</h3>
+                            <p class="mt-0.5 text-xs text-slate-500">Define a reusable governance or delivery role.</p>
                         </div>
                     </div>
-                    <button wire:click="$set('showCreateRoleModal', false)" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <button type="button" wire:click="$set('showCreateRoleModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close role form">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <form wire:submit="createRole" class="space-y-4">
+                <form wire:submit="createRole" class="space-y-4 px-5 py-5 sm:px-6">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Role Display Name <span class="text-[#c3122e]">*</span></label>
-                        <input type="text" wire:model.live="newRoleName" placeholder="e.g. Quality Assurance Lead" class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800" style="border: 1px solid #cbd5e1;">
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Role display name <span class="text-rose-600">*</span></label>
+                        <input type="text" wire:model.live="newRoleName" maxlength="100" placeholder="e.g. Quality Assurance Lead" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
                         @error('newRoleName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">System Role Code (Slug) <span class="text-[#c3122e]">*</span></label>
-                        <input type="text" wire:model="newRoleCode" placeholder="e.g. qa_lead" class="w-full text-xs font-mono font-bold py-2.5 px-3 rounded-xl border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800" style="border: 1px solid #cbd5e1;">
+                        <div class="mb-1.5 flex items-center justify-between gap-3"><label class="text-xs font-bold text-slate-700">System role code <span class="text-rose-600">*</span></label><span class="text-[10px] text-slate-400">Unique slug</span></div>
+                        <input type="text" wire:model="newRoleCode" maxlength="100" placeholder="e.g. qa_lead" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1.5 text-[10px] text-slate-400">Use lowercase letters, numbers and underscores only.</p>
                         @error('newRoleCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Clone Base Permissions From (Optional)</label>
-                        <select wire:model="clonePermissionsFrom" class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800" style="border: 1px solid #cbd5e1;">
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Base permissions <span class="font-medium text-slate-400">(optional)</span></label>
+                        <select wire:model="clonePermissionsFrom" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100">
                             <option value="">Start with no permissions</option>
                             @foreach($allRoles as $rKey => $rDef)
                                 <option value="{{ $rKey }}">{{ $rDef['name'] }} ({{ $rKey }})</option>
@@ -496,46 +498,51 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Role Description</label>
-                        <textarea wire:model="newRoleDescription" rows="2" placeholder="Responsibilities and scope of this role..." class="w-full text-xs rounded-xl p-2.5 border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800 leading-normal" style="border: 1px solid #cbd5e1;"></textarea>
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Role description <span class="font-medium text-slate-400">(optional)</span></label>
+                        <textarea wire:model="newRoleDescription" rows="3" maxlength="500" placeholder="Responsibilities and scope of this role..." class="w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100"></textarea>
                     </div>
 
-                    <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
-                        <button type="button" wire:click="$set('showCreateRoleModal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer">Cancel</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm cursor-pointer">Create Role</button>
+                    <div class="-mx-5 -mb-5 mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:-mx-6 sm:px-6">
+                        <button type="button" wire:click="$set('showCreateRoleModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="createRole" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60">
+                            <span wire:loading.remove wire:target="createRole">Create role</span>
+                            <span wire:loading wire:target="createRole">Creating...</span>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
+        @endteleport
     @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
          7. CREATE NEW PERMISSION MODAL
          ═══════════════════════════════════════════════════════════════ -->
     @if($showCreatePermissionModal)
-        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 9999;">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" style="z-index: 9999;" wire:click="$set('showCreatePermissionModal', false)"></div>
+        @teleport('body')
+        <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5" x-data x-trap.inert.noscroll="true" @keydown.escape.window="$wire.set('showCreatePermissionModal', false)" role="dialog" aria-modal="true" aria-labelledby="permission-modal-title">
+            <div class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm" wire:click="$set('showCreatePermissionModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 mx-3 sm:mx-auto" style="z-index: 10000;">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,.28)]">
+                <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
                             🔐
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-slate-900">Add Granular Permission</h3>
-                            <p class="text-xs text-slate-500 font-medium">Define a new capability code in the system</p>
+                            <h3 id="permission-modal-title" class="text-base font-black text-slate-900">Add granular permission</h3>
+                            <p class="mt-0.5 text-xs text-slate-500">Register a reusable capability for role-based access control.</p>
                         </div>
                     </div>
-                    <button wire:click="$set('showCreatePermissionModal', false)" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close permission form">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <form wire:submit="createPermission" class="space-y-4">
+                <form wire:submit="createPermission" class="space-y-4 px-5 py-5 sm:px-6">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Module <span class="text-[#c3122e]">*</span></label>
-                        <select wire:model.live="newPermissionModule" class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800" style="border: 1px solid #cbd5e1;">
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Target module <span class="text-rose-600">*</span></label>
+                        <select wire:model.live="newPermissionModule" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100">
                             @foreach($allModules as $mKey => $mDef)
                                 <option value="{{ $mKey }}">{{ $mDef['name'] }} ({{ $mKey }})</option>
                             @endforeach
@@ -543,24 +550,32 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Permission Display Name <span class="text-[#c3122e]">*</span></label>
-                        <input type="text" wire:model.live="newPermissionName" placeholder="e.g. Export Audit Report" class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800" style="border: 1px solid #cbd5e1;">
+                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Permission display name <span class="text-rose-600">*</span></label>
+                        <input type="text" wire:model.live="newPermissionName" maxlength="100" placeholder="e.g. Export Audit Report" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
                         @error('newPermissionName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Permission Code (Spatie Name) <span class="text-[#c3122e]">*</span></label>
-                        <input type="text" wire:model="newPermissionCode" placeholder="e.g. project.export_audit" class="w-full text-xs font-mono font-bold py-2.5 px-3 rounded-xl border border-slate-300 bg-white focus:border-[#c3122e] text-slate-800" style="border: 1px solid #cbd5e1;">
+                        <div class="mb-1.5 flex items-center justify-between gap-3">
+                            <label class="text-xs font-bold text-slate-700">Permission code <span class="text-rose-600">*</span></label>
+                            <span class="text-[10px] text-slate-400">Spatie permission name</span>
+                        </div>
+                        <input type="text" wire:model="newPermissionCode" maxlength="150" placeholder="e.g. project.export_audit" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1.5 text-[10px] text-slate-400">Use lowercase words separated by dots or underscores.</p>
                         @error('newPermissionCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
-                        <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer">Cancel</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-sm cursor-pointer">Register Permission</button>
+                    <div class="-mx-5 -mb-5 mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:-mx-6 sm:px-6">
+                        <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="createPermission" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60">
+                            <span wire:loading.remove wire:target="createPermission">Register permission</span>
+                            <span wire:loading wire:target="createPermission">Registering...</span>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
+        @endteleport
     @endif
 
     <!-- ═══════════════════════════════════════════════════════════════

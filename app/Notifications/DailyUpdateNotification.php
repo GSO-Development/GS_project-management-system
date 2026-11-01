@@ -28,13 +28,13 @@ class DailyUpdateNotification extends Notification
         $title = match($this->actionType) {
             'comment' => 'New Feedback Comment',
             'task_log' => 'Task Progress Logged',
-            default => 'Daily Project Update',
+            default => 'Latest Project Update',
         };
 
         $message = match($this->actionType) {
             'comment' => "{$this->reporterName} commented on '{$this->updateTitle}' in {$this->projectName}.",
             'task_log' => "{$this->reporterName} logged progress on task '{$this->updateTitle}' in {$this->projectName}.",
-            default => "{$this->reporterName} published a daily update for '{$this->projectName}': {$this->updateTitle}",
+            default => "{$this->reporterName} published an update for '{$this->projectName}': {$this->updateTitle}",
         };
 
         return [
