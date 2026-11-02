@@ -2126,7 +2126,10 @@
         border-right: 1px solid #f0e1e4 !important;
     }
     .guest-clean .login-brand-panel::before { border-color: rgb(195 18 46 / .035) !important; }
-    .guest-clean .login-brand-glow { background: rgb(255 255 255 / .78) !important; opacity: .78; }
+    .guest-clean .login-brand-glow {
+        background: radial-gradient(circle, rgb(195 18 46 / .15) 0%, rgb(244 114 182 / .08) 42%, transparent 72%) !important;
+        opacity: .8;
+    }
     .guest-clean .login-orbit-ring { border-color: rgb(195 18 46 / .10) !important; }
     .guest-clean .login-orbit-ring--outer::after { border-color: rgb(195 18 46 / .075) !important; }
     .guest-clean .login-orbit-node { background:#c3122e !important; box-shadow:0 4px 12px rgb(195 18 46 / .2) !important; }
@@ -2161,9 +2164,12 @@
     }
     .guest-clean .login-pulse-stat strong { display:block; color:#172033; font-size:.78rem; font-weight:800; line-height:1.1; }
     .guest-clean .login-pulse-stat span { display:block; margin-top:.22rem; overflow:hidden; color:#8490a3; font-size:.48rem; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
-    .guest-clean .login-brand-orbit,
-    .guest-clean .login-brand-glow,
-    .guest-clean .login-brand-panel::before { display:none !important; }
+    .guest-clean .login-brand-orbit {
+        right: -118px;
+        bottom: 36px;
+        opacity: .5;
+    }
+    .guest-clean .login-brand-panel::before { opacity: .8; }
     .guest-clean .login-feature-list > div { display:flex; align-items:center; gap:.65rem; color:#526078; font-size:.68rem; font-weight:600; }
     .guest-clean .login-feature-list > div > span { display:flex; width:20px; height:20px; align-items:center; justify-content:center; flex:none; border:1px solid #f0d6db; border-radius:7px; background:#fff; color:#c3122e; }
     .guest-clean .login-feature-list svg { width:11px; height:11px; }
@@ -2300,6 +2306,53 @@
         .guest-clean .login-brand-copy { padding-block: 1rem !important; }
     }
 
+    /* Responsive login layout: keep the form easy to reach on small screens */
+    @media (max-width: 1023px) {
+        .guest-clean .login-page {
+            justify-content: flex-start !important;
+            overflow: visible !important;
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: 1rem !important;
+        }
+        .guest-clean .login-shell {
+            width: min(720px, 100%) !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            margin-inline: auto;
+        }
+        .guest-clean .login-brand-panel {
+            min-height: 0 !important;
+            gap: 1rem;
+            padding: 1.5rem !important;
+        }
+        .guest-clean .login-brand-copy { padding-block: .5rem !important; }
+        .guest-clean .login-form-panel { padding: 2rem 1.75rem !important; }
+        .guest-clean .login-form-content { max-width: 28rem; }
+    }
+
+    @media (max-width: 639px) {
+        .guest-clean .login-page { padding: .75rem !important; }
+        .guest-clean .login-shell { border-radius: 1.4rem !important; }
+        .guest-clean .login-brand-panel {
+            gap: .65rem;
+            padding: 1.2rem !important;
+        }
+        .guest-clean .login-brand-copy { margin-block: .4rem !important; padding-block: 0 !important; }
+        .guest-clean .login-eyebrow { margin-bottom: .65rem !important; }
+        .guest-clean .login-brand-copy h1 { font-size: 1.55rem !important; line-height: 1.16; }
+        .guest-clean .login-brand-intro { margin-top: .7rem; font-size: .8rem !important; line-height: 1.55; }
+        .guest-clean .login-feature-list { gap: .5rem; margin-top: .9rem; }
+        .guest-clean .login-feature-list > div p { font-size: .75rem; }
+        .guest-clean .login-brand-trust { margin-top: .25rem; }
+        .guest-clean .login-brand-orbit { right: -145px; bottom: 8px; opacity: .3; }
+        .guest-clean .login-form-panel { padding: 1.5rem 1.2rem !important; }
+        .guest-clean .login-form-content { max-width: 30rem; }
+        .guest-clean .login-form-heading h2 { font-size: 1.65rem !important; }
+        .guest-clean .login-form-panel input:not([type="checkbox"]) { min-height: 50px; font-size: 16px !important; }
+        .guest-clean .login-submit,
+        .guest-clean .login-microsoft { min-height: 50px; }
+    }
     /* Daily updates: compact activity ledger */
     [data-ui-page="daily-updates"] .daily-updates-heading h1,
     [data-ui-page="users"] .users-page-heading h1 {

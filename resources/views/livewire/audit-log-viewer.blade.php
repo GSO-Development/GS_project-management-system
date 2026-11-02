@@ -1128,29 +1128,7 @@
                             <span style="font-size:12px;font-weight:700;color:#059669;">{{ $selectedLog->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
-
-                    {{-- Quick filter shortcuts --}}
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-                        @if($selectedLog->user_id)
-                            <button wire:click="filterByUser({{ $selectedLog->user_id }})" type="button"
-                                    style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;">
-                                <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                Filter by User
-                            </button>
-                        @endif
-                        <button wire:click="filterByAction('{{ $selectedLog->action }}')" type="button"
-                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;">
-                            <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                            Filter by Action
-                        </button>
-                        @if($selectedLog->record_id)
-                            <button wire:click="filterByRecord('{{ $selectedLog->record_id }}')" type="button"
-                                    style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer;transition:all 0.15s;">
-                                <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
-                                Record #{{ $selectedLog->record_id }}
-                            </button>
-                        @endif
-                    </div>
+                    
 
                     {{-- User Agent --}}
                     @if($selectedLog->user_agent)
