@@ -24,11 +24,7 @@
         </div>
 
         <div class="flex items-center gap-3 flex-wrap justify-between lg:justify-end">
-            @if($selectForProject)
-                <button type="button" wire:click="saveGantt" class="inline-flex items-center gap-2 rounded-xl bg-[#c3122e] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#a00e24]">
-                    Save & Return to Templates
-                </button>
-            @endif
+
             @if($isConfigured)
                 @php
                     $totalDisplay = '';
@@ -90,12 +86,12 @@
                 @endif
 
                 @if(auth()->user()?->isSuperAdmin())
-                    <button wire:click="saveGantt" 
+                    <button wire:click="{{ $selectForProject ? 'continueToProject' : 'saveGantt' }}" wire:loading.attr="disabled"
                             class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Save WBS Gantt</span>
+                        <span>{{ $selectForProject ? 'Continue to Project' : 'Save WBS Gantt' }}</span>
                     </button>
                 @else
                     <div class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200">

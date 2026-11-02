@@ -509,6 +509,30 @@ class ProjectManagerDashboard extends Component
             ->latest()
             ->get();
 
+        $openTaskRisks = WbsItem::with(['project', 'assignedUser'])
+            ->whereIn('project_id', $involvedProjectIds)
+            ->where('status', 'at_risk')
+            ->whereDoesntHave('openRisks')
+            ->latest('updated_at')
+            ->get()
+            ->map(fn($task) => (object) [
+                'id' => 'task-'.$task->id,
+                'title' => $task->title,
+                'category' => 'Task Risk',
+                'risk_score' => match ($task->priority?->value) {
+                    'critical' => 9,
+                    'high' => 6,
+                    'medium' => 4,
+                    default => 2,
+                },
+                'project_id' => $task->project_id,
+                'project' => $task->project,
+                'owner' => $task->assignedUser,
+                'wbsItem' => $task,
+                'is_task_risk' => true,
+            ]);
+        $openRisks = $openRisks->concat($openTaskRisks)->values();
+
         $allRisks = ProjectRisk::with(['project', 'owner', 'wbsItem'])
             ->where(function($q) use ($user, $involvedProjectIds) {
                 $q->whereIn('project_id', $involvedProjectIds)

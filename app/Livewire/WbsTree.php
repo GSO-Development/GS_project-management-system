@@ -21,6 +21,7 @@ use App\Services\WbsNumberingService;
 use App\Services\WbsTaskImportService;
 use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Livewire\Attributes\On;
@@ -404,11 +405,21 @@ class WbsTree extends Component
         $this->taskImportErrors = [];
         $this->resetValidation('taskImportFile');
 
-        $this->validate([
-            'taskImportFile' => 'required|file|mimes:xlsx|max:10240',
-        ], [
-            'taskImportFile.mimes' => 'Upload the Excel task template (.xlsx).',
-        ]);
+        $validator = Validator::make(
+            ['taskImportFile' => $this->taskImportFile],
+            ['taskImportFile' => 'required|file|mimes:xlsx|max:10240'],
+            ['taskImportFile.mimes' => 'Upload the Excel task template (.xlsx).'],
+        );
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->messages() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $this->addError($field, $message);
+                }
+            }
+
+            return;
+        }
 
         $this->taskImportOriginalName = $this->taskImportFile->getClientOriginalName();
         $result = app(WbsTaskImportService::class)->parse($this->taskImportFile, $this->project);

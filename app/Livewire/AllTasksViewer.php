@@ -12,6 +12,13 @@ class AllTasksViewer extends Component
 {
     use WithPagination;
 
+    private const WORKFLOW_STATUS_GROUPS = [
+        'not_started' => ['backlog', 'not_started'],
+        'in_progress' => ['in_progress', 'under_review', 'at_risk'],
+        'completed' => ['completed'],
+        'on_hold' => ['on_hold', 'blocked'],
+    ];
+
     // View Mode: 'all' (All Tasks) | 'stuck' (Stuck & Blocked Radar)
     public string $viewMode       = 'all';
 
@@ -21,6 +28,8 @@ class AllTasksViewer extends Component
     // All Tasks Filters
     public string $search         = '';
     public string $statusFilter   = 'all';
+    public string $dueFilter      = 'all';
+    public string $riskFilter     = 'all';
     public string $projectFilter  = 'all';
     public string $priorityFilter = 'all';
     public string $sortBy         = 'end_date'; // end_date | priority | project | title
@@ -48,7 +57,9 @@ class AllTasksViewer extends Component
         $s = request()->query('status');
         if ($s === 'stuck') {
             $this->viewMode = 'stuck';
-        } elseif ($s && in_array($s, ['completed', 'in_progress', 'on_hold', 'not_started', 'blocked', 'all'])) {
+        } elseif ($s === 'blocked') {
+            $this->statusFilter = 'on_hold';
+        } elseif ($s && in_array($s, ['completed', 'in_progress', 'on_hold', 'not_started', 'all'], true)) {
             $this->statusFilter = $s;
         }
 
@@ -65,7 +76,7 @@ class AllTasksViewer extends Component
     public function hasActiveFilters(): bool
     {
         if ($this->viewMode === 'all') {
-            return ($this->search !== '' || $this->statusFilter !== 'all' || $this->projectFilter !== 'all' || $this->priorityFilter !== 'all' || $this->sortBy !== 'end_date');
+            return ($this->search !== '' || $this->statusFilter !== 'all' || $this->dueFilter !== 'all' || $this->riskFilter !== 'all' || $this->projectFilter !== 'all' || $this->priorityFilter !== 'all' || $this->sortBy !== 'end_date');
         } else {
             return ($this->search !== '' || $this->stuckProjectFilter !== 'all' || $this->projectFilter !== 'all' || $this->stuckAssigneeFilter !== 'all' || $this->stuckPriorityFilter !== 'all' || $this->stuckTypeFilter !== 'all');
         }
@@ -90,7 +101,40 @@ class AllTasksViewer extends Component
     }
 
     public function updatedSearch()        { $this->resetPage(); }
-    public function updatedStatusFilter()  { $this->resetPage(); }
+    public function updatedStatusFilter(string $status): void
+    {
+        if (!in_array($status, ['all', ...array_keys(self::WORKFLOW_STATUS_GROUPS)], true)) {
+            $this->statusFilter = 'all';
+        }
+
+        $this->dueFilter = 'all';
+        $this->riskFilter = 'all';
+        $this->resetPage();
+    }
+
+    public function setStatusFilter(string $status): void
+    {
+        $this->statusFilter = in_array($status, array_keys(self::WORKFLOW_STATUS_GROUPS), true) ? $status : 'all';
+        $this->dueFilter = 'all';
+        $this->riskFilter = 'all';
+        $this->resetPage();
+    }
+
+    public function setOverdueFilter(): void
+    {
+        $this->statusFilter = 'all';
+        $this->dueFilter = 'overdue';
+        $this->riskFilter = 'all';
+        $this->resetPage();
+    }
+
+    public function setAtRiskFilter(): void
+    {
+        $this->statusFilter = 'all';
+        $this->dueFilter = 'all';
+        $this->riskFilter = 'at_risk';
+        $this->resetPage();
+    }
     public function updatedProjectFilter() { $this->resetPage(); }
     public function updatedPriorityFilter(){ $this->resetPage(); }
     public function updatedStuckTypeFilter(){ $this->resetPage(); }
@@ -100,7 +144,7 @@ class AllTasksViewer extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['search', 'statusFilter', 'projectFilter', 'priorityFilter', 'sortBy']);
+        $this->reset(['search', 'statusFilter', 'dueFilter', 'riskFilter', 'projectFilter', 'priorityFilter', 'sortBy']);
         $this->resetPage();
     }
 
@@ -111,14 +155,25 @@ class AllTasksViewer extends Component
         // ═══════════════════════════════════════════════════════════════
         // 1. ALL TASKS KPI COUNTS
         // ═══════════════════════════════════════════════════════════════
-        $allTasks = WbsItem::whereHas('project', fn($q) => $q->whereNull('deleted_at'))->get();
+        $allTasks = WbsItem::whereHas('project', fn($q) => $q->whereNull('deleted_at'))
+            ->whereNotIn('status', ['cancelled'])
+            ->get();
+        $statusValue = fn (WbsItem $task): string => $task->status instanceof WbsStatus
+            ? $task->status->value
+            : (string) $task->status;
         $kpi = [
             'total'       => $allTasks->count(),
-            'in_progress' => $allTasks->where('status', WbsStatus::IN_PROGRESS)->count(),
-            'completed'   => $allTasks->where('status', WbsStatus::COMPLETED)->count(),
-            'on_hold'     => $allTasks->where('status', WbsStatus::ON_HOLD)->count(),
-            'not_started' => $allTasks->whereIn('status', [WbsStatus::NOT_STARTED, WbsStatus::BACKLOG])->count(),
-            'blocked'     => $allTasks->where('status', WbsStatus::BLOCKED)->count(),
+            'not_started' => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['not_started'], true))->count(),
+            'in_progress' => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['in_progress'], true))->count(),
+            'completed'   => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['completed'], true))->count(),
+            'on_hold'     => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['on_hold'], true))->count(),
+            'at_risk'     => WbsItem::whereHas('project', fn ($q) => $q->whereNull('deleted_at'))
+                                ->whereNotIn('status', ['cancelled'])
+                                ->where(function ($q) {
+                                    $q->where('status', 'at_risk')
+                                        ->orWhereHas('risks', fn ($riskQuery) => $riskQuery->whereIn('status', ['open', 'monitoring']));
+                                })
+                                ->count(),
             'overdue'     => $allTasks->filter(fn($t) =>
                                 $t->end_date &&
                                 $t->end_date->lt(now()->today()) &&
@@ -182,7 +237,8 @@ class AllTasksViewer extends Component
         // 3. ALL TASKS QUERY
         // ═══════════════════════════════════════════════════════════════
         $query = WbsItem::with(['project.subsidiary', 'assignedUser'])
-            ->whereHas('project', fn($q) => $q->whereNull('deleted_at'));
+            ->whereHas('project', fn($q) => $q->whereNull('deleted_at'))
+            ->whereNotIn('status', ['cancelled']);
 
         if ($this->search && $this->viewMode === 'all') {
             $s = "%{$this->search}%";
@@ -195,7 +251,20 @@ class AllTasksViewer extends Component
         }
 
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            $statuses = self::WORKFLOW_STATUS_GROUPS[$this->statusFilter] ?? [];
+            $query->whereIn('status', $statuses);
+        }
+
+        if ($this->dueFilter === 'overdue') {
+            $query->where('end_date', '<', $today)
+                ->whereNotIn('status', ['completed', 'cancelled']);
+        }
+
+        if ($this->riskFilter === 'at_risk') {
+            $query->where(function ($q) {
+                $q->where('status', 'at_risk')
+                    ->orWhereHas('risks', fn ($riskQuery) => $riskQuery->whereIn('status', ['open', 'monitoring']));
+            });
         }
 
         if ($this->projectFilter !== 'all') {

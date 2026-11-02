@@ -82,6 +82,29 @@ class WbsItem extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function (WbsItem $item) {
+            if ($item->project_id) {
+                app(\App\Services\ProgressCalculationService::class)->updateProjectOverallProgress($item->project_id);
+                if ($item->wasRecentlyCreated || $item->wasChanged(['priority', 'item_type', 'project_id'])) {
+                    $item->project()->first()?->syncAutoPriority();
+                }
+            }
+        });
+
+        static::deleted(function (WbsItem $item) {
+            if ($item->project_id) {
+                app(\App\Services\ProgressCalculationService::class)->updateProjectOverallProgress($item->project_id);
+                $item->project()->first()?->syncAutoPriority();
+            }
+        });
+
+        static::restored(function (WbsItem $item) {
+            $item->project()->first()?->syncAutoPriority();
+        });
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

@@ -106,6 +106,7 @@ class ProgressCalculationService
             $project->actual_hours = $wbsActHours;
         }
 
+        $project->syncAutoStatus(false);
         $project->saveQuietly();
     }
 }

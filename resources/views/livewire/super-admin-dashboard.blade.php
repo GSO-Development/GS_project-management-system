@@ -5,12 +5,8 @@
          ══════════════════════════════════════════════════════════════════════════ --}}
     @if(isset($declinedProjects) && $declinedProjects->isNotEmpty())
         <div class="bg-rose-50/80 border border-rose-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                    </svg>
-                </div>
+            <div class="flex items-start gap-3">
+                <span class="w-2 h-2 rounded-full bg-rose-600 mt-1.5 shrink-0"></span>
                 <div>
                     <h4 class="text-xs font-bold text-rose-900">
                         {{ $declinedProjects->count() }} {{ Str::plural('Project Assignment', $declinedProjects->count()) }} Declined
@@ -37,7 +33,7 @@
                 $userName = auth()->user()->name ?? 'Super Admin';
             @endphp
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                {{ $greeting }}, {{ $userName }} <span class="inline-block hover:scale-110 transition-transform cursor-default select-none">👋</span>
+                {{ $greeting }}, {{ $userName }}
             </h1>
             <p class="text-xs font-medium text-slate-400 mt-1">Executive Portfolio &amp; Governance Overview</p>
         </div>
@@ -66,18 +62,11 @@
         <!-- 1. Total Projects -->
         <a href="{{ route('projects.index') }}" 
            class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all duration-200 p-4 sm:p-5 flex items-center justify-between group no-underline">
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-slate-100/80 text-slate-700 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Projects</span>
-                    <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-1 block tracking-tight font-mono">
-                        {{ $totalProjects }}
-                    </span>
-                </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Projects</span>
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-2 block tracking-tight font-mono">
+                    {{ $totalProjects }}
+                </span>
             </div>
             <div class="text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -89,18 +78,11 @@
         <!-- 2. Subsidiaries -->
         <a href="{{ route('subsidiaries.index') }}" 
            class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all duration-200 p-4 sm:p-5 flex items-center justify-between group no-underline">
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-slate-100/80 text-slate-700 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Subsidiaries</span>
-                    <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-1 block tracking-tight font-mono">
-                        {{ $totalSubsidiaries }}
-                    </span>
-                </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Subsidiaries</span>
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-2 block tracking-tight font-mono">
+                    {{ $totalSubsidiaries }}
+                </span>
             </div>
             <div class="text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -112,18 +94,11 @@
         <!-- 3. At Risk -->
         <a href="{{ route('risks.index') }}" 
            class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all duration-200 p-4 sm:p-5 flex items-center justify-between group no-underline">
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-slate-100/80 text-slate-700 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">At Risk</span>
-                    <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-1 block tracking-tight font-mono">
-                        {{ $statusSummary['at_risk']['count'] }}
-                    </span>
-                </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">At Risk</span>
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-2 block tracking-tight font-mono">
+                    {{ $statusSummary['at_risk']['count'] }}
+                </span>
             </div>
             <div class="text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -135,18 +110,11 @@
         <!-- 4. Participants -->
         <a href="{{ route('users.index') }}" 
            class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all duration-200 p-4 sm:p-5 flex items-center justify-between group no-underline">
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-slate-100/80 text-slate-700 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Participants</span>
-                    <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-1 block tracking-tight font-mono">
-                        {{ $totalUsers }}
-                    </span>
-                </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Participants</span>
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-2 block tracking-tight font-mono">
+                    {{ $totalUsers }}
+                </span>
             </div>
             <div class="text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -164,18 +132,11 @@
         
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Project Timeline
-                    </h2>
-                    <p class="text-xs text-slate-400 font-medium mt-0.5">Gantt schedule overview</p>
-                </div>
+            <div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Project Timeline
+                </h2>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Gantt schedule overview</p>
             </div>
 
             <!-- Segmented Scale Switcher -->
@@ -412,16 +373,9 @@
         <a href="{{ route('risks.index') }}" class="executive-insight-card executive-risk-card no-underline block bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4 hover:border-slate-300 transition-all duration-200 group">
 
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/70 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Risk Summary
-                    </h3>
-                </div>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Risk Summary
+                </h3>
                 <span class="text-xs font-bold text-[#c3122e] group-hover:text-[#a80f27] transition-colors flex items-center gap-1">
                     <span>View All</span>
                     <span>&rarr;</span>
@@ -446,7 +400,7 @@
 
             <!-- Risk List Items -->
             <div class="space-y-2 flex-1 pt-1">
-                @forelse($allRisks->where('status', 'open')->sortByDesc('risk_score')->take(3) as $risk)
+                @forelse($dashboardRiskItems->take(3) as $risk)
                     @php
                         $score  = $risk->risk_score;
                         $level  = $score >= 9 ? 'Critical' : ($score >= 6 ? 'High' : ($score >= 3 ? 'Medium' : 'Low'));
@@ -488,16 +442,9 @@
            class="executive-insight-card executive-meeting-card no-underline block bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4 hover:border-slate-300 transition-all duration-200 group">
             
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/70 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Upcoming Meetings
-                    </h3>
-                </div>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Upcoming Meetings
+                </h3>
                 <span class="text-xs font-bold text-[#c3122e] group-hover:text-[#a80f27] transition-colors flex items-center gap-1">
                     <span>Calendar</span>
                     <span>&rarr;</span>
@@ -559,16 +506,9 @@
         <!-- ── Col 3: Recent Activity ── -->
         <div class="executive-insight-card executive-activity-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-slate-100/90 text-slate-700 border border-slate-200/70 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Recent Activity
-                    </h3>
-                </div>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                    Recent Activity
+                </h3>
                 <a href="{{ route('audit-logs.index') }}" class="text-xs font-bold text-[#c3122e] hover:text-[#a80f27] transition-colors no-underline flex items-center gap-1">
                     <span>View All</span>
                     <span>&rarr;</span>

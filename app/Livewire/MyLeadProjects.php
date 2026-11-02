@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Enums\ProjectStatus;
+use App\Models\ActivityLog;
 use App\Models\Project;
 use App\Services\ProjectDelayAnalysisService;
 use Livewire\Component;
@@ -24,6 +26,12 @@ class MyLeadProjects extends Component
     public ?int $delayProjectId = null;
     public array $delayAnalysis = [];
 
+    public bool $showStatusConfirmModal = false;
+    public ?int $statusUpdateProjectId = null;
+    public ?string $statusUpdateProjectName = null;
+    public ?string $statusUpdateOldValue = null;
+    public ?string $statusUpdateNewValue = null;
+
     protected $queryString = [
         'roleFilter'   => ['except' => 'all', 'as' => 'role'],
         'statusFilter' => ['except' => 'all', 'as' => 'status'],
@@ -41,6 +49,8 @@ class MyLeadProjects extends Component
         if ($delayProjectId = request()->integer('delay_project')) {
             $this->openDelayAnalysis($delayProjectId, app(ProjectDelayAnalysisService::class));
         }
+
+        Project::syncAllProjectStatuses();
     }
 
     public function updatedSearch() { $this->resetPage(); }
@@ -118,7 +128,7 @@ class MyLeadProjects extends Component
         $user = auth()->user();
 
         abort_unless(
-            $project->project_manager_id === $user->id || $user->isPmoAdmin() || $user->isSuperAdmin() || $project->canUserView($user),
+            $project->project_manager_id === $user->id,
             403
         );
 
@@ -137,6 +147,89 @@ class MyLeadProjects extends Component
         $this->delayAnalysis = [];
     }
 
+    public function promptProjectStatusChange(int $projectId, string $newValue): void
+    {
+        $project = Project::findOrFail($projectId);
+        $user = auth()->user();
+        $newStatus = ProjectStatus::tryFrom($newValue);
+        $editableStatuses = [
+            ProjectStatus::PLANNING,
+            ProjectStatus::IN_PROGRESS,
+            ProjectStatus::COMPLETED,
+            ProjectStatus::AT_RISK,
+            ProjectStatus::DELAYED,
+        ];
+
+        if (!$user || $project->project_manager_id !== $user->id || !$project->isPmAccepted()) {
+            $this->dispatch('toast', message: 'Only the assigned Project Manager can change this project status.', type: 'error');
+            return;
+        }
+
+        if (!$newStatus || !in_array($newStatus, $editableStatuses, true) || $project->status === $newStatus) {
+            return;
+        }
+
+        $this->statusUpdateProjectId = $project->id;
+        $this->statusUpdateProjectName = $project->name;
+        $this->statusUpdateOldValue = $project->status->value;
+        $this->statusUpdateNewValue = $newStatus->value;
+        $this->showStatusConfirmModal = true;
+    }
+
+    public function confirmProjectStatusChange(): void
+    {
+        $project = $this->statusUpdateProjectId ? Project::find($this->statusUpdateProjectId) : null;
+        $user = auth()->user();
+        $newStatus = $this->statusUpdateNewValue ? ProjectStatus::tryFrom($this->statusUpdateNewValue) : null;
+        $editableStatuses = [
+            ProjectStatus::PLANNING,
+            ProjectStatus::IN_PROGRESS,
+            ProjectStatus::COMPLETED,
+            ProjectStatus::AT_RISK,
+            ProjectStatus::DELAYED,
+        ];
+
+        if (!$this->showStatusConfirmModal || !$project || !$user
+            || $project->project_manager_id !== $user->id || !$project->isPmAccepted()
+            || $project->status->value !== $this->statusUpdateOldValue
+            || !$newStatus || !in_array($newStatus, $editableStatuses, true)) {
+            $this->cancelProjectStatusChange();
+            $this->dispatch('toast', message: 'This status change is no longer available. Refresh the project list and try again.', type: 'error');
+            return;
+        }
+
+        $oldStatus = $project->status;
+        $project->status = $newStatus;
+        if ($newStatus === ProjectStatus::COMPLETED) {
+            $project->overall_progress = 100;
+        }
+        $project->save();
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'project_status_updated',
+            'module' => 'projects',
+            'record_type' => Project::class,
+            'record_id' => $project->id,
+            'previous_values' => ['status' => $oldStatus->value],
+            'new_values' => ['status' => $newStatus->value],
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        $projectCode = $project->code;
+        $this->cancelProjectStatusChange();
+        $this->dispatch('toast', message: "Status for [{$projectCode}] updated to {$newStatus->label()}!", type: 'success');
+    }
+
+    public function cancelProjectStatusChange(): void
+    {
+        $this->showStatusConfirmModal = false;
+        $this->statusUpdateProjectId = null;
+        $this->statusUpdateProjectName = null;
+        $this->statusUpdateOldValue = null;
+        $this->statusUpdateNewValue = null;
+    }
     public function render()
     {
         $user = auth()->user();
@@ -144,7 +237,7 @@ class MyLeadProjects extends Component
         // Base query: all projects this user is involved in (any role)
         if ($user->isPmoAdmin()) {
             // PMO Admin sees all projects
-            $baseQuery = Project::query()->with(['subsidiary', 'projectManager', 'members']);
+            $baseQuery = Project::query()->with(['subsidiary', 'projectManager', 'members', 'wbsItems', 'approvalRequests']);
         } else {
             // Regular users:
             // - If user is the designated PM: sees their assigned projects (both accepted and pending acceptance)
@@ -157,7 +250,7 @@ class MyLeadProjects extends Component
                                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
                       });
                 })
-                ->with(['subsidiary', 'projectManager', 'members']);
+                ->with(['subsidiary', 'projectManager', 'members', 'wbsItems', 'approvalRequests']);
         }
 
         // Summary counts (before filters)
@@ -209,11 +302,13 @@ class MyLeadProjects extends Component
         }
 
         $projects = $baseQuery->latest()->paginate($this->perPage);
+        $projects->getCollection()->each(fn (Project $p) => $p->syncAutoStatus(true));
 
         $delayService = app(ProjectDelayAnalysisService::class);
-        // Health is visible for every listed project, but the detailed analysis
-        // action is rendered and authorized only for the project's manager.
-        $delaySummaries = $projects->getCollection()->mapWithKeys(
+        // Detailed delay data belongs only to projects led by this user.
+        $delaySummaries = $projects->getCollection()
+            ->where('project_manager_id', $user->id)
+            ->mapWithKeys(
             fn (Project $project) => [$project->id => $delayService->analyze($project)]
         );
 

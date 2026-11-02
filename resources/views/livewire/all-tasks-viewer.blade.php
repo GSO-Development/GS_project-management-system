@@ -7,6 +7,76 @@
     .kpi-tile { transition: all 0.15s ease; }
     .kpi-tile:hover { transform: translateY(-1px); }
     .kpi-tile.active { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-kpi-scroll {
+        width: 100%;
+        overflow-x: auto;
+        padding: 2px 2px 8px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis {
+        display: grid !important;
+        grid-template-columns: repeat(7, minmax(120px, 1fr)) !important;
+        gap: 12px !important;
+        width: 100%;
+        min-width: 900px;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile {
+        min-width: 0;
+        min-height: 112px;
+        padding: 18px 16px !important;
+        align-items: flex-start;
+        justify-content: space-between;
+        border: 1px solid #dfe5ec !important;
+        border-radius: 12px !important;
+        background: #fff !important;
+        box-shadow: 0 3px 12px rgba(15, 23, 42, .045) !important;
+        text-align: left;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile::before {
+        content: '';
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        border-radius: 12px 0 0 12px;
+        background: #94a3b8;
+        opacity: .8;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(2)::before { background: #64748b; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(3)::before { background: #2563eb; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(4)::before { background: #059669; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(5)::before { background: #d97706; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(6)::before { background: #ea580c; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(7)::before { background: #e11d48; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:hover {
+        transform: translateY(-2px) !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, .08) !important;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active {
+        border-color: #e9a5b0 !important;
+        background: #fff7f8 !important;
+        box-shadow: 0 0 0 2px rgba(195, 18, 46, .07), 0 6px 18px rgba(15, 23, 42, .06) !important;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active::before { background: #c3122e; opacity: 1; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile > div:first-child {
+        font-size: 1.75rem !important;
+        line-height: 1 !important;
+        color: #172033 !important;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active > div:first-child { color: #b10f29 !important; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile > div:last-child {
+        margin-top: 16px !important;
+        color: #718096 !important;
+        font-size: .65rem !important;
+        letter-spacing: .08em;
+    }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active > div:last-child { color: #8f2637 !important; }
     @keyframes slideDownFade {
         from { opacity: 0; transform: translateY(-6px); }
         to { opacity: 1; transform: translateY(0); }
@@ -115,9 +185,8 @@
                                     <option value="all">All Statuses ({{ $kpi['total'] }})</option>
                                     <option value="not_started">Not Started ({{ $kpi['not_started'] }})</option>
                                     <option value="in_progress">In Progress ({{ $kpi['in_progress'] }})</option>
-                                    <option value="on_hold">On Hold ({{ $kpi['on_hold'] }})</option>
-                                    <option value="blocked">Blocked ({{ $kpi['blocked'] }})</option>
                                     <option value="completed">Completed ({{ $kpi['completed'] }})</option>
+                                    <option value="on_hold">On Hold ({{ $kpi['on_hold'] }})</option>
                                 </select>
                                 <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                             </div>
@@ -147,7 +216,7 @@
                             </div>
 
                             {{-- Clear Filters Button --}}
-                            @if($search !== '' || $statusFilter !== 'all' || $projectFilter !== 'all' || $priorityFilter !== 'all' || $sortBy !== 'end_date')
+                            @if($search !== '' || $statusFilter !== 'all' || $dueFilter !== 'all' || $riskFilter !== 'all' || $projectFilter !== 'all' || $priorityFilter !== 'all' || $sortBy !== 'end_date')
                                 <button wire:click="clearFilters" type="button"
                                         class="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -170,18 +239,6 @@
 
                         {{-- Filter Dropdowns --}}
                         <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
-                            {{-- Stuck Category Dropdown --}}
-                            <div class="relative flex-1 sm:flex-initial min-w-[135px]">
-                                <select wire:model.live="stuckTypeFilter"
-                                        class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
-                                    <option value="all">All Stuck ({{ $totalStuckTasksCount }})</option>
-                                    <option value="blocked">Blocked Tasks ({{ $blockedTasksOnlyCount }})</option>
-                                    <option value="on_hold">On Hold ({{ $onHoldTasksCount }})</option>
-                                    <option value="overdue">Overdue Deliverables ({{ $overdueTasksOnlyCount }})</option>
-                                </select>
-                                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-
                             {{-- Assignee Dropdown --}}
                             <div class="relative flex-1 sm:flex-initial min-w-[140px] max-w-[180px]">
                                 <select wire:model.live="stuckAssigneeFilter"
@@ -228,53 +285,55 @@
     @if($viewMode === 'all')
         <div wire:key="view-content-all-tasks" class="space-y-4">
             {{-- KPI TILES --}}
-            <div class="all-tasks-kpi-grid grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2.5">
+            <div class="all-tasks-kpi-scroll">
+            <div class="all-tasks-kpi-grid all-tasks-status-kpis">
             {{-- Total --}}
             <button wire:click="clearFilters" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='all' ? 'active border-slate-800' : 'bg-white border-slate-200 hover:border-slate-300' }}"
-                style="{{ $statusFilter==='all' ? 'background:linear-gradient(135deg,#1e293b,#475569);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='all' ? 'text-white' : 'text-slate-900' }}">{{ $kpi['total'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='all' ? 'text-slate-300' : 'text-slate-400' }}">Total</div>
-            </button>
-            {{-- In Progress --}}
-            <button wire:click="$set('statusFilter','in_progress')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='in_progress' ? 'active border-blue-600' : 'bg-white border-slate-200 hover:border-blue-300' }}"
-                style="{{ $statusFilter==='in_progress' ? 'background:linear-gradient(135deg,#2563eb,#1d4ed8);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='in_progress' ? 'text-white' : 'text-blue-600' }}">{{ $kpi['in_progress'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='in_progress' ? 'text-blue-100' : 'text-slate-400' }}">Progress</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='all' && $dueFilter==='all' && $riskFilter==='all' ? 'active border-slate-800' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['total'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-400">Total</div>
             </button>
             {{-- Not Started --}}
-            <button wire:click="$set('statusFilter','not_started')" type="button"
+            <button wire:click="setStatusFilter('not_started')" type="button"
                 class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='not_started' ? 'active border-slate-500' : 'bg-white border-slate-200 hover:border-slate-300' }}"
                 style="{{ $statusFilter==='not_started' ? 'background:linear-gradient(135deg,#64748b,#475569);' : '' }}">
                 <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='not_started' ? 'text-white' : 'text-slate-600' }}">{{ $kpi['not_started'] }}</div>
                 <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='not_started' ? 'text-slate-200' : 'text-slate-400' }}">Not Started</div>
             </button>
-            {{-- On Hold --}}
-            <button wire:click="$set('statusFilter','on_hold')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='on_hold' ? 'active border-amber-400' : 'bg-white border-slate-200 hover:border-amber-200' }}"
-                style="{{ $statusFilter==='on_hold' ? 'background:linear-gradient(135deg,#f59e0b,#d97706);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='on_hold' ? 'text-white' : 'text-amber-600' }}">{{ $kpi['on_hold'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='on_hold' ? 'text-amber-100' : 'text-slate-400' }}">On Hold</div>
-            </button>
-            {{-- Blocked --}}
-            <button wire:click="$set('statusFilter','blocked')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='blocked' ? 'active border-rose-500' : 'bg-white border-slate-200 hover:border-rose-200' }}"
-                style="{{ $statusFilter==='blocked' ? 'background:linear-gradient(135deg,#ef4444,#dc2626);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='blocked' ? 'text-white' : 'text-rose-600' }}">{{ $kpi['blocked'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='blocked' ? 'text-rose-100' : 'text-slate-400' }}">Blocked</div>
+            {{-- In Progress --}}
+            <button wire:click="setStatusFilter('in_progress')" type="button"
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='in_progress' ? 'active border-blue-600' : 'bg-white border-slate-200 hover:border-blue-300' }}"
+                style="{{ $statusFilter==='in_progress' ? 'background:linear-gradient(135deg,#2563eb,#1d4ed8);' : '' }}">
+                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='in_progress' ? 'text-white' : 'text-blue-600' }}">{{ $kpi['in_progress'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='in_progress' ? 'text-blue-100' : 'text-slate-400' }}">In Progress</div>
             </button>
             {{-- Completed --}}
-            <button wire:click="$set('statusFilter','completed')" type="button"
+            <button wire:click="setStatusFilter('completed')" type="button"
                 class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='completed' ? 'active border-emerald-500' : 'bg-white border-slate-200 hover:border-emerald-200' }}"
                 style="{{ $statusFilter==='completed' ? 'background:linear-gradient(135deg,#10b981,#059669);' : '' }}">
                 <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='completed' ? 'text-white' : 'text-emerald-600' }}">{{ $kpi['completed'] }}</div>
                 <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='completed' ? 'text-emerald-100' : 'text-slate-400' }}">Completed</div>
             </button>
-            {{-- Overdue (no filter — just info) --}}
-            <div class="kpi-tile rounded-2xl border bg-white border-slate-200 py-3.5 px-2 text-center">
-                <div class="text-2xl font-black font-mono leading-none {{ $kpi['overdue'] > 0 ? 'text-rose-500' : 'text-slate-400' }}">{{ $kpi['overdue'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-400">Overdue</div>
+            {{-- On Hold --}}
+            <button wire:click="setStatusFilter('on_hold')" type="button"
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='on_hold' ? 'active border-amber-400' : 'bg-white border-slate-200 hover:border-amber-200' }}"
+                style="{{ $statusFilter==='on_hold' ? 'background:linear-gradient(135deg,#f59e0b,#d97706);' : '' }}">
+                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='on_hold' ? 'text-white' : 'text-amber-600' }}">{{ $kpi['on_hold'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='on_hold' ? 'text-amber-100' : 'text-slate-400' }}">On Hold</div>
+            </button>
+            {{-- At Risk --}}
+            <button wire:click="setAtRiskFilter" type="button"
+                aria-label="Filter at-risk tasks: {{ $kpi['at_risk'] }}"
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $riskFilter==='at_risk' ? 'active border-orange-500' : 'bg-white border-slate-200 hover:border-orange-200' }}">
+                <div class="text-2xl font-black font-mono leading-none {{ $riskFilter==='at_risk' ? 'text-orange-700' : ($kpi['at_risk'] > 0 ? 'text-orange-600' : 'text-slate-400') }}">{{ $kpi['at_risk'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $riskFilter==='at_risk' ? 'text-orange-700' : 'text-slate-400' }}">At Risk</div>
+            </button>
+            {{-- Overdue --}}
+            <button wire:click="setOverdueFilter" type="button"
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $dueFilter==='overdue' ? 'active border-rose-500' : 'bg-white border-slate-200 hover:border-rose-200' }}">
+                <div class="text-2xl font-black font-mono leading-none {{ $dueFilter==='overdue' ? 'text-rose-700' : ($kpi['overdue'] > 0 ? 'text-rose-500' : 'text-slate-400') }}">{{ $kpi['overdue'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $dueFilter==='overdue' ? 'text-rose-700' : 'text-slate-400' }}">Overdue</div>
+            </button>
             </div>
         </div>
 
@@ -316,15 +375,19 @@
                                     default => ['Medium', 'bg-amber-500',  'bg-amber-50',  'border-amber-200',  'text-amber-700'],
                                 };
 
-                                $statusBadge = $task->status->badgeClass();
-                                $statusLabel = $task->status->label();
+                                [$statusLabel, $statusBadge] = match($task->status->value) {
+                                    'completed' => ['Completed', 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+                                    'on_hold', 'blocked' => ['On Hold', 'bg-amber-50 text-amber-800 border-amber-200'],
+                                    'in_progress', 'under_review', 'at_risk' => ['In Progress', 'bg-blue-50 text-blue-700 border-blue-200'],
+                                    default => ['Not Started', 'bg-slate-50 text-slate-700 border-slate-200'],
+                                };
 
                                 $dotColorCls = match($task->status->value) {
                                     'in_progress'  => 'bg-blue-600',
                                     'completed'    => 'bg-emerald-500',
                                     'on_hold'      => 'bg-amber-500',
-                                    'blocked'      => 'bg-rose-500',
-                                    'under_review' => 'bg-purple-500',
+                                    'blocked', 'on_hold' => 'bg-amber-500',
+                                    'under_review', 'at_risk' => 'bg-blue-600',
                                     default        => 'bg-slate-400',
                                 };
 
@@ -455,58 +518,7 @@
          ═══════════════════════════════════════════════════════════════ --}}
     @elseif($viewMode === 'stuck')
         <div wire:key="view-content-stuck-tasks" class="space-y-4">
-            <!-- 1. 4 KPI Metric Cards -->
-            <div class="all-tasks-kpi-grid all-tasks-stuck-kpis grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
-                <!-- 1. Total Stuck -->
-                <button type="button" wire:click="setStuckTypeFilter('all')"
-                        class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $stuckTypeFilter === 'all' ? 'ring-2 ring-slate-800 border-slate-800 bg-slate-50/50 shadow-sm' : 'shadow-xs hover:border-slate-400' }}">
-                    <div class="flex items-center justify-between gap-1 mb-2">
-                        <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">Total Stuck</span>
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                    </div>
-                    <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $totalStuckTasksCount }}</div>
-                </button>
-
-                <!-- 2. Blocked Tasks -->
-                <button type="button" wire:click="setStuckTypeFilter('blocked')"
-                        class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $stuckTypeFilter === 'blocked' ? 'ring-2 ring-rose-500 border-rose-500 bg-rose-50/30 shadow-sm' : 'shadow-xs hover:border-rose-400' }}">
-                    <div class="flex items-center justify-between gap-1 mb-2">
-                        <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">Blocked Tasks</span>
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                        </div>
-                    </div>
-                    <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $blockedTasksOnlyCount }}</div>
-                </button>
-
-                <!-- 3. On Hold -->
-                <button type="button" wire:click="setStuckTypeFilter('on_hold')"
-                        class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $stuckTypeFilter === 'on_hold' ? 'ring-2 ring-amber-500 border-amber-500 bg-amber-50/30 shadow-sm' : 'shadow-xs hover:border-amber-400' }}">
-                    <div class="flex items-center justify-between gap-1 mb-2">
-                        <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">On Hold</span>
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                    </div>
-                    <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $onHoldTasksCount }}</div>
-                </button>
-
-                <!-- 4. Overdue -->
-                <button type="button" wire:click="setStuckTypeFilter('overdue')"
-                        class="group text-left bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 transition-all duration-200 hover:shadow-md cursor-pointer {{ $stuckTypeFilter === 'overdue' ? 'ring-2 ring-rose-600 border-rose-600 bg-rose-50/30 shadow-sm' : 'shadow-xs hover:border-rose-400' }}">
-                    <div class="flex items-center justify-between gap-1 mb-2">
-                        <span class="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider block truncate group-hover:text-slate-700 transition-colors">Overdue Deliverables</span>
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
-                    </div>
-                    <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $overdueTasksOnlyCount }}</div>
-                </button>
-            </div>
-
-            <!-- 2. Stuck Tasks Table -->
+            <!-- Stuck Tasks Table -->
             <div class="all-tasks-table bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div class="flex items-center gap-2">

@@ -1,582 +1,388 @@
-<div data-ui-page="risks" class="ui-page ui-page-governance space-y-6 pb-12">
-    <!-- ═══════════════════════════════════════════════════════════════
-         1. TOP HEADER (RISKS & BLOCKERS HUB)
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-100">
+<div data-ui-page="risks" class="ui-page ui-page-governance risk-hub-v2">
+    <style>
+        .app-clean [data-ui-page="risks"].risk-hub-v2 {
+            max-width: 1640px;
+            margin-inline: auto;
+            padding: 6px 0 32px;
+            color: #172033;
+        }
+        .app-clean .risk-hub-v2 .risk-page-header::before { display: none; }
+        .risk-hub-v2 .risk-page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+        .app-clean .risk-hub-v2 .risk-page-header h1 {
+            margin: 0;
+            font-size: 1.55rem !important;
+            font-weight: 700 !important;
+            line-height: 1.3;
+            letter-spacing: -.035em !important;
+        }
+        .risk-hub-v2 .risk-page-subtitle { margin-top: 6px; color: #667085; font-size: 12px; }
+        .risk-hub-v2 .risk-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 36px;
+            padding: 8px 13px;
+            border: 1px solid #dce2e9;
+            border-radius: 7px;
+            background: #fff;
+            color: #344054;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 18px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 150ms ease, border-color 150ms ease;
+        }
+        .risk-hub-v2 .risk-button:hover { background: #f8fafc; border-color: #b8c2cf; }
+        .risk-hub-v2 .risk-button-primary { background: #c3122e; border-color: #c3122e; color: #fff; }
+        .risk-hub-v2 .risk-button-primary:hover { background: #a80f26; border-color: #a80f26; }
+        .risk-hub-v2 .risk-button svg { width: 15px; height: 15px; }
+        .risk-hub-v2 :is(button, a):focus-visible { outline: 2px solid #c3122e; outline-offset: 3px; }
+        .risk-hub-v2 .risk-page-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .risk-hub-v2 .risk-kpi-card { min-width: 0; padding: 16px 18px; border: 1px solid #e1e6ed; border-radius: 10px; background: #fff; }
+        .risk-hub-v2 .risk-kpi-label { color: #667085; font-size: 10px; font-weight: 600; letter-spacing: .07em; line-height: 16px; text-transform: uppercase; }
+        .risk-hub-v2 .risk-kpi-value { margin-top: 8px; color: #101828; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 34px; }
+        .risk-hub-v2 .risk-kpi-context { margin-top: 5px; color: #667085; font-size: 11px; line-height: 17px; }
+        .risk-hub-v2 .risk-kpi-alert { border-color: #edcbd2; }
+        .risk-hub-v2 .risk-kpi-alert .risk-kpi-value { color: #c3122e; }
+        .risk-hub-v2 .risk-table-shell { overflow: hidden; border: 1px solid #e1e6ed; border-radius: 10px; background: #fff; }
+        .risk-hub-v2 .risk-register-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 18px 20px 14px; }
+        .risk-hub-v2 .risk-register-title { display: flex; align-items: center; gap: 9px; }
+        .risk-hub-v2 .risk-register-title h2 { font-size: 14px !important; font-weight: 650; line-height: 22px; letter-spacing: -.015em; }
+        .risk-hub-v2 .risk-register-count { min-width: 24px; padding: 1px 7px; border: 1px solid #e4e7ec; border-radius: 5px; background: #f9fafb; color: #475467; text-align: center; font-size: 10px; font-weight: 600; line-height: 18px; }
+        .risk-hub-v2 .risk-register-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .risk-hub-v2 .risk-search { position: relative; width: 260px; }
+        .risk-hub-v2 .risk-search > svg { position: absolute; left: 11px; top: 11px; width: 15px; height: 15px; color: #98a2b3; pointer-events: none; }
+        .risk-hub-v2 .risk-search input { width: 100%; height: 36px; padding: 8px 12px 8px 34px; border: 1px solid #dce2e9; border-radius: 7px; color: #344054; font-size: 12px; }
+        .risk-hub-v2 .risk-search input::placeholder { color: #98a2b3; }
+        .risk-hub-v2 .risk-filter-button[aria-expanded="true"] { background: #f2f4f7; border-color: #b8c2cf; }
+        .risk-hub-v2 .risk-filter-indicator { width: 5px; height: 5px; border-radius: 50%; background: #c3122e; }
+        .risk-hub-v2 .risk-reset-button { padding: 4px 0; border: 0; background: transparent; color: #b1102c; font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+        .risk-hub-v2 .risk-reset-button:hover { text-decoration: underline; }
+        .risk-hub-v2 .risk-status-tabs { display: flex; gap: 20px; overflow-x: auto; padding: 0 20px; border-bottom: 1px solid #e4e7ec; scrollbar-width: thin; }
+        .risk-hub-v2 .risk-status-tab { flex: 0 0 auto; padding: 10px 0 11px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #667085; font-size: 11px; font-weight: 500; line-height: 18px; cursor: pointer; }
+        .risk-hub-v2 .risk-status-tab:hover { color: #172033; }
+        .risk-hub-v2 .risk-status-tab[aria-pressed="true"] { border-bottom-color: #c3122e; color: #b1102c; font-weight: 600; }
+        .risk-hub-v2 .risk-page-filter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 16px 20px; border-bottom: 1px solid #e4e7ec; background: #fafbfc; }
+        .risk-hub-v2 .risk-filter-field label { display: block; margin-bottom: 6px; color: #475467; font-size: 11px; font-weight: 600; }
+        .risk-hub-v2 .risk-filter-field select { width: 100%; min-height: 36px; padding: 7px 30px 7px 10px; border: 1px solid #dce2e9; border-radius: 7px; color: #344054; font-size: 12px; }
+        .risk-hub-v2 .risk-table-scroll { overflow-x: auto; }
+        .risk-hub-v2 .risk-register-table { width: 100%; min-width: 1040px; border-collapse: separate; border-spacing: 0; text-align: left; }
+        .app-clean .risk-hub-v2 .risk-register-table thead th { padding: 11px 14px !important; border-bottom: 1px solid #e4e7ec; background: #f8fafc !important; color: #667085 !important; font-size: 10px !important; font-weight: 600 !important; letter-spacing: .04em !important; text-transform: uppercase; white-space: nowrap; }
+        .risk-hub-v2 .risk-register-table th:first-child, .risk-hub-v2 .risk-register-table td:first-child { padding-left: 20px !important; }
+        .risk-hub-v2 .risk-register-table th:last-child, .risk-hub-v2 .risk-register-table td:last-child { padding-right: 20px !important; }
+        .risk-hub-v2 .risk-register-table tbody td { padding: 14px; border-bottom: 1px solid #edf0f4; vertical-align: middle; color: #344054; font-size: 11px; line-height: 18px; }
+        .risk-hub-v2 .risk-register-table tbody tr:last-child td { border-bottom: 0; }
+        .risk-hub-v2 .risk-register-table tbody tr:hover > td { background: #fafbfc; }
+        .risk-hub-v2 .risk-table-project, .risk-hub-v2 .risk-table-title, .risk-hub-v2 .risk-table-owner { max-width: 230px; color: #344054; font-weight: 600; white-space: normal; overflow-wrap: anywhere; }
+        .risk-hub-v2 .risk-table-subtext { max-width: 250px; margin-top: 3px; overflow: hidden; color: #667085; font-size: 10px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+        .risk-hub-v2 .risk-table-category { display: inline-flex; padding: 2px 7px; border: 1px solid #e4e7ec; border-radius: 5px; background: #f9fafb; color: #475467; font-size: 10px; font-weight: 500; line-height: 18px; white-space: nowrap; }
+        .risk-hub-v2 .risk-table-task-category { background: #fffaeb; border-color: #fedf89; color: #93370d; }
+        .risk-hub-v2 .risk-table-factors { display: flex; gap: 14px; }
+        .risk-hub-v2 .risk-table-factors > span { display: flex; flex-direction: column; min-width: 48px; gap: 2px; font-size: 10px; }
+        .risk-hub-v2 .risk-table-factors small { color: #667085; font-size: 8px; letter-spacing: .04em; }
+        .risk-hub-v2 .risk-exposure { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border: 1px solid; border-radius: 5px; font-size: 10px; font-weight: 500; line-height: 18px; white-space: nowrap; }
+        .risk-hub-v2 .risk-exposure i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .risk-hub-v2 .risk-exposure b { margin-left: 3px; font-size: 9px; font-weight: 600; }
+        .risk-hub-v2 .risk-exposure-critical { background: #fff1f3; border-color: #fecdd3; color: #b1102c; }
+        .risk-hub-v2 .risk-exposure-high { background: #fff6ed; border-color: #fed7aa; color: #9a3412; }
+        .risk-hub-v2 .risk-exposure-medium { background: #fffaeb; border-color: #fedf89; color: #93370d; }
+        .risk-hub-v2 .risk-exposure-low { background: #ecfdf3; border-color: #abefc6; color: #067647; }
+        .risk-hub-v2 .risk-table-status, .risk-hub-v2 .risk-status-static { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 8px; border: 1px solid #dce2e9; border-radius: 6px; background: #fff; color: #344054; font-size: 10px; line-height: 18px; white-space: nowrap; }
+        .risk-hub-v2 select.risk-table-status { min-width: 106px; padding-right: 25px; }
+        .risk-hub-v2 .risk-table-actions { display: flex; justify-content: flex-end; gap: 3px; }
+        .risk-hub-v2 .risk-table-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #667085; cursor: pointer; }
+        .risk-hub-v2 .risk-table-icon-button svg { width: 14px; height: 14px; }
+        .risk-hub-v2 .risk-table-icon-button:hover { border-color: #e4e7ec; background: #f2f4f7; color: #344054; }
+        .risk-hub-v2 .risk-table-delete:hover { border-color: #fecdd3; background: #fff1f3; color: #b1102c; }
+        .risk-hub-v2 .risk-table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 20px; border-top: 1px solid #e4e7ec; color: #667085; font-size: 10px; line-height: 17px; }
+        .risk-hub-v2 .risk-table-footer strong { color: #344054; font-weight: 600; }
+        .risk-hub-v2 .risk-register-table:has(.risk-register-empty) { min-width: 0; }
+        .risk-hub-v2 .risk-register-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 225px; gap: 8px; padding: 30px 20px; color: #667085; text-align: center; white-space: normal; }
+        .risk-hub-v2 .risk-register-empty strong { color: #344054; font-size: 14px; font-weight: 600; }
+        .risk-hub-v2 .risk-register-empty p { max-width: 350px; font-size: 12px; }
+        .risk-hub-v2 .risk-register-empty .risk-button { margin-top: 8px; }
+        .risk-hub-v2 .risk-modal { border-radius: 12px; }
+        @media (max-width: 1100px) { .risk-hub-v2 .risk-register-toolbar { align-items: flex-start; } }
+        @media (max-width: 800px) {
+            .risk-hub-v2 .risk-page-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .risk-hub-v2 .risk-register-table:has(.risk-register-empty) thead { display: none; }
+            .risk-hub-v2 .risk-register-tools { flex: 1 1 100%; }
+            .risk-hub-v2 .risk-search { flex: 1; width: auto; min-width: 140px; }
+        }
+        @media (max-width: 600px) {
+            .risk-hub-v2 .risk-page-header { align-items: flex-start; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+            .risk-hub-v2 .risk-page-kpis { gap: 10px; margin-bottom: 18px; }
+            .risk-hub-v2 .risk-kpi-card { padding: 14px; }
+            .risk-hub-v2 .risk-register-toolbar { padding: 16px 14px 10px; }
+            .risk-hub-v2 .risk-status-tabs { gap: 18px; padding-inline: 14px; }
+            .risk-hub-v2 .risk-page-filter { grid-template-columns: 1fr; padding: 14px; }
+            .risk-hub-v2 .risk-table-footer { padding: 12px 14px; }
+            .risk-hub-v2 .risk-reset-button { flex-basis: 100%; text-align: left; }
+        }
+        @media (prefers-reduced-motion: reduce) { .risk-hub-v2 .risk-button { transition: none; } }
+    </style>
+
+    <header class="risk-page-header">
         <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c3122e]/10 text-[#c3122e] tracking-wide uppercase">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
-                    Risk Governance
-                </span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                Risks &amp; Blockers Hub
-            </h1>
+            <h1>Project Risks</h1>
+            <p class="risk-page-subtitle">Monitor exposure, assign ownership, and track mitigation across your projects.</p>
         </div>
+        <button wire:click="openAddRiskModal()" type="button" class="risk-button risk-button-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+            Log project risk
+        </button>
+    </header>
 
-        <!-- Right Side: Action Buttons -->
-        <div class="flex items-center gap-2 flex-wrap flex-shrink-0 self-start sm:self-center">
-            {{-- Filter Toggle Button --}}
-            <button wire:click="toggleFilters" type="button"
-                    class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
-                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                </svg>
-                <span>Filter</span>
-                @if($hasActiveFilters)
-                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
-                @endif
-            </button>
-
-            {{-- Report Blocker Button --}}
-            <button
-                wire:click="openAddBlockerModal()"
-                type="button"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95"
-            >
-                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                <span>Report Blocker</span>
-            </button>
-
-            {{-- Log Project Risk Button --}}
-            <button
-                wire:click="openAddRiskModal()"
-                type="button"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-2xs hover:shadow-sm hover:opacity-95 active:scale-95 transition-all cursor-pointer"
-                style="background: linear-gradient(135deg, #c3122e 0%, #a80f26 100%);"
-            >
-                <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                <span>Log Project Risk</span>
-            </button>
+    <dl class="risk-page-kpis" aria-label="Risk overview">
+        <div class="risk-kpi-card">
+            <dt class="risk-kpi-label">Total risks</dt>
+            <dd class="risk-kpi-value">{{ $totalRisksCount }}</dd>
+            <dd class="risk-kpi-context">Project and task risks</dd>
         </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         2. KPI SUMMARY METRICS (4 Executive Interactive Cards)
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
-        <!-- 1. Active Project Risks -->
-        <button
-            type="button"
-            wire:click="$set('activeTab', 'risks'); $set('selectedStatus', 'all');"
-            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'risks' && $selectedStatus === 'all') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
-        >
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">PROJECT RISKS</span>
-                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'risks' && $selectedStatus === 'all') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $totalRisksCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">{{ $openRisksCount }} Active</span>
-            </div>
-        </button>
-
-        <!-- 2. High Threats -->
-        <button
-            type="button"
-            wire:click="$set('activeTab', 'risks'); $set('selectedStatus', 'open');"
-            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'risks' && $selectedStatus === 'open') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
-        >
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">HIGH THREATS</span>
-                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'risks' && $selectedStatus === 'open') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $criticalHighRiskCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">Score ≥ 6</span>
-            </div>
-        </button>
-
-        <!-- 3. Pending Task Blockers -->
-        <button
-            type="button"
-            wire:click="$set('activeTab', 'blockers'); $set('selectedStatus', 'open');"
-            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'blockers' && $selectedStatus === 'open') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
-        >
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">TASK BLOCKERS</span>
-                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'blockers' && $selectedStatus === 'open') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $openBlockersCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">Active</span>
-            </div>
-        </button>
-
-        <!-- 4. Resolved Blockers -->
-        <button
-            type="button"
-            wire:click="$set('activeTab', 'blockers'); $set('selectedStatus', 'resolved');"
-            class="bg-white rounded-2xl border p-4 sm:p-5 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:border-slate-300 group {{ ($activeTab === 'blockers' && $selectedStatus === 'resolved') ? 'border-slate-400 ring-2 ring-slate-100' : 'border-slate-200/80' }}"
-        >
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">RESOLVED</span>
-                <div class="w-8 h-8 rounded-xl {{ ($activeTab === 'blockers' && $selectedStatus === 'resolved') ? 'bg-[#c3122e] text-white border-[#c3122e]' : 'bg-slate-100/80 text-slate-600 border border-slate-200/60 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e]' }} flex items-center justify-center shrink-0 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $resolvedBlockersCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">Closed</span>
-            </div>
-        </button>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         3. SEGMENTED TABS ROW & SUMMARY
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <!-- Segmented Pill Tabs -->
-        <div class="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/70 shadow-2xs">
-            <button
-                type="button"
-                wire:click="$set('activeTab', 'risks')"
-                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'risks' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
-            >
-                <span>Project Risks</span>
-                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $activeTab === 'risks' ? 'bg-rose-50 text-[#c3122e] border border-rose-200/60' : 'bg-slate-200/80 text-slate-600' }}">{{ $risks->count() }}</span>
-            </button>
-
-            <button
-                type="button"
-                wire:click="$set('activeTab', 'blockers')"
-                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 {{ $activeTab === 'blockers' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
-            >
-                <span>Task Blockers</span>
-                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $activeTab === 'blockers' ? 'bg-rose-50 text-[#c3122e] border border-rose-200/60' : 'bg-slate-200/80 text-slate-600' }}">{{ $blockers->count() }}</span>
-            </button>
+        <div class="risk-kpi-card">
+            <dt class="risk-kpi-label">Active risks</dt>
+            <dd class="risk-kpi-value">{{ $openRisksCount }}</dd>
+            <dd class="risk-kpi-context">Open or under monitoring</dd>
         </div>
+        <div class="risk-kpi-card {{ $criticalHighRiskCount > 0 ? 'risk-kpi-alert' : '' }}">
+            <dt class="risk-kpi-label">High-impact risks</dt>
+            <dd class="risk-kpi-value">{{ $criticalHighRiskCount }}</dd>
+            <dd class="risk-kpi-context">High or critical impact / priority</dd>
+        </div>
+        <div class="risk-kpi-card">
+            <dt class="risk-kpi-label">Resolved risks</dt>
+            <dd class="risk-kpi-value">{{ $totalRisksCount - $openRisksCount }}</dd>
+            <dd class="risk-kpi-context">Mitigated or closed</dd>
+        </div>
+    </dl>
 
-        <!-- Right Side: Showing info & Reset link -->
-        <div class="text-xs font-medium text-slate-500 flex items-center gap-3">
-            <span>Showing <strong class="text-slate-900 font-bold">{{ $activeTab === 'risks' ? $risks->count() . ' Risks' : $blockers->count() . ' Blockers' }}</strong></span>
-            @if($hasActiveFilters)
-                <button wire:click="resetAllFilters" type="button" class="text-xs font-bold text-[#c3122e] hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition-transform">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                    <span>Reset Filters</span>
+    <section class="risk-table-shell" aria-labelledby="risk-register-heading">
+        <div class="risk-register-toolbar">
+            <div class="risk-register-title">
+                <h2 id="risk-register-heading">Risk register</h2>
+                <span class="risk-register-count">{{ $risks->count() + $taskRisks->count() }}</span>
+            </div>
+            <div class="risk-register-tools">
+                <div class="risk-search">
+                    <label for="risk-register-search" class="sr-only">Search risks</label>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path stroke-linecap="round" d="m16 16 4.5 4.5"/></svg>
+                    <input id="risk-register-search" type="search" wire:model.live.debounce.300ms="searchQuery" placeholder="Search risks or tasks...">
+                </div>
+                <button wire:click="toggleFilters" type="button" class="risk-button risk-filter-button" aria-expanded="{{ $showFilters ? 'true' : 'false' }}" aria-controls="risk-register-filters">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M7 12h10M10 17h4"/></svg>
+                    Filters
+                    @if($hasActiveFilters)<span class="risk-filter-indicator" aria-label="Filters applied"></span>@endif
                 </button>
-            @endif
+                @if($hasActiveFilters)
+                    <button wire:click="resetAllFilters" type="button" class="risk-reset-button">Clear filters</button>
+                @endif
+            </div>
         </div>
-    </div>
+        <div class="risk-status-tabs" role="group" aria-label="Filter risks by status">
+            @foreach(['all' => 'All risks', 'open' => 'Open', 'monitoring' => 'Monitoring', 'mitigated' => 'Mitigated', 'closed' => 'Closed'] as $statusValue => $statusLabel)
+                <button wire:key="risk-status-{{ $statusValue }}" wire:click="$set('selectedStatus', '{{ $statusValue }}')" type="button" class="risk-status-tab" aria-pressed="{{ $selectedStatus === $statusValue ? 'true' : 'false' }}">{{ $statusLabel }}</button>
+            @endforeach
+        </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         4. COLLAPSIBLE FILTER TOOLBAR
-         ═══════════════════════════════════════════════════════════════ -->
-    @if($showFilters)
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs animate-in fade-in duration-200">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <!-- Search Input -->
-                <div class="relative">
-                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="searchQuery"
-                        placeholder="Search keyword, code, title..."
-                        class="w-full text-xs font-medium py-2.5 pl-9 pr-8 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-800 placeholder:text-slate-400"
-                    >
-                    @if($searchQuery)
-                        <button wire:click="$set('searchQuery', '')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    @endif
-                </div>
-
-                <!-- Project Selector Dropdown -->
-                <div>
-                    <select
-                        wire:model.live="selectedProjectId"
-                        class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                    >
-                        <option value="">All Accessible Projects</option>
+        @if($showFilters)
+            <div id="risk-register-filters" class="risk-page-filter">
+                <div class="risk-filter-field">
+                    <label for="risk-project-filter">Project</label>
+                    <select id="risk-project-filter" wire:model.live="selectedProjectId">
+                        <option value="">All accessible projects</option>
                         @foreach($projects as $p)
                             <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code ?? 'PRJ' }})</option>
                         @endforeach
                     </select>
                 </div>
-
-                @if($activeTab === 'risks')
-                    <!-- Category Dropdown -->
-                    <div>
-                        <select
-                            wire:model.live="selectedCategory"
-                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                        >
-                            <option value="">All Risk Categories</option>
-                            <option value="Technical">Technical</option>
-                            <option value="Financial">Financial</option>
-                            <option value="Schedule">Schedule</option>
-                            <option value="Resource">Resource</option>
-                            <option value="Operational">Operational</option>
-                            <option value="External">External Vendor</option>
-                        </select>
-                    </div>
-
-                    <!-- Status Filter -->
-                    <div>
-                        <select
-                            wire:model.live="selectedStatus"
-                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                        >
-                            <option value="all">All Risk Statuses</option>
-                            <option value="open">Open (Active)</option>
-                            <option value="monitoring">Monitoring</option>
-                            <option value="mitigated">Mitigated</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
-                @else
-                    <!-- Severity Filter for Blockers -->
-                    <div>
-                        <select
-                            wire:model.live="selectedSeverity"
-                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                        >
-                            <option value="all">All Severities</option>
-                            <option value="critical">Critical Severity</option>
-                            <option value="high">High Severity</option>
-                            <option value="medium">Medium Severity</option>
-                            <option value="low">Low Severity</option>
-                        </select>
-                    </div>
-
-                    <!-- Status Filter for Blockers -->
-                    <div>
-                        <select
-                            wire:model.live="selectedStatus"
-                            class="w-full text-xs font-medium py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all text-slate-700 cursor-pointer"
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="open">Active / Pending</option>
-                            <option value="resolved">Resolved</option>
-                        </select>
-                    </div>
-                @endif
+                <div class="risk-filter-field">
+                    <label for="risk-category-filter">Category</label>
+                    <select id="risk-category-filter" wire:model.live="selectedCategory">
+                        <option value="">All categories</option>
+                        <option value="technical">Technical</option>
+                        <option value="financial">Financial</option>
+                        <option value="schedule">Schedule</option>
+                        <option value="resource">Resource</option>
+                        <option value="operational">Operational</option>
+                        <option value="external_vendor">External Vendor</option>
+                    </select>
+                </div>
+                <div class="risk-filter-field">
+                    <label for="risk-status-filter">Status</label>
+                    <select id="risk-status-filter" wire:model.live="selectedStatus">
+                        <option value="all">All statuses</option>
+                        <option value="open">Open</option>
+                        <option value="monitoring">Monitoring</option>
+                        <option value="mitigated">Mitigated</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
             </div>
+        @endif
 
-            @if($hasActiveFilters)
-                <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 text-xs">
-                    <span class="text-slate-400 font-medium">Filtered results applied</span>
-                    <button wire:click="resetAllFilters" type="button" class="text-[#c3122e] font-bold hover:underline cursor-pointer flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                        <span>Clear All Filters</span>
-                    </button>
-                </div>
-            @endif
-        </div>
-    @endif
+        <div class="risk-table-scroll" tabindex="0" role="region" aria-label="Risk register table">
+            <table class="risk-register-table">
+                <caption class="sr-only">Project and task risks with exposure, status, ownership, and actions.</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Project</th>
+                        <th scope="col">Risk / task</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Probability &amp; impact</th>
+                        <th scope="col">Exposure</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col" class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                    <tbody>
+                        @if($risks->isEmpty() && $taskRisks->isEmpty())
+                            <tr>
+                                <td colspan="8">
+                                    <div class="risk-register-empty">
+                                        <strong>{{ $hasActiveFilters ? 'No matching risks' : 'No risks recorded' }}</strong>
+                                        <p>{{ $hasActiveFilters ? 'Adjust your search or filters to find the risks you need.' : 'Log a project risk to assign an owner and start tracking its mitigation.' }}</p>
+                                        @if($hasActiveFilters)
+                                            <button wire:click="resetAllFilters" type="button" class="risk-button">Clear filters</button>
+                                        @else
+                                            <button wire:click="openAddRiskModal()" type="button" class="risk-button risk-button-primary">Log project risk</button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @else
+                            @foreach($risks as $r)
+                                @php
+                                    $score = (int) $r->risk_score;
+                                    $threatLabel = $score >= 9 ? 'Critical' : ($score >= 6 ? 'High' : ($score >= 3 ? 'Medium' : 'Low'));
+                                    $threatClass = match($threatLabel) {
+                                        'Critical' => 'risk-exposure-critical',
+                                        'High' => 'risk-exposure-high',
+                                        'Medium' => 'risk-exposure-medium',
+                                        default => 'risk-exposure-low',
+                                    };
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="risk-table-project">{{ $r->project->name ?? 'Project' }}</div>
+                                        <div class="risk-table-subtext">{{ $r->project->code ?? 'Project risk' }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="risk-table-title">{{ $r->title }}</div>
+                                        @if($r->wbsItem)
+                                            <div class="risk-table-subtext">Task: {{ $r->wbsItem->title }} <span>({{ $r->wbsItem->wbs_code }})</span></div>
+                                        @elseif($r->description)
+                                            <div class="risk-table-subtext risk-table-description">{{ $r->description }}</div>
+                                        @endif
+                                    </td>
+                                    <td><span class="risk-table-category">{{ $r->category ?: 'General' }}</span></td>
+                                    <td>
+                                        <div class="risk-table-factors">
+                                            <span><small>PROB.</small>{{ ucfirst($r->probability) }}</span>
+                                            <span><small>IMPACT</small>{{ ucfirst($r->impact) }}</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="risk-exposure {{ $threatClass }}"><i></i>{{ $threatLabel }} <b>{{ $score }}/12</b></span></td>
+                                    <td>
+                                        <select wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)" class="risk-table-status">
+                                            <option value="open" @selected($r->status === 'open')>Open</option>
+                                            <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
+                                            <option value="mitigated" @selected($r->status === 'mitigated')>Mitigated</option>
+                                            <option value="closed" @selected($r->status === 'closed')>Closed</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="risk-table-owner">{{ $r->owner->name ?? 'Unassigned' }}</div>
+                                        <div class="risk-table-subtext">{{ $r->created_at->diffForHumans() }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="risk-table-actions">
+                                            <button wire:click="openEditRiskModal({{ $r->id }})" type="button" title="Edit risk" aria-label="Edit risk" class="risk-table-icon-button">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L8 18l-4 1 1-4 11.5-11.5z"/></svg>
+                                            </button>
+                                            <button wire:click="deleteRisk({{ $r->id }})" wire:confirm="Are you sure you want to remove this risk record?" type="button" title="Delete risk" aria-label="Delete risk" class="risk-table-icon-button risk-table-delete">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         4. MAIN CONTENT (RISKS REGISTER OR BLOCKERS LIST)
-         ═══════════════════════════════════════════════════════════════ -->
-    @if($activeTab === 'risks')
-        <!-- RISKS REGISTER CARDS -->
-        <div class="space-y-3.5">
-            @forelse($risks as $r)
-                @php
-                    $score = $r->risk_score;
-                    if ($score >= 8) {
-                        $threatBadge = 'bg-rose-50 text-rose-700 border-rose-200/80';
-                        $threatDot = 'bg-rose-500';
-                        $threatLabel = 'Critical Threat';
-                    } elseif ($score >= 6) {
-                        $threatBadge = 'bg-orange-50 text-orange-700 border-orange-200/80';
-                        $threatDot = 'bg-orange-500';
-                        $threatLabel = 'High Threat';
-                    } elseif ($score >= 4) {
-                        $threatBadge = 'bg-amber-50/80 text-amber-800 border-amber-200/80';
-                        $threatDot = 'bg-amber-500';
-                        $threatLabel = 'Medium Threat';
-                    } else {
-                        $threatBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
-                        $threatDot = 'bg-emerald-500';
-                        $threatLabel = 'Low Threat';
-                    }
-                @endphp
-
-                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all p-5 sm:p-5.5 space-y-3 group">
-                    <!-- Top Row: Project & Context Info on Left, Threat Pill & Actions on Right -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <!-- Project Badge -->
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                                <span>{{ $r->project->name ?? 'Project' }}</span>
-                            </span>
-
-                            <!-- Category Badge -->
-                            @if($r->category)
-                                <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 border border-slate-200/60">
-                                    {{ $r->category }}
-                                </span>
-                            @endif
-
-                            <!-- Scope Task (if linked) -->
-                            @if($r->wbsItem)
-                                <span class="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
-                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                    <span>Task: <strong class="font-semibold text-slate-700">{{ $r->wbsItem->title }}</strong> ({{ $r->wbsItem->wbs_code }})</span>
-                                </span>
-                            @endif
-                        </div>
-
-                        <!-- Right Side: Threat Score Pill & Action Buttons -->
-                        <div class="flex items-center gap-2 flex-shrink-0 self-start sm:self-center">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border {{ $threatBadge }} shadow-2xs">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $threatDot }}"></span>
-                                <span>{{ $threatLabel }}</span>
-                                <span class="opacity-40 font-normal">&bull;</span>
-                                <span class="font-mono font-bold">{{ $score }}/12</span>
-                            </div>
-
-                            <select
-                                wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)"
-                                class="text-xs font-semibold rounded-lg px-2.5 py-1 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs outline-none cursor-pointer transition-colors focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e]/10"
-                            >
-                                <option value="open" @selected($r->status === 'open')>Open</option>
-                                <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
-                                <option value="mitigated" @selected($r->status === 'mitigated')>Mitigated</option>
-                                <option value="closed" @selected($r->status === 'closed')>Closed</option>
-                            </select>
-
-                            <button
-                                wire:click="openEditRiskModal({{ $r->id }})"
-                                class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                title="Edit Risk"
-                            >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-
-                            <button
-                                wire:click="deleteRisk({{ $r->id }})"
-                                wire:confirm="Are you sure you want to remove this risk record?"
-                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                title="Delete Risk"
-                            >
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Middle: Title & Description -->
-                    <div class="space-y-1">
-                        <h3 class="text-base font-bold text-slate-900 tracking-tight leading-snug group-hover:text-[#c3122e] transition-colors" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            {{ $r->title }}
-                        </h3>
-                        @if($r->description)
-                            <p class="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">
-                                {{ $r->description }}
-                            </p>
+                            @foreach($taskRisks as $taskRisk)
+                                @php
+                                    $taskPriority = $taskRisk->priority?->value ?? 'medium';
+                                    $taskPriorityLabel = ucfirst($taskPriority);
+                                    $taskExposureClass = match($taskPriority) {
+                                        'critical' => 'risk-exposure-critical',
+                                        'high' => 'risk-exposure-high',
+                                        'low' => 'risk-exposure-low',
+                                        default => 'risk-exposure-medium',
+                                    };
+                                @endphp
+                                <tr class="risk-table-task-row">
+                                    <td>
+                                        <div class="risk-table-project">{{ $taskRisk->project->name ?? 'Project' }}</div>
+                                        <div class="risk-table-subtext">Task risk</div>
+                                    </td>
+                                    <td>
+                                        <div class="risk-table-title">{{ $taskRisk->title }}</div>
+                                        <div class="risk-table-subtext">Task <span>{{ $taskRisk->wbs_code }}</span></div>
+                                    </td>
+                                    <td><span class="risk-table-category risk-table-task-category">Task at risk</span></td>
+                                    <td>
+                                        <div class="risk-table-factors">
+                                            <span><small>PRIORITY</small>{{ $taskPriorityLabel }}</span>
+                                            <span><small>TASK STATUS</small>At Risk</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="risk-exposure {{ $taskExposureClass }}"><i></i>At Risk <b>{{ $taskPriorityLabel }}</b></span></td>
+                                    <td><span class="risk-status-static">At Risk</span></td>
+                                    <td>
+                                        <div class="risk-table-owner">{{ $taskRisk->assignedUser->name ?? 'Unassigned' }}</div>
+                                        <div class="risk-table-subtext">Updated {{ $taskRisk->updated_at->diffForHumans() }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="risk-table-actions">
+                                            <a href="{{ route('projects.show', $taskRisk->project_id) }}" wire:navigate.hover title="Open project" aria-label="Open project" class="risk-table-icon-button">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14 3h7v7m-1-6L10 14M19 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6"/></svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
                         @endif
-                    </div>
-
-                    <!-- Matrix Factors (Probability & Impact) -->
-                    <div class="flex items-center gap-2.5 text-xs text-slate-500 font-medium py-0.5 flex-wrap">
-                        <div class="inline-flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/70">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Probability:</span>
-                            <span class="font-bold text-slate-700 text-xs">{{ ucfirst($r->probability) }}</span>
-                        </div>
-                        <div class="inline-flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/70">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Impact:</span>
-                            <span class="font-bold text-slate-700 text-xs">{{ ucfirst($r->impact) }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Mitigation & Contingency Strategy Plans -->
-                    @if($r->mitigation_plan || $r->contingency_plan)
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                            @if($r->mitigation_plan)
-                                <div class="p-3.5 rounded-xl bg-emerald-50/40 border border-emerald-200/60 text-xs space-y-1.5">
-                                    <div class="font-bold text-emerald-800 flex items-center gap-1.5 text-xs">
-                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                        <span>Mitigation Strategy</span>
-                                    </div>
-                                    <p class="text-slate-600 leading-relaxed text-xs">{{ $r->mitigation_plan }}</p>
-                                </div>
-                            @endif
-
-                            @if($r->contingency_plan)
-                                <div class="p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60 text-xs space-y-1.5">
-                                    <div class="font-bold text-amber-800 flex items-center gap-1.5 text-xs">
-                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span>Contingency Plan</span>
-                                    </div>
-                                    <p class="text-slate-600 leading-relaxed text-xs">{{ $r->contingency_plan }}</p>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
-
-                    <!-- Footer: Owner & Timestamp -->
-                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-3 border-t border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-rose-50 text-[#c3122e] border border-rose-200/80 font-bold flex items-center justify-center text-[10px] shadow-2xs">
-                                {{ strtoupper(substr($r->owner->name ?? 'P', 0, 1)) }}
-                            </div>
-                            <span class="text-slate-400 text-xs">Owner: <strong class="text-slate-700 font-semibold">{{ $r->owner->name ?? 'Project Manager' }}</strong></span>
-                        </div>
-                        <span class="text-slate-400 text-[11px] flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>{{ $r->created_at->format('M d, Y') }} ({{ $r->created_at->diffForHumans() }})</span>
-                        </span>
-                    </div>
-                </div>
-            @empty
-                <div class="text-center py-16 px-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center mx-auto">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800">No Project Risks Recorded</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">There are no open risks matching your filter criteria. You can log potential project threats anytime.</p>
-                    </div>
-                    <div class="pt-1">
-                        <button
-                            wire:click="openAddRiskModal()"
-                            type="button"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                            style="background: linear-gradient(135deg, #c3122e 0%, #a80f26 100%);"
-                        >
-                            <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Log Project Risk</span>
-                        </button>
-                    </div>
-                </div>
-            @endforelse
-        </div>
-    @else
-        <!-- TASK BLOCKERS CARDS -->
-        <div class="space-y-3.5">
-            @forelse($blockers as $b)
-                @php
-                    $sevBadge = match($b->severity) {
-                        'critical' => 'bg-rose-50 text-rose-700 border-rose-200/80',
-                        'high' => 'bg-orange-50 text-orange-700 border-orange-200/80',
-                        'medium' => 'bg-amber-50/80 text-amber-800 border-amber-200/80',
-                        default => 'bg-slate-100 text-slate-600 border-slate-200/70',
-                    };
-                @endphp
-
-                <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all p-5 sm:p-5.5 space-y-3 group">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <!-- Project Badge -->
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                                <span>{{ $b->wbsItem->project->name ?? 'Project' }}</span>
-                            </span>
-
-                            <!-- Task Badge -->
-                            <span class="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
-                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                <span>Task: <strong class="font-semibold text-slate-700">{{ $b->wbsItem->title ?? 'Scope Task' }}</strong> ({{ $b->wbsItem->wbs_code ?? '-' }})</span>
-                            </span>
-
-                            <!-- Severity Pill -->
-                            <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider border {{ $sevBadge }} shadow-2xs">
-                                {{ ucfirst($b->severity) }} Severity
-                            </span>
-                        </div>
-
-                        <!-- Status Action -->
-                        <div>
-                            @if($b->status === 'resolved')
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 inline-flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                    Resolved
-                                </span>
-                            @else
-                                <button
-                                    wire:click="openResolveBlockerModal({{ $b->id }})"
-                                    type="button"
-                                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
-                                >
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>Resolve Blocker</span>
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-
-                    <p class="text-xs sm:text-[13px] font-normal text-slate-700 leading-relaxed">{{ $b->description }}</p>
-
-                    @if($b->status === 'resolved' && $b->resolution)
-                        <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/70 text-xs space-y-1">
-                            <div class="font-semibold text-emerald-800 flex items-center gap-1.5 text-[11px]">
-                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span>Resolution (by {{ $b->resolver->name ?? 'PM' }})</span>
-                            </div>
-                            <p class="italic text-slate-600 leading-relaxed text-xs">"{{ $b->resolution }}"</p>
-                        </div>
-                    @endif
-
-                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-3 border-t border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-rose-50 text-[#c3122e] border border-rose-200/80 font-bold flex items-center justify-center text-[10px] shadow-2xs">
-                                {{ strtoupper(substr($b->reporter->name ?? 'T', 0, 1)) }}
-                            </div>
-                            <span class="text-slate-400 text-xs">Reported by <strong class="text-slate-700 font-semibold">{{ $b->reporter->name ?? 'Team Member' }}</strong></span>
-                        </div>
-
-                        <span class="text-slate-400 text-[11px] flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>{{ $b->created_at->diffForHumans() }}</span>
-                            @if($b->resolved_at)
-                                <span class="text-emerald-600 font-medium">&bull; Resolved {{ $b->resolved_at->diffForHumans() }}</span>
-                            @endif
-                        </span>
-                    </div>
-                </div>
-            @empty
-                <div class="text-center py-16 px-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-500 flex items-center justify-center mx-auto">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800">No Active Task Blockers</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">All project deliverables and scope tasks are executing smoothly without blocking impediments.</p>
-                    </div>
-                    <div class="pt-1">
-                        <button
-                            wire:click="openAddBlockerModal()"
-                            type="button"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs"
-                        >
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            <span>Report a Blocker</span>
-                        </button>
-                    </div>
-                </div>
-            @endforelse
-        </div>
-    @endif
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         5. MODALS (CLEAN DESIGN: ADD RISK, EDIT RISK, ADD/RESOLVE BLOCKER)
-         ═══════════════════════════════════════════════════════════════ -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="risk-table-footer">
+                <span>Showing <strong>{{ $risks->count() + $taskRisks->count() }}</strong> risk items</span>
+                <span>Project risks and task-level risks</span>
+            </div>
+    </section>
+    <!-- ---------------------------------------------------------------
+         3. MODALS (ADD RISK AND EDIT RISK)
+         --------------------------------------------------------------- -->
 
     <!-- 1. ADD RISK MODAL -->
     @if($showAddRiskModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showAddRiskModal', false)"></div>
 
-            <div class="relative bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col max-h-[90vh]">
+            <div class="risk-modal relative bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col max-h-[90vh]">
                 <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
                     <div class="flex items-center gap-3">
@@ -629,7 +435,7 @@
                                     <select wire:model="riskWbsItemId" class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 text-slate-800">
                                         <option value="">General Project Scope</option>
                                         @foreach($modalWbsItems as $wbs)
-                                            <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} — {{ $wbs->title }}</option>
+                                            <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} - {{ $wbs->title }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -741,7 +547,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showEditRiskModal', false)"></div>
 
-            <div class="relative bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col max-h-[90vh]">
+            <div class="risk-modal relative bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col max-h-[90vh]">
                 <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
                     <div class="flex items-center gap-3">
@@ -792,7 +598,7 @@
                                     <select wire:model="riskWbsItemId" class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 text-slate-800">
                                         <option value="">General Project Scope</option>
                                         @foreach($modalWbsItems as $wbs)
-                                            <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} — {{ $wbs->title }}</option>
+                                            <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} - {{ $wbs->title }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -899,121 +705,4 @@
         </div>
     @endif
 
-    <!-- 3. ADD BLOCKER MODAL -->
-    @if($showAddBlockerModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showAddBlockerModal', false)"></div>
-
-            <div class="relative bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col mx-3 sm:mx-auto">
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200/80 text-[#c3122e] flex items-center justify-center font-bold shadow-2xs">
-                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Report Task Blocker</h3>
-                            <p class="text-xs text-slate-500 font-normal">Log an active impediment preventing task execution</p>
-                        </div>
-                    </div>
-                    <button wire:click="$set('showAddBlockerModal', false)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <div class="p-6 space-y-3.5">
-                    <form id="addBlockerForm" wire:submit="addBlocker" class="space-y-3">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Target Project <span class="text-[#c3122e]">*</span></label>
-                            <select wire:model.live="blockerProjectId" class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] text-slate-800">
-                                <option value="">Select Project...</option>
-                                @foreach($projects as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code ?? 'PRJ' }})</option>
-                                @endforeach
-                            </select>
-                            @error('blockerProjectId') <span class="text-[11px] text-rose-500 font-medium block mt-0.5">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Blocked Scope Task <span class="text-[#c3122e]">*</span></label>
-                            <select wire:model="blockerWbsItemId" class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] text-slate-800">
-                                <option value="">Select Scope Task...</option>
-                                @foreach($modalBlockerWbsItems as $wbs)
-                                    <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} — {{ $wbs->title }}</option>
-                                @endforeach
-                            </select>
-                            @error('blockerWbsItemId') <span class="text-[11px] text-rose-500 font-medium block mt-0.5">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Blocker Severity <span class="text-[#c3122e]">*</span></label>
-                            <select wire:model="blockerSeverity" class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] text-slate-800">
-                                <option value="low">Low Severity</option>
-                                <option value="medium">Medium Severity</option>
-                                <option value="high">High Severity</option>
-                                <option value="critical">Critical Severity (Delivery Stop)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Impediment Description <span class="text-[#c3122e]">*</span></label>
-                            <textarea wire:model="blockerDescription" rows="3" placeholder="Explain the root cause blocking this deliverable..." class="w-full text-xs rounded-xl p-3 border border-slate-200 bg-white focus:border-[#c3122e] text-slate-800 leading-relaxed"></textarea>
-                            @error('blockerDescription') <span class="text-[11px] text-rose-500 font-medium block mt-0.5">{{ $message }}</span> @enderror
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Footer -->
-                <div class="px-6 py-3.5 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50 flex-shrink-0">
-                    <button type="button" wire:click="$set('showAddBlockerModal', false)" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer">Cancel</button>
-                    <button type="submit" form="addBlockerForm" class="px-4.5 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:shadow cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #a80f26 100%);">
-                        Submit Blocker
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- 4. RESOLVE BLOCKER MODAL -->
-    @if($showResolveBlockerModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showResolveBlockerModal', false)"></div>
-
-            <div class="relative bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col">
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center font-bold shadow-2xs">
-                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Resolve Task Blocker</h3>
-                            <p class="text-xs text-slate-500 font-normal">Record resolution steps and clear this execution impediment</p>
-                        </div>
-                    </div>
-                    <button wire:click="$set('showResolveBlockerModal', false)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <div class="p-6 space-y-3.5">
-                    <form id="resolveBlockerForm" wire:submit="saveBlockerResolution" class="space-y-3">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Resolution Summary <span class="text-[#c3122e]">*</span></label>
-                            <textarea wire:model="blockerResolutionInput" rows="4" placeholder="Detail the resolution steps taken to unblock task execution..." class="w-full text-xs rounded-xl p-3 border border-slate-200 bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 text-slate-800 leading-relaxed"></textarea>
-                            @error('blockerResolutionInput') <span class="text-[11px] text-rose-500 font-medium block mt-0.5">{{ $message }}</span> @enderror
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Footer -->
-                <div class="px-6 py-3.5 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50 flex-shrink-0">
-                    <button type="button" wire:click="$set('showResolveBlockerModal', false)" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer">Cancel</button>
-                    <button type="submit" form="resolveBlockerForm" class="px-4.5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs hover:shadow cursor-pointer transition-all">
-                        Mark Resolved
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
 </div>

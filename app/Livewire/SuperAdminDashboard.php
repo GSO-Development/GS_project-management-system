@@ -364,6 +364,7 @@ class SuperAdminDashboard extends Component
 
         $delayedHealthCount = 0;
         $atRiskHealthCount = 0;
+        $atRiskProjectsCount = 0;
         $onTrackHealthCount = 0;
 
         foreach ($allActiveProjects as $p) {
@@ -371,15 +372,24 @@ class SuperAdminDashboard extends Component
                 continue;
             }
 
-            $hasOpenRisks = $p->risks->where('status', 'open')->isNotEmpty();
-            $hasBlockedTasks = $p->wbsItems->where('status', 'blocked')->isNotEmpty()
+            $hasOpenRisks = $p->risks->whereIn('status', ['open', 'monitoring'])->isNotEmpty();
+            $hasAtRiskTasks = $p->wbsItems->contains(fn($w) => $w->status?->value === 'at_risk');
+            $hasBlockedTasks = $p->wbsItems->contains(fn($w) => $w->status?->value === 'blocked')
                 || $p->wbsItems->some(fn($w) => $w->relationLoaded('blockers') && $w->blockers->where('status', 'open')->isNotEmpty());
             $isOverdue = $p->deadline && \Carbon\Carbon::parse($p->deadline)->endOfDay()->isPast() && !in_array($p->status?->value, ['completed', 'cancelled']);
 
             $st = $p->status?->value ?? 'in_progress';
+            $isAtRisk = $st === 'at_risk' || $hasOpenRisks || $hasBlockedTasks || $hasAtRiskTasks;
+
+            // The headline KPI is an overlapping operational count: an overdue project
+            // must still be visible here when it also has an active risk or risky task.
+            if ($isAtRisk) {
+                $atRiskProjectsCount++;
+            }
+
             if ($st === 'delayed' || $isOverdue) {
                 $delayedHealthCount++;
-            } elseif ($st === 'at_risk' || $hasOpenRisks || $hasBlockedTasks) {
+            } elseif ($isAtRisk) {
                 $atRiskHealthCount++;
             } else {
                 $onTrackHealthCount++;
@@ -656,8 +666,27 @@ class SuperAdminDashboard extends Component
         // ⚠️ RISKS & BLOCKERS CENTER DATA (Full Integrated View)
         // ══════════════════════════════════════════════════════════
         $allRisks = ProjectRisk::with(['project.subsidiary', 'owner'])->latest()->get();
-        $highRisksCount = $allRisks->where('risk_score', '>=', 6)->where('status', 'open')->count();
-        $openRisksCount = $allRisks->where('status', 'open')->count();
+        $openProjectRisks = $allRisks->where('status', 'open');
+        $linkedAtRiskTaskIds = $openProjectRisks->pluck('wbs_item_id')->filter();
+        $atRiskTasks = WbsItem::with('project:id,name')
+            ->where('status', 'at_risk')
+            ->whereNotIn('id', $linkedAtRiskTaskIds)
+            ->get();
+        $taskRiskItems = $atRiskTasks->map(fn($task) => (object) [
+            'title' => $task->title,
+            'project' => (object) ['name' => $task->project?->name ?? 'Project'],
+            'risk_score' => match ($task->priority?->value) {
+                'critical' => 9,
+                'high' => 6,
+                'medium' => 4,
+                default => 2,
+            },
+            'status' => 'open',
+        ]);
+        $dashboardRiskItems = $openProjectRisks->concat($taskRiskItems)->sortByDesc('risk_score')->values();
+        $highRisksCount = $openProjectRisks->where('risk_score', '>=', 6)->count()
+            + $taskRiskItems->where('risk_score', '>=', 6)->count();
+        $openRisksCount = $openProjectRisks->count() + $taskRiskItems->count();
 
         $allBlockers = TaskBlocker::with(['wbsItem.project', 'reporter', 'wbsItem.assignedUser'])
             ->latest()
@@ -728,6 +757,7 @@ class SuperAdminDashboard extends Component
             'subsTrendCount',
             'projTrendCount',
             'tasksTrendCount',
+            'atRiskProjectsCount',
             'statusSummary',
             'healthSummary',
             'statusChartData',
@@ -744,6 +774,7 @@ class SuperAdminDashboard extends Component
             'approvedCount',
             'rejectedCount',
             'allRisks',
+            'dashboardRiskItems',
             'highRisksCount',
             'openRisksCount',
             'allBlockers',

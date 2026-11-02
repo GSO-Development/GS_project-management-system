@@ -578,6 +578,15 @@ class TemplateGanttBuilder extends Component
         }
     }
 
+    public function continueToProject()
+    {
+        $this->checkSuperAdmin();
+        abort_unless($this->selectForProject && session()->has('project_create_draft'), 403);
+
+        session()->put('project_create_selected_template_id', $this->template->id);
+
+        return redirect()->to(route('projects.create') . '#project-blueprint');
+    }
     public function saveGantt()
     {
         $this->checkSuperAdmin();

@@ -158,21 +158,29 @@
                             $progressBarColor = ($progress >= 100) ? 'bg-emerald-500' : $statusConfig['bar'];
                         @endphp
                         <tr class="hover:bg-slate-50/70 transition-colors group">
-                            <!-- Project Name & Code -->
+                                                        <!-- Project Name & Code -->
                             <td class="py-3 pl-5 sm:pl-6 pr-3 align-middle">
-                                <div class="min-w-0 space-y-0.5">
-                                    <a href="{{ route('projects.show', $p) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $p->name }}">
-                                        {{ $p->name }}
-                                    </a>
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
-                                            {{ $p->code }}
-                                        </span>
-                                        @if($p->members && $p->members->count() > 0)
-                                            <span class="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
-                                                • {{ $p->members->count() }} {{ Str::plural('Member', $p->members->count()) }}
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-400 shrink-0 shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <a href="{{ route('projects.show', $p) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $p->name }}">
+                                            {{ $p->name }}
+                                        </a>
+                                        <div class="flex items-center gap-2 mt-0.5 whitespace-nowrap">
+                                            <span class="font-mono text-[10.5px] font-medium text-slate-400 leading-tight">
+                                                {{ $p->code }}
                                             </span>
-                                        @endif
+                                            @if($p->members && $p->members->count() > 0)
+                                                <span class="text-slate-300 font-sans text-[10px]">&bull;</span>
+                                                <span class="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
+                                                    {{ $p->members->count() }} {{ Str::plural('Member', $p->members->count()) }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -236,14 +244,19 @@
                             </td>
 
                             <!-- Action -->
-                            <td class="py-3 pl-2 pr-5 sm:pr-6 text-right align-middle">
-                                <a
-                                    href="{{ route('projects.show', $p) }}"
-                                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-[#c3122e] hover:text-white border border-slate-200 shadow-2xs transition-all duration-150 no-underline cursor-pointer whitespace-nowrap shrink-0 active:scale-98 group"
-                                >
-                                    <span>Open Workspace</span>
-                                    <span class="text-[10px] text-slate-400 group-hover:text-white transition-colors">➔</span>
-                                </a>
+                            <td class="py-3 pl-2 pr-5 sm:pr-6 text-right align-middle whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-2">
+                                    <a
+                                        href="{{ route('projects.show', $p) }}"
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                        title="Open Workspace"
+                                        aria-label="Open Workspace for {{ $p->name }}"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                        </svg>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

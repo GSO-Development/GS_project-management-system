@@ -304,7 +304,7 @@ class ProjectApprovalActions extends Component
     public string  $reassignCode           = '';
     public ?int    $reassignSubsidiaryId   = null;
     public string  $reassignCategory       = 'General';
-    public string  $reassignPriority       = 'medium';
+
     public ?string $reassignStartDate      = null;
     public ?string $reassignDeadline       = null;
     public ?float  $reassignEstimatedBudget= null;
@@ -393,7 +393,7 @@ class ProjectApprovalActions extends Component
         $this->reassignCode            = $project->code ?? '';
         $this->reassignSubsidiaryId    = $project->subsidiary_id;
         $this->reassignCategory        = $project->category ?? 'General';
-        $this->reassignPriority        = $project->priority?->value ?? 'medium';
+
         $this->reassignStartDate       = $project->start_date ? $project->start_date->format('Y-m-d') : now()->format('Y-m-d');
         $this->reassignDeadline        = $project->deadline?->format('Y-m-d');
         $this->reassignEstimatedBudget = $project->estimated_budget ? (float) $project->estimated_budget : 0;
@@ -419,7 +419,7 @@ class ProjectApprovalActions extends Component
         $this->reassignCode           = '';
         $this->reassignSubsidiaryId   = null;
         $this->reassignCategory       = 'General';
-        $this->reassignPriority       = 'medium';
+
         $this->reassignStartDate      = null;
         $this->reassignDeadline       = null;
         $this->reassignEstimatedBudget= null;
@@ -447,7 +447,7 @@ class ProjectApprovalActions extends Component
             'reassignStartDate' => 'required|date',
             'reassignDeadline' => 'nullable|date|after_or_equal:reassignStartDate',
             'reassignEstimatedBudget' => 'nullable|numeric|min:0',
-            'reassignPriority' => ['required', Rule::enum(\App\Enums\Priority::class)],
+
             'reassignDescription' => 'nullable|string',
             'reassignCategory' => 'nullable|string|max:100',
             'reassignSponsorIds.*' => 'integer|exists:users,id',
@@ -465,7 +465,7 @@ class ProjectApprovalActions extends Component
                 'name' => $this->reassignName, 'code' => strtoupper($this->reassignCode),
                 'description' => $this->reassignDescription, 'subsidiary_id' => $this->reassignSubsidiaryId,
                 'category' => trim($this->reassignCategory) ?: null,
-                'priority' => $this->reassignPriority, 'start_date' => $this->reassignStartDate,
+                'start_date' => $this->reassignStartDate,
                 'deadline' => $this->reassignDeadline, 'estimated_budget' => $this->reassignEstimatedBudget ?: 0,
                 'project_manager_id' => $newLeader->id, 'pm_accepted' => $selfAssigned,
                 'pm_accepted_at' => $selfAssigned ? now() : null, 'pm_rejection_reason' => null, 'pm_rejected_at' => null,

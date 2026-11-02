@@ -195,15 +195,7 @@
                         <input id="reassign-category" type="text" wire:model="reassignCategory" class="reassign-input" maxlength="100" placeholder="e.g. Digital transformation">
                         @error('reassignCategory') <span class="reassign-error">{{ $message }}</span> @enderror
                     </div>
-                    <div class="reassign-field">
-                        <label for="reassign-priority">Priority <span class="reassign-required">*</span></label>
-                        <select id="reassign-priority" wire:model="reassignPriority" class="reassign-input" required>
-                            @foreach(\App\Enums\Priority::cases() as $priorityOption)
-                                <option value="{{ $priorityOption->value }}">{{ $priorityOption->label() }}</option>
-                            @endforeach
-                        </select>
-                        @error('reassignPriority') <span class="reassign-error">{{ $message }}</span> @enderror
-                    </div>
+
                 </div>
             </section>
 

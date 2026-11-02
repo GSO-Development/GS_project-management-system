@@ -19,18 +19,83 @@
         .manager-head h1 { font-size: 27px !important; font-weight: 700 !important; letter-spacing: -.035em; }
         .manager-head h1 span { display: none; }
         .manager-kpis {
-            display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px;
-            background: transparent;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
         }
-        .manager-kpis > * { min-height: 106px; padding: 16px 18px !important; border: 1px solid #e2e7ed !important; border-radius: 16px !important; box-shadow: 0 12px 30px -27px rgba(15,23,42,.38) !important; background: #fff !important; }
-        .manager-kpis > *:hover { border-color:#d4dbe4 !important; transform:translateY(-1px); }
-        .manager-kpis > *:last-child { background: #fff !important; border-color:#f0dce0 !important; }
-        .manager-kpis > *:nth-child(1) [class*="w-8"] { background:#eef6ff !important; color:#4774a8 !important; border-color:#dbe9f7 !important; }
-        .manager-kpis > *:nth-child(2) [class*="w-8"] { background:#f4f1fb !important; color:#6d5f91 !important; border-color:#e7e0f3 !important; }
-        .manager-kpis > *:nth-child(3) [class*="w-8"] { background:#edf8f5 !important; color:#397a6b !important; border-color:#d9eee8 !important; }
-        .manager-kpis > *:nth-child(4) [class*="w-8"] { background:#fff2f3 !important; color:#b4233a !important; border-color:#f5dce0 !important; }
-        .manager-kpis [class*="text-2xl"] { font-family:'Plus Jakarta Sans',system-ui,sans-serif !important; font-size:1.65rem !important; font-weight:700 !important; }
-        .manager-kpis [class*="uppercase"] { font-size:9px !important; letter-spacing:.08em !important; color:#7f8ca0 !important; }
+        .manager-kpis .manager-kpi-card {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            padding: 18px 20px;
+            border: 1px solid #e2e7ed;
+            border-radius: 12px;
+            background: #fff;
+            color: #101828;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(16, 24, 40, .02);
+        }
+        .manager-kpi-card .manager-kpi-label {
+            color: #667085;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 16px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .manager-kpi-card .manager-kpi-value {
+            display: block;
+            margin-top: 8px;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 36px;
+            letter-spacing: -.04em;
+        }
+        .manager-kpi-card .manager-kpi-footer {
+            display: flex;
+            align-items: center;
+            min-height: 29px;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #eef0f3;
+            color: #667085;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 18px;
+        }
+        .manager-kpi-footer strong {
+            margin-right: 4px;
+            color: #344054;
+            font-weight: 600;
+        }
+        .manager-kpis .manager-kpi-link {
+            transition: border-color 150ms ease, background-color 150ms ease;
+        }
+        .manager-kpis .manager-kpi-link:hover {
+            border-color: #b8c2cf;
+            background: #fcfcfd;
+        }
+        .manager-kpis .manager-kpi-link:focus-visible {
+            outline: 2px solid #c3122e;
+            outline-offset: 3px;
+        }
+        .manager-kpis .manager-kpi-card.is-overdue { border-color: #edcbd2; }
+        .manager-kpi-card.is-overdue .manager-kpi-value { color: #c3122e; }
+        .manager-kpi-card .manager-kpi-status {
+            padding: 1px 7px;
+            border-radius: 4px;
+            background: #f2f4f7;
+            color: #475467;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 16px;
+        }
+        .manager-kpi-card.is-overdue .manager-kpi-status {
+            background: #fff1f3;
+            color: #b1102c;
+        }
         .manager-panels { gap: 16px; }
         .manager-panels > div { border-color: #e1e7ed !important; border-radius: 16px !important; box-shadow: 0 16px 38px -34px rgba(15,23,42,.36) !important; padding: 18px !important; }
         .manager-panels .space-y-2\.5 > div { background: #fbfcfd !important; border-color: #e9edf2 !important; border-radius: 10px !important; }
@@ -40,7 +105,7 @@
             .manager-primary-panels > div { grid-column: span 1 / span 1 !important; }
         }
         @media (max-width:1023px) { .manager-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-        @media (max-width:639px) { .manager-head h1{font-size:23px!important}.manager-kpis{grid-template-columns:1fr}.manager-kpis > *{min-height:96px} }
+        @media (max-width:639px) { .manager-head h1{font-size:23px!important}.manager-kpis{grid-template-columns:1fr} }
     </style>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
@@ -111,68 +176,38 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- 2. MINIMALIST KPI METRIC TILES                             --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <div class="manager-kpis">
-
-        {{-- 1. Total Projects --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">TOTAL PROJECTS</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $myProjectsCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">{{ $inProgressProjectsCount }} Active</span>
+    <div class="manager-kpis" role="group" aria-label="Dashboard metrics">
+        <div class="manager-kpi-card">
+            <span class="manager-kpi-label">Total projects</span>
+            <span class="manager-kpi-value">{{ $myProjectsCount }}</span>
+            <div class="manager-kpi-footer">
+                <strong>{{ $inProgressProjectsCount }}</strong> Active
             </div>
         </div>
 
-        {{-- 2. My Project Roles --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">PROJECT ROLES</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0M18 8h3m-1.5-1.5v3"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $totalRoleAssignmentsCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">{{ $leadProjectsCount }} PM Lead</span>
+        <div class="manager-kpi-card">
+            <span class="manager-kpi-label">Project roles</span>
+            <span class="manager-kpi-value">{{ $totalRoleAssignmentsCount }}</span>
+            <div class="manager-kpi-footer">
+                <strong>{{ $leadProjectsCount }}</strong> PM Lead
             </div>
         </div>
 
-        {{-- 3. My Tasks --}}
-        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-rose-200 hover:bg-rose-50/20 transition-all duration-200 no-underline group block">
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">MY TASKS</span>
-                <div class="w-8 h-8 rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{{ $myAssignedTasksCount }}</span>
-                <span class="text-[11px] font-semibold text-slate-400">{{ $completedTodayCount }} Done Today</span>
+        <a href="{{ route('my-tasks.index') }}" wire:navigate.hover class="manager-kpi-card manager-kpi-link" aria-label="View my tasks">
+            <span class="manager-kpi-label">My tasks</span>
+            <span class="manager-kpi-value">{{ $myAssignedTasksCount }}</span>
+            <div class="manager-kpi-footer">
+                <strong>{{ $completedTodayCount }}</strong> Done today
             </div>
         </a>
 
-        {{-- 4. Overdue --}}
-        <div class="bg-white rounded-2xl border {{ $overdueTasksCount > 0 ? 'border-rose-200/90 bg-rose-50/30' : 'border-slate-200/80' }} p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all duration-200 group">
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="text-[10px] font-extrabold {{ $overdueTasksCount > 0 ? 'text-rose-500' : 'text-slate-400' }} uppercase tracking-wider block">OVERDUE</span>
-                <div class="w-8 h-8 rounded-xl {{ $overdueTasksCount > 0 ? 'bg-rose-100/80 text-[#c3122e] border-rose-200/70' : 'bg-slate-100/80 text-slate-600 border-slate-200/60' }} flex items-center justify-center shrink-0 group-hover:bg-[#c3122e] group-hover:text-white group-hover:border-[#c3122e] transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3.5h.01M10.3 4.6L3.8 16a2 2 0 001.74 3h12.92a2 2 0 001.74-3L13.7 4.6a2 2 0 00-3.4 0z"/></svg>
-                </div>
-            </div>
-            <div class="flex items-baseline justify-between">
-                <span class="text-2xl sm:text-3xl font-extrabold {{ $overdueTasksCount > 0 ? 'text-[#c3122e]' : 'text-slate-900' }} tracking-tight font-mono">{{ $overdueTasksCount }}</span>
-                <span class="text-[11px] font-bold {{ $overdueTasksCount > 0 ? 'text-[#c3122e]' : 'text-slate-400' }}">{{ $overdueTasksCount > 0 ? 'Action Required' : 'All Clear' }}</span>
+        <div class="manager-kpi-card {{ $overdueTasksCount > 0 ? 'is-overdue' : '' }}">
+            <span class="manager-kpi-label">Overdue</span>
+            <span class="manager-kpi-value">{{ $overdueTasksCount }}</span>
+            <div class="manager-kpi-footer">
+                <span class="manager-kpi-status">{{ $overdueTasksCount > 0 ? 'Action required' : 'All clear' }}</span>
             </div>
         </div>
-
     </div>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
@@ -464,7 +499,7 @@
                                         @endif
                                         @if($risk->owner)
                                             <span class="text-slate-300">•</span>
-                                            <span>Owner: <strong class="font-semibold text-slate-600">{{ $risk->owner->name }}</strong></span>
+                                            <span>{{ ($risk->is_task_risk ?? false) ? 'Assigned to' : 'Owner' }}: <strong class="font-semibold text-slate-600">{{ $risk->owner->name }}</strong></span>
                                         @endif
                                     </div>
                                 </div>
@@ -621,7 +656,7 @@
                                         {{ ucfirst($reviewProject->priority?->value ?? 'medium') }} Priority
                                     </span>
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/70 text-slate-700">
-                                        {{ ucfirst(str_replace('_', ' ', $reviewProject->status?->value ?? 'planning')) }}
+                                        {{ $reviewProject->isPendingPmAcceptance() ? 'Planning' : ucfirst(str_replace('_', ' ', $reviewProject->status?->value ?? 'planning')) }}
                                     </span>
                                 </div>
                             </div>

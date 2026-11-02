@@ -19,6 +19,7 @@ class ProjectCreate extends Component
     public string $code = '';
     public string $name = '';
     public ?string $description = null;
+    public ?string $estimated_budget = null;
     public ?int $subsidiary_id = null;
     public ?int $project_manager_id = null;
     public array $sponsor_ids = [];
@@ -168,7 +169,7 @@ class ProjectCreate extends Component
         return [
             'code', 'name', 'description', 'subsidiary_id', 'project_manager_id',
             'sponsor_ids', 'owner_ids', 'steering_committee_ids',
-            'selected_participant_ids', 'start_date', 'deadline',
+            'selected_participant_ids', 'start_date', 'deadline', 'estimated_budget',
             'customRoleAssignments', 'creation_option', 'selected_template_id',
         ];
     }
@@ -361,6 +362,7 @@ class ProjectCreate extends Component
             'name' => 'required|string|max:255',
             'project_manager_id' => 'required|exists:users,id',
             'description' => 'nullable|string',
+            'estimated_budget' => 'nullable|numeric|min:0|max:9999999999999.99',
             'sponsor_ids' => 'nullable|array',
             'owner_ids' => 'nullable|array',
             'steering_committee_ids' => 'nullable|array',
@@ -397,7 +399,7 @@ class ProjectCreate extends Component
             'status' => ProjectStatus::PLANNING,
             'start_date' => $this->start_date ?: null,
             'deadline' => $this->deadline ?: null,
-            'estimated_budget' => 0,
+            'estimated_budget' => ($this->estimated_budget !== null && $this->estimated_budget !== '') ? $this->estimated_budget : 0,
             'wbs_breakdown_type' => $this->creation_option,
             'template_id' => ($this->creation_option === 'template') ? $this->selected_template_id : null,
         ]);

@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50/70 px-4 py-3">
             <div>
                 <p class="text-sm font-extrabold text-slate-900">Choose a template for your project</p>
-                <p class="mt-0.5 text-xs font-medium text-slate-600">Select an existing template, or create and configure a new one.</p>
+                <p class="mt-0.5 text-xs font-medium text-slate-600">Choose Use Template to review the full WBS, then continue to project details.</p>
             </div>
             <button type="button" wire:click="returnToProjectCreate" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
                 Back to Project
@@ -200,18 +200,18 @@
                         {{ $template->created_at->diffForHumans() }}
                     </span>
 
-                    <div class="grid {{ $selectForProject ? 'grid-cols-2' : 'grid-cols-1' }} gap-2">
+                    <div class="grid grid-cols-1 gap-2">
                     @if($selectForProject)
-                        <button type="button" wire:click="selectTemplateForProject({{ $template->id }})"
-                            class="inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors">
+                        <button type="button" wire:click="selectTemplateForProject({{ $template->id }})" class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
                             Use Template
                         </button>
+                    @else
+                        <a href="{{ route('templates.manage', ['template' => $template->id]) }}"
+                           class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors group/btn">
+                            <span>{{ auth()->user()?->isSuperAdmin() ? 'Configure WBS' : 'View WBS' }}</span>
+                            <svg class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
                     @endif
-                    <a href="{{ route('templates.manage', ['template' => $template->id] + ($selectForProject ? ['select_for' => 'project'] : [])) }}"
-                       class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors group/btn">
-                        <span>{{ auth()->user()?->isSuperAdmin() ? 'Configure WBS' : 'View WBS' }}</span>
-                        <svg class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
                     </div>
                 </div>
             </div>
@@ -283,14 +283,16 @@
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     @if($selectForProject)
-                                        <button type="button" wire:click="selectTemplateForProject({{ $template->id }})" class="px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-900 hover:bg-slate-700 transition-colors">
+                                        <button type="button" wire:click="selectTemplateForProject({{ $template->id }})" class="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
                                             Use Template
                                         </button>
                                     @endif
-                                    <a href="{{ route('templates.manage', ['template' => $template->id] + ($selectForProject ? ['select_for' => 'project'] : [])) }}"
-                                       class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 transition-colors">
-                                        {{ auth()->user()?->isSuperAdmin() ? 'Configure WBS' : 'View WBS' }}
-                                    </a>
+                                    @if(!$selectForProject)
+                                        <a href="{{ route('templates.manage', ['template' => $template->id]) }}"
+                                           class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 transition-colors">
+                                            {{ auth()->user()?->isSuperAdmin() ? 'Configure WBS' : 'View WBS' }}
+                                        </a>
+                                    @endif
                                     @if(auth()->user()?->isSuperAdmin())
                                         <button wire:click="duplicateTemplate({{ $template->id }})" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg" title="Duplicate">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>

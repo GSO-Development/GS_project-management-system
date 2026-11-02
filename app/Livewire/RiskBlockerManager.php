@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Enums\WbsStatus;
 use App\Models\Project;
 use App\Models\ProjectRisk;
-use App\Models\TaskBlocker;
 use App\Models\User;
 use App\Models\WbsItem;
 use Livewire\Component;
@@ -16,9 +15,7 @@ class RiskBlockerManager extends Component
     public ?int $selectedProjectId = null;
     public string $selectedCategory = '';
     public string $selectedStatus = 'all';
-    public string $selectedSeverity = 'all';
     public string $searchQuery = '';
-    public string $activeTab = 'risks'; // 'risks' or 'blockers'
     public ?string $matrixFilterProb = null;
     public ?string $matrixFilterImp = null;
     public bool $showFilters = false;
@@ -32,19 +29,17 @@ class RiskBlockerManager extends Component
     {
         return !empty(trim($this->searchQuery))
             || !empty($this->selectedProjectId)
-            || ($this->activeTab === 'risks' && (!empty($this->selectedCategory) || $this->selectedStatus !== 'all'))
-            || ($this->activeTab === 'blockers' && ($this->selectedSeverity !== 'all' || $this->selectedStatus !== 'all'))
+            || !empty($this->selectedCategory)
+            || $this->selectedStatus !== 'all'
             || !empty($this->matrixFilterProb)
             || !empty($this->matrixFilterImp);
     }
-
     public function resetAllFilters(): void
     {
         $this->searchQuery = '';
         $this->selectedProjectId = null;
         $this->selectedCategory = '';
         $this->selectedStatus = 'all';
-        $this->selectedSeverity = 'all';
         $this->matrixFilterProb = null;
         $this->matrixFilterImp = null;
     }
@@ -66,21 +61,8 @@ class RiskBlockerManager extends Component
     public string $riskContingency = '';
     public string $riskDescription = '';
 
-    // Blocker Modal State
-    public bool $showAddBlockerModal = false;
-    public bool $showResolveBlockerModal = false;
-    public ?int $selectedBlockerId = null;
-    public string $blockerResolutionInput = '';
-
-    // Blocker Form Fields
-    public ?int $blockerProjectId = null;
-    public ?int $blockerWbsItemId = null;
-    public string $blockerDescription = '';
-    public string $blockerSeverity = 'medium';
-
     protected $queryString = [
         'selectedProjectId' => ['except' => null, 'as' => 'project'],
-        'activeTab' => ['except' => 'risks', 'as' => 'tab'],
         'searchQuery' => ['except' => '', 'as' => 'q'],
     ];
 
@@ -108,7 +90,6 @@ class RiskBlockerManager extends Component
         } else {
             $this->matrixFilterProb = $prob;
             $this->matrixFilterImp = $imp;
-            $this->activeTab = 'risks';
         }
     }
 
@@ -335,92 +316,6 @@ class RiskBlockerManager extends Component
         $this->dispatch('toast', message: 'Risk record removed.', type: 'info');
     }
 
-    // --- Blocker Management ---
-
-    public function openAddBlockerModal(?int $projectId = null)
-    {
-        $this->resetBlockerForm();
-        if ($projectId) {
-            $this->blockerProjectId = $projectId;
-        } elseif ($this->selectedProjectId) {
-            $this->blockerProjectId = $this->selectedProjectId;
-        } else {
-            $firstProj = Project::whereHas('subsidiary')->orWhereNotNull('id')->first();
-            if ($firstProj) {
-                $this->blockerProjectId = $firstProj->id;
-            }
-        }
-        $this->showAddBlockerModal = true;
-    }
-
-    public function resetBlockerForm()
-    {
-        $this->reset([
-            'blockerProjectId',
-            'blockerWbsItemId',
-            'blockerDescription',
-            'blockerSeverity',
-        ]);
-        $this->blockerSeverity = 'medium';
-    }
-
-    public function addBlocker()
-    {
-        $this->validate([
-            'blockerProjectId' => 'required|exists:projects,id',
-            'blockerWbsItemId' => 'required|exists:wbs_items,id',
-            'blockerDescription' => 'required|string|min:5',
-            'blockerSeverity' => 'required|in:low,medium,high,critical',
-        ]);
-
-        TaskBlocker::create([
-            'wbs_item_id' => $this->blockerWbsItemId,
-            'reported_by' => auth()->id(),
-            'description' => $this->blockerDescription,
-            'severity' => $this->blockerSeverity,
-            'status' => 'open',
-        ]);
-
-        $this->showAddBlockerModal = false;
-        $this->resetBlockerForm();
-        $this->dispatch('toast', message: 'Task blocker reported successfully!', type: 'success');
-    }
-
-    public function openResolveBlockerModal(int $blockerId)
-    {
-        $blocker = TaskBlocker::findOrFail($blockerId);
-        if (!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
-            $this->dispatch('toast', message: '🔒 You do not have permission to resolve blockers.', type: 'error');
-            return;
-        }
-
-        $this->selectedBlockerId = $blockerId;
-        $this->blockerResolutionInput = '';
-        $this->showResolveBlockerModal = true;
-    }
-
-    public function saveBlockerResolution()
-    {
-        $this->validate([
-            'blockerResolutionInput' => 'required|string|min:3',
-        ]);
-
-        $blocker = TaskBlocker::findOrFail($this->selectedBlockerId);
-        if (!$blocker->wbsItem?->project?->userCan(auth()->user(), 'blocker.resolve') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
-            $this->dispatch('toast', message: '🔒 You do not have permission to resolve blockers.', type: 'error');
-            return;
-        }
-
-        $blocker->resolution = $this->blockerResolutionInput;
-        $blocker->resolved_by = auth()->id();
-        $blocker->resolved_at = now();
-        $blocker->status = 'resolved';
-        $blocker->save();
-
-        $this->showResolveBlockerModal = false;
-        $this->dispatch('toast', message: 'Task blocker resolved successfully!', type: 'success');
-    }
-
     public function render()
     {
         $user = auth()->user();
@@ -472,48 +367,37 @@ class RiskBlockerManager extends Component
 
         $risks = (clone $risksQuery)->latest()->get();
 
-        // Base Query for Blockers (Active projects only)
-        $blockersQuery = TaskBlocker::with(['wbsItem.project', 'reporter', 'resolver'])
-            ->whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds)->whereHas('project'));
+        // A WBS task marked At Risk is a risk register item even if no separate
+        // ProjectRisk record has been logged for it yet.
+        $taskRisksQuery = WbsItem::with(['project', 'assignedUser'])
+            ->whereIn('project_id', $allowedProjectIds)
+            ->where('status', WbsStatus::AT_RISK->value)
+            ->whereDoesntHave('openRisks');
 
         if ($this->selectedProjectId) {
-            $blockersQuery->whereHas('wbsItem', fn($q) => $q->where('project_id', $this->selectedProjectId));
+            $taskRisksQuery->where('project_id', $this->selectedProjectId);
         }
-        if ($this->selectedSeverity !== 'all') {
-            $blockersQuery->where('severity', $this->selectedSeverity);
-        }
-        if ($this->selectedStatus !== 'all') {
-            if ($this->selectedStatus === 'resolved') {
-                $blockersQuery->where('status', 'resolved');
-            } elseif ($this->selectedStatus === 'open') {
-                $blockersQuery->where('status', '!=', 'resolved');
-            }
-        }
+        $allAtRiskTasksQuery = clone $taskRisksQuery;
+
+        $includeTaskRisks = !$this->selectedCategory
+            && !($this->matrixFilterProb && $this->matrixFilterImp)
+            && in_array($this->selectedStatus, ['all', 'open'], true);
+
         if ($this->searchQuery) {
             $q = $this->searchQuery;
-            $blockersQuery->where(function ($sub) use ($q) {
-                $sub->where('description', 'like', "%{$q}%")
-                    ->orWhereHas('wbsItem', function ($wbs) use ($q) {
-                        $wbs->where('title', 'like', "%{$q}%")
-                            ->orWhere('wbs_code', 'like', "%{$q}%");
-                    });
+            $taskRisksQuery->where(function ($sub) use ($q) {
+                $sub->where('title', 'like', "%{$q}%")
+                    ->orWhere('wbs_code', 'like', "%{$q}%")
+                    ->orWhereHas('project', fn($project) => $project->where('name', 'like', "%{$q}%"));
             });
         }
 
-        $blockers = (clone $blockersQuery)->latest()->get();
+        $taskRisks = $includeTaskRisks ? (clone $taskRisksQuery)->latest('updated_at')->get() : collect();
 
         // Available WBS Items for Add/Edit Risk Modal dropdown
         $modalWbsItems = collect();
         if ($this->riskProjectId) {
             $modalWbsItems = WbsItem::where('project_id', $this->riskProjectId)->get()->sort(function ($a, $b) {
-                return strnatcmp($a->wbs_code, $b->wbs_code);
-            })->values();
-        }
-
-        // Available WBS Items for Add Blocker Modal dropdown
-        $modalBlockerWbsItems = collect();
-        if ($this->blockerProjectId) {
-            $modalBlockerWbsItems = WbsItem::where('project_id', $this->blockerProjectId)->get()->sort(function ($a, $b) {
                 return strnatcmp($a->wbs_code, $b->wbs_code);
             })->values();
         }
@@ -526,15 +410,11 @@ class RiskBlockerManager extends Component
             ->whereHas('project')
             ->when($this->selectedProjectId, fn($q) => $q->where('project_id', $this->selectedProjectId))
             ->get();
-        $totalRisksCount = $allProjectRisks->count();
-        $openRisksCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->count();
-        $criticalHighRiskCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->whereIn('impact', ['high', 'critical'])->count();
-
-        $allProjectBlockers = TaskBlocker::whereHas('wbsItem', fn($q) => $q->whereIn('project_id', $allowedProjectIds)->whereHas('project'))
-            ->when($this->selectedProjectId, fn($q) => $q->whereHas('wbsItem', fn($w) => $w->where('project_id', $this->selectedProjectId)))
-            ->get();
-        $openBlockersCount = $allProjectBlockers->where('status', '!=', 'resolved')->count();
-        $resolvedBlockersCount = $allProjectBlockers->where('status', 'resolved')->count();
+        $atRiskTaskCount = (clone $allAtRiskTasksQuery)->count();
+        $highAtRiskTaskCount = (clone $allAtRiskTasksQuery)->whereIn('priority', ['high', 'critical'])->count();
+        $totalRisksCount = $allProjectRisks->count() + $atRiskTaskCount;
+        $openRisksCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->count() + $atRiskTaskCount;
+        $criticalHighRiskCount = $allProjectRisks->whereIn('status', ['open', 'monitoring'])->whereIn('impact', ['high', 'critical'])->count() + $highAtRiskTaskCount;
 
         $hasActiveFilters = $this->hasActiveFilters();
         $showFilters = $this->showFilters;
@@ -542,17 +422,14 @@ class RiskBlockerManager extends Component
         return view('livewire.risk-blocker-manager', compact(
             'projects',
             'risks',
-            'blockers',
+            'taskRisks',
             'modalWbsItems',
-            'modalBlockerWbsItems',
             'users',
             'totalRisksCount',
             'openRisksCount',
             'criticalHighRiskCount',
-            'openBlockersCount',
-            'resolvedBlockersCount',
             'hasActiveFilters',
             'showFilters'
-        ))->layout('layouts.app', ['title' => 'Risks & Blockers Hub']);
+        ))->layout('layouts.app', ['title' => 'Project Risks']);
     }
 }

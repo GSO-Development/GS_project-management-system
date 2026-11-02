@@ -181,6 +181,7 @@ class ProjectTaskSheet extends Component
     public function mount(Project $project): void
     {
         $this->project = $project;
+        abort_unless($project->canUserManage(auth()->user()), 403);
     }
 
     #[On('wbsUpdated')]

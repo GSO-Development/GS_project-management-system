@@ -111,13 +111,31 @@
     {{-- ══════════════════════════════════════════════════════════
          4. PROJECTS TABLE
          ══════════════════════════════════════════════════════════ --}}
+    <style>
+        .project-approval-register { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .project-approval-register thead th { padding: 13px 12px !important; height: auto !important; text-align: left; white-space: nowrap; font-size: 10.5px !important; font-weight: 700 !important; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.055em !important; background: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important; }
+        .project-approval-register thead th:first-child { padding-left: 18px !important; position: sticky; left: 0; z-index: 3; background: #f8fafc !important; box-shadow: 1px 0 0 #e2e8f0; }
+        .project-approval-register thead th:last-child { padding-right: 18px !important; text-align: right !important; }
+        .project-approval-register tbody tr { transition: background-color 150ms ease; background-color: #ffffff; }
+        .project-approval-register tbody td { padding: 14px 12px !important; vertical-align: middle; background-color: #ffffff; border-bottom: 1px solid #f1f5f9 !important; transition: background-color 150ms ease; }
+        .project-approval-register tbody tr:last-child td { border-bottom: none !important; }
+        .project-approval-register tbody td:first-child { padding-left: 18px !important; position: sticky; left: 0; z-index: 1; background-color: #ffffff; box-shadow: 1px 0 0 #f1f5f9; }
+        .project-approval-register tbody td:last-child { padding-right: 18px !important; }
+        .project-approval-register tbody tr:hover td { background-color: #f8fafc !important; }
+        .project-approval-register tbody tr.project-row-delayed td { background-color: #fffafb !important; }
+        .project-approval-register tbody tr.project-row-delayed td:first-child { background-color: #fffafb !important; box-shadow: inset 3px 0 0 #c3122e, 1px 0 0 #ffe4e6 !important; }
+        .project-approval-register tbody tr.project-row-delayed:hover td { background-color: #fff1f2 !important; }
+        .project-approval-register tbody tr.project-row-delayed:hover td:first-child { background-color: #fff1f2 !important; }
+        .project-approval-register .project-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: nowrap; margin-left: auto; }
+        .my-projects-drag-scroll { cursor: grab; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        .my-projects-drag-scroll.is-panning, .my-projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
+        .my-projects-drag-scroll a, .my-projects-drag-scroll button { cursor: pointer; }
+        .my-projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+    </style>
+
     @if($projects->count() > 0)
-    <div class="projects-register bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm mb-6">
-        <div class="projects-register-heading">
-            <div><h2>Project portfolio</h2><p>Your assignments and delivery overview</p></div>
-            <span>{{ $projects->total() }} {{ Str::plural('project', $projects->total()) }}</span>
-        </div>
-        <div class="my-projects-drag-scroll overflow-x-auto scrollbar-thin"
+    <div class="projects-directory-table bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden mb-6">
+        <div class="my-projects-drag-scroll w-full overflow-x-auto scrollbar-thin"
             x-data="{
                 panStart: null,
                 isPanning: false,
@@ -148,190 +166,275 @@
             @pointerdown="beginPan($event)" @pointermove.window="movePan($event)" @pointerup.window="endPan()"
             @pointercancel.window="endPan()" @blur.window="endPan()" @lostpointercapture="panStart = null; isPanning = false"
             :class="{ 'is-panning': isPanning }" tabindex="0" role="region" aria-label="My Projects table, drag empty space to scroll horizontally">
-            <style>
-                .my-projects-drag-scroll { cursor: grab; }
-                .my-projects-drag-scroll.is-panning, .my-projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
-                .my-projects-drag-scroll a, .my-projects-drag-scroll button { cursor: pointer; }
-                .my-projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
-            </style>
-            <table class="projects-table w-full text-left border-collapse min-w-[1040px]">
+            <table class="project-approval-register w-full text-left border-collapse">
+                <colgroup>
+                    <col style="min-width: 165px">  {{-- 1. Project & Code --}}
+                    <col style="width: 90px">        {{-- 2. Priority --}}
+                    <col style="width: 135px">       {{-- 3. Subsidiary --}}
+                    <col style="width: 140px">       {{-- 4. Your Role --}}
+                    <col style="width: 120px">       {{-- 5. Status --}}
+                    <col style="width: 105px">       {{-- 6. Progress --}}
+                    <col style="width: 110px">       {{-- 7. Deadline --}}
+                    <col style="width: 115px">       {{-- 8. Budget --}}
+                    <col style="width: 95px">        {{-- 9. Action --}}
+                </colgroup>
                 <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                        <th class="py-3.5 pl-5 sm:pl-6 pr-3 w-[35%] sm:w-[30%] lg:w-[26%]">Project &amp; Code</th>
-                        <th class="py-3.5 px-3 w-[18%] lg:w-[15%] hidden md:table-cell">Subsidiary</th>
-                        <th class="py-3.5 px-3 w-[22%] sm:w-[18%] lg:w-[15%]">Your Role</th>
-                        <th class="py-3.5 px-3 w-[12%]">Status</th>
-                        <th class="py-3.5 px-3 w-[13%]">Progress</th>
-                        <th class="py-3.5 px-3 w-[15%]">Schedule Health</th>
-                        <th class="py-3.5 px-3 w-[11%]">Deadline</th>
-                        <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right w-[12%]">Action</th>
+                    <tr class="select-none">
+                        <th>Project</th>
+                        <th>Priority</th>
+                        <th>Subsidiary</th>
+                        <th>Your Role</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Deadline</th>
+                        <th>Budget</th>
+                        <th class="text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs bg-white">
+                <tbody>
                     @foreach($projects as $p)
                         @php
                             $progress  = $p->overall_progress ?? 0;
                             $daysLeft  = $p->deadline ? (int) now()->today()->diffInDays($p->deadline, false) : null;
-                            $isOverdue = $daysLeft !== null && $daysLeft < 0 && !in_array($p->status->value, ['completed','cancelled']);
+                            $isOverdue = $p->deadline && $p->deadline->isPast() && $progress < 100 && !in_array($p->status->value, ['completed','cancelled']);
                             $userRole  = $userRoles[$p->id] ?? 'member';
+                            $canViewDelayAnalysis = $p->project_manager_id === auth()->id();
+                            $delaySummary = $delaySummaries[$p->id] ?? ['is_delayed' => false, 'issues' => []];
+                            $isProjectDelayed = ($p->status->value === 'delayed' || !empty($delaySummary['is_delayed']));
 
-                            $statusConfig = match($p->status->value) {
-                                'in_progress'  => ['dot' => 'bg-blue-600',   'text' => 'text-blue-700',   'bg' => 'bg-blue-50',   'border' => 'border-blue-200',   'bar' => 'bg-blue-500',   'label' => 'In Progress'],
-                                'completed'    => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'bar' => 'bg-emerald-500', 'label' => 'Completed'],
-                                'at_risk'      => ['dot' => 'bg-amber-500',  'text' => 'text-amber-800',  'bg' => 'bg-amber-50',  'border' => 'border-amber-200',  'bar' => 'bg-amber-500',  'label' => 'At Risk'],
-                                'delayed'      => ['dot' => 'bg-rose-500',   'text' => 'text-rose-700',   'bg' => 'bg-rose-50',   'border' => 'border-rose-200',   'bar' => 'bg-rose-500',   'label' => 'Delayed'],
-                                'planning'     => ['dot' => 'bg-sky-500',    'text' => 'text-sky-700',    'bg' => 'bg-sky-50',    'border' => 'border-sky-200',    'bar' => 'bg-sky-500',    'label' => 'Planning'],
-                                'under_review' => ['dot' => 'bg-purple-500', 'text' => 'text-purple-700', 'bg' => 'bg-purple-50', 'border' => 'border-purple-200', 'bar' => 'bg-purple-500', 'label' => 'Under Review'],
-                                'on_hold'      => ['dot' => 'bg-amber-500',  'text' => 'text-amber-800',  'bg' => 'bg-amber-50',  'border' => 'border-amber-200',  'bar' => 'bg-amber-500',  'label' => 'On Hold'],
-                                'cancelled'    => ['dot' => 'bg-rose-500',   'text' => 'text-rose-700',   'bg' => 'bg-rose-50',   'border' => 'border-rose-200',   'bar' => 'bg-rose-500',   'label' => 'Cancelled'],
-                                default        => ['dot' => 'bg-slate-400',  'text' => 'text-slate-700',  'bg' => 'bg-slate-50',  'border' => 'border-slate-200',  'bar' => 'bg-slate-400',  'label' => $p->status->label()],
+                            $prConfig = match($p->priority->value ?? 'medium') {
+                                'urgent', 'critical' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/80', 'dot' => 'bg-rose-500 animate-pulse'],
+                                'high'               => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200/80', 'dot' => 'bg-amber-500'],
+                                'medium'             => ['bg' => 'bg-slate-50 text-slate-700 border-slate-200/80', 'dot' => 'bg-slate-400'],
+                                default              => ['bg' => 'bg-slate-50 text-slate-500 border-slate-200/80', 'dot' => 'bg-slate-400'],
                             };
 
-                            $progressBarColor = ($progress >= 100) ? 'bg-emerald-500' : $statusConfig['bar'];
+                            $stConfig = match($p->status->value) {
+                                'completed'    => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500'],
+                                'in_progress'  => ['cls' => 'bg-blue-50 text-blue-700 border-blue-200/80',         'dot' => 'bg-blue-500 animate-pulse'],
+                                'at_risk'      => ['cls' => 'bg-amber-50 text-amber-800 border-amber-200/80',       'dot' => 'bg-amber-500 animate-pulse'],
+                                'planning'     => ['cls' => 'bg-sky-50 text-sky-700 border-sky-200/80',             'dot' => 'bg-sky-500'],
+                                'on_hold'      => ['cls' => 'bg-slate-100 text-slate-600 border-slate-200/80',       'dot' => 'bg-slate-400'],
+                                'under_review' => ['cls' => 'bg-purple-50 text-purple-700 border-purple-200/80',    'dot' => 'bg-purple-500'],
+                                'delayed'      => ['cls' => 'bg-rose-50 text-rose-700 border-rose-200/80',          'dot' => 'bg-rose-500 animate-pulse'],
+                                default        => ['cls' => 'bg-slate-100 text-slate-500 border-slate-200/80',       'dot' => 'bg-slate-400'],
+                            };
 
                             $allRoles = \App\Services\RbacService::getAllRoles();
                             $roleMeta = $allRoles[$userRole] ?? null;
-
-                            $roleConfig = match($userRole) {
-                                'pmo_admin'          => ['label' => 'PMO Admin',          'icon' => '🛡️', 'bg' => 'bg-slate-100',    'text' => 'text-slate-800',     'border' => 'border-slate-300'],
-                                'lead'               => ['label' => 'Project Manager',     'icon' => '⭐', 'bg' => 'bg-amber-50',     'text' => 'text-amber-800',     'border' => 'border-amber-200/90'],
-                                'sponsor'            => ['label' => 'Project Sponsor',    'icon' => '💼', 'bg' => 'bg-purple-50',   'text' => 'text-purple-800',    'border' => 'border-purple-200/90'],
-                                'owner'              => ['label' => 'Project Owner',      'icon' => '🏛️', 'bg' => 'bg-blue-50',     'text' => 'text-blue-800',      'border' => 'border-blue-200/90'],
-                                'steering_committee' => ['label' => 'Steering Committee', 'icon' => '🎖️', 'bg' => 'bg-rose-50',     'text' => 'text-rose-800',      'border' => 'border-rose-200/90'],
-                                'member'             => ['label' => 'Team Member',         'icon' => '🤝', 'bg' => 'bg-emerald-50',  'text' => 'text-emerald-800',   'border' => 'border-emerald-200/90'],
-                                default              => [
-                                    'label'  => $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $userRole)),
-                                    'icon'   => $roleMeta['icon'] ?? '🏷️',
-                                    'bg'     => 'bg-slate-50',
-                                    'text'   => 'text-slate-700',
-                                    'border' => 'border-slate-200',
-                                ],
+                            $roleLabel = match($userRole) {
+                                'pmo_admin'          => 'PMO Admin',
+                                'lead'               => 'Project Manager',
+                                'sponsor'            => 'Project Sponsor',
+                                'owner'              => 'Project Owner',
+                                'steering_committee' => 'Steering Committee',
+                                'member'             => 'Team Member',
+                                default              => $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $userRole)),
                             };
                         @endphp
-                        @php $delaySummary = $delaySummaries[$p->id] ?? ['is_delayed' => false, 'issues' => []]; @endphp
-                        <tr class="hover:bg-slate-50/70 transition-colors group">
-                            {{-- Project Name & Code --}}
-                            <td class="py-3 pl-5 sm:pl-6 pr-3 align-middle">
-                                <div class="min-w-0 space-y-0.5">
-                                    <a href="{{ route('projects.show', $p) }}" class="font-extrabold text-xs sm:text-[13px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block leading-snug no-underline group-hover:text-[#c3122e]" title="{{ $p->name }}">
-                                        {{ $p->name }}
-                                    </a>
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9.5px] font-mono font-bold text-[#c3122e] bg-rose-50 border border-rose-200/80 shrink-0 whitespace-nowrap shadow-2xs">
+                        <tr class="{{ $isProjectDelayed ? 'project-row-delayed' : '' }} group">
+                            {{-- 1. Project Name & Code --}}
+                            <td class="align-middle">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7.5 h-7.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-400 shrink-0 shadow-2xs group-hover:border-slate-300 transition-colors">
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <a href="{{ route('projects.show', $p) }}" class="font-bold text-slate-900 hover:text-[#c3122e] transition-colors text-[12.5px] leading-snug line-clamp-1 block no-underline" title="Open {{ $p->name }} workspace">
+                                            {{ $p->name }}
+                                        </a>
+                                        <span class="font-mono text-[10px] font-medium text-slate-400 leading-tight block mt-0.5">
                                             {{ $p->code }}
                                         </span>
-                                        @if($p->members && $p->members->count() > 0)
-                                            <span class="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
-                                                • {{ $p->members->count() }} {{ Str::plural('Member', $p->members->count()) }}
+                                    </div>
+                                </div>
+                            </td>
+
+                            {{-- 2. Priority --}}
+                            <td class="align-middle whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 rounded-full border {{ $prConfig['bg'] }} px-2.5 py-0.5 text-[11px] font-semibold shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $prConfig['dot'] }} shrink-0"></span>
+                                    {{ $p->priority->label() }}
+                                </span>
+                            </td>
+
+                            {{-- 3. Subsidiary --}}
+                            <td class="align-middle">
+                                <span class="text-xs font-semibold text-slate-700 block truncate max-w-[135px]" title="{{ $p->subsidiary->name ?? 'George Steuart' }}">
+                                    {{ $p->subsidiary->name ?? 'George Steuart' }}
+                                </span>
+                            </td>
+
+                            {{-- 4. Your Role Badge --}}
+                            <td class="align-middle whitespace-nowrap">
+                                <div class="flex flex-col items-start gap-1">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full border border-slate-200/90 bg-slate-50/70 text-[11px] font-semibold text-slate-700 shadow-2xs whitespace-nowrap">
+                                        {{ $roleLabel }}
+                                    </span>
+                                    @if($userRole === 'lead' && !$p->isPmAccepted())
+                                        <button type="button" wire:click="openReviewModal({{ $p->id }})" x-on:click.stop class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer whitespace-nowrap">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                            <span>Pending Accept</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+
+                            {{-- 5. Status --}}
+                            <td class="align-middle whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1.5">
+                                    @if($isProjectDelayed && $canViewDelayAnalysis)
+                                        <button
+                                            type="button"
+                                            wire:click="openDelayAnalysis({{ $p->id }})"
+                                            x-on:click.stop
+                                            class="flex h-5.5 w-5.5 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 hover:bg-[#c3122e] hover:text-white hover:border-[#c3122e] transition-all cursor-pointer shadow-2xs shrink-0"
+                                            title="Open Critical Delay Analysis"
+                                            aria-label="Open delay analysis for {{ $p->name }}"
+                                        >
+                                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l3-3 3 2 5-7"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7h3v3"/>
+                                            </svg>
+                                        </button>
+                                    @endif
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border {{ $stConfig['cls'] }} shadow-2xs whitespace-nowrap" title="Auto-computed from task progress &amp; schedule">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $stConfig['dot'] }} shrink-0"></span>
+                                        <span>{{ $p->status->label() }}</span>
+                                    </span>
+                                </div>
+                            </td>
+
+                            {{-- 6. Progress --}}
+                            <td class="align-middle">
+                                <div class="space-y-1 w-full min-w-[88px] max-w-[110px]">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="font-extrabold text-slate-900 font-mono text-[11.5px]">{{ $progress }}%</span>
+                                        <span class="text-[10px] font-semibold text-slate-400">{{ number_format($p->wbsItems->count()) }} Tasks</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                        <div class="h-full rounded-full transition-all duration-500 {{ $progress >= 100 ? 'bg-emerald-500' : ($p->status->value === 'delayed' ? 'bg-rose-500' : 'bg-blue-600') }}" style="width: {{ min(100, max(0, $progress)) }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            {{-- 7. Deadline --}}
+                            <td class="align-middle whitespace-nowrap">
+                                @if($p->deadline)
+                                    <div class="space-y-0.5">
+                                        <span class="block text-xs font-bold {{ $isOverdue ? 'text-rose-600' : 'text-slate-800' }}">
+                                            {{ $p->deadline->format('M d, Y') }}
+                                        </span>
+                                        @if($canViewDelayAnalysis && ($delaySummary['is_delayed'] ?? false))
+                                            <button
+                                                type="button"
+                                                wire:click="openDelayAnalysis({{ $p->id }})"
+                                                x-on:click.stop
+                                                class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer whitespace-nowrap"
+                                                title="Review {{ $delaySummary['project_overdue_days'] ?? 0 }} overdue days"
+                                            >
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                                                <span>{{ $delaySummary['project_overdue_days'] ?? 0 }}d overdue</span>
+                                            </button>
+                                        @elseif(!$isOverdue)
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 whitespace-nowrap">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                                <span>On schedule</span>
                                             </span>
                                         @endif
                                     </div>
-                                </div>
+                                @else
+                                    <span class="text-slate-400 text-xs">—</span>
+                                @endif
                             </td>
 
-                            {{-- Subsidiary --}}
-                            <td class="py-3 px-3 hidden md:table-cell align-middle">
-                                <span class="text-xs text-slate-700 font-bold flex items-center gap-1.5">
-                                    <span class="text-slate-400 text-xs">🏢</span>
-                                    <span class="truncate max-w-[150px]">{{ $p->subsidiary->name ?? 'George Steuart' }}</span>
-                                </span>
+                            {{-- 8. Budget --}}
+                            <td class="align-middle whitespace-nowrap">
+                                @php
+                                    $estBudget = (float) ($p->estimated_budget ?? 0);
+                                    $actCost = (float) ($p->actual_cost ?? 0);
+                                @endphp
+                                @if($estBudget > 0)
+                                    <div class="space-y-0.5">
+                                        <span class="block text-xs font-bold text-slate-800 font-mono">
+                                            Rs. {{ number_format($estBudget, 0) }}
+                                        </span>
+                                        @if($actCost > 0)
+                                            <span class="block text-[10px] font-medium {{ $actCost > $estBudget ? 'text-rose-600' : 'text-slate-400' }} font-mono">
+                                                Spent: Rs. {{ number_format($actCost, 0) }}
+                                            </span>
+                                        @else
+                                            <span class="block text-[10px] font-medium text-slate-400">
+                                                Allocated
+                                            </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-400 font-mono">—</span>
+                                @endif
                             </td>
 
-                            {{-- Your Role Badge --}}
-                            <td class="py-3 px-3 align-middle">
-                                <div class="flex flex-col items-start gap-1 justify-center min-h-[32px]">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black {{ $roleConfig['bg'] }} {{ $roleConfig['text'] }} border {{ $roleConfig['border'] }} shadow-2xs whitespace-nowrap shrink-0">
-
-                                        <span>{{ $roleConfig['label'] }}</span>
-                                    </span>
-                                    {{-- Pending acceptance badge for Lead role --}}
+                            {{-- 9. Action --}}
+                            <td class="align-middle text-right whitespace-nowrap">
+                                <div class="project-row-actions">
+                                    {{-- 1. Review & Accept Button (for pending lead assignment) --}}
                                     @if($userRole === 'lead' && !$p->isPmAccepted())
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[9px] font-black bg-amber-50 text-amber-700 border border-amber-300 animate-pulse whitespace-nowrap">
-                                            ⏳ Pending Accept
-                                        </span>
+                                        <button
+                                            type="button"
+                                            wire:click="openReviewModal({{ $p->id }})"
+                                            x-on:click.stop
+                                            class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                            title="Review &amp; Accept Assignment"
+                                            aria-label="Review and accept assignment for {{ $p->name }}"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </button>
                                     @endif
-                                </div>
-                            </td>
 
-                            {{-- Status --}}
-                            <td class="py-3 px-3 align-middle">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} border {{ $statusConfig['border'] }} whitespace-nowrap shrink-0">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
-                                    <span>{{ $statusConfig['label'] }}</span>
-                                </span>
-                            </td>
-
-                            {{-- Progress --}}
-                            <td class="py-3 px-3 align-middle">
-                                <div class="space-y-1 w-full min-w-[135px] max-w-[180px]">
-                                    <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
-                                        <span class="font-mono text-slate-900 font-black">{{ $progress }}%</span>
-                                        <span class="text-slate-400 text-[9.5px] font-medium truncate pl-1">{{ $p->wbsItems->count() }} Tasks</span>
-                                    </div>
-                                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                                        <div class="h-full rounded-full transition-all duration-500 {{ $progressBarColor }}" style="width:{{ min(100, max(0, $progress)) }}%;"></div>
-                                    </div>
-                                </div>
-                            </td>
-
-                            {{-- Schedule Health --}}
-                            <td class="py-3 px-3 align-middle">
-                                @if($delaySummary['is_delayed'] ?? false)
-                                    <button type="button" wire:click="openDelayAnalysis({{ $p->id }})" aria-label="Review project delay"
-                                        class="inline-flex min-w-[136px] items-center gap-2 rounded-xl border border-rose-200 bg-rose-50/90 hover:bg-rose-100 hover:border-rose-300 px-2.5 py-1.5 text-left text-rose-700 transition cursor-pointer shadow-2xs hover:shadow-xs group/health"
-                                        aria-label="Review delay reasons for {{ $p->name }}">
-                                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-600 text-white shadow-2xs group-hover/health:scale-105 transition-transform">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 4.5h.008v.008H12V16.5z"/></svg>
-                                        </span>
-                                        <span class="min-w-0">
-                                            <span class="block text-[11px] font-extrabold leading-tight text-rose-800">Review delay</span>
-                                            <span class="mt-0.5 block text-[9.5px] font-bold leading-tight text-rose-600">{{ $delaySummary['project_overdue_days'] ?? 0 }}d late · {{ count($delaySummary['issues'] ?? []) }} {{ Str::plural('issue', count($delaySummary['issues'] ?? [])) }}</span>
-                                        </span>
-                                    </button>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                        On schedule
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- Deadline --}}
-                            <td class="py-3 px-3 align-middle">
-                                <div class="flex flex-col gap-1 whitespace-nowrap">
-                                    <span class="text-xs font-extrabold {{ $isOverdue ? 'text-rose-600' : 'text-slate-700' }}">{{ $p->deadline ? $p->deadline->format('M d, Y') : 'No deadline' }}</span>
-                                    @if($isOverdue)
-                                        <span class="text-[9.5px] font-extrabold text-rose-500">{{ abs($daysLeft) }}d overdue</span>
-                                    @elseif($daysLeft !== null && $daysLeft >= 0)
-                                        <span class="text-[9.5px] font-bold text-slate-400">{{ $daysLeft }}d left</span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            {{-- Action --}}
-                            <td class="py-3 pl-2 pr-5 sm:pr-6 text-right align-middle">
-                                @if($userRole === 'lead' && !$p->isPmAccepted() && ($p->project_manager_id === auth()->id() || auth()->user()->isSuperAdmin()))
-                                    <button type="button" wire:click="openReviewModal({{ $p->id }})"
-                                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 shadow-2xs cursor-pointer transition-all active:scale-95 whitespace-nowrap">
-                                        <span>Review &amp; Accept</span>
-                                        <span class="text-[10px]">➔</span>
-                                    </button>
-                                @else
-                                    <a href="{{ route('projects.show', $p) }}"
-                                        class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-[#c3122e] hover:text-white border border-slate-200 shadow-2xs transition-all duration-150 no-underline whitespace-nowrap shrink-0 active:scale-98 group">
-                                        <span>Open Workspace</span>
-                                        <span class="text-[10px] text-slate-400 group-hover:text-white transition-colors">➔</span>
+                                    {{-- 2. Open Workspace Button --}}
+                                    <a
+                                        href="{{ route('projects.show', $p) }}"
+                                        x-on:click.stop
+                                        class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                        title="Open Project Workspace"
+                                        aria-label="Open Workspace for {{ $p->name }}"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                        </svg>
                                     </a>
-                                @endif
+
+                                    {{-- 3. Edit Project Button --}}
+                                    @if($p->project_manager_id === auth()->id() || auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $p->userCan(auth()->user(), 'project_details.edit'))
+                                        <a
+                                            href="{{ route('projects.show', $p) . '?editProject=1' }}"
+                                            x-on:click.stop
+                                            class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                            title="Edit Project"
+                                            aria-label="Edit project {{ $p->name }}"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M4 20h4l10.5-10.5a2.5 2.5 0 00-4-4L4 16v4z"/>
+                                            </svg>
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
+        @if($projects->hasPages())
+            <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50/40">
+                {{ $projects->links() }}
+            </div>
+        @endif
     </div>
-
-    <div class="mt-4">{{ $projects->links() }}</div>
 
     @else
     <div class="bg-white border border-slate-200/90 rounded-3xl p-14 text-center shadow-xs space-y-3">
@@ -541,8 +644,8 @@
             $members = $reviewProject->members->where('pivot.role', 'member');
             $totalTeam = $sponsors->count() + $owners->count() + $committee->count() + $members->count() + 1; // +1 PM
 
-            $durationDays = ($reviewProject->start_date && $reviewProject->deadline) 
-                ? (int) $reviewProject->start_date->diffInDays($reviewProject->deadline) + 1 
+            $durationDays = ($reviewProject->start_date && $reviewProject->deadline)
+                ? (int) $reviewProject->start_date->diffInDays($reviewProject->deadline) + 1
                 : null;
         @endphp
         <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md">
@@ -815,4 +918,6 @@
         </div>
         @endteleport
     @endif
+
+
 </div>

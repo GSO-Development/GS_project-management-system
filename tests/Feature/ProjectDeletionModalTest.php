@@ -117,4 +117,54 @@ class ProjectDeletionModalTest extends TestCase
             ->assertSee('Project Identity &amp; Classification', false)
             ->assertSee('Save All Project Details');
     }
+
+    public function test_inline_status_and_priority_dropdown_confirmation_and_cancel(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $admin->assignRole('super_admin');
+
+        $subsidiary = Subsidiary::create(['code' => 'INL', 'name' => 'Inline Update Sub']);
+        $project = Project::create([
+            'code' => 'INL-PRJ-001',
+            'name' => 'Inline Dropdown Project',
+            'subsidiary_id' => $subsidiary->id,
+            'project_manager_id' => $admin->id,
+            'created_by' => $admin->id,
+            'priority' => 'medium',
+            'status' => 'planning',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ProjectIndex::class)
+            ->assertSet('showInlineConfirmModal', false)
+            // 1. Prompt status change & cancel
+            ->call('promptInlineUpdate', $project->id, 'status', 'in_progress')
+            ->assertSet('showInlineConfirmModal', true)
+            ->assertSet('inlineUpdateField', 'status')
+            ->assertSet('inlineUpdateOldValue', 'planning')
+            ->assertSet('inlineUpdateNewValue', 'in_progress')
+            ->assertSee('Confirm Project Status Change?')
+            ->call('cancelInlineUpdate')
+            ->assertSet('showInlineConfirmModal', false)
+            // Verify status did NOT change after cancel
+            ->tap(fn () => $this->assertSame('planning', $project->fresh()->status->value))
+            // 2. Prompt status change & confirm
+            ->call('promptInlineUpdate', $project->id, 'status', 'in_progress')
+            ->assertSet('showInlineConfirmModal', true)
+            ->call('confirmInlineUpdate')
+            ->assertSet('showInlineConfirmModal', false)
+            ->assertDispatched('toast')
+            ->tap(fn () => $this->assertSame('in_progress', $project->fresh()->status->value))
+            // 3. Prompt priority change & confirm
+            ->call('promptInlineUpdate', $project->id, 'priority', 'critical')
+            ->assertSet('showInlineConfirmModal', true)
+            ->assertSet('inlineUpdateField', 'priority')
+            ->assertSet('inlineUpdateOldValue', 'medium')
+            ->assertSet('inlineUpdateNewValue', 'critical')
+            ->assertSee('Confirm Priority Level Change?')
+            ->call('confirmInlineUpdate')
+            ->assertSet('showInlineConfirmModal', false)
+            ->assertDispatched('toast')
+            ->tap(fn () => $this->assertSame('critical', $project->fresh()->priority->value));
+    }
 }

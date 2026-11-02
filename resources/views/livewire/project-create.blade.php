@@ -79,6 +79,7 @@
             height: 46px;
             padding: 0 14px;
         }
+        .project-create .project-budget-input { padding-left: 48px; }
         .project-create .project-textarea-input {
             padding: 12px 14px;
             resize: vertical;
@@ -951,6 +952,20 @@
                             </span>
                         </div>
                     @endif
+
+                    {{-- Estimated Budget --}}
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between gap-3">
+                            <label for="project-estimated-budget" class="block text-xs font-bold text-slate-700">Estimated Budget (LKR)</label>
+                            <span class="text-xs font-medium text-slate-400">Optional</span>
+                        </div>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-xs font-bold text-slate-400">Rs.</span>
+                            <input id="project-estimated-budget" type="number" min="0" step="0.01" inputmode="decimal" wire:model.blur="estimated_budget" placeholder="e.g. 250000.00" class="project-field-input project-budget-input" aria-describedby="project-budget-help">
+                        </div>
+                        <p id="project-budget-help" class="text-[11px] font-medium text-slate-400">Enter the planned total project budget.</p>
+                        @error('estimated_budget') <span class="text-xs text-[#c3122e] font-bold block">{{ $message }}</span> @enderror
+                    </div>
 
                 </div>
 </div>

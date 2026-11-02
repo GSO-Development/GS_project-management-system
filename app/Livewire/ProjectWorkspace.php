@@ -30,9 +30,20 @@ class ProjectWorkspace extends Component
 
     public function setTab(string $tab): void
     {
+        if ($tab === 'sheet' && !$this->project->canUserManage(auth()->user())) {
+            $this->activeTab = 'wbs';
+            return;
+        }
+
         $this->activeTab = $tab;
     }
 
+    public function updatedActiveTab(string $tab): void
+    {
+        if ($tab === 'sheet' && !$this->project->canUserManage(auth()->user())) {
+            $this->activeTab = 'wbs';
+        }
+    }
     #[On('closeTaskSheet')]
     public function closeTaskSheet(): void
     {
@@ -97,7 +108,7 @@ class ProjectWorkspace extends Component
     public ?string $editCategory = null;
     public ?int $editProjectManagerId = null;
     public ?string $editDescription = null;
-    public ?string $editPriority = null;
+
     public ?string $editStatus = null;
     public ?string $editStartDate = null;
     public ?string $editDeadline = null;
@@ -117,6 +128,16 @@ class ProjectWorkspace extends Component
     {
         $this->editWbsBreakdownType = 'template';
         $this->editTemplateId = $templateId;
+    }
+
+    public function chooseBlankWbs(): void
+    {
+        $this->selectEditBlankCanvas();
+    }
+
+    public function chooseTemplateWbs(int $templateId): void
+    {
+        $this->selectEditTemplate($templateId);
     }
 
     public bool $showSetupModal = false;
@@ -146,7 +167,7 @@ class ProjectWorkspace extends Component
     public ?string $reassignCode = null;
     public ?int $reassignSubsidiaryId = null;
     public ?string $reassignCategory = 'General';
-    public ?string $reassignPriority = 'medium';
+
     public ?string $reassignStartDate = null;
     public ?string $reassignDeadline = null;
     public ?float $reassignEstimatedBudget = null;
@@ -225,7 +246,7 @@ class ProjectWorkspace extends Component
         $this->reassignCode           = $this->project->code;
         $this->reassignSubsidiaryId   = $this->project->subsidiary_id;
         $this->reassignCategory       = $this->project->category ?? 'General';
-        $this->reassignPriority       = $this->project->priority?->value ?? 'medium';
+
         $this->reassignStartDate      = $this->project->start_date ? $this->project->start_date->format('Y-m-d') : now()->format('Y-m-d');
         $this->reassignDeadline       = $this->project->deadline ? $this->project->deadline->format('Y-m-d') : now()->addMonths(3)->format('Y-m-d');
         $this->reassignEstimatedBudget = $this->project->estimated_budget ? (float) $this->project->estimated_budget : 0;
@@ -250,7 +271,7 @@ class ProjectWorkspace extends Component
         $this->reassignCode           = '';
         $this->reassignSubsidiaryId   = null;
         $this->reassignCategory       = 'General';
-        $this->reassignPriority       = 'medium';
+
         $this->reassignStartDate      = null;
         $this->reassignDeadline       = null;
         $this->reassignEstimatedBudget= null;
@@ -319,7 +340,7 @@ class ProjectWorkspace extends Component
             'reassignStartDate'       => 'required|date',
             'reassignDeadline'        => 'required|date|after_or_equal:reassignStartDate',
             'reassignEstimatedBudget' => 'nullable|numeric|min:0',
-            'reassignPriority'        => 'required|string',
+
         ], [
             'reassignName.required'            => 'Please enter the project name.',
             'reassignCode.required'            => 'Please enter the project code.',
@@ -339,7 +360,7 @@ class ProjectWorkspace extends Component
             'description'        => $this->reassignDescription,
             'subsidiary_id'      => $this->reassignSubsidiaryId,
             'category'           => $this->reassignCategory,
-            'priority'           => $this->reassignPriority,
+
             'start_date'         => $this->reassignStartDate,
             'deadline'           => $this->reassignDeadline,
             'estimated_budget'   => $this->reassignEstimatedBudget ?: 0,
@@ -462,7 +483,7 @@ class ProjectWorkspace extends Component
         $this->editCategory = $this->project->category ?? 'Corporate Strategy';
         $this->editProjectManagerId = $this->project->project_manager_id;
         $this->editDescription = $this->project->description ?? '';
-        $this->editPriority = $this->project->priority ? $this->project->priority->value : 'medium';
+
         $this->editStatus = $this->project->status ? $this->project->status->value : 'planning';
         $this->editStartDate = $this->project->start_date ? $this->project->start_date->format('Y-m-d') : null;
         $this->editDeadline = $this->project->deadline ? $this->project->deadline->format('Y-m-d') : null;
@@ -488,8 +509,8 @@ class ProjectWorkspace extends Component
             'editCategory' => 'nullable|string|max:100',
             'editProjectManagerId' => 'nullable|exists:users,id',
             'editDescription' => 'nullable|string',
-            'editPriority' => 'required|string',
-            'editStatus' => 'required|string',
+
+            'editStatus' => 'nullable|string',
             'editStartDate' => 'nullable|date',
             'editDeadline' => 'nullable|date',
             'editEstimatedBudget' => 'nullable|numeric|min:0',
@@ -507,13 +528,8 @@ class ProjectWorkspace extends Component
         }
         $this->project->category = $this->editCategory ?: 'Corporate Strategy';
         
-        // If Project Manager changed by PMO Admin
-        if ($this->editProjectManagerId && $this->editProjectManagerId != $this->project->project_manager_id && ($user->isSuperAdmin() || $user->hasRole('pmo_admin'))) {
-            $this->project->project_manager_id = $this->editProjectManagerId;
-            if (!$this->project->members()->where('user_id', $this->editProjectManagerId)->exists()) {
-                $this->project->members()->attach($this->editProjectManagerId, ['role' => 'lead']);
-            }
-        }
+        // Project Manager cannot be changed during edit
+        $this->editProjectManagerId = $this->project->project_manager_id;
 
         $oldBreakdownType = $this->project->wbs_breakdown_type;
         $oldTemplateId = $this->project->template_id;
@@ -524,8 +540,8 @@ class ProjectWorkspace extends Component
         $blueprintChanged = ($oldBreakdownType !== $newBreakdownType) || ($newBreakdownType === 'template' && (int)$oldTemplateId !== (int)$newTemplateId);
 
         $this->project->description = $this->editDescription;
-        $this->project->priority = $this->editPriority;
-        $this->project->status = $this->editStatus;
+
+        // $this->project->status is auto-managed by tasks
         $this->project->start_date = $this->editStartDate ?: null;
         $this->project->deadline = $this->editDeadline ?: null;
         $this->project->wbs_breakdown_type = $newBreakdownType;
@@ -559,6 +575,7 @@ class ProjectWorkspace extends Component
             $this->project->touch();
         }
 
+        $this->project->syncAutoPriority();
         $this->project->refresh();
         $this->dispatch('wbsUpdated');
         $this->dispatch('refreshWbs');
@@ -840,6 +857,10 @@ class ProjectWorkspace extends Component
                 return redirect()->to($targetRoute);
             }
         }
+        if (request()->boolean('editProject') && $user && ($project->project_manager_id === $user->id || $user->isPmoAdmin() || $project->userCan($user, 'project_details.edit'))) {
+            $this->openEditProjectModal();
+        }
+
     }
 
     public function postComment()

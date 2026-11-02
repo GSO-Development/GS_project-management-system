@@ -43,10 +43,14 @@ class ManageTemplates extends Component
     public function selectTemplateForProject(int $id)
     {
         $this->checkSuperAdmin();
-        ProjectTemplate::findOrFail($id);
-        session()->put('project_create_selected_template_id', $id);
+        abort_unless($this->selectForProject && session()->has('project_create_draft'), 403);
 
-        return redirect()->to(route('projects.create').'#project-blueprint');
+        ProjectTemplate::findOrFail($id);
+
+        return redirect()->route('templates.manage', [
+            'template' => $id,
+            'select_for' => 'project',
+        ]);
     }
 
     public function returnToProjectCreate()
@@ -200,7 +204,6 @@ class ManageTemplates extends Component
         }
 
         $templates = $query->get();
-
         return view('livewire.manage-templates', [
             'templates' => $templates,
         ])->layout('layouts.app');

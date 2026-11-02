@@ -170,6 +170,38 @@ it('opens the delay analysis popup from user MyLeadProjects list', function () {
         ->assertSee('Why is this project delayed?');
 });
 
+it('limits user delay analysis to projects managed by that user', function () {
+    $projectManager = User::factory()->create();
+    $teamMember = User::factory()->create();
+    $subsidiary = Subsidiary::create(['code' => 'SCP', 'name' => 'Scoped Delay Subsidiary']);
+    $project = Project::create([
+        'code' => 'SCP-001',
+        'name' => 'Member Visible Delayed Project',
+        'subsidiary_id' => $subsidiary->id,
+        'project_manager_id' => $projectManager->id,
+        'created_by' => $projectManager->id,
+        'pm_accepted' => true,
+        'deadline' => now()->subDays(2),
+        'status' => 'in_progress',
+    ]);
+    $project->members()->attach($teamMember->id, ['role' => 'member']);
+
+    WbsItem::create([
+        'project_id' => $project->id,
+        'title' => 'Private PM delay task',
+        'end_date' => now()->subDays(2),
+        'status' => 'in_progress',
+        'progress' => 20,
+    ]);
+
+    $component = \Livewire\Livewire::actingAs($teamMember)
+        ->test(\App\Livewire\MyLeadProjects::class)
+        ->assertSee('Member Visible Delayed Project')
+        ->assertDontSee('Open delay analysis for Member Visible Delayed Project');
+
+    $component->call('openDelayAnalysis', $project->id)->assertForbidden();
+});
+
 it('filters overdue projects on MyLeadProjects', function () {
     $user = User::factory()->create();
     $subsidiary = Subsidiary::create(['code' => 'FLT', 'name' => 'Filter Subsidiary']);

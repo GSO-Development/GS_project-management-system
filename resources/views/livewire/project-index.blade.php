@@ -26,33 +26,29 @@
         html:has(.delay-analysis-backdrop),
         body:has(.delay-analysis-backdrop),
         html:has(.delete-project-backdrop),
-        body:has(.delete-project-backdrop) { overflow: hidden !important; }
-        .project-approval-register { table-layout: fixed; min-width: 1180px; width: 100%; }
-        .project-approval-register th { padding: 14px 12px; text-align: left; white-space: nowrap; }
-        .project-approval-register td { padding: 16px 12px; vertical-align: middle; }
-        .project-approval-register th:first-child, .project-approval-register td:first-child { padding-inline: 8px; text-align: center; }
-        .project-approval-register .project-name-link { display: block; font-size: 13px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
-        .project-approval-register .project-metadata { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 5px; }
-        .project-approval-register .project-code { max-width: 100%; overflow-wrap: anywhere; white-space: normal; line-height: 1.5; }
-        .project-approval-register .project-subsidiary-name, .project-approval-register .project-manager-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }
-        .project-approval-register .project-manager-name { flex: 1; }
-        .project-approval-register .project-status-pill { max-width: 100%; gap: 5px; padding: 4px 8px; font-size: 11px; line-height: 1.3; }
-        .project-approval-register .project-progress { display: grid; gap: 5px; width: 100%; min-width: 0; }
-        .project-approval-register .project-progress-value { font-size: 12px; font-weight: 750; line-height: 1.2; color: #0f172a; }
-        .project-approval-register .project-task-count { font-size: 11px; line-height: 1.4; color: #64748b; }
-        .project-approval-register .project-deadline-cell { white-space: normal; }
-        .project-approval-register .project-deadline-alert { max-width: 100%; flex-wrap: wrap; gap: 4px; }
-        .project-approval-register .project-approval-cell { min-width: 0; }
-        .project-approval-register .project-approval-cell p, .project-approval-register .project-approval-cell summary { overflow-wrap: anywhere; white-space: normal; }
-        .project-approval-register .project-approval-actions { display: flex; flex-wrap: wrap; gap: 6px 10px; }
-        .project-approval-register .project-approval-actions button { text-align: left; line-height: 1.5; }
-        .project-approval-register th:last-child, .project-approval-register td:last-child:not([colspan]) { position: sticky; right: 0; background: #fff; box-shadow: -1px 0 0 #edf0f4; z-index: 2; }
-        .project-approval-register th:last-child { z-index: 3; background: #f8fafc; text-align: right; }
-        .project-approval-register tbody tr:hover td:last-child { background: #fafafa; }
-        .project-approval-register .project-row-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 72px; margin-left: auto; }
-        .projects-drag-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
-        .projects-drag-scroll::-webkit-scrollbar { height: 8px; }
-        .projects-drag-scroll::-webkit-scrollbar-thumb { border: 2px solid #f8fafc; border-radius: 8px; background: #cbd5e1; }
+        body:has(.delete-project-backdrop),
+        html:has(.inline-confirm-backdrop),
+        body:has(.inline-confirm-backdrop) { overflow: hidden !important; }
+        .project-approval-register { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .project-approval-register thead th { padding: 13px 12px !important; height: auto !important; text-align: left; white-space: nowrap; font-size: 10.5px !important; font-weight: 700 !important; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.055em !important; background: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important; }
+        .project-approval-register thead th:first-child { padding-left: 18px !important; position: sticky; left: 0; z-index: 3; background: #f8fafc !important; box-shadow: 1px 0 0 #e2e8f0; }
+        .project-approval-register thead th:last-child { padding-right: 18px !important; text-align: right !important; }
+        .project-approval-register tbody tr { transition: background-color 150ms ease; background-color: #ffffff; }
+        .project-approval-register tbody td { padding: 14px 12px !important; vertical-align: middle; background-color: #ffffff; border-bottom: 1px solid #f1f5f9 !important; transition: background-color 150ms ease; }
+        .project-approval-register tbody tr:last-child td { border-bottom: none !important; }
+        .project-approval-register tbody td:first-child { padding-left: 18px !important; position: sticky; left: 0; z-index: 1; background-color: #ffffff; box-shadow: 1px 0 0 #f1f5f9; }
+        .project-approval-register tbody td:last-child { padding-right: 18px !important; }
+        .project-approval-register tbody tr:hover td { background-color: #f8fafc !important; }
+        .project-approval-register tbody tr.project-row-delayed td { background-color: #fffafb !important; }
+        .project-approval-register tbody tr.project-row-delayed td:first-child { background-color: #fffafb !important; box-shadow: inset 3px 0 0 #c3122e, 1px 0 0 #ffe4e6 !important; }
+        .project-approval-register tbody tr.project-row-delayed:hover td { background-color: #fff1f2 !important; }
+        .project-approval-register tbody tr.project-row-delayed:hover td:first-child { background-color: #fff1f2 !important; }
+        .project-approval-register .project-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: nowrap; margin-left: auto; }
+        .projects-drag-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        .projects-drag-scroll::-webkit-scrollbar { height: 6px; }
+        .projects-drag-scroll::-webkit-scrollbar-track { background: transparent; }
+        .projects-drag-scroll::-webkit-scrollbar-thumb { border: 1px solid transparent; border-radius: 6px; background: #cbd5e1; }
+        .projects-drag-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 
     <!-- Flash Success / Error Toast Banners -->
@@ -78,36 +74,36 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-4 mb-6">
+    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-2 mb-2.5">
         <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
             <!-- Title -->
             <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                     Projects Portfolio
                 </h1>
-                <p class="text-xs text-slate-500 font-medium mt-1">Governance, delivery health and schedule visibility across active initiatives.</p>
+
             </div>
 
             <!-- Top Right Action Controls -->
-            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <!-- Subsidiary Filter Dropdown -->
-                <div class="relative min-w-[170px] sm:min-w-[210px]">
+                <div class="relative min-w-[150px] sm:min-w-[180px]">
                     <select wire:model.live="subsidiaryFilter"
-                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all shadow-2xs truncate">
+                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-7 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-all shadow-2xs truncate">
                         <option value="all">All Subsidiaries</option>
                         @foreach($subsidiaries as $sub)
                             <option value="{{ $sub->id }}">{{ $sub->name }}</option>
                         @endforeach
                     </select>
-                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </div>
 
                 <!-- Filter Toggle Button -->
                 <button @click="showFilters = !showFilters" type="button"
-                        class="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95">
+                        class="px-3 py-1 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95">
                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                     </svg>
@@ -120,8 +116,8 @@
                 <!-- New Project CTA Button -->
                 @if(auth()->user()?->canCreateProject())
                     <a href="{{ route('projects.create') }}"
-                       class="px-4 py-2 bg-[#c3122e] hover:bg-[#a00e25] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-[#c3122e]/20 cursor-pointer active:scale-95 shrink-0 no-underline">
-                        <svg class="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       class="px-3 py-1 bg-[#c3122e] hover:bg-[#a00e25] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-[#c3122e]/20 cursor-pointer active:scale-95 shrink-0 no-underline">
+                        <svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                         </svg>
                         <span>Add Project</span>
@@ -132,23 +128,23 @@
 
         <!-- View Tabs Line (Matching Uploaded UI Mockup with bottom border underline active indicator) -->
         <div class="projects-view-tabs border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
-            <div class="flex items-center gap-6 text-xs whitespace-nowrap">
+            <div class="flex items-center gap-5 text-xs whitespace-nowrap">
                 <!-- Table View Tab -->
                 <button wire:click="setViewMode('table')" type="button"
-                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="py-1.5 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
                     <span>Table View</span>
                 </button>
 
                 <!-- Portfolio Gantt Tab -->
                 <button wire:click="setViewMode('gantt')" type="button"
-                        class="py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'gantt' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="py-1.5 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $viewMode === 'gantt' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
                     <span>Portfolio Gantt</span>
                 </button>
 
                 @if(auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('pmo_admin'))
                     <!-- All Tasks Tab (Admin / PMO) -->
                     <a href="{{ route('all-tasks.index') }}"
-                       class="py-3 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-900 font-semibold transition-all cursor-pointer flex items-center gap-1.5 no-underline">
+                       class="py-1.5 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-900 font-semibold transition-all cursor-pointer flex items-center gap-1.5 no-underline">
                         <span>All Tasks</span>
                         @if($totalStuckTasksCount > 0)
                             <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80">
@@ -240,7 +236,7 @@
         {{-- ── Projects Table Container ── --}}
 
         {{-- ── Projects Table Container ── --}}
-        <div class="projects-directory-table bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
+        <div class="projects-directory-table bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
             <div class="projects-drag-scroll w-full overflow-x-auto scrollbar-thin"
                 x-data="{
                     drag: null,
@@ -280,82 +276,88 @@
                 </style>
                 <table class="project-approval-register w-full text-left border-collapse">
                     <colgroup>
-                        <col style="width: 44px">
-                        <col>
-                        <col style="width: 140px">
-                        <col style="width: 160px">
-                        <col style="width: 126px">
-                        <col style="width: 108px">
-                        <col style="width: 150px">
-                        <col style="width: 178px">
-                        <col style="width: 96px">
+                        <col style="min-width: 155px">  {{-- 1. Project & Code --}}
+                        <col style="width: 85px">        {{-- 2. Priority --}}
+                        <col style="width: 125px">       {{-- 3. Subsidiary --}}
+                        <col style="width: 140px">       {{-- 4. Project Manager --}}
+                        <col style="width: 115px">       {{-- 5. Status --}}
+                        <col style="width: 100px">       {{-- 6. Progress --}}
+                        <col style="width: 105px">       {{-- 7. Deadline --}}
+                        <col style="width: 105px">       {{-- 8. Approval Status --}}
+                        <col style="width: 110px">       {{-- 9. Budget --}}
+                        <col style="width: 92px">        {{-- 10. Action --}}
                     </colgroup>
                     <thead>
-                        <tr class="bg-slate-50/70 border-b border-slate-200/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider select-none">
-                            <th class="py-3.5 pl-5 sm:pl-6 pr-2 text-center whitespace-nowrap">#</th>
-                            <th class="py-3.5 pl-2 pr-3">Project</th>
-                            <th class="py-3.5 px-3">Subsidiary</th>
-                            <th class="py-3.5 px-3">Project Manager</th>
-                            <th class="py-3.5 px-3">Status</th>
-                            <th class="py-3.5 px-3">Progress</th>
-                            <th class="py-3.5 px-3 whitespace-nowrap">Deadline</th>
-                            <th class="py-3.5 px-3">Approval</th>
-                            <th class="py-3.5 pl-2 pr-5 sm:pr-6 text-right whitespace-nowrap">Action</th>
+                        <tr class="select-none">
+                            <th>Project</th>
+                            <th>Priority</th>
+                            <th>Subsidiary</th>
+                            <th>Project Manager</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Deadline</th>
+                            <th>Approval Status</th>
+                            <th>Budget</th>
+                            <th class="text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs bg-white">
+                    <tbody>
                         @forelse($projects as $project)
-                            @php $delaySummary = $delaySummaries[$project->id] ?? ['is_delayed' => false, 'issues' => []]; @endphp
-                            <tr class="{{ $delaySummary['is_delayed'] ? 'project-row-delayed' : '' }} hover:bg-slate-50/60 transition-colors duration-150 group">
-                                <!-- Sequential project number (continues across pagination) -->
-                                <td class="py-3.5 pl-5 sm:pl-6 pr-2 text-center align-middle">
-                                    <span class="font-mono text-[11px] font-semibold text-slate-400 tabular-nums">
-                                        {{ ($projects->firstItem() ?? 1) + $loop->index }}
-                                    </span>
-                                </td>
-
-                                <!-- Project Name & Clean Metadata -->
-                                <td class="py-3.5 pl-2 pr-3 align-middle">
-                                    <div class="min-w-0 space-y-1">
-                                        <a href="{{ route('projects.show', $project->id) }}" class="project-name-link font-bold text-slate-900 hover:text-[#c3122e] transition-colors no-underline" title="Open {{ $project->name }} workspace">
-                                            {{ $project->name }}
-                                        </a>
-                                        <div class="project-metadata text-[11px] text-slate-500">
-                                            <span class="project-code font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60 leading-none">
+                            @php
+                                $delaySummary = $delaySummaries[$project->id] ?? ['is_delayed' => false, 'issues' => []];
+                                $isProjectDelayed = ($project->status->value === 'delayed' || !empty($delaySummary['is_delayed']));
+                            @endphp
+                            <tr class="{{ $isProjectDelayed ? 'project-row-delayed' : '' }} group">
+                                <!-- 1. Project Title & Code -->
+                                <td class="align-middle">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7.5 h-7.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-400 shrink-0 shadow-2xs group-hover:border-slate-300 transition-colors">
+                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <a href="{{ route('projects.show', $project->id) }}" class="font-bold text-slate-900 hover:text-[#c3122e] transition-colors text-[12.5px] leading-snug line-clamp-1 block no-underline" title="Open {{ $project->name }} workspace">
+                                                {{ $project->name }}
+                                            </a>
+                                            <span class="font-mono text-[10px] font-medium text-slate-400 leading-tight block mt-0.5">
                                                 {{ $project->code }}
-                                            </span>
-                                            <span class="text-slate-300">•</span>
-                                            @php
-                                                $priorityDot = match($project->priority->value ?? 'medium') {
-                                                    'urgent', 'critical' => 'bg-rose-500',
-                                                    'high'               => 'bg-amber-500',
-                                                    'medium'             => 'bg-amber-400',
-                                                    default              => 'bg-slate-400',
-                                                };
-                                            @endphp
-                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 capitalize">
-                                                <span class="w-1.5 h-1.5 rounded-full {{ $priorityDot }}"></span>
-                                                {{ $project->priority->label() }}
                                             </span>
                                         </div>
                                     </div>
                                 </td>
 
-                                <!-- Subsidiary -->
-                                <td class="py-3.5 px-3 align-middle">
-                                    <span class="project-subsidiary-name text-xs font-medium text-slate-600 block" title="{{ $project->subsidiary->name ?? '—' }}">
+                                <!-- 2. Priority -->
+                                <td class="align-middle whitespace-nowrap">
+                                    @php
+                                        $prConfig = match($project->priority->value ?? 'medium') {
+                                            'urgent', 'critical' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200/80', 'dot' => 'bg-rose-500 animate-pulse'],
+                                            'high'               => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200/80', 'dot' => 'bg-amber-500'],
+                                            'medium'             => ['bg' => 'bg-slate-50 text-slate-700 border-slate-200/80', 'dot' => 'bg-slate-400'],
+                                            default              => ['bg' => 'bg-slate-50 text-slate-500 border-slate-200/80', 'dot' => 'bg-slate-400'],
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border {{ $prConfig['bg'] }} px-2.5 py-0.5 text-[11px] font-semibold shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $prConfig['dot'] }} shrink-0"></span>
+                                        {{ $project->priority->label() }}
+                                    </span>
+                                </td>
+
+                                <!-- 3. Subsidiary -->
+                                <td class="align-middle">
+                                    <span class="text-xs font-semibold text-slate-700 block truncate max-w-[135px]" title="{{ $project->subsidiary->name ?? '—' }}">
                                         {{ $project->subsidiary->name ?? '—' }}
                                     </span>
                                 </td>
 
-                                <!-- Project Manager -->
-                                <td class="py-3.5 px-3 align-middle">
+                                <!-- 4. Project Manager -->
+                                <td class="align-middle whitespace-nowrap">
                                     @if($project->projectManager)
-                                        <div class="flex items-center gap-2 min-w-0">
-                                            <div class="w-6 h-6 rounded-full bg-rose-50 text-[#c3122e] font-extrabold text-[10px] flex items-center justify-center shrink-0 border border-rose-100 shadow-2xs">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-slate-200 shadow-2xs">
                                                 {{ strtoupper(substr($project->projectManager->name, 0, 1)) }}
                                             </div>
-                                            <span class="project-manager-name text-xs font-semibold text-slate-700" title="{{ $project->projectManager->name }}">
+                                            <span class="text-xs font-semibold text-slate-800 truncate max-w-[120px]" title="{{ $project->projectManager->name }}">
                                                 {{ $project->projectManager->name }}
                                             </span>
                                         </div>
@@ -364,157 +366,176 @@
                                     @endif
                                 </td>
 
-                                <!-- Status -->
-                                <td class="py-3.5 px-3 align-middle">
+                                <!-- 5. Execution Status -->
+                                <td class="align-middle whitespace-nowrap">
                                     @php
                                         $stConfig = match($project->status->value) {
-                                            'completed'    => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200/60', 'dot' => 'bg-emerald-500', 'bar' => 'bg-emerald-500'],
-                                            'in_progress'  => ['cls' => 'bg-blue-50 text-blue-700 border-blue-200/60',         'dot' => 'bg-blue-500 animate-pulse', 'bar' => 'bg-blue-500'],
-                                            'at_risk'      => ['cls' => 'bg-amber-50 text-amber-800 border-amber-200/70',       'dot' => 'bg-amber-500 animate-pulse', 'bar' => 'bg-amber-500'],
-                                            'planning'     => ['cls' => 'bg-sky-50 text-sky-700 border-sky-200/60',             'dot' => 'bg-sky-500', 'bar' => 'bg-sky-500'],
-                                            'on_hold'      => ['cls' => 'bg-slate-100 text-slate-600 border-slate-200/60',       'dot' => 'bg-slate-400', 'bar' => 'bg-slate-400'],
-                                            'under_review' => ['cls' => 'bg-purple-50 text-purple-700 border-purple-200/60',    'dot' => 'bg-purple-500', 'bar' => 'bg-purple-500'],
-                                            'delayed'      => ['cls' => 'bg-rose-50 text-rose-700 border-rose-200/60',          'dot' => 'bg-rose-500 animate-pulse', 'bar' => 'bg-rose-500'],
-                                            default        => ['cls' => 'bg-slate-100 text-slate-500 border-slate-200/60',       'dot' => 'bg-slate-400', 'bar' => 'bg-slate-400'],
+                                            'completed'    => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500'],
+                                            'in_progress'  => ['cls' => 'bg-blue-50 text-blue-700 border-blue-200/80',         'dot' => 'bg-blue-500 animate-pulse'],
+                                            'at_risk'      => ['cls' => 'bg-amber-50 text-amber-800 border-amber-200/80',       'dot' => 'bg-amber-500 animate-pulse'],
+                                            'planning'     => ['cls' => 'bg-sky-50 text-sky-700 border-sky-200/80',             'dot' => 'bg-sky-500'],
+                                            'on_hold'      => ['cls' => 'bg-slate-100 text-slate-600 border-slate-200/80',       'dot' => 'bg-slate-400'],
+                                            'under_review' => ['cls' => 'bg-purple-50 text-purple-700 border-purple-200/80',    'dot' => 'bg-purple-500'],
+                                            'delayed'      => ['cls' => 'bg-rose-50 text-rose-700 border-rose-200/80',          'dot' => 'bg-rose-500 animate-pulse'],
+                                            default        => ['cls' => 'bg-slate-100 text-slate-500 border-slate-200/80',       'dot' => 'bg-slate-400'],
                                         };
                                     @endphp
-                                    <span class="project-status-pill inline-flex items-center rounded-full font-bold border {{ $stConfig['cls'] }} whitespace-nowrap">
-                                        <span class="w-1.5 h-1.5 rounded-full {{ $stConfig['dot'] }} shrink-0"></span>
-                                        {{ $project->status->label() }}
-                                    </span>
-                                </td>
-
-                                <!-- Progress -->
-                                <td class="py-3.5 px-3 align-middle">
-                                    <div class="project-progress">
-                                        <span class="project-progress-value">{{ $project->overall_progress }}%</span>
-                                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-label="Project progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ min(100, max(0, $project->overall_progress)) }}">
-                                            <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress >= 100 ? 'bg-emerald-500' : $stConfig['bar'] }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
-                                        </div>
-                                        <span class="project-task-count">{{ number_format($project->wbsItems->count()) }} Tasks</span>
-                                    </div>
-                                </td>
-
-                                <!-- Deadline -->
-                                <td class="project-deadline-cell py-3.5 px-3 align-middle">
-                                    @if($project->deadline)
-                                        @php $isOverdue = $project->deadline->isPast() && $project->overall_progress < 100; @endphp
-                                        <span class="block text-xs font-extrabold tracking-tight {{ $isOverdue ? 'text-[#d10a32]' : 'text-slate-700' }}">
-                                            {{ $project->deadline->format('M d, Y') }}
-                                        </span>
-                                        @if($delaySummary['is_delayed'])
-                                            <a
-                                                href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
-                                                class="project-deadline-alert group/delay mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-600 no-underline transition-colors hover:text-[#a80e27]"
-                                                title="Review delayed tasks and reasons"
-                                                aria-label="Review {{ $delaySummary['project_overdue_days'] ?? 0 }} overdue days and {{ count($delaySummary['issues'] ?? []) }} delay issues for {{ $project->name }}"
-                                            >
-                                                <span class="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
-                                                    <span class="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-60 critical-alert-flash"></span>
-                                                    <span class="relative m-auto inline-flex h-2 w-2 rounded-full bg-[#d10a32] ring-2 ring-rose-100"></span>
-                                                </span>
-                                                <span>{{ $delaySummary['project_overdue_days'] ?? 0 }}d overdue</span>
-                                                <span class="text-rose-300">&bull;</span>
-                                                <span>{{ count($delaySummary['issues'] ?? []) }} {{ Str::plural('issue', count($delaySummary['issues'] ?? [])) }}</span>
-                                                <svg class="h-3 w-3 translate-x-0 opacity-50 transition-all group-hover/delay:translate-x-0.5 group-hover/delay:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                            </a>
-                                        @elseif(!$isOverdue)
-                                            <span class="mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                                On schedule
-                                            </span>
-                                        @endif
-                                    @else
-                                        <span class="text-slate-400 text-xs">—</span>
-                                    @endif
-                                </td>
-
-                                <!-- Assignment approval and formal requests -->
-                                <td class="py-3.5 px-3 align-middle project-approval-cell">
-                                    @php
-                                        $leadApproval = $project->approvalRequests->firstWhere('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
-                                        $leadState = $project->pm_accepted ? 'approved' : ($project->isPmRejected() ? 'rejected' : ($leadApproval?->status->value ?? 'pending'));
-                                        $leadColor = match($leadState) {
-                                            'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                            'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
-                                            'pending' => 'bg-amber-50 text-amber-800 border-amber-200',
-                                            default => 'bg-slate-50 text-slate-600 border-slate-200',
-                                        };
-                                        $formalRequests = $project->approvalRequests->where('request_type', '!=', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
-                                        $pendingRequests = $formalRequests->where('status', \App\Enums\ApprovalStatus::PENDING)->count();
-                                        $rejectedRequests = $formalRequests->where('status', \App\Enums\ApprovalStatus::REJECTED);
-                                    @endphp
-                                    <div class="space-y-2">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold {{ $leadColor }}">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                                            {{ ucfirst(str_replace('_', ' ', $leadState)) }}
-                                        </span>
-                                        @if($project->pm_rejection_reason || ($leadState === 'rejected' && $leadApproval?->review_comment))
-                                            <details class="text-[11px] leading-relaxed text-rose-700">
-                                                <summary class="cursor-pointer"><strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($project->pm_rejection_reason ?: $leadApproval->review_comment, 55) }}</summary>
-                                                <p class="mt-1">{{ $project->pm_rejection_reason ?: $leadApproval->review_comment }}</p>
-                                            </details>
-                                        @endif
-                                        @if($pendingRequests)
-                                            <p class="text-[11px] font-semibold text-amber-700">{{ $pendingRequests }} pending {{ \Illuminate\Support\Str::plural('request', $pendingRequests) }}</p>
-                                        @endif
-                                        @if($rejectedRequests->isNotEmpty())
-                                            <details class="text-[11px] text-rose-700">
-                                                <summary class="cursor-pointer">{{ $rejectedRequests->count() }} rejected {{ \Illuminate\Support\Str::plural('request', $rejectedRequests->count()) }}</summary>
-                                                @foreach($rejectedRequests as $rejectedRequest)
-                                                    <p class="mt-1 whitespace-normal break-words"><strong>{{ $rejectedRequest->request_type->label() }}:</strong> {{ $rejectedRequest->review_comment ?: 'No reason recorded.' }}</p>
-                                                @endforeach
-                                            </details>
-                                        @endif
-                                        <div class="project-approval-actions">
-                                            <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }} })" class="text-[11px] font-bold text-[#c3122e] hover:underline">Review</button>
-                                            @if($project->isPmRejected() && auth()->user()->isPmoAdmin())
-                                                <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'reassign' })" class="text-[11px] font-bold text-amber-700 hover:underline">Reassign PM</button>
-                                            @elseif($project->isPendingPmAcceptance() && $project->canApproveAssignment(auth()->user()))
-                                                <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'accept' })" wire:confirm="Approve this project manager assignment?" class="text-[11px] font-bold text-emerald-700 hover:underline">Approve</button>
-                                                <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'reject' })" class="text-[11px] font-bold text-rose-700 hover:underline">Reject</button>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- Action Buttons -->
-                                <td class="py-3.5 pl-2 pr-5 sm:pr-6 align-middle text-right whitespace-nowrap">
-                                    <div class="project-row-actions">
-                                        @if($delaySummary['is_delayed'])
+                                    <div class="inline-flex items-center gap-1.5">
+                                        @if($isProjectDelayed)
                                             <a
                                                 href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
                                                 x-on:click.stop
-                                                class="group/critical relative flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-[#d10a32] shadow-sm shadow-rose-100 transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:bg-[#d10a32] hover:text-white hover:shadow-md hover:shadow-rose-200"
+                                                class="flex h-5.5 w-5.5 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 hover:bg-[#c3122e] hover:text-white hover:border-[#c3122e] transition-all cursor-pointer shadow-2xs shrink-0"
                                                 title="Open Critical Delay Analysis"
                                                 aria-label="Open critical delay analysis for {{ $project->name }}"
                                             >
-                                                <span class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-[#d10a32] critical-alert-flash group-hover/critical:bg-white" aria-hidden="true"></span>
-                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l3-3 3 2 5-7"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 7h3v3"/>
                                                 </svg>
                                             </a>
                                         @endif
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border {{ $stConfig['cls'] }} shadow-2xs whitespace-nowrap" title="Auto-computed from task progress &amp; schedule">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $stConfig['dot'] }} shrink-0"></span>
+                                            {{ $project->status->label() }}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- 6. Progress -->
+                                <td class="align-middle">
+                                    <div class="space-y-1 w-full min-w-[88px] max-w-[110px]">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-extrabold text-slate-900 font-mono text-[11.5px]">{{ $project->overall_progress }}%</span>
+                                            <span class="text-[10px] font-semibold text-slate-400">{{ number_format($project->wbsItems->count()) }} Tasks</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                            <div class="h-full rounded-full transition-all duration-500 {{ $project->overall_progress >= 100 ? 'bg-emerald-500' : ($project->status->value === 'delayed' ? 'bg-rose-500' : 'bg-blue-600') }}" style="width: {{ min(100, max(0, $project->overall_progress)) }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- 7. Deadline -->
+                                <td class="align-middle whitespace-nowrap">
+                                    @if($project->deadline)
+                                        @php $isOverdue = $project->deadline->isPast() && $project->overall_progress < 100; @endphp
+                                        <div class="space-y-0.5">
+                                            <span class="block text-xs font-bold {{ $isOverdue ? 'text-rose-600' : 'text-slate-800' }}">
+                                                {{ $project->deadline->format('M d, Y') }}
+                                            </span>
+                                            @if($delaySummary['is_delayed'])
+                                                <a
+                                                    href="{{ route('projects.index', array_merge(request()->query(), ['delay_project' => $project->id])) }}"
+                                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline transition-colors no-underline whitespace-nowrap"
+                                                    title="Review {{ $delaySummary['project_overdue_days'] ?? 0 }} overdue days"
+                                                >
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                                                    <span>{{ $delaySummary['project_overdue_days'] ?? 0 }}d overdue</span>
+                                                </a>
+                                            @elseif(!$isOverdue)
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 whitespace-nowrap">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                                    On schedule
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-slate-400 text-xs">—</span>
+                                    @endif
+                                </td>
+
+                                <!-- 8. Approval Status -->
+                                <td class="align-middle whitespace-nowrap">
+                                    @php
+                                        $leadApproval = $project->approvalRequests->firstWhere('request_type', \App\Enums\ApprovalType::NEW_PROJECT_PLAN);
+                                        $leadState = $project->pm_accepted ? 'approved' : ($project->isPmRejected() ? 'rejected' : ($leadApproval?->status->value ?? 'pending'));
+                                        $leadConfig = match($leadState) {
+                                            'approved' => ['cls' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 'dot' => 'bg-emerald-500', 'label' => 'Approved'],
+                                            'rejected' => ['cls' => 'bg-rose-50 text-rose-700 border-rose-200/80',    'dot' => 'bg-rose-500',    'label' => 'Rejected'],
+                                            default    => ['cls' => 'bg-amber-50 text-amber-800 border-amber-200/80',   'dot' => 'bg-amber-500',   'label' => 'Pending'],
+                                        };
+                                    @endphp
+                                    <button
+                                        type="button"
+                                        wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }} })"
+                                        x-on:click.stop
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold {{ $leadConfig['cls'] }} shadow-2xs transition-all hover:opacity-90 cursor-pointer active:scale-95 whitespace-nowrap"
+                                        title="Click to review approvals for {{ $project->name }}"
+                                    >
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $leadConfig['dot'] }} shrink-0"></span>
+                                        <span>{{ $leadConfig['label'] }}</span>
+                                    </button>
+                                </td>
+
+                                <!-- 9. Budget -->
+                                <td class="align-middle whitespace-nowrap">
+                                    @php
+                                        $estBudget = (float) ($project->estimated_budget ?? 0);
+                                        $actCost = (float) ($project->actual_cost ?? 0);
+                                    @endphp
+                                    @if($estBudget > 0)
+                                        <div class="space-y-0.5">
+                                            <span class="block text-xs font-bold text-slate-800 font-mono">
+                                                Rs. {{ number_format($estBudget, 0) }}
+                                            </span>
+                                            @if($actCost > 0)
+                                                <span class="block text-[10px] font-medium {{ $actCost > $estBudget ? 'text-rose-600' : 'text-slate-400' }} font-mono">
+                                                    Spent: Rs. {{ number_format($actCost, 0) }}
+                                                </span>
+                                            @else
+                                                <span class="block text-[10px] font-medium text-slate-400">
+                                                    Allocated
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-xs font-semibold text-slate-400 font-mono">—</span>
+                                    @endif
+                                </td>
+
+                                <!-- 10. Actions (Workspace, Edit, Delete) -->
+                                <td class="align-middle text-right whitespace-nowrap">
+                                    <div class="project-row-actions">
+                                        {{-- 1. Open Workspace Button --}}
                                         <a
                                             href="{{ route('projects.show', $project->id) }}"
                                             x-on:click.stop
-                                            class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all flex items-center justify-center cursor-pointer"
-                                            title="Open Project Workspace"
+                                            class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                            title="Open Workspace"
+                                            aria-label="Open Workspace for {{ $project->name }}"
                                         >
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                             </svg>
                                         </a>
+
+                                        {{-- 2. Edit Project Button --}}
+                                        @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $project->project_manager_id === auth()->id() || $project->userCan(auth()->user(), 'project_details.edit'))
+                                            <button
+                                                type="button"
+                                                wire:click="openEditModal({{ $project->id }})"
+                                                x-on:click.stop
+                                                class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                                title="Edit Project"
+                                                aria-label="Edit project {{ $project->name }}"
+                                            >
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M4 20h4l10.5-10.5a2.5 2.5 0 00-4-4L4 16v4z"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+
+                                        {{-- 3. Delete Project Button --}}
                                         @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1)
                                             <button
-                                                wire:click="confirmDelete({{ $project->id }})"
                                                 type="button"
-                                                class="group/delete relative flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-400 transition-all hover:-translate-y-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-[#c3122e] hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c3122e]/30 cursor-pointer"
-                                                title="Delete {{ $project->name }}"
+                                                wire:click="confirmDelete({{ $project->id }})"
+                                                x-on:click.stop
+                                                class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                                title="Delete Project"
                                                 aria-label="Delete project {{ $project->name }}"
                                             >
-                                                <svg class="h-4 w-4 transition-transform group-hover/delete:scale-105" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
                                             </button>
@@ -524,7 +545,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="py-16 text-center">
+                                <td colspan="10" class="py-16 text-center">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -1583,6 +1604,346 @@
         @endteleport
     @endif
 
+    @if($showModal)
+    @teleport('body')
+    @php
+        $editingProject = $editingId ? \App\Models\Project::find($editingId) : null;
+        $canEditEstimatedBudget = auth()->user()?->isPmoAdmin() || ($editingProject ? $editingProject->userCan(auth()->user(), 'budget.edit') : true);
+        $canEditActualCost = auth()->user()?->isPmoAdmin() || ($editingProject ? $editingProject->userCan(auth()->user(), 'budget.edit') : true);
+    @endphp
+    <div 
+        x-data 
+        @keydown.escape.window="$wire.closeProjectModal()"
+        wire:click.self="closeProjectModal"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-project-modal-title"
+    >
+        <div 
+            style="position: relative; width: min(740px, calc(100vw - 32px)); max-width: 740px; max-height: calc(100dvh - 36px); margin: 0; display: flex; flex-direction: column; background: #ffffff; border-radius: 18px; box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24); border: 1px solid #e2e8f0; overflow: hidden; animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
+        >
+            <!-- Clean Header -->
+            <div style="padding: 18px 26px; border-bottom: 1px solid #edf0f4; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff; flex-shrink: 0;">
+                <div style="min-width: 0;">
+                    <h3 id="edit-project-modal-title" style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.3; letter-spacing: -0.015em;">
+                        {{ $editingId ? 'Edit Project Details' : 'Create New Project' }}
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500;">
+                        {{ $editingId ? 'Update project identity, timeline, budget, and delivery template.' : 'Configure new project identity, timeline, budget, and delivery template.' }}
+                    </p>
+                </div>
+                <button 
+                    wire:click="closeProjectModal" 
+                    type="button" 
+                    style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; transition: all 0.15s; flex-shrink: 0;"
+                    onmouseover="this.style.background='#f8fafc'; this.style.color='#0f172a'"
+                    onmouseout="this.style.background='#ffffff'; this.style.color='#64748b'"
+                    title="Close (Esc)"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <form wire:submit.prevent="save" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
+                <div style="padding: 22px 26px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0; background: #ffffff; scrollbar-gutter: stable;">
+                    
+                    {{-- Read-only Governance Context Bar (When Editing) --}}
+                    @if($editingId)
+                        @php
+                            $currStatus = $editingProject ? $editingProject->status : \App\Enums\ProjectStatus::PLANNING;
+                            $currPriority = $editingProject ? $editingProject->priority : \App\Enums\Priority::MEDIUM;
+                            $currPm = $editingProject?->projectManager;
+                        @endphp
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80">
+                            <!-- Project Manager (Read-only) -->
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Project Manager</span>
+                                @if($currPm)
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-slate-300/80">
+                                            {{ strtoupper(substr($currPm->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <span class="text-xs font-bold text-slate-800 block truncate" title="{{ $currPm->name }}">{{ $currPm->name }}</span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-slate-400 italic">Unassigned</span>
+                                @endif
+                            </div>
+
+                            <!-- Execution Status (Read-only) -->
+                            <div class="sm:border-l sm:border-slate-200/80 sm:pl-3">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Execution Status</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border {{ $currStatus->badgeClass() }}">
+                                        <span class="h-1.5 w-1.5 rounded-full {{ $currStatus->badgeDotClass() }}"></span>
+                                        {{ $currStatus->label() }}
+                                    </span>
+                                    <span class="text-[10px] font-medium text-slate-400">Auto</span>
+                                </div>
+                            </div>
+
+                            <!-- Priority Level (Read-only) -->
+                            <div class="sm:border-l sm:border-slate-200/80 sm:pl-3">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Priority Level</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-800">{{ $currPriority->label() }}</span>
+                                    <span class="text-[10px] font-medium text-slate-400">&bull; Task-driven</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 1. Core Identity & Scope --}}
+                    <div class="space-y-4">
+                        <div>
+                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Project Title <span class="text-[#c3122e] font-bold">*</span></label>
+                            <input type="text" wire:model="name" class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs transition-all placeholder:text-slate-400" placeholder="e.g. Hospital Modernization Project" required>
+                            @error('name') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                            <div class="sm:col-span-8">
+                                <label class="font-bold text-slate-700 text-xs mb-1.5 block">Subsidiary / Division <span class="text-[#c3122e] font-bold">*</span></label>
+                                <select wire:model="subsidiary_id" class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs cursor-pointer transition-all">
+                                    <option value="">Select subsidiary...</option>
+                                    @foreach($subsidiaries as $sub)
+                                        <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('subsidiary_id') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="sm:col-span-4">
+                                <label class="font-bold text-slate-700 text-xs mb-1.5 block">Project Code</label>
+                                <input type="text" wire:model="code" class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/60 text-xs font-mono font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs transition-all" placeholder="e.g. GSH-PRJ-001">
+                                @error('code') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        @if(!$editingId)
+                            <div>
+                                <label class="font-bold text-slate-700 text-xs mb-1.5 block">Project Manager <span class="text-[#c3122e] font-bold">*</span></label>
+                                <select wire:model="project_manager_id" class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs cursor-pointer transition-all">
+                                    <option value="">-- Select Project Manager --</option>
+                                    @foreach($pms as $u)
+                                        <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
+                                    @endforeach
+                                </select>
+                                @error('project_manager_id') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="font-bold text-slate-700 text-xs block">Project Description &amp; Scope</label>
+                                <span class="text-[11px] text-slate-400 font-medium">Optional</span>
+                            </div>
+                            <textarea wire:model="description" rows="3" placeholder="Briefly describe key project scope, deliverables, and strategic objectives..." class="w-full p-3.5 rounded-xl border border-slate-200 bg-white text-xs leading-relaxed font-normal text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs transition-all placeholder:text-slate-400"></textarea>
+                            @error('description') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    {{-- 2. Schedule & Financial Budget --}}
+                    <div class="border-t border-slate-100 pt-5 space-y-4">
+                        <div>
+                            <h4 class="text-xs font-extrabold text-slate-800">Schedule &amp; Financial Budget</h4>
+                            <p class="text-[11px] text-slate-400 font-medium mt-0.5">Configure target timeline and allocated project budget.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-bold text-slate-700 text-xs mb-1.5 block">Kick-off Date</label>
+                                <input type="date" wire:model="start_date" class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs transition-all">
+                                @error('start_date') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="font-bold text-slate-700 text-xs mb-1.5 block">Target Completion Deadline</label>
+                                <input type="date" wire:model="deadline" class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs transition-all">
+                                @error('deadline') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="font-bold text-slate-700 text-xs block">Estimated Budget (LKR)</label>
+                                    @if(!$canEditEstimatedBudget)
+                                        <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Locked</span>
+                                    @endif
+                                </div>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-semibold text-slate-400 pointer-events-none">Rs.</span>
+                                    <input type="number" step="0.01" wire:model="estimated_budget" {{ !$canEditEstimatedBudget ? 'disabled' : '' }} placeholder="0.00" class="w-full h-10.5 pl-10 pr-3.5 rounded-xl border border-slate-200 {{ !$canEditEstimatedBudget ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10' }} text-xs font-semibold outline-none shadow-2xs transition-all">
+                                </div>
+                                @error('estimated_budget') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="font-bold text-slate-700 text-xs block">Actual Cost / Spend (LKR)</label>
+                                    @if(!$canEditActualCost)
+                                        <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Locked</span>
+                                    @endif
+                                </div>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-semibold text-slate-400 pointer-events-none">Rs.</span>
+                                    <input type="number" step="0.01" wire:model="actual_cost" {{ !$canEditActualCost ? 'disabled' : '' }} placeholder="0.00" class="w-full h-10.5 pl-10 pr-3.5 rounded-xl border border-slate-200 {{ !$canEditActualCost ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10' }} text-xs font-semibold outline-none shadow-2xs transition-all">
+                                </div>
+                                @error('actual_cost') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Delivery Blueprint Template --}}
+                    <div class="border-t border-slate-100 pt-5 space-y-3.5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-extrabold text-slate-800">Delivery Blueprint Template</h4>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                        {{ $availableWbsTemplates->count() + 1 }} Options
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-medium mt-0.5">Choose a predefined WBS template or start with a blank workspace.</p>
+                            </div>
+
+                            <!-- Compact Search -->
+                            <div class="relative w-full sm:w-56">
+                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input
+                                    type="text"
+                                    wire:model.live.debounce.150ms="editTemplateSearch"
+                                    placeholder="Search templates..."
+                                    class="w-full pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 transition-all"
+                                >
+                                @if($editTemplateSearch)
+                                    <button type="button" wire:click="$set('editTemplateSearch', '')" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Radio-Style Template Cards Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[240px] overflow-y-auto pr-1">
+                            <!-- Option 1: Blank Slate -->
+                            @if(empty($editTemplateSearch) || str_contains(strtolower('blank slate canvas custom agile empty scratch'), strtolower($editTemplateSearch)))
+                                @php $isBlankSelected = ($wbsChoice === 'blank'); @endphp
+                                <button
+                                    type="button"
+                                    wire:click="chooseBlankWbs"
+                                    class="p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer flex items-start gap-3 bg-white {{ $isBlankSelected ? 'border-[#c3122e] bg-rose-50/20 shadow-2xs ring-2 ring-[#c3122e]/15' : 'border-slate-200 hover:border-slate-300' }}"
+                                >
+                                    <span class="mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 {{ $isBlankSelected ? 'border-[#c3122e] bg-[#c3122e]' : 'border-slate-300' }}">
+                                        @if($isBlankSelected)
+                                            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.292a1 1 0 010 1.416l-7.5 7.5a1 1 0 01-1.416 0l-3.5-3.5a1 1 0 011.416-1.416L8.5 12.086l6.796-6.794a1 1 0 011.408 0z" clip-rule="evenodd"/></svg>
+                                        @endif
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-xs font-bold text-slate-900 truncate">Blank Slate Canvas</span>
+                                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0">Custom</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 font-normal line-clamp-1 mt-1">
+                                            Start with an empty workspace and build custom tasks.
+                                        </p>
+                                        <span class="text-[10px] font-medium text-slate-400 mt-1.5 block">No predefined tasks</span>
+                                    </div>
+                                </button>
+                            @endif
+
+                            <!-- Template Options -->
+                            @forelse($availableWbsTemplates as $tplItem)
+                                @php
+                                    $isTplSelected = ($wbsChoice === 'template' && (int)$template_id === (int)$tplItem->id);
+                                    $taskCount = $tplItem->tasks_count ?? $tplItem->tasks()->count();
+                                    $rootCount = $tplItem->tasks()->whereNull('parent_id')->count();
+                                @endphp
+                                <button
+                                    type="button"
+                                    wire:click="chooseTemplateWbs({{ $tplItem->id }})"
+                                    class="p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer flex items-start gap-3 bg-white {{ $isTplSelected ? 'border-[#c3122e] bg-rose-50/20 shadow-2xs ring-2 ring-[#c3122e]/15' : 'border-slate-200 hover:border-slate-300' }}"
+                                >
+                                    <span class="mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 {{ $isTplSelected ? 'border-[#c3122e] bg-[#c3122e]' : 'border-slate-300' }}">
+                                        @if($isTplSelected)
+                                            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.292a1 1 0 010 1.416l-7.5 7.5a1 1 0 01-1.416 0l-3.5-3.5a1 1 0 011.416-1.416L8.5 12.086l6.796-6.794a1 1 0 011.408 0z" clip-rule="evenodd"/></svg>
+                                        @endif
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-xs font-bold text-slate-900 truncate" title="{{ $tplItem->name }}">{{ $tplItem->name }}</span>
+                                            <span class="text-[10px] font-mono font-bold text-[#c3122e] bg-rose-50 px-2 py-0.5 rounded border border-rose-100 shrink-0">{{ $taskCount }} Tasks</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 font-normal line-clamp-1 mt-1">
+                                            {{ $tplItem->description ?: 'Auto-generates phases, tasks, and delivery roadmap.' }}
+                                        </p>
+                                        <span class="text-[10px] font-medium text-slate-400 mt-1.5 block">{{ $rootCount }} Phase(s)</span>
+                                    </div>
+                                </button>
+                            @empty
+                                @if(!empty($editTemplateSearch))
+                                    <div class="col-span-full py-6 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                                        <p class="text-xs font-bold text-slate-700">No templates matching "{{ $editTemplateSearch }}"</p>
+                                        <button type="button" wire:click="$set('editTemplateSearch', '')" class="text-[11px] font-bold text-[#c3122e] hover:underline mt-1 cursor-pointer">Clear search</button>
+                                    </div>
+                                @endif
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer Action Bar --}}
+                <div style="padding: 14px 26px; border-top: 1px solid #edf0f4; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff; flex-shrink: 0;">
+                    <span class="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                        <span class="text-[#c3122e] font-bold">*</span> Required fields
+                    </span>
+                    <div class="flex items-center gap-2.5 ml-auto">
+                        <button 
+                            type="button" 
+                            wire:click="closeProjectModal" 
+                            style="padding: 9px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
+                            onmouseover="this.style.background='#f8fafc'; this.style.color='#0f172a'"
+                            onmouseout="this.style.background='#ffffff'; this.style.color='#475569'"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit" 
+                            wire:loading.attr="disabled"
+                            style="padding: 9px 22px; border-radius: 10px; border: none; background: #c3122e; color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(195, 18, 46, 0.25); transition: all 0.15s; display: inline-flex; align-items: center;"
+                            onmouseover="this.style.background='#a50f27'"
+                            onmouseout="this.style.background='#c3122e'"
+                        >
+                            <span wire:loading.remove wire:target="save">{{ $editingId ? 'Save Changes' : 'Create Project' }}</span>
+                            <span wire:loading wire:target="save">{{ $editingId ? 'Saving...' : 'Creating...' }}</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endteleport
+    @endif
+    @if($showWbsReplaceConfirm)
+        @teleport('body')
+        <div x-data wire:click.self="cancelWbsReplaceConfirm" class="fixed inset-0 z-[2147483647] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" style="position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55);backdrop-filter:blur(5px)" role="dialog" aria-modal="true">
+            <div class="w-full max-w-md rounded-2xl border border-amber-200 bg-white p-5 shadow-2xl">
+                <div class="flex items-start gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-xl text-amber-600">!</span>
+                    <div><h3 class="text-base font-extrabold text-slate-900">Replace the current WBS?</h3><p class="mt-1 text-sm leading-6 text-slate-600">Applying a different blueprint will permanently replace this project's existing WBS tasks with the selected template structure.</p></div>
+                </div>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" wire:click="cancelWbsReplaceConfirm" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="button" wire:click="confirmWbsReplace" wire:loading.attr="disabled" class="rounded-xl bg-[#c3122e] px-4 py-2.5 text-sm font-extrabold text-white hover:bg-rose-800">Replace WBS &amp; Save</button>
+                </div>
+            </div>
+        </div>
+        @endteleport
+    @endif
     <!-- ===== DELETE PROJECT CONFIRMATION MODAL ===== -->
     @if($showDeleteModal)
         @teleport('body')
@@ -1669,5 +2030,6 @@
         </div>
         @endteleport
     @endif
+
     <livewire:project-approval-actions :project-id="request()->integer('approval_project') ?: null" />
 </div>

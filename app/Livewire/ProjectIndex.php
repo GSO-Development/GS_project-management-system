@@ -8,6 +8,7 @@ use App\Enums\ProjectStatus;
 use App\Models\ActivityLog;
 use App\Models\Project;
 use App\Models\ProjectRisk;
+use App\Models\ProjectTemplate;
 use App\Models\Subsidiary;
 use App\Models\TaskBlocker;
 use App\Models\User;
@@ -62,6 +63,7 @@ class ProjectIndex extends Component
     public int $projectToDeleteTasksCount = 0;
     public int $projectToDeleteDocsCount = 0;
 
+
     // WBS Task Inspector Slide-Over Drawer properties
     public bool $showQuickDrawer = false;
     public bool $showDelayAnalysis = false;
@@ -75,13 +77,22 @@ class ProjectIndex extends Component
     public string $code = '';
     public string $name = '';
     public ?string $description = null;
+    public ?string $category = null;
+    public ?string $actual_cost = null;
     public ?int $subsidiary_id = null;
     public ?int $project_manager_id = null;
-    public string $priority = 'medium';
+
     public string $status = 'planning';
     public ?string $start_date = null;
     public ?string $deadline = null;
     public ?string $estimated_budget = null;
+    public ?string $wbsTemplateLabel = null;
+    public string $wbsChoice = 'blank';
+    public ?int $template_id = null;
+    public string $editTemplateSearch = '';
+    public string $originalWbsType = 'manual';
+    public bool $showWbsReplaceConfirm = false;
+    public bool $showWbsPicker = false;
     public array $selectedMembers = [];
 
     protected $queryString = [
@@ -115,6 +126,9 @@ class ProjectIndex extends Component
         if ($delayProjectId > 0) {
             $this->openDelayAnalysis($delayProjectId, app(ProjectDelayAnalysisService::class));
         }
+
+        Project::syncAllProjectStatuses();
+        Project::syncAllProjectPriorities();
     }
 
     protected function rules(): array
@@ -125,11 +139,15 @@ class ProjectIndex extends Component
             'description' => 'nullable|string',
             'subsidiary_id' => 'required|exists:subsidiaries,id',
             'project_manager_id' => 'required|exists:users,id',
-            'priority' => 'required|string',
-            'status' => 'required|string',
+
+            'status' => 'nullable|string',
             'start_date' => 'nullable|date',
             'deadline' => 'nullable|date|after_or_equal:start_date',
             'estimated_budget' => 'nullable|numeric|min:0',
+            'actual_cost' => 'nullable|numeric|min:0',
+            'category' => 'nullable|string|max:100',
+            'wbsChoice' => 'required|in:blank,template',
+            'template_id' => 'nullable|required_if:wbsChoice,template|exists:project_templates,id',
             'selectedMembers' => 'nullable|array',
         ];
     }
@@ -360,19 +378,23 @@ class ProjectIndex extends Component
         }
 
         $this->resetValidation();
-        $this->reset(['code', 'name', 'description', 'subsidiary_id', 'project_manager_id', 'priority', 'status', 'start_date', 'deadline', 'estimated_budget', 'editingId', 'selectedMembers']);
-        $this->priority = 'medium';
+        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers']);
+
         $this->status = 'planning';
 
         $count = Project::withTrashed()->count() + 1;
         $this->code = 'GS-PRJ-' . str_pad($count, 3, '0', STR_PAD_LEFT);
 
+        $this->wbsTemplateLabel = 'Blank WBS';
+        $this->wbsChoice = 'blank';
+        $this->template_id = null;
+        $this->originalWbsType = 'manual';
         $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
     {
-        $project = Project::with('members')->findOrFail($id);
+        $project = Project::with('template')->findOrFail($id);
 
         $user = auth()->user();
         $isSuperAdmin = $user && ($user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1);
@@ -388,19 +410,73 @@ class ProjectIndex extends Component
         $this->code = $project->code;
         $this->name = $project->name;
         $this->description = $project->description;
+        $this->category = $project->category ?? 'Corporate Strategy';
+        $this->actual_cost = (string) ($project->actual_cost ?? 0);
         $this->subsidiary_id = $project->subsidiary_id;
         $this->project_manager_id = $project->project_manager_id;
-        $this->priority = $project->priority->value;
-        $this->status = $project->status->value;
+
+        $this->status = $project->status instanceof \App\Enums\ProjectStatus ? $project->status->value : (string)($project->status ?? 'planning');
         $this->start_date = $project->start_date ? $project->start_date->format('Y-m-d') : null;
         $this->deadline = $project->deadline ? $project->deadline->format('Y-m-d') : null;
-        $this->estimated_budget = $project->estimated_budget;
-        $this->selectedMembers = $project->members->pluck('id')->toArray();
+        $this->estimated_budget = $project->estimated_budget !== null ? (string)$project->estimated_budget : null;
 
+
+        $this->wbsTemplateLabel = $project->template?->name ?? (($project->template_id || $project->wbs_breakdown_type === 'template') ? 'Template unavailable' : 'Blank WBS');
+        $this->wbsChoice = $project->template_id ? 'template' : 'blank';
+        $this->template_id = $project->template_id;
+        $this->originalWbsType = $project->wbs_breakdown_type ?: 'manual';
+        $this->priority = $project->priority instanceof \App\Enums\Priority ? $project->priority->value : (string)($project->priority ?? 'medium');
+        $this->editTemplateSearch = '';
         $this->showModal = true;
     }
 
-    public function save(): void
+    public function closeProjectModal(): void
+    {
+        $this->showModal = false;
+        $this->resetValidation();
+        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers']);
+    }
+
+    public function chooseBlankWbs(): void
+    {
+        $this->wbsChoice = 'blank';
+        $this->template_id = null;
+    }
+
+    public function chooseTemplateWbs(int $templateId): void
+    {
+        $selectedTemplateId = ProjectTemplate::query()->whereKey($templateId)->value('id');
+        if ($selectedTemplateId) {
+            $this->template_id = (int) $selectedTemplateId;
+            $this->wbsChoice = 'template';
+            $this->showWbsPicker = false;
+        }
+    }
+
+    public function cancelWbsReplaceConfirm(): void
+    {
+        $this->showWbsReplaceConfirm = false;
+    }
+
+    public function confirmWbsReplace(): void
+    {
+        $this->showWbsReplaceConfirm = false;
+        $this->save(true);
+    }
+
+    private function applyWbsChoice(Project $project, string $type, ?int $templateId): void
+    {
+        if ($type === 'template' && $templateId) {
+            app(\App\Services\TemplateWbsGeneratorService::class)->generate($project, $templateId, Carbon::parse($project->start_date ?: now()), true);
+            return;
+        }
+        WbsItem::withTrashed()->where('project_id', $project->id)->update(['parent_id' => null]);
+        WbsItem::withTrashed()->where('project_id', $project->id)->forceDelete();
+        $project->update(['overall_progress' => 0]);
+        $project->syncAutoPriority();
+    }
+
+    public function save(bool $confirmWbsReplacement = false): void
     {
         $this->validate();
 
@@ -413,11 +489,14 @@ class ProjectIndex extends Component
             'description' => $this->description,
             'subsidiary_id' => $this->subsidiary_id,
             'project_manager_id' => $this->project_manager_id,
-            'priority' => Priority::from($this->priority),
-            'status' => ProjectStatus::from($this->status),
+
+            'status' => $this->status ? (ProjectStatus::tryFrom($this->status) ?? ProjectStatus::PLANNING) : ProjectStatus::PLANNING,
             'start_date' => $this->start_date,
             'deadline' => $this->deadline,
             'estimated_budget' => $this->estimated_budget ?: null,
+            'actual_cost' => $this->actual_cost ?: null,
+            'wbs_breakdown_type' => $this->wbsChoice === 'template' ? 'template' : ($this->originalWbsType === 'template' ? 'manual' : $this->originalWbsType),
+            'template_id' => $this->wbsChoice === 'template' ? $this->template_id : null,
         ];
 
         if ($this->editingId) {
@@ -431,18 +510,26 @@ class ProjectIndex extends Component
 
             if (!$isSuperAdmin && !$project->userCan($user, 'budget.edit')) {
                 unset($data['estimated_budget']);
+                unset($data['actual_cost']);
+            }
+
+            unset($data['status']);
+            unset($data['project_manager_id']);
+            $newWbsType = $data['wbs_breakdown_type'];
+            $newTemplateId = $data['template_id'];
+            $blueprintChanged = $project->wbs_breakdown_type !== $newWbsType || (int) $project->template_id !== (int) $newTemplateId;
+            if ($blueprintChanged && $project->wbsItems()->withTrashed()->exists() && !$confirmWbsReplacement) {
+                $this->showWbsReplaceConfirm = true;
+                return;
             }
 
             $oldValues = $project->toArray();
             $project->update($data);
-
-            if (isset($this->selectedMembers)) {
-                $syncData = [];
-                foreach ($this->selectedMembers as $userId) {
-                    $syncData[$userId] = ['role' => 'team_member', 'joined_at' => now()];
-                }
-                $project->members()->sync($syncData);
+            $project->syncAutoStatus();
+            if ($blueprintChanged) {
+                $this->applyWbsChoice($project, $newWbsType, $newTemplateId);
             }
+
 
             ActivityLog::create([
                 'user_id' => auth()->id(),
@@ -463,7 +550,13 @@ class ProjectIndex extends Component
                 return;
             }
 
+            $data['category'] = 'Corporate Strategy';
+            $data['priority'] = \App\Enums\Priority::MEDIUM;
             $project = Project::create($data);
+            $project->syncAutoStatus();
+            if ($this->wbsChoice === 'template' && $this->template_id) {
+                $this->applyWbsChoice($project, 'template', $this->template_id);
+            }
 
             if (!empty($this->selectedMembers)) {
                 $syncData = [];
@@ -488,7 +581,7 @@ class ProjectIndex extends Component
         }
 
         $this->showModal = false;
-        $this->reset(['code', 'name', 'description', 'subsidiary_id', 'project_manager_id', 'priority', 'status', 'start_date', 'deadline', 'estimated_budget', 'editingId', 'selectedMembers']);
+        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers']);
     }
 
     public function confirmDelete(int $id): void
@@ -556,6 +649,24 @@ class ProjectIndex extends Component
             \Illuminate\Support\Facades\Log::error("Failed to delete project {$projectCode}: " . $e->getMessage(), ['exception' => $e]);
             $this->dispatch('toast', message: 'Failed to delete project: ' . $e->getMessage(), type: 'error');
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✏️ INLINE STATUS & PRIORITY DROPDOWN CONFIRMATION CONTROLS
+    // ═══════════════════════════════════════════════════════════════
+    public function canEditProjectInline(Project $project): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        return $user->isPmoAdmin()
+            || $user->hasRole('super_admin')
+            || $user->hasRole('pmo_admin')
+            || $user->id === 1
+            || $project->project_manager_id === $user->id
+            || $project->userCan($user, 'project_details.edit');
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -635,6 +746,16 @@ class ProjectIndex extends Component
     {
         $user = auth()->user();
         $today = now()->startOfDay();
+        $availableWbsTemplates = ProjectTemplate::withCount('tasks')
+            ->when($this->editTemplateSearch, function ($q) {
+                $term = strtolower($this->editTemplateSearch);
+                $q->where(function ($subQ) use ($term) {
+                    $subQ->where('name', 'like', "%{$term}%")
+                         ->orWhere('description', 'like', "%{$term}%");
+                });
+            })
+            ->orderBy('name')
+            ->get();
 
         // Base query with strict role-based access scoping
         $baseQuery = Project::query();
@@ -832,6 +953,7 @@ class ProjectIndex extends Component
         }
 
         $projects = $query->latest()->paginate($this->perPage);
+        $projects->getCollection()->each(fn ($p) => $p->syncAutoStatus(true));
         $delayService = app(ProjectDelayAnalysisService::class);
         $delaySummaries = $projects->getCollection()->mapWithKeys(
             fn ($project) => [$project->id => $delayService->analyze($project)]
@@ -1165,8 +1287,10 @@ class ProjectIndex extends Component
             'stuckMembersCount',
             'stuckProjectsList',
             'stuckAssigneesList',
-            'ganttTimeline'
-            ,'delaySummaries'
+            'ganttTimeline',
+            'delaySummaries',
+            'availableWbsTemplates'
+
         ));
     }
 }

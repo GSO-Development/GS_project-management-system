@@ -596,14 +596,6 @@
     opacity: 1;
 }
 
-.app-clean [data-ui-page="dashboard-admin"] .executive-kpi-grid > a > div:first-child > div:first-child {
-    width: 38px;
-    height: 38px;
-    border-radius: 9px !important;
-    background: #f4f6f8 !important;
-    color: #344054 !important;
-}
-
 .app-clean [data-ui-page="dashboard-admin"] .executive-timeline {
     padding: 1.5rem;
     border-color: #dde2e9 !important;
@@ -665,14 +657,6 @@
 
 .app-clean [data-ui-page="dashboard-admin"] .executive-insight-card > div:first-child {
     padding-bottom: .875rem;
-}
-
-.app-clean [data-ui-page="dashboard-admin"] .executive-insight-card > div:first-child > div > div:first-child {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px !important;
-    background: #f4f6f8 !important;
-    color: #344054 !important;
 }
 
 .app-clean [data-ui-page="dashboard-admin"] .executive-insight-card > .grid > div {
@@ -771,35 +755,44 @@
 }
 
 .app-clean [data-ui-page="projects"] .projects-command-bar {
-    padding-top: .25rem;
+    padding-top: 0;
+    margin-bottom: 0.75rem !important;
 }
 
 .app-clean [data-ui-page="projects"] .projects-command-bar h1 {
-    font-size: clamp(1.6rem, 1.25rem + .8vw, 2.1rem) !important;
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
     color: #101828;
 }
 
 .app-clean [data-ui-page="projects"] .projects-command-bar > div:first-child select,
 .app-clean [data-ui-page="projects"] .projects-command-bar > div:first-child button,
 .app-clean [data-ui-page="projects"] .projects-command-bar > div:first-child a {
-    min-height: 42px;
-    border-radius: 9px;
+    min-height: 32px;
+    height: 32px;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.75rem;
+    border-radius: 8px;
 }
 
 .app-clean [data-ui-page="projects"] .projects-view-tabs {
-    margin-top: .5rem;
+    margin-top: 1rem;
     border-color: #dfe4ea;
 }
 
 .app-clean [data-ui-page="projects"] .projects-view-tabs button,
 .app-clean [data-ui-page="projects"] .projects-view-tabs a {
-    min-height: 46px;
+    min-height: 32px;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+    font-size: 0.75rem;
 }
 
 .app-clean [data-ui-page="projects"] .projects-directory-table {
     border-color: #dce2e9 !important;
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, .04) !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, .03) !important;
 }
 
 .app-clean [data-ui-page="projects"] .projects-directory-table thead tr {
@@ -807,23 +800,24 @@
 }
 
 .app-clean [data-ui-page="projects"] .projects-directory-table th {
-    height: 54px;
-    color: #667085;
-    font-size: .6875rem !important;
-    font-weight: 750;
-    letter-spacing: .06em;
+    padding-top: 0.8rem !important;
+    padding-bottom: 0.8rem !important;
+    color: #64748b;
+    font-size: .66rem !important;
+    font-weight: 700;
+    letter-spacing: .055em;
 }
 
 .app-clean [data-ui-page="projects"] .projects-directory-table tbody tr {
     position: relative;
-    min-height: 72px;
+    min-height: 56px;
     background: #fff;
 }
 
 .app-clean [data-ui-page="projects"] .projects-directory-table tbody td {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    border-color: #edf0f3;
+    padding-top: 0.875rem !important;
+    padding-bottom: 0.875rem !important;
+    border-color: #f1f5f9;
 }
 
 .app-clean [data-ui-page="projects"] .projects-directory-table tbody tr:hover {
@@ -905,33 +899,9 @@
 }
 
 .app-clean [data-ui-page="dashboard-admin"] .executive-insight-card > div:first-child {
-    min-height: 44px;
-    padding-bottom: 1rem;
+    min-height: 36px;
+    padding-bottom: .875rem;
     border-color: #eaedf1;
-}
-
-.app-clean [data-ui-page="dashboard-admin"] .executive-insight-card > div:first-child > div > div:first-child {
-    width: 36px;
-    height: 36px;
-    border: 0 !important;
-    border-radius: 10px !important;
-    background: #f4f6f8 !important;
-    color: #344054 !important;
-}
-
-.app-clean [data-ui-page="dashboard-admin"] .executive-risk-card > div:first-child > div > div:first-child {
-    background: #fff8e8 !important;
-    color: #b66a00 !important;
-}
-
-.app-clean [data-ui-page="dashboard-admin"] .executive-meeting-card > div:first-child > div > div:first-child {
-    background: #fff1f3 !important;
-    color: #b10f29 !important;
-}
-
-.app-clean [data-ui-page="dashboard-admin"] .executive-activity-card > div:first-child > div > div:first-child {
-    background: #eff6ff !important;
-    color: #315f9d !important;
 }
 
 .app-clean [data-ui-page="dashboard-admin"] .executive-insight-card h3 {
@@ -1091,6 +1061,12 @@
     box-shadow: 0 5px 18px rgba(15, 23, 42, .025);
 }
 
+.app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(145px, 1fr)) !important;
+    min-width: 1015px;
+}
+
 .app-clean [data-ui-page="all-tasks"] .all-tasks-kpi-grid .kpi-tile:last-child {
     border-right: 0 !important;
 }
@@ -1185,12 +1161,6 @@
     border-radius: 6px;
 }
 
-.app-clean [data-ui-page="all-tasks"] .all-tasks-stuck-kpis > button {
-    min-height: 104px;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, .025) !important;
-}
-
 @media (max-width: 767px) {
     .app-clean [data-ui-page="all-tasks"] .all-tasks-header {
         padding: .25rem 0 0;
@@ -1206,6 +1176,11 @@
         padding: .875rem;
         border: 0 !important;
         border-bottom: 1px solid #e7eaf0 !important;
+    }
+
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile {
+        border-right: 1px solid #e7eaf0 !important;
+        border-bottom: 0 !important;
     }
 }
 
@@ -2686,32 +2661,11 @@
 .app-clean .projects-register-heading h2 { margin: 0; font-size: 14px; font-weight: 650; }
 .app-clean .projects-register-heading p { margin-top: 4px; font-size: 12px; color: #778195; }
 .app-clean .projects-register-heading > span { white-space: nowrap; font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 5px 10px; border-radius: 6px; }
-.app-clean .projects-table { table-layout: fixed; min-width: 1280px; width: 100%; }
-.app-clean .projects-table th:nth-child(1) { width: 19%; }
-.app-clean .projects-table th:nth-child(2) { width: 14%; }
-.app-clean .projects-table th:nth-child(3) { width: 13%; }
-.app-clean .projects-table th:nth-child(4) { width: 9%; }
-.app-clean .projects-table th:nth-child(5) { width: 12%; }
-.app-clean .projects-table th:nth-child(6) { width: 12%; }
-.app-clean .projects-table th:nth-child(7) { width: 10%; }
-.app-clean .projects-table th:nth-child(8) { width: 11%; }
-.app-clean .projects-table th { font-size: 10px !important; font-weight: 600 !important; letter-spacing: .045em !important; white-space: nowrap; }
-.app-clean .projects-table td { padding: 17px 12px; font-size: 12px; border-bottom: 1px solid #edf0f4; }
-.app-clean .projects-table td:first-child { padding-left: 22px; }
-.app-clean .projects-table td:first-child a { font-size: 13px; font-weight: 650; }
-.app-clean .projects-table td:nth-child(2) span { font-weight: 500; }
-.app-clean .projects-table td:nth-child(3) span, .app-clean .projects-table td:nth-child(4) > span { font-weight: 600; font-size: 10px; box-shadow: none; }
-.app-clean .projects-table td:nth-child(5) > div { min-width: 0; max-width: none; }
-.app-clean .projects-table td:nth-child(5) .h-2 { height: 5px; border: 0; }
-.app-clean .projects-table td:nth-child(6) > :is(button, span) { white-space: nowrap; flex-shrink: 0; border-radius: 7px; box-shadow: none; }
-.app-clean .projects-table td:nth-child(6) button { min-width: 0; gap: 7px; padding: 7px 9px; }
-.app-clean .projects-table td:nth-child(6) button > span:first-child { width: 20px; height: 20px; flex: 0 0 20px; }
-.app-clean .projects-table td:nth-child(6) button > span:last-child { min-width: max-content; }
-.app-clean .projects-table td:last-child a, .app-clean .projects-table td:last-child button { border-radius: 7px; font-size: 11px; font-weight: 600; padding: 8px 10px; box-shadow: none; }
-.app-clean .projects-table tbody tr:last-child td { border-bottom: 0; }
-.app-clean .my-projects-drag-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; overscroll-behavior-x: contain; }
-.app-clean .my-projects-drag-scroll::-webkit-scrollbar { height: 9px; }
+.app-clean .my-projects-drag-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; overscroll-behavior-x: contain; }
+.app-clean .my-projects-drag-scroll::-webkit-scrollbar { height: 6px; }
 .app-clean .my-projects-drag-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border: 2px solid #f8fafc; border-radius: 8px; }
+.app-clean [data-ui-page="lead-projects"] .projects-table :is(th:first-child, td:first-child) { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 #e5e7eb; }
+.app-clean [data-ui-page="lead-projects"] .projects-table thead th:first-child { z-index: 3; background: #f8fafc; }
 @media (max-width: 767px) {
     .app-clean .projects-metrics { gap: 10px; }
     .app-clean .projects-metrics > button { padding: 14px; }
@@ -2964,3 +2918,16 @@ html:has(.calendar-detail-backdrop:not([style*="display: none"])), body:has(.cal
  .calendar-detail-panel .calendar-detail-footer { padding: 12px 16px; flex-wrap: wrap; }
  .calendar-detail-facts > div:nth-child(-n+2) { padding: 10px; }
 }
+
+/* Keep workspace action labels readable across hover and keyboard focus states. */
+.app-clean .ui-page-projects .workspace-open-link:hover,
+.app-clean .ui-page-projects .workspace-open-link:focus-visible {
+    color: #fff !important;
+    background-color: #c3122e !important;
+    border-color: #c3122e !important;
+}
+.app-clean .ui-page-projects .workspace-open-link:hover > span:last-child,
+.app-clean .ui-page-projects .workspace-open-link:focus-visible > span:last-child {
+    color: #fff !important;
+}
+

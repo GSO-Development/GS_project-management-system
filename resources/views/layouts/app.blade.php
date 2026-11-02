@@ -536,7 +536,7 @@
                     @elseif(request()->routeIs('risks*'))
                         <span class="font-bold text-[#c3122e]">Governance</span>
                         <svg class="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="text-slate-900 font-black">Risks &amp; Blockers Hub</span>
+                        <span class="text-slate-900 font-black">Project Risks</span>
                     @elseif(request()->routeIs('projects.create'))
                         @if($isSuperAdmin)
                             <a href="{{ route('projects.index') }}" wire:navigate.hover class="font-bold text-[#c3122e] hover:underline">Projects</a>
@@ -728,7 +728,7 @@
         :class="{ 'pl-0 lg:pl-56': !sidebarCollapsed, 'pl-0 lg:pl-16': sidebarCollapsed }"
         style="background: #f6f7f8;"
     >
-        <div class="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
+        <div class="p-2.5 sm:p-4 lg:p-4 max-w-[1680px] mx-auto w-full">
             {{ $slot }}
         </div>
     </main>
