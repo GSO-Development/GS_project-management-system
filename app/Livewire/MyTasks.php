@@ -362,6 +362,25 @@ class MyTasks extends Component
         $this->showTaskDetailModal = true;
     }
 
+    public function completeDetailTask(): void
+    {
+        if (!$this->showTaskDetailModal || !$this->detailTaskId) return;
+
+        $task = WbsItem::findOrFail($this->detailTaskId);
+        $user = auth()->user();
+        if ($user->isAdminViewer() || !$this->canModifyTask($task, $user)) {
+            $this->dispatch('toast', message: 'You do not have permission to complete this task.', type: 'error');
+            return;
+        }
+
+        // Repeated clicks and stale popups must not send duplicate completion notifications.
+        if (in_array($task->status, [WbsStatus::COMPLETED, WbsStatus::CANCELLED], true)) return;
+
+        $this->updateStatus($task->id, WbsStatus::COMPLETED->value);
+        $this->detailStatus = WbsStatus::COMPLETED->value;
+        $this->detailProgress = 100;
+    }
+
     public function saveTaskDetail(): void
     {
         if (!$this->detailTaskId) return;
@@ -982,6 +1001,11 @@ class MyTasks extends Component
             $detailTask = WbsItem::with(['project.subsidiary', 'project.projectManager', 'assignedUser', 'blockers', 'children.assignedUser'])->find($this->detailTaskId);
         }
 
+        $canCompleteDetailTask = $detailTask
+            && !$user->isAdminViewer()
+            && $this->canModifyTask($detailTask, $user)
+            && !in_array($detailTask->status, [WbsStatus::COMPLETED, WbsStatus::CANCELLED], true);
+
         return view('livewire.my-tasks', compact(
             'myProjects',
             'isProjectManager',
@@ -1010,7 +1034,8 @@ class MyTasks extends Component
             'allDayTasks',
             'weekDays',
             'weekSchedule',
-            'detailTask'
+            'detailTask',
+            'canCompleteDetailTask'
         ))->with([
             'taskScope'           => $this->taskScope,
             'assigneeFilter'      => $this->assigneeFilter,

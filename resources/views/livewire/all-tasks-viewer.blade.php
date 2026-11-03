@@ -280,7 +280,7 @@
             <div class="all-tasks-kpi-scroll">
             <div class="all-tasks-kpi-grid all-tasks-status-kpis">
             {{-- Total --}}
-            <button wire:click="clearFilters" type="button"
+            <button wire:click="setStatusFilter('all')" type="button"
                 class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $statusFilter==='all' && $dueFilter==='all' && $riskFilter==='all' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
                 <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['total'] }}</div>
                 <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">Total</div>

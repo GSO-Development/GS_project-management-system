@@ -177,7 +177,7 @@
         <!-- Section Bar / Table Header Toolbar -->
         <div class="daily-updates-ledger__toolbar px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-4 flex-wrap bg-white">
             <div class="flex items-center gap-3">
-                <div class="daily-ledger-icon w-9 h-9 rounded-xl flex items-center justify-center text-[#c3122e]">
+                <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200/70 flex items-center justify-center text-[#c3122e] shrink-0 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
@@ -398,12 +398,24 @@
     @if($showHistoryModal && $historyProjectId)
         @php
             $historyProject = \App\Models\Project::with(['projectManager', 'subsidiary'])->find($historyProjectId);
-            $historyAllUpdates = $historyProject 
-                ? \App\Models\ProjectStatusUpdate::with(['creator', 'comments.user', 'wbsItem'])
-                    ->where('project_id', $historyProjectId)
-                    ->latest()
-                    ->get()
-                : collect();
+            $authUser = auth()->user();
+            $isPmOrAdminForHistory = $authUser && (
+                $authUser->isSuperAdmin() ||
+                $authUser->hasAdminInterfaceAccess() ||
+                $authUser->hasRole('project_manager') ||
+                ($historyProject && $historyProject->project_manager_id === $authUser->id) ||
+                ($historyProject && $historyProject->members()->where('users.id', $authUser->id)->whereIn('project_members.role', ['lead', 'sponsor', 'owner', 'steering_committee'])->exists())
+            );
+
+            $historyQuery = \App\Models\ProjectStatusUpdate::with(['creator', 'comments.user', 'wbsItem'])
+                ->where('project_id', $historyProjectId);
+
+            if (!$isPmOrAdminForHistory && $authUser) {
+                // Team member: only see their own updates in the history modal
+                $historyQuery->where('created_by', $authUser->id);
+            }
+
+            $historyAllUpdates = $historyProject ? $historyQuery->latest()->get() : collect();
             $historyLatestUpdate = $selectedHistoryUpdateId 
                 ? ($historyAllUpdates->firstWhere('id', $selectedHistoryUpdateId) ?? $historyAllUpdates->first())
                 : $historyAllUpdates->first();

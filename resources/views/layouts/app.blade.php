@@ -233,9 +233,10 @@
             <!-- 2. Projects Area -->
             @if($isSuperAdmin)
                 <!-- PMO Admin: Projects Directory Accordion -->
-                <div x-data="{ open: {{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }} }" class="relative">
-                    <button @click="if (sidebarCollapsed && !mobileSidebarOpen) { sidebarCollapsed = false; open = true } else { open = !open }"
-                            type="button"
+                <div x-data="{ open: (sessionStorage.getItem('gsnexuspm_projects_directory_open') ?? '{{ request()->routeIs('projects.*') || request()->routeIs('templates.*') ? 'true' : 'false' }}') === 'true' }" class="relative">
+                    <a href="{{ route('projects.index') }}"
+                            wire:navigate.hover
+                            @click="if (sidebarCollapsed && !mobileSidebarOpen) { sidebarCollapsed = false; open = true } else { open = !open }; sessionStorage.setItem('gsnexuspm_projects_directory_open', open); if (window.innerWidth < 1024) mobileSidebarOpen = false"
                             :aria-expanded="open && (!sidebarCollapsed || mobileSidebarOpen)"
                             class="{{ $navItemClass(request()->routeIs('projects.*') || request()->routeIs('templates.*')) }} w-full cursor-pointer"
                             :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
@@ -250,7 +251,7 @@
                         <svg x-show="!sidebarCollapsed || mobileSidebarOpen" :class="{'rotate-180': open}" class="w-3.5 h-3.5 transition-transform duration-200 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
-                    </button>
+                    </a>
                     <div x-show="open && (!sidebarCollapsed || mobileSidebarOpen)" x-collapse class="mt-1 space-y-0.5 pl-7 pr-1 border-l-2 border-slate-100 ml-4">
                         <a href="{{ route('projects.index') }}"
                            wire:navigate.hover
@@ -379,20 +380,6 @@
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Participants</span>
                 </a>
             @endif
-
-            <!-- Reports -->
-            <a href="{{ route('reports.index') }}"
-               wire:navigate.hover
-               @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
-               class="{{ $navItemClass(request()->routeIs('reports.*')) }}"
-               :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
-               style="{{ $navItemStyle(request()->routeIs('reports.*')) }}"
-               title="Reports">
-                <svg class="w-4.5 h-4.5 flex-shrink-0 {{ request()->routeIs('reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-[#c3122e] transition-colors' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ request()->routeIs('reports.*') ? '2.5' : '2' }}">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
-            </a>
 
             <!-- ================= ADMINISTRATION (PMO Admin Only) ================= -->
             @if($user?->isPmoAdmin())
@@ -756,25 +743,7 @@
          style="position:fixed; bottom:28px; right:28px; z-index:99999999; display:flex; flex-direction:column; gap:12px; align-items:flex-end; pointer-events:none; max-width:420px; width:calc(100vw - 48px);">
     </div>
 
-    <!-- Confirm Modal -->
-    <div id="confirm-modal" x-data="confirmModal()" x-show="show" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none">
-        <div class="absolute inset-0" style="background: rgba(26,10,13,0.5); backdrop-filter: blur(4px);" @click="cancel()"></div>
-        <div class="relative max-w-sm w-full mx-4" style="background:#fff; border-radius:18px; border:1px solid #e9e4e4; box-shadow: 0 24px 80px rgba(195,18,46,0.12), 0 8px 32px rgba(0,0,0,0.12); padding:1.5rem;">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #f9e8eb;">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #c3122e;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </div>
-                <div>
-                    <h3 class="font-bold text-sm" style="color: #1a1818;" x-text="title"></h3>
-                    <p class="text-xs mt-0.5" style="color: #706565;" x-text="message"></p>
-                </div>
-            </div>
-            <div class="flex gap-3 justify-end">
-                <button @click="cancel()" class="btn-secondary btn-sm">Cancel</button>
-                <button @click="confirm()" class="btn-primary btn-sm" x-text="confirmText"></button>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.confirmation-dialog')
 
     <!-- Project Not Found Modal Popup -->
     @if(session('project_not_found') || (session('error') && str_contains(strtolower(session('error')), 'project is not found')))
@@ -1146,35 +1115,6 @@
             }
         };
     }
-
-    function confirmModal() {
-        return {
-            show: false,
-            title: 'Confirm Action',
-            message: 'Are you sure?',
-            confirmText: 'Confirm',
-            resolve: null,
-            open(title, message, confirmText = 'Delete') {
-                this.title = title;
-                this.message = message;
-                this.confirmText = confirmText;
-                this.show = true;
-                return new Promise(resolve => this.resolve = resolve);
-            },
-            confirm() {
-                this.show = false;
-                this.resolve && this.resolve(true);
-            },
-            cancel() {
-                this.show = false;
-                this.resolve && this.resolve(false);
-            }
-        };
-    }
-
-    window.nexusConfirm = function(title, message, confirmText = 'Delete') {
-        return Alpine.store ? Alpine.$data(document.getElementById('confirm-modal')).open(title, message, confirmText) : Promise.resolve(confirm(message));
-    };
 
     // Global Command Palette / Search Hotkey (Cmd+K / Ctrl+K)
     window.addEventListener('keydown', function(e) {

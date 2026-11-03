@@ -241,7 +241,21 @@
                 x-data="{
                     drag: null,
                     dragging: false,
+                    panned: false,
+                    openWorkspace(event) {
+                        if ((event.type === 'click' &amp;&amp; this.panned) || event.defaultPrevented) return;
+                        if (event.target.closest('a, button, input, select, textarea, summary, [contenteditable], [role=button]')) return;
+                        const row = event.target.closest('tr[data-workspace-url]');
+                        if (!row) return;
+                        event.preventDefault();
+                        if (event.ctrlKey || event.metaKey) {
+                            window.open(row.dataset.workspaceUrl, '_blank', 'noopener');
+                        } else {
+                            window.location.assign(row.dataset.workspaceUrl);
+                        }
+                    },
                     beginPan(event) {
+                        this.panned = false;
                         if (event.pointerType !== 'mouse' || event.button !== 0 || this.$el.scrollWidth &lt;= this.$el.clientWidth) return;
                         if (event.target.closest('a, button, input, select, textarea, summary, [contenteditable], [role=button]')) return;
                         const rect = this.$el.getBoundingClientRect();
@@ -256,6 +270,7 @@
                         if (!this.dragging &amp;&amp; Math.abs(delta) &lt; 4) return;
                         if (!this.dragging) this.$el.setPointerCapture(event.pointerId);
                         this.dragging = true;
+                        this.panned = true;
                         event.preventDefault();
                         this.$el.scrollLeft = this.drag.left - delta;
                     },
@@ -271,8 +286,8 @@
                 <style>
                     .projects-drag-scroll { cursor: grab; }
                     .projects-drag-scroll.is-panning, .projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
-                    .projects-drag-scroll a, .projects-drag-scroll button { cursor: pointer; }
-                    .projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+                    .projects-drag-scroll a, .projects-drag-scroll button, .projects-drag-scroll tr[data-workspace-url] { cursor: pointer; }
+                    .projects-drag-scroll:focus-visible, .projects-drag-scroll tr[data-workspace-url]:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
                     .project-reassign-action {
                         background-color: #fff1f2 !important;
                         color: #be123c !important;
@@ -302,7 +317,8 @@
                         <col style="width: 105px">       {{-- 7. Deadline --}}
                         <col style="width: 118px">       {{-- 8. Approval Status --}}
                         <col style="width: 110px">       {{-- 9. Budget --}}
-                        <col style="width: 92px">        {{-- 10. Action --}}
+                        <col style="width: 115px">       {{-- 10. Actual Budget --}}
+                        <col style="width: 92px">        {{-- 11. Action --}}
                     </colgroup>
                     <thead>
                         <tr class="select-none">
@@ -315,6 +331,7 @@
                             <th>Deadline</th>
                             <th>Approval Status</th>
                             <th>Budget</th>
+                            <th>Actual Budget</th>
                             <th class="text-right">Action</th>
                         </tr>
                     </thead>
@@ -324,7 +341,10 @@
                                 $delaySummary = $delaySummaries[$project->id] ?? ['is_delayed' => false, 'issues' => []];
                                 $isProjectDelayed = ($project->status->value === 'delayed' || !empty($delaySummary['is_delayed']));
                             @endphp
-                            <tr class="{{ $isProjectDelayed ? 'project-row-delayed' : '' }} group">
+                            <tr class="{{ $isProjectDelayed ? 'project-row-delayed' : '' }} group"
+                                data-workspace-url="{{ route('projects.show', $project->id) }}"
+                                tabindex="0" aria-label="Open {{ $project->name }} workspace"
+                                @click="openWorkspace($event)" @keydown.enter.self="openWorkspace($event)">
                                 <!-- 1. Project Title & Code -->
                                 <td class="align-middle">
                                     <div class="flex items-center gap-2.5">
@@ -503,49 +523,16 @@
                                     @endif
                                 </td>
 
-                                <!-- 9. Budget -->
-                                <td class="align-middle whitespace-nowrap">
-                                    @php
-                                        $estBudget = (float) ($project->estimated_budget ?? 0);
-                                        $actCost = (float) ($project->actual_cost ?? 0);
-                                    @endphp
-                                    @if($estBudget > 0)
-                                        <div class="space-y-0.5">
-                                            <span class="block text-xs font-bold text-slate-800 font-mono">
-                                                Rs. {{ number_format($estBudget, 0) }}
-                                            </span>
-                                            @if($actCost > 0)
-                                                <span class="block text-[10px] font-medium {{ $actCost > $estBudget ? 'text-rose-600' : 'text-slate-400' }} font-mono">
-                                                    Spent: Rs. {{ number_format($actCost, 0) }}
-                                                </span>
-                                            @else
-                                                <span class="block text-[10px] font-medium text-slate-400">
-                                                    Allocated
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="text-xs font-semibold text-slate-400 font-mono">—</span>
-                                    @endif
-                                </td>
+                                {{-- 9. Budget & 10. Actual Budget --}}
+                                @include('livewire.partials.project-budget-columns', [
+                                    'budgetProject' => $project,
+                                    'showProjectBudget' => auth()->user()?->hasAdminInterfaceAccess() || $project->project_manager_id === auth()->id(),
+                                ])
 
-                                <!-- 10. Actions (Workspace, Edit, Delete) -->
+                                <!-- 11. Actions (Edit, Delete) -->
                                 <td class="align-middle text-right whitespace-nowrap">
                                     <div class="project-row-actions">
-                                        {{-- 1. Open Workspace Button --}}
-                                        <a
-                                            href="{{ route('projects.show', $project->id) }}"
-                                            x-on:click.stop
-                                            class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                                            title="Open Workspace"
-                                            aria-label="Open Workspace for {{ $project->name }}"
-                                        >
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                            </svg>
-                                        </a>
-
-                                        {{-- 2. Edit Project Button --}}
+                                        {{-- 1. Edit Project Button --}}
                                         @if(!auth()->user()?->isAdminViewer() && (auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $project->project_manager_id === auth()->id() || $project->userCan(auth()->user(), 'project_details.edit')))
                                             <button
                                                 type="button"
@@ -561,7 +548,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- 3. Delete Project Button --}}
+                                        {{-- 2. Delete Project Button --}}
                                         @if(!auth()->user()?->isAdminViewer() && (auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1))
                                             <button
                                                 type="button"
@@ -581,7 +568,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="py-16 text-center">
+                                <td colspan="11" class="py-16 text-center">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>

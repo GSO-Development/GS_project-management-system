@@ -155,9 +155,11 @@ class AllTasksViewer extends Component
         // ═══════════════════════════════════════════════════════════════
         // 1. ALL TASKS KPI COUNTS
         // ═══════════════════════════════════════════════════════════════
-        $allTasks = WbsItem::whereHas('project', fn($q) => $q->whereNull('deleted_at'))
+        // KPI cards and table rows share the selected project scope.
+        $taskBaseQuery = WbsItem::whereHas('project', fn ($q) => $q->whereNull('deleted_at'))
             ->whereNotIn('status', ['cancelled'])
-            ->get();
+            ->when($this->projectFilter !== 'all', fn ($q) => $q->where('project_id', $this->projectFilter));
+        $allTasks = (clone $taskBaseQuery)->get();
         $statusValue = fn (WbsItem $task): string => $task->status instanceof WbsStatus
             ? $task->status->value
             : (string) $task->status;
@@ -167,8 +169,7 @@ class AllTasksViewer extends Component
             'in_progress' => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['in_progress'], true))->count(),
             'completed'   => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['completed'], true))->count(),
             'on_hold'     => $allTasks->filter(fn (WbsItem $task) => in_array($statusValue($task), self::WORKFLOW_STATUS_GROUPS['on_hold'], true))->count(),
-            'at_risk'     => WbsItem::whereHas('project', fn ($q) => $q->whereNull('deleted_at'))
-                                ->whereNotIn('status', ['cancelled'])
+            'at_risk'     => (clone $taskBaseQuery)
                                 ->where(function ($q) {
                                     $q->where('status', 'at_risk')
                                         ->orWhereHas('risks', fn ($riskQuery) => $riskQuery->whereIn('status', ['open', 'monitoring']));
@@ -184,8 +185,10 @@ class AllTasksViewer extends Component
         // ═══════════════════════════════════════════════════════════════
         // 2. STUCK & BLOCKED TASKS BASE QUERY & METRICS
         // ═══════════════════════════════════════════════════════════════
+        $stuckProjectId = $this->stuckProjectFilter !== 'all' ? $this->stuckProjectFilter : $this->projectFilter;
         $stuckBaseQuery = WbsItem::with(['project.subsidiary', 'project.projectManager', 'assignedUser', 'blockers.reporter'])
             ->whereHas('project', fn($q) => $q->whereNull('deleted_at'))
+            ->when($stuckProjectId !== 'all', fn ($q) => $q->where('project_id', $stuckProjectId))
             ->where(function($q) use ($today) {
                 $q->where('status', WbsStatus::BLOCKED)
                   ->orWhereNotNull('delay_reason')
@@ -215,8 +218,6 @@ class AllTasksViewer extends Component
             if ($this->stuckTypeFilter === 'delay_reported' && empty($task->delay_reason)) return false;
             if ($this->stuckTypeFilter === 'on_hold' && $task->status?->value !== 'on_hold' && ($task->project?->status?->value ?? '') !== 'on_hold') return false;
 
-            $selectedProject = ($this->stuckProjectFilter !== 'all') ? $this->stuckProjectFilter : $this->projectFilter;
-            if ($selectedProject !== 'all' && (string)$task->project_id !== $selectedProject) return false;
             if ($this->stuckAssigneeFilter !== 'all' && (string)$task->assigned_user_id !== $this->stuckAssigneeFilter) return false;
             if ($this->stuckPriorityFilter !== 'all' && strtolower($task->priority?->value ?? '') !== strtolower($this->stuckPriorityFilter)) return false;
 
@@ -236,9 +237,7 @@ class AllTasksViewer extends Component
         // ═══════════════════════════════════════════════════════════════
         // 3. ALL TASKS QUERY
         // ═══════════════════════════════════════════════════════════════
-        $query = WbsItem::with(['project.subsidiary', 'assignedUser'])
-            ->whereHas('project', fn($q) => $q->whereNull('deleted_at'))
-            ->whereNotIn('status', ['cancelled']);
+        $query = (clone $taskBaseQuery)->with(['project.subsidiary', 'assignedUser']);
 
         if ($this->search && $this->viewMode === 'all') {
             $s = "%{$this->search}%";
@@ -265,10 +264,6 @@ class AllTasksViewer extends Component
                 $q->where('status', 'at_risk')
                     ->orWhereHas('risks', fn ($riskQuery) => $riskQuery->whereIn('status', ['open', 'monitoring']));
             });
-        }
-
-        if ($this->projectFilter !== 'all') {
-            $query->where('project_id', $this->projectFilter);
         }
 
         if ($this->priorityFilter !== 'all') {

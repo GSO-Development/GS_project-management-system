@@ -5,6 +5,7 @@
         $isSuperAdmin    = $currentUser->isSuperAdmin() || $currentUser->hasRole('pmo_admin');
         $isPm            = !$isAdminViewer && ($project->project_manager_id === $currentUser->id);
         $userRoleCode    = $project->getUserRole($currentUser);
+        $canViewProjectDetails = $this->canViewProjectDetails;
         $hideTaskSheet = !$isAdminViewer && !$project->canUserManage($currentUser);
         $roleMeta        = $allRoles[$userRoleCode] ?? null;
 
@@ -71,25 +72,41 @@
         $inProgressWbsCount = $project->wbsItems->where('status', \App\Enums\WbsStatus::IN_PROGRESS)->count();
     @endphp
 
-    <!-- 1. Top Bar: Clean Minimalist Breadcrumbs -->
-    <div class="workspace-breadcrumb flex items-center gap-2 text-xs text-slate-500 font-medium mb-2.5 flex-wrap">
-        <a href="{{ route('dashboard') }}" wire:navigate.hover class="text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center gap-1.5" title="Dashboard">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-        </a>
-        <span class="text-slate-300">/</span>
-        <a href="{{ auth()->user()?->hasAdminInterfaceAccess() ? route('projects.index') : route('projects.my-leads') }}" wire:navigate.hover class="text-slate-500 hover:text-[#c3122e] font-medium transition-colors no-underline">
-            Projects
-        </a>
-        <span class="text-slate-300">/</span>
-        <span class="text-slate-600 font-medium truncate max-w-[200px] sm:max-w-xs">
-            {{ $project->subsidiary->name ?? 'George Steuart Group' }}
-        </span>
-        <span class="text-slate-300">/</span>
-        <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
-            {{ $project->code }}
-        </span>
+    <!-- 1. Top Bar: Clean Minimalist Breadcrumbs & Compact Progress Bar -->
+    <div class="workspace-breadcrumb flex items-center justify-between gap-4 text-xs text-slate-500 font-medium mb-2.5 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('dashboard') }}" wire:navigate.hover class="text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center gap-1.5" title="Dashboard">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+            </a>
+            <span class="text-slate-300">/</span>
+            <a href="{{ auth()->user()?->hasAdminInterfaceAccess() ? route('projects.index') : route('projects.my-leads') }}" wire:navigate.hover class="text-slate-500 hover:text-[#c3122e] font-medium transition-colors no-underline">
+                Projects
+            </a>
+            <span class="text-slate-300">/</span>
+            <span class="text-slate-600 font-medium truncate max-w-[200px] sm:max-w-xs">
+                {{ $project->subsidiary->name ?? 'George Steuart Group' }}
+            </span>
+            <span class="text-slate-300">/</span>
+            <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+                {{ $project->code }}
+            </span>
+        </div>
+
+        <!-- Compact Progress Bar (Original Size on the Right Side of Breadcrumbs) -->
+        <div class="w-52 sm:w-60 bg-white border border-slate-200/80 rounded-xl px-3 py-1.5 shadow-2xs shrink-0">
+            <div class="flex items-center justify-between gap-1 leading-none mb-1">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">PROGRESS</span>
+                <div class="flex items-center gap-1">
+                    <span class="text-xs font-black text-slate-900 font-mono">{{ min(100, max(0, (int) $project->overall_progress)) }}%</span>
+                    <span class="text-[10px] text-slate-400 font-mono">({{ $completedWbsCount }}/{{ $totalWbsCount }})</span>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-[#c3122e] to-rose-500 rounded-full transition-all duration-500" style="width: {{ min(100, max(0, (int) $project->overall_progress)) }}%;"></div>
+            </div>
+        </div>
     </div>
 
     {{-- PM Assignment Acceptance / Rejection Notice Banner --}}
@@ -200,161 +217,167 @@
         </div>
     @endif
 
-    <!-- 2. Sleek Compact Executive Project Header Card -->
-    <div class="workspace-overview bg-white border border-slate-200/80 rounded-xl shadow-2xs mb-3 p-3 sm:px-4 sm:py-3 space-y-2">
-        
-        <!-- Header Top Row: Brand Monogram, Title, Status Badges & CTA -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div class="flex items-center gap-3 min-w-0">
-                <!-- Brand Project Icon Box -->
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-50 via-rose-100/50 to-slate-50 border border-rose-200/70 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-4 h-4 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
+    @php
+        $leadUser = $project->projectManager;
+        $leadName = $leadUser->name ?? 'Unassigned';
+        $leadInitials = $leadUser ? collect(explode(' ', trim($leadName)))->filter()->map(fn($w) => mb_substr($w, 0, 1))->take(2)->join('') : '—';
 
-                <div class="min-w-0 space-y-0.5">
-                    <!-- Project Code & Subsidiary -->
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="px-2 py-0.5 rounded text-[10.5px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200/80">
+        $progressPct = min(100, max(0, (int) $project->overall_progress));
+        $hasDeadline = (bool) $project->deadline;
+        $daysLeft = $hasDeadline
+            ? (int) now()->startOfDay()->diffInDays($project->deadline->copy()->startOfDay(), false)
+            : null;
+        $deadlineIso = $hasDeadline ? $project->deadline->format('Y-m-d') : null;
+        $isProjectCompleted = $project->status === \App\Enums\ProjectStatus::COMPLETED;
+    @endphp
+
+    <!-- 2. Creative Executive Project Header Card -->
+    <div class="workspace-overview bg-white border border-slate-200/90 rounded-2xl shadow-2xs mb-3.5 p-4 sm:px-5 sm:py-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+            <!-- Left: Project Identity, Status & Project Lead -->
+            <div class="flex items-start sm:items-center min-w-0 flex-1">
+                <div class="min-w-0 flex-1 space-y-1.5">
+                    <!-- Top Meta Row: Code, Subsidiary & Governance Badges -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200/80">
                             {{ $project->code }}
                         </span>
                         <span class="text-slate-300 text-xs">•</span>
-                        <span class="text-xs font-semibold text-slate-500 truncate max-w-[200px] sm:max-w-none">
+                        <span class="text-xs font-semibold text-slate-500 truncate max-w-[220px] sm:max-w-none">
                             {{ $project->subsidiary->name ?? 'George Steuart Group' }}
                         </span>
-                    </div>
-
-                    <!-- Title & Badges Row -->
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h1 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug truncate" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                            {{ $project->name }}
-                        </h1>
 
                         <!-- Status Badge -->
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} border {{ $statusStyle['border'] }} shadow-2xs">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }} border {{ $statusStyle['border'] }}">
                             <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
                             <span>{{ $project->status->label() }}</span>
                         </span>
 
                         <!-- Role Badge -->
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ $myRoleBadgeClass }} border shadow-2xs" title="{{ $myRoleDesc }}">
-                            <svg class="w-2.5 h-2.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold {{ $myRoleBadgeClass }} border" title="{{ $myRoleDesc }}">
                             <span>{{ $myRoleLabel }}</span>
                         </span>
                     </div>
-                </div>
-            </div>
 
-            <!-- Primary Action -->
-            @if(auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'project_details.view'))
-                <button
-                    wire:click="openProjectDetailsModal"
-                    type="button"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] active:scale-95 transition-all shadow-2xs hover:shadow cursor-pointer shrink-0"
-                    title="View full project brief, specifications & governance"
-                >
-                    <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>Project Details</span>
-                    <svg class="w-3 h-3 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
-            @endif
-        </div>
+                    <!-- Project Title & Lead Row -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-snug truncate" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            {{ $project->name }}
+                        </h1>
 
-        <!-- 4 Minimalist Compact Metric Stat Ribbon -->
-        <div class="workspace-metrics grid grid-cols-2 lg:grid-cols-4 gap-1 lg:gap-0 pt-2 border-t border-slate-100">
-            <!-- Card 1: Project Lead -->
-            @php
-                $leadUser = $project->projectManager;
-                $leadName = $leadUser->name ?? 'Unassigned';
-                $leadInitials = $leadUser ? collect(explode(' ', trim($leadName)))->filter()->map(fn($w) => mb_substr($w, 0, 1))->take(2)->join('') : '—';
-            @endphp
-            <div class="flex items-center gap-2 py-0.5 px-2">
-                <div class="w-6 h-6 rounded-full bg-rose-50 border border-rose-200/80 text-[#c3122e] font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                    @if($leadUser)
-                        <span>{{ strtoupper($leadInitials) }}</span>
-                    @else
-                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    @endif
-                </div>
-                <div class="min-w-0 flex-1">
-                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block leading-none">PROJECT LEAD</span>
-                    <span class="text-xs font-bold text-slate-800 truncate block mt-0.5" title="{{ $leadName }}">
-                        {{ $leadName }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Card 2: Start Date -->
-            <div class="flex items-center gap-2 py-0.5 px-2 lg:pl-3">
-                <div class="w-6 h-6 rounded-full bg-blue-50 border border-blue-200/70 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block leading-none">START DATE</span>
-                    <span class="text-xs font-bold text-slate-800 font-mono block mt-0.5">
-                        {{ $project->start_date ? $project->start_date->format('M d, Y') : ($project->created_at ? $project->created_at->format('M d, Y') : 'N/A') }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Card 3: Due Date -->
-            <div class="flex items-center gap-2 py-0.5 px-2 lg:pl-3">
-                <div class="w-6 h-6 rounded-full bg-amber-50 border border-amber-200/70 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5 leading-none">
-                        <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">DUE DATE</span>
-                        @if($project->deadline)
-                            @php $daysLeft = (int) now()->startOfDay()->diffInDays($project->deadline->startOfDay(), false); @endphp
-                            @if($daysLeft > 0)
-                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 leading-none">
-                                    {{ $daysLeft }}d left
-                                </span>
-                            @elseif($daysLeft === 0)
-                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 leading-none">
-                                    Today
-                                </span>
-                            @else
-                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60 leading-none">
-                                    {{ abs($daysLeft) }}d late
-                                </span>
-                            @endif
-                        @endif
-                    </div>
-                    <span class="text-xs font-bold text-slate-800 font-mono block mt-0.5">
-                        {{ $project->deadline ? $project->deadline->format('M d, Y') : 'Nov 01, 2026' }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Card 4: Progress -->
-            <div class="flex items-center gap-2.5 py-0.5 px-2 lg:pl-3">
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between gap-1 leading-none mb-1">
-                        <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">PROGRESS</span>
-                        <div class="flex items-center gap-1">
-                            <span class="text-xs font-black text-slate-900 font-mono">{{ (int) $project->overall_progress }}%</span>
-                            <span class="text-[10px] text-slate-400 font-mono">({{ $completedWbsCount }}/{{ $totalWbsCount }})</span>
+                        <!-- Inline Project Lead Chip -->
+                        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80 w-fit shrink-0">
+                            <div class="w-5 h-5 rounded-full bg-rose-50 border border-rose-200 text-[#c3122e] font-black text-[9px] flex items-center justify-center shrink-0">
+                                {{ strtoupper($leadInitials) }}
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Lead:</span>
+                                <span class="font-bold text-slate-800 truncate max-w-[160px]" title="{{ $leadName }}">{{ $leadName }}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-[#c3122e] to-rose-500 rounded-full transition-all duration-500" style="width: {{ min(100, max(0, (int) $project->overall_progress)) }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Right: Live Day-to-Day Countdown Widget -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100 shrink-0">
+
+                <!-- Creative Day-to-Day Remaining Days Card -->
+                <div
+                    x-data="{
+                        deadline: '{{ $deadlineIso ?? '' }}',
+                        completed: {{ $isProjectCompleted ? 'true' : 'false' }},
+                        daysLeft: {{ $daysLeft !== null ? $daysLeft : 'null' }},
+                        updateDays() {
+                            if (!this.deadline) return;
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const parts = this.deadline.split('-').map(Number);
+                            const target = new Date(parts[0], parts[1] - 1, parts[2]);
+                            target.setHours(0, 0, 0, 0);
+                            this.daysLeft = Math.round((target - today) / 86400000);
+                        },
+                        init() {
+                            this.updateDays();
+                            setInterval(() => this.updateDays(), 60000);
+                        }
+                    }"
+                    class="flex items-center gap-3 px-3.5 py-2 rounded-xl border transition-colors
+                        {{ $isProjectCompleted
+                            ? 'bg-emerald-50/60 border-emerald-200/80'
+                            : ($daysLeft !== null && $daysLeft < 0
+                                ? 'bg-rose-50/70 border-rose-200/80'
+                                : ($daysLeft === 0
+                                    ? 'bg-amber-50/70 border-amber-200/80'
+                                    : 'bg-slate-50/90 border-slate-200/90')) }}"
+                >
+                    <!-- Countdown Icon Box -->
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 font-mono font-black text-xs
+                        {{ $isProjectCompleted
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : ($daysLeft !== null && $daysLeft < 0
+                                ? 'bg-rose-100 text-rose-700'
+                                : ($daysLeft === 0
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-white text-[#c3122e] border border-slate-200/80 shadow-2xs')) }}">
+                        @if($isProjectCompleted)
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        @else
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        @endif
+                    </div>
+
+                    <!-- Live Day Count Text -->
+                    <div class="min-w-0">
+                        <span class="text-[9.5px] font-extrabold uppercase tracking-wider block leading-none
+                            {{ $isProjectCompleted
+                                ? 'text-emerald-700'
+                                : ($daysLeft !== null && $daysLeft < 0 ? 'text-rose-600' : 'text-slate-400') }}">
+                            @if($isProjectCompleted)
+                                Delivery Status
+                            @elseif(!$hasDeadline)
+                                Timeline Countdown
+                            @elseif($daysLeft < 0)
+                                Schedule Delay
+                            @else
+                                Time Remaining
+                            @endif
+                        </span>
+
+                        @if($isProjectCompleted)
+                            <span class="text-sm font-black text-emerald-800 block leading-tight mt-0.5">
+                                Project Completed
+                            </span>
+                        @elseif(!$hasDeadline)
+                            <span class="text-sm font-bold text-slate-600 block leading-tight mt-0.5">
+                                No Deadline Set
+                            </span>
+                        @else
+                            <div class="flex items-baseline gap-1 mt-0.5">
+                                <span
+                                    x-text="daysLeft === 0 ? 'Due Today' : (daysLeft > 0 ? daysLeft + (daysLeft === 1 ? ' Day Left' : ' Days Left') : Math.abs(daysLeft) + (Math.abs(daysLeft) === 1 ? ' Day Overdue' : ' Days Overdue'))"
+                                    class="text-sm font-black font-mono tracking-tight
+                                        {{ $daysLeft < 0 ? 'text-rose-700' : ($daysLeft === 0 ? 'text-amber-800' : 'text-slate-900') }}"
+                                >
+                                    @if($daysLeft === 0)
+                                        Due Today
+                                    @elseif($daysLeft > 0)
+                                        {{ $daysLeft }} {{ $daysLeft === 1 ? 'Day Left' : 'Days Left' }}
+                                    @else
+                                        {{ abs($daysLeft) }} {{ abs($daysLeft) === 1 ? 'Day Overdue' : 'Days Overdue' }}
+                                    @endif
+                                </span>
+                            </div>
+                        @endif
                     </div>
                 </div>
+
+
             </div>
         </div>
     </div>
@@ -654,12 +677,12 @@
                 @foreach([
                     'wbs'       => ['Task List', 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
                     'sheet'     => ['Task Sheet', 'M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
+                    'details'   => ['Project Details', 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                     'kanban'    => ['Kanban', 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7'],
                     'team'      => ['Team Roster', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-                    'updates'   => ['Status Updates', 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'],
                     'risks'     => ['Risks & Blockers', 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
                 ] as $tabKey => [$tabLabel, $tabIcon])
-                    @if($tabKey !== 'sheet' || !$hideTaskSheet)
+                    @if(($tabKey !== 'sheet' || !$hideTaskSheet) && ($tabKey !== 'details' || $canViewProjectDetails))
                     <button
                         wire:click="$set('activeTab', '{{ $tabKey }}')"
                         type="button"
@@ -687,6 +710,12 @@
         </div>
 
         <!-- ===== 4. TAB CONTENTS ===== -->
+        @if($activeTab === 'details' && $canViewProjectDetails)
+            <section class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col" aria-labelledby="project-details-title">
+                @include('livewire.partials.project-details-content', ['detailsInModal' => false])
+            </section>
+        @endif
+
         <!-- 1. DEDICATED TEAM ROSTER TAB -->
         @if($activeTab === 'team')
             @php
@@ -859,62 +888,7 @@
         <livewire:kanban-board :project="$project" :key="'kanban-board-'.$project->id.'-'.($project->updated_at?->timestamp ?? time())" />
     @endif
 
-    <!-- 5. STATUS UPDATES TAB -->
-    @if($activeTab === 'updates')
-        <div class="space-y-6">
-            @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']) || $project->members->contains(auth()->id()))
-            <div class="card">
-                <div class="flex items-center gap-2 mb-5">
-                    <div class="w-7 h-7 rounded-lg bg-[#fdf4f4] border border-[#faeaea] flex items-center justify-center text-[#c3122e]">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    </div>
-                    <h3 class="font-bold text-slate-900 text-sm">Publish New Status Update</h3>
-                </div>
-                <form wire:submit="publishStatusUpdate" class="space-y-4">
-                    <div class="form-group">
-                        <label class="form-label">Update Title</label>
-                        <input type="text" wire:model="statusTitle" placeholder="e.g. Sprint 4 Completion Report" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Summary</label>
-                        <textarea wire:model="statusSummary" rows="3" placeholder="Describe current progress and status..." class="form-input"></textarea>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label class="form-label">Work Completed</label>
-                            <textarea wire:model="workCompleted" rows="2" placeholder="Achievements this period..." class="form-input"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Next Steps</label>
-                            <textarea wire:model="nextSteps" rows="2" placeholder="Planned activities..." class="form-input"></textarea>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Publish Status Update</button>
-                </form>
-            </div>
-            @endif
 
-            <div class="card">
-                <h3 class="font-bold text-slate-900 text-sm mb-4">Status Update Timeline</h3>
-                <div class="space-y-4">
-                    @forelse($project->statusUpdates as $u)
-                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-bold text-slate-900 text-xs">{{ $u->title }}</span>
-                                <span class="text-[10px] text-slate-400 font-mono">{{ $u->created_at->format('M d, Y H:i') }}</span>
-                            </div>
-                            <p class="text-xs text-slate-600 mb-2">{{ $u->summary }}</p>
-                            @if($u->work_completed)
-                                <p class="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100"><strong>✓ Completed:</strong> {{ $u->work_completed }}</p>
-                            @endif
-                        </div>
-                    @empty
-                        <div class="text-center py-8 text-slate-400 text-xs">No status updates recorded yet</div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    @endif
 
     <!-- 6. DOCUMENTS TAB -->
     @if($activeTab === 'documents')
@@ -1033,101 +1007,6 @@
     @if($activeTab === 'risks')
         <div class="space-y-7">
 
-            <!-- 2. Risk Register Form Card -->
-            @if($project->userCan(auth()->user(), 'risk.create'))
-            <div id="risk-create-card" class="card p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
-                <div class="flex items-center gap-3 pb-4 mb-6 border-b border-slate-100">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-black text-sm shadow-2xs">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="font-black text-slate-900 text-base">Report New Project Risk</h3>
-                        <p class="text-xs text-slate-500 font-medium">Identify risks and link them directly to specific WBS tasks or scope modules</p>
-                    </div>
-                </div>
-
-                <form wire:submit="addRisk" class="space-y-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        <div class="form-group sm:col-span-2">
-                            <label class="form-label font-extrabold text-slate-800 text-xs">Risk Title <span class="text-rose-500">*</span></label>
-                            <input type="text" wire:model="riskTitle" placeholder="e.g. Third-party API Payment Gateway Integration Delay" class="form-input text-xs font-bold py-2.5 rounded-xl border-slate-200 focus:border-[#c3122e]">
-                            @error('riskTitle') <span class="form-error">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label font-extrabold text-slate-800 text-xs">Risk Category</label>
-                            <select wire:model="riskCategory" class="form-select text-xs font-bold py-2.5 rounded-xl border-slate-200 focus:border-[#c3122e]">
-                                <option value="Technical">Technical</option>
-                                <option value="Financial">Financial</option>
-                                <option value="Schedule">Schedule</option>
-                                <option value="Resource">Resource</option>
-                                <option value="External">External Vendor</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Component / WBS Task Identification Selector -->
-                    <div class="form-group">
-                        <label class="form-label font-extrabold text-slate-800 text-xs flex items-center justify-between">
-                            <span>📍 Affected Scope Component / WBS Task (Identity Location)</span>
-                            <span class="text-[10px] text-[#c3122e] font-black uppercase">Links Risk to Exact Section</span>
-                        </label>
-                        <select wire:model="riskWbsItemId" class="form-select text-xs font-extrabold py-2.5 rounded-xl border-slate-200 focus:border-[#c3122e] bg-slate-50">
-                            <option value="">🌐 [General Project Level Scope]</option>
-                            @foreach($project->wbsItems as $wbs)
-                                <option value="{{ $wbs->id }}">
-                                    📍 Code: {{ $wbs->wbs_code }} — {{ $wbs->title }} ({{ $wbs->item_type->value }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <p class="text-[10px] text-slate-500 mt-1 font-medium">Select the specific WBS task or module where this risk originates, or choose General Project Scope.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div class="form-group">
-                            <label class="form-label font-extrabold text-slate-800 text-xs">Probability & Impact</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 block mb-1">Probability</span>
-                                    <select wire:model="riskProbability" class="form-select text-xs font-bold py-2 rounded-xl">
-                                        <option value="low">Low (1)</option>
-                                        <option value="medium">Medium (2)</option>
-                                        <option value="high">High (3)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 block mb-1">Impact</span>
-                                    <select wire:model="riskImpact" class="form-select text-xs font-bold py-2 rounded-xl">
-                                        <option value="low">Low (1)</option>
-                                        <option value="medium">Medium (2)</option>
-                                        <option value="high">High (3)</option>
-                                        <option value="critical">Critical (4)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label font-extrabold text-slate-800 text-xs">Mitigation Plan (Optional)</label>
-                            <input type="text" wire:model="riskMitigation" placeholder="Outline steps to prevent or minimize impact..." class="form-input text-xs py-2.5 rounded-xl border-slate-200">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label font-extrabold text-slate-800 text-xs">Risk Description & Impact Analysis <span class="text-rose-500">*</span></label>
-                        <textarea wire:model="riskDescription" rows="3" placeholder="Detailed analysis of what could go wrong and potential consequences..." class="form-input text-xs rounded-xl p-3 border-slate-200 focus:border-[#c3122e]"></textarea>
-                        @error('riskDescription') <span class="form-error">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="flex justify-end pt-2">
-                        <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/25 transition-all cursor-pointer">
-                            <span>Add Risk to Project Log</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-            @endif
-
             <!-- 3. Risk Log List Card -->
             <div class="card p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
@@ -1136,7 +1015,7 @@
                         @if($project->userCan(auth()->user(), 'risk.create'))
                             <button 
                                 type="button" 
-                                onclick="document.getElementById('risk-create-card')?.scrollIntoView({ behavior: 'smooth' })" 
+                                wire:click="openCreateRiskModal"
                                 class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a50e26] transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -2610,17 +2489,9 @@
     <!-- ═══════════════════════════════════════════════════════════════
          PROJECT OVERVIEW / SUMMARY MODAL
          ═══════════════════════════════════════════════════════════════ -->
-    @if($showProjectDetailsModal && (auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'project_details.view')))
+    @if($showProjectDetailsModal && $canViewProjectDetails)
     @teleport('body')
-    @php
-        $canEditProjectDetails = auth()->user()?->isPmoAdmin() || $project->userCan(auth()->user(), 'project_details.edit');
-        $currPm = $project->projectManager;
-        $tpl = $project->template;
-        $workStart = $tpl?->work_start_time ? \Carbon\Carbon::parse($tpl->work_start_time)->format('g:i A') : '8:30 AM';
-        $workEnd = $tpl?->work_end_time ? \Carbon\Carbon::parse($tpl->work_end_time)->format('g:i A') : '5:30 PM';
-        $days = $tpl?->work_days ? implode(', ', array_map('ucfirst', $tpl->work_days)) : 'Mon, Tue, Wed, Thu, Fri';
-        $granularity = ($tpl?->divide_by_hours ?? true) ? 'Hourly Breakdown' : 'Daily Breakdown';
-    @endphp
+
     <div 
         x-data 
         @keydown.escape.window="$wire.closeProjectDetailsModal()"
@@ -2633,230 +2504,15 @@
         <div 
             style="position: relative; width: min(740px, calc(100vw - 32px)); max-width: 740px; max-height: calc(100dvh - 36px); margin: 0; display: flex; flex-direction: column; background: #ffffff; border-radius: 18px; box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24); border: 1px solid #e2e8f0; overflow: hidden; animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
         >
-            <!-- Clean Header -->
-            <div style="padding: 18px 26px; border-bottom: 1px solid #edf0f4; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff; flex-shrink: 0;">
-                <div style="min-width: 0;">
-                    <h3 id="project-overview-title" style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.3; letter-spacing: -0.015em;">
-                        Project Details
-                    </h3>
-                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500;">
-                        {{ $project->code }} &middot; Project identity, timeline, budget, and delivery template.
-                    </p>
-                </div>
-                <button 
-                    wire:click="closeProjectDetailsModal" 
-                    type="button" 
-                    style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; transition: all 0.15s; flex-shrink: 0;"
-                    onmouseover="this.style.background='#f8fafc'; this.style.color='#0f172a'"
-                    onmouseout="this.style.background='#ffffff'; this.style.color='#64748b'"
-                    title="Close (Esc)"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- Clean Single-Surface Body -->
-            <div style="padding: 22px 26px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0; background: #ffffff; scrollbar-gutter: stable;">
-                
-                {{-- Governance Context Bar --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80">
-                    <!-- Project Manager -->
-                    <div class="min-w-0">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Project Manager</span>
-                        @if($currPm)
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-slate-300/80">
-                                    {{ strtoupper(substr($currPm->name, 0, 1)) }}
-                                </div>
-                                <div class="min-w-0">
-                                    <span class="text-xs font-bold text-slate-800 block truncate" title="{{ $currPm->name }}">{{ $currPm->name }}</span>
-                                </div>
-                            </div>
-                        @else
-                            <span class="text-xs text-slate-400 italic">Unassigned</span>
-                        @endif
-                    </div>
-
-                    <!-- Execution Status -->
-                    <div class="sm:border-l sm:border-slate-200/80 sm:pl-3">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Execution Status</span>
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border {{ $project->status->badgeClass() }}">
-                                <span class="h-1.5 w-1.5 rounded-full {{ $project->status->badgeDotClass() }}"></span>
-                                {{ $project->status->label() }}
-                            </span>
-                            <span class="text-[10px] font-medium text-slate-400">{{ $project->overall_progress }}%</span>
-                        </div>
-                    </div>
-
-                    <!-- Priority Level -->
-                    <div class="sm:border-l sm:border-slate-200/80 sm:pl-3">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Priority Level</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-800">{{ $project->priority->label() }}</span>
-                            <span class="text-[10px] font-medium text-slate-400">&bull; Task-driven</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 1. Core Identity & Scope --}}
-                <div class="space-y-4">
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs mb-1.5 block">Project Title</label>
-                        <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center text-xs font-semibold text-slate-900">
-                            {{ $project->name }}
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                        <div class="sm:col-span-8">
-                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Subsidiary / Division</label>
-                            <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center text-xs font-semibold text-slate-900 truncate">
-                                {{ $project->subsidiary->name ?? 'George Steuart Group' }}
-                            </div>
-                        </div>
-
-                        <div class="sm:col-span-4">
-                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Project Code</label>
-                            <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 flex items-center text-xs font-mono font-bold text-slate-800">
-                                {{ $project->code }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs mb-1.5 block">Project Description &amp; Scope</label>
-                        <div class="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs leading-relaxed text-slate-700 min-h-[72px]">
-                            @if(!empty(trim($project->description ?? '')))
-                                <p class="whitespace-pre-line">{{ $project->description }}</p>
-                            @else
-                                <span class="text-slate-400 italic">No project description specified.</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 2. Schedule & Financial Budget --}}
-                <div class="border-t border-slate-100 pt-5 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="text-xs font-extrabold text-slate-800">Schedule &amp; Financial Budget</h4>
-                            <p class="text-[11px] text-slate-400 font-medium mt-0.5">Configured target timeline and allocated project budget.</p>
-                        </div>
-                        @if(($project->estimated_budget ?? 0) > 0)
-                            @php
-                                $bPct = min(100, round(($project->actual_cost / $project->estimated_budget) * 100));
-                            @endphp
-                            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border {{ $bPct > 90 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200' }}">
-                                {{ $bPct }}% Burn Rate
-                            </span>
-                        @endif
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Kick-off Date</label>
-                            <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center text-xs font-semibold text-slate-900 font-mono">
-                                {{ $project->start_date ? $project->start_date->format('M d, Y') : 'Not set' }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Target Completion Deadline</label>
-                            <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-between text-xs font-semibold text-slate-900 font-mono">
-                                <span>{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Not set' }}</span>
-                                @if($project->deadline)
-                                    @php $dLeft = (int) now()->startOfDay()->diffInDays($project->deadline->startOfDay(), false); @endphp
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-sans font-semibold {{ $dLeft < 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
-                                        {{ $dLeft < 0 ? abs($dLeft).'d overdue' : $dLeft.'d left' }}
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Estimated Budget (LKR)</label>
-                            <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center text-xs font-semibold text-slate-900 font-mono">
-                                Rs. {{ number_format($project->estimated_budget ?? 0, 2) }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="font-bold text-slate-700 text-xs mb-1.5 block">Actual Cost / Spend (LKR)</label>
-                            <div class="w-full h-10.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center text-xs font-semibold text-slate-900 font-mono">
-                                Rs. {{ number_format($project->actual_cost ?? 0, 2) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 3. Delivery Blueprint Template --}}
-                <div class="border-t border-slate-100 pt-5 space-y-3">
-                    <div>
-                        <h4 class="text-xs font-extrabold text-slate-800">Delivery Blueprint Template</h4>
-                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">Active WBS structure and task breakdown configuration.</p>
-                    </div>
-
-                    @if($tpl)
-                        <div class="p-3.5 rounded-xl border border-[#c3122e]/40 bg-rose-50/15 flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs font-bold text-slate-900">{{ $tpl->name }}</span>
-                                    <span class="text-[10px] font-mono font-bold text-[#c3122e] bg-rose-50 px-2 py-0.5 rounded border border-rose-100">{{ $tpl->tasks->count() }} Tasks</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 mt-1">
-                                    {{ $workStart }} – {{ $workEnd }} &bull; {{ $days }} &bull; {{ $granularity }}
-                                </p>
-                            </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                Active Template
-                            </span>
-                        </div>
-                    @else
-                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-between gap-3">
-                            <div>
-                                <span class="text-xs font-bold text-slate-900">Blank Slate Canvas (Custom WBS)</span>
-                                <p class="text-[11px] text-slate-500 mt-0.5">{{ $project->wbsItems->count() }} configured tasks in workspace</p>
-                            </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                                Custom
-                            </span>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Footer Action Bar -->
-            <div style="padding: 14px 26px; border-top: 1px solid #edf0f4; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #ffffff; flex-shrink: 0;">
-                <span class="text-[11px] text-slate-400 font-medium">
-                    Created on {{ $project->created_at->format('M d, Y') }}
-                </span>
-                <div class="flex items-center gap-2.5 ml-auto">
-                    @if($canEditProjectDetails)
-                        <button 
-                            type="button" 
-                            wire:click="openEditProjectModal" 
-                            style="padding: 9px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
-                            onmouseover="this.style.background='#f8fafc'; this.style.color='#0f172a'"
-                            onmouseout="this.style.background='#ffffff'; this.style.color='#334155'"
-                        >
-                            Edit Project Details
-                        </button>
-                    @endif
-                    <button 
-                        type="button" 
-                        wire:click="closeProjectDetailsModal"
-                        style="padding: 9px 22px; border-radius: 10px; border: none; background: #c3122e; color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(195, 18, 46, 0.25); transition: all 0.15s;"
-                        onmouseover="this.style.background='#a50f27'"
-                        onmouseout="this.style.background='#c3122e'"
-                    >
-                        Done
-                    </button>
-                </div>
-            </div>
+            @include('livewire.partials.project-details-content', ['detailsInModal' => true])
         </div>
     </div>
     @endteleport
     @endif
 
+    @if($showCreateRiskModal && $project->userCan(auth()->user(), 'risk.create'))
+        @teleport('body')
+            @include('livewire.partials.project-risk-create-modal')
+        @endteleport
+    @endif
 </div>

@@ -129,8 +129,8 @@
         .project-approval-register .project-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: nowrap; margin-left: auto; }
         .my-projects-drag-scroll { cursor: grab; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
         .my-projects-drag-scroll.is-panning, .my-projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
-        .my-projects-drag-scroll a, .my-projects-drag-scroll button { cursor: pointer; }
-        .my-projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+        .my-projects-drag-scroll a, .my-projects-drag-scroll button, .my-projects-drag-scroll tr[data-workspace-url] { cursor: pointer; }
+        .my-projects-drag-scroll:focus-visible, .my-projects-drag-scroll tr[data-workspace-url]:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
     </style>
 
     @if($projects->count() > 0)
@@ -139,9 +139,27 @@
             x-data="{
                 panStart: null,
                 isPanning: false,
+                panned: false,
+                openWorkspace(event) {
+                    if ((event.type === 'click' &amp;&amp; this.panned) || event.defaultPrevented) return;
+                    if (event.target.closest('a, button, input, select, textarea, summary, [contenteditable], [role=button]')) return;
+                    const row = event.target.closest('tr[data-workspace-url]');
+                    if (!row) return;
+                    event.preventDefault();
+                    if (row.dataset.workspaceLocked === 'true') {
+                        this.$wire.notifyWorkspaceLocked(Number(row.dataset.projectId));
+                        return;
+                    }
+                    if (event.ctrlKey || event.metaKey) {
+                        window.open(row.dataset.workspaceUrl, '_blank', 'noopener');
+                    } else {
+                        window.location.assign(row.dataset.workspaceUrl);
+                    }
+                },
                 beginPan(event) {
+                    this.panned = false;
                     if (event.pointerType !== 'mouse' || event.button !== 0 || this.$el.scrollWidth &lt;= this.$el.clientWidth) return;
-                    if (event.target.closest('a, button, input, select, textarea, [contenteditable], [role=button]')) return;
+                    if (event.target.closest('a, button, input, select, textarea, summary, [contenteditable], [role=button]')) return;
                     const rect = this.$el.getBoundingClientRect();
                     if (event.clientX >= rect.left + this.$el.clientWidth || event.clientY >= rect.top + this.$el.clientHeight) return;
                     this.panStart = { id: event.pointerId, x: event.clientX, left: this.$el.scrollLeft };
@@ -154,6 +172,7 @@
                     if (!this.isPanning &amp;&amp; Math.abs(delta) &lt; 4) return;
                     if (!this.isPanning) this.$el.setPointerCapture(event.pointerId);
                     this.isPanning = true;
+                    this.panned = true;
                     event.preventDefault();
                     this.$el.scrollLeft = this.panStart.left - delta;
                 },
@@ -176,7 +195,8 @@
                     <col style="width: 105px">       {{-- 6. Progress --}}
                     <col style="width: 110px">       {{-- 7. Deadline --}}
                     <col style="width: 115px">       {{-- 8. Budget --}}
-                    <col style="width: 95px">        {{-- 9. Action --}}
+                    <col style="width: 115px">       {{-- 9. Actual Budget --}}
+                    <col style="width: 95px">        {{-- 10. Action --}}
                 </colgroup>
                 <thead>
                     <tr class="select-none">
@@ -188,6 +208,7 @@
                         <th>Progress</th>
                         <th>Deadline</th>
                         <th>Budget</th>
+                        <th>Actual Budget</th>
                         <th class="text-right">Action</th>
                     </tr>
                 </thead>
@@ -232,7 +253,12 @@
                                 default              => $roleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $userRole)),
                             };
                         @endphp
-                        <tr class="{{ $isProjectDelayed ? 'project-row-delayed' : '' }} group">
+                        <tr class="{{ $isProjectDelayed ? 'project-row-delayed' : '' }} group"
+                            data-workspace-url="{{ route('projects.show', $p) }}"
+                            data-project-id="{{ $p->id }}"
+                            data-workspace-locked="{{ $p->project_manager_id === auth()->id() && !$p->isPmAccepted() ? 'true' : 'false' }}"
+                            tabindex="0" aria-label="Open {{ $p->name }} workspace"
+                            @click="openWorkspace($event)" @keydown.enter.self="openWorkspace($event)">
                             {{-- 1. Project Name & Code --}}
                             <td class="align-middle">
                                 <div class="flex items-center gap-2.5">
@@ -356,33 +382,13 @@
                                 @endif
                             </td>
 
-                            {{-- 8. Budget --}}
-                            <td class="align-middle whitespace-nowrap">
-                                @php
-                                    $estBudget = (float) ($p->estimated_budget ?? 0);
-                                    $actCost = (float) ($p->actual_cost ?? 0);
-                                @endphp
-                                @if($estBudget > 0)
-                                    <div class="space-y-0.5">
-                                        <span class="block text-xs font-bold text-slate-800 font-mono">
-                                            Rs. {{ number_format($estBudget, 0) }}
-                                        </span>
-                                        @if($actCost > 0)
-                                            <span class="block text-[10px] font-medium {{ $actCost > $estBudget ? 'text-rose-600' : 'text-slate-400' }} font-mono">
-                                                Spent: Rs. {{ number_format($actCost, 0) }}
-                                            </span>
-                                        @else
-                                            <span class="block text-[10px] font-medium text-slate-400">
-                                                Allocated
-                                            </span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <span class="text-xs font-semibold text-slate-400 font-mono">—</span>
-                                @endif
-                            </td>
+                            {{-- 8. Budget & 9. Actual Budget: visible only to this project's manager. --}}
+                            @include('livewire.partials.project-budget-columns', [
+                                'budgetProject' => $p,
+                                'showProjectBudget' => $p->project_manager_id === auth()->id(),
+                            ])
 
-                            {{-- 9. Action --}}
+                            {{-- 10. Action --}}
                             <td class="align-middle text-right whitespace-nowrap">
                                 <div class="project-row-actions">
                                     {{-- 1. Review & Accept Button (for pending lead assignment) --}}
@@ -401,31 +407,7 @@
                                         </button>
                                     @endif
 
-                                    {{-- 2. Open Workspace Button --}}
-                                    @if($userRole === 'lead' && !$p->isPmAccepted())
-                                    <button
-                                        type="button"
-                                        wire:click="notifyWorkspaceLocked({{ $p->id }})"
-                                        x-on:click.stop
-                                        class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                                        title="Workspace locked until project acceptance"
-                                        aria-label="Workspace locked until {{ $p->name }} is accepted"
-                                    >
-                                    @else
-                                    <a
-                                        href="{{ route('projects.show', $p) }}"
-                                        x-on:click.stop
-                                        class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/90 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                                        title="Open Project Workspace"
-                                        aria-label="Open Workspace for {{ $p->name }}"
-                                    >
-                                    @endif
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                        </svg>
-                                    @if($userRole === 'lead' && !$p->isPmAccepted())</button>@else</a>@endif
-
-                                    {{-- 3. Edit Project Button --}}
+                                    {{-- 2. Edit Project Button --}}
                                     @if($p->isPmAccepted() && ($p->project_manager_id === auth()->id() || auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $p->userCan(auth()->user(), 'project_details.edit')))
                                         <a
                                             href="{{ route('projects.show', $p) . '?editProject=1' }}"

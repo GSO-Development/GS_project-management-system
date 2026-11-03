@@ -1,257 +1,89 @@
 <div data-ui-page="project-create" class="project-create ui-page ui-page-form font-sans">
     <style>
-        /* Keep the page action bar attached to the viewport while scrolling. */
-        body.app-clean:has(.project-create) {
-            overflow-x: clip;
-        }
-        .project-create {
-            max-width: 980px;
-            margin: 0 auto;
-            padding-bottom: 28px;
-            color: #0f172a;
-        }
-        .project-create .pc-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-        }
-        .project-create .pc-breadcrumb a {
-            color: #64748b;
-            text-decoration: none;
-        }
-        .project-create .pc-breadcrumb a:hover {
-            color: #c3122e;
-        }
-        .project-create .pc-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 26px;
-        }
-        .project-create .pc-heading h1 {
-            margin: 0;
-            font-size: clamp(24px,2.3vw,32px);
-            font-weight: 800;
-            letter-spacing: -1.2px;
-            line-height: 1.25;
-        }
-        .project-create .pc-heading p {
-            margin: 8px 0 0;
-            font-size: 13px;
-            line-height: 1.7;
-            color: #64748b;
-        }
-        .project-create .pc-admin {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            flex-shrink: 0;
-            padding: 9px 13px;
-            border: 1px solid #f4d8df;
-            border-radius: 999px;
-            background: #fff5f6;
-            color: #a81029;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .project-create .pc-admin svg {
-            width: 15px;
-            height: 15px;
-        }
-        .project-create .project-field-input,.project-create .project-textarea-input {
-            width: 100%;
-            border: 1px solid #dfe5ed;
-            border-radius: 10px;
-            background: #fff;
-            color: #0f172a;
-            font-size: 13px;
-            font-weight: 500;
-            outline: none;
-            transition: border-color .15s,box-shadow .15s;
-            box-shadow: 0 1px 2px rgba(15,23,42,.02);
-        }
-        .project-create .project-field-input {
-            height: 46px;
-            padding: 0 14px;
-        }
-        .project-create .project-budget-input { padding-left: 48px; }
-        .project-create .project-textarea-input {
-            padding: 12px 14px;
-            resize: vertical;
-            line-height: 1.7;
-            min-height: 104px;
-        }
-        .project-create .project-field-input::placeholder,.project-create .project-textarea-input::placeholder {
-            color: #94a3b8;
-            font-weight: 400;
-        }
-        .project-create .project-field-input:hover,.project-create .project-textarea-input:hover {
-            border-color: #b8c4d3;
-        }
-        .project-create .project-field-input:focus,.project-create .project-textarea-input:focus {
-            border-color: #c3122e;
-            box-shadow: 0 0 0 3px rgba(195,18,46,.08);
-        }
-        .project-create .project-field-input[readonly] {
-            background: #f8fafc;
-            color: #64748b;
-        }
-        .project-create button:focus-visible,.project-create a:focus-visible {
-            outline: 2px solid #c3122e;
-            outline-offset: 3px;
-        }
-        .project-create .scrollbar-thin {
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 transparent;
-        }
-        .project-create .pc-actions {
-            position: sticky;
-            bottom: 12px;
-            z-index: 30;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-top: 22px;
-            padding: 16px 22px;
-            background: rgba(255,255,255,.97);
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 5px 24px rgba(15,23,42,.08);
-        }
-        .project-create .pc-actions-note {
-            font-size: 11px;
-            color: #64748b;
-            line-height: 1.6;
-        }
-        .project-create .pc-actions-buttons {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .project-create .pc-cancel,.project-create .pc-submit {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 43px;
-            padding: 0 19px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: background .15s;
-        }
-        .project-create .pc-cancel {
-            color: #475569;
-            background: #fff;
-            border: 1px solid #dfe5ed;
-        }
-        .project-create .pc-cancel:hover {
-            background: #f8fafc;
-        }
-        .project-create .pc-submit {
-            color: #fff;
-            background: #c3122e;
-            border: 1px solid #c3122e;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(195,18,46,.15);
-        }
-        .project-create .pc-submit:hover {
-            background: #a81029;
-        }
-        .project-create .pc-submit:disabled {
-            opacity: .6;
-            cursor: wait;
-        }
-        .project-create .pc-errors {
-            margin-bottom: 22px;
-            padding: 16px 20px;
-            border: 1px solid #fecdd3;
-            border-radius: 14px;
-            background: #fff1f2;
-            color: #9f1239;
-            font-size: 12px;
-            scroll-margin-top: 96px;
-        }
-        .project-create .pc-errors ul {
-            list-style: disc;
-            padding-left: 18px;
-            margin-top: 6px;
-        }
+        body.app-clean:has(.project-create) { overflow-x:clip; }
+        .project-create { max-width:960px;margin:0 auto;padding-bottom:24px;color:#172033;font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif; }
+        .project-create .pc-breadcrumb { display:flex;align-items:center;gap:9px;margin-bottom:14px;color:#94a3b8;font-size:11px;font-weight:500; }
+        .project-create .pc-breadcrumb a { color:#64748b;text-decoration:none; }
+        .project-create .pc-breadcrumb a:hover { color:#c3122e; }
+        .project-create .pc-heading { margin-bottom:24px; }
+        .project-create .pc-heading h1 { margin:0;color:#0f172a;font-size:28px;font-weight:750;letter-spacing:-.9px;line-height:1.3; }
+        .project-create .pc-heading p { margin:7px 0 0;color:#64748b;font-size:13px;line-height:1.7; }
+        .project-create .pc-form { display:flex;flex-direction:column;gap:18px;margin:0;min-width:0; }
+        .project-create .pc-fields-group { min-width:0;padding:24px 26px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;scroll-margin-top:96px; }
+        .project-create .pc-section-heading { display:flex;align-items:flex-start;gap:11px;padding-bottom:20px;margin:0 0 20px;border-bottom:1px solid #f0f3f6; }
+        .project-create .pc-section-number { display:grid;place-items:center;flex-shrink:0;width:29px;height:29px;border:1px solid #eedde2;border-radius:8px;background:#fff6f8;color:#b5122c;font-size:12px;font-weight:650; }
+        .project-create .pc-section-heading h2 { margin:0;color:#1e293b;font-size:14px;font-weight:700;letter-spacing:-.15px;line-height:1.5; }
+        .project-create .pc-section-heading p { margin:3px 0 0;color:#94a3b8;font-size:11px;line-height:1.6; }
+        .project-create .project-field-input,.project-create .project-textarea-input { display:block;width:100%;max-width:100%;border:1px solid #dce3eb;border-radius:8px;background:#fff;color:#1e293b;font-family:inherit;font-size:13px;font-weight:500;outline:none;box-shadow:none;transition:border-color .15s,box-shadow .15s; }
+        .project-create .project-field-input { height:44px;padding:0 12px; }
+        .project-create select.project-field-input { padding-right:36px; }
+        .project-create .project-budget-input { padding-left:42px; }
+        .project-create .project-textarea-input { min-height:90px;padding:10px 12px;resize:vertical;line-height:1.7; }
+        .project-create .project-field-input::placeholder,.project-create .project-textarea-input::placeholder { color:#a0acbc;font-weight:400; }
+        .project-create .project-field-input:hover,.project-create .project-textarea-input:hover { border-color:#bcc8d6; }
+        .project-create .project-field-input:focus,.project-create .project-textarea-input:focus { border-color:#c3122e;box-shadow:0 0 0 3px rgba(195,18,46,.07); }
+        .project-create .project-field-input[readonly] { background:#f8fafc;color:#64748b; }
+        .project-create label { font-weight:600; }
+        .project-create button:focus-visible,.project-create a:focus-visible { outline:2px solid #c3122e;outline-offset:3px; }
+        .project-create input[type="checkbox"] { accent-color:#c3122e; }
+        .project-create .scrollbar-thin { scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent; }
+        .project-create #project-team button[aria-haspopup="true"] { min-height:44px;padding:9px 12px;border-radius:8px;border-color:#dce3eb;box-shadow:none;background:#fff; }
+        .project-create #project-team button[aria-haspopup="true"]:hover { border-color:#bcc8d6; }
+        .project-create #project-team [x-show="open"] { border-radius:10px;border-color:#e2e8f0;box-shadow:0 10px 30px rgba(15,23,42,.1); }
+        .project-create #project-team input[type="text"] { height:36px;border-radius:7px;font-size:12px; }
+        .project-create .pc-team-chip { border-color:#e2e8f0;border-radius:7px;background:#f8fafc;color:#475569;box-shadow:none;font-size:11px; }
+        .project-create .pc-team-chip > div { background:#e2e8f0;color:#475569; }
+        .project-create .pc-team-chip button { color:#94a3b8; }
+        .project-create .pc-team-chip button:hover { color:#c3122e; }
+        .project-create .pc-team-count { border:0;background:#f1f5f9;color:#64748b;border-radius:6px;font-size:10px;font-weight:500; }
+        .project-create #project-blueprint [role="radio"] { padding:16px;border-radius:10px;box-shadow:none; }
+        .project-create #project-blueprint [role="radio"][aria-checked="true"] { background:#fff8fa;border-color:#c3122e; }
+        .project-create #project-blueprint [role="radio"][aria-checked="false"] { background:#fff;border-color:#e2e8f0; }
+        .project-create .pc-timeline { margin-top:24px;padding-top:22px;border-top:1px solid #edf0f4; }
+        .project-create #project-blueprint .pc-timeline input[type="date"] { height:44px;border:0;border-radius:0;background:transparent;box-shadow:none;font-family:inherit;font-size:13px;font-weight:500; }
+        .project-create .pc-timeline button { box-shadow:none; }
+        .project-create .pc-actions { position:sticky;bottom:12px;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;border:1px solid #e2e8f0;border-radius:12px;background:rgba(255,255,255,.98);box-shadow:0 4px 16px rgba(15,23,42,.045); }
+        .project-create .pc-actions-note { color:#94a3b8;font-size:11px;line-height:1.6; }
+        .project-create .pc-actions-buttons { display:flex;align-items:center;gap:9px; }
+        .project-create .pc-cancel,.project-create .pc-submit { display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 17px;border:1px solid;border-radius:8px;font-family:inherit;font-size:12px;font-weight:650;text-decoration:none;transition:background .15s; }
+        .project-create .pc-cancel { border-color:#dfe5ed;background:#fff;color:#475569; }
+        .project-create .pc-cancel:hover { background:#f8fafc; }
+        .project-create .pc-submit { border-color:#c3122e;background:#c3122e;color:#fff;cursor:pointer; }
+        .project-create .pc-submit:hover { border-color:#a81029;background:#a81029; }
+        .project-create .pc-submit:disabled { opacity:.6;cursor:wait; }
+        .project-create .pc-errors { padding:14px 18px;border:1px solid #fecdd3;border-radius:10px;background:#fff1f2;color:#9f1239;font-size:12px;scroll-margin-top:96px; }
+        .project-create .pc-errors ul { margin:6px 0 0;padding-left:18px;list-style:disc;line-height:1.6; }
         @media(max-width:639px) {
-            .project-create .pc-heading {
-                align-items: flex-start;
-                flex-direction: column;
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-            .project-create .pc-actions {
-                bottom: 8px;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-                padding: 13px;
-            }
-            .project-create .pc-actions-note {
-                text-align: center;
-            }
-            .project-create .pc-actions-buttons>* {
-                flex: 1;
-            }
-        }
-        .project-create .pc-form {
-            padding: 28px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            box-shadow: 0 3px 16px rgba(15, 23, 42, .025);
-        }
-        .project-create .pc-fields-group {
-            min-width: 0;
-            scroll-margin-top: 96px;
-        }
-        .project-create .pc-fields-group + .pc-fields-group {
-            margin-top: 26px;
-            padding-top: 26px;
-            border-top: 1px solid #edf0f4;
-        }
-        .project-create .pc-form .pc-actions {
-            bottom: 0;
-            margin: 28px -28px -28px;
-            padding: 18px 28px;
-            background: #ffffff;
-            border: 0;
-            border-top: 1px solid #edf0f4;
-            border-radius: 0 0 18px 18px;
-            box-shadow: 0 -4px 16px rgba(15, 23, 42, .025);
-        }
-        @media (max-width: 639px) {
-            .project-create .pc-form { padding: 18px; }
-            .project-create .pc-form .pc-actions {
-                margin: 24px -18px -18px;
-                padding: 14px 18px;
-            }
+            .project-create .pc-heading { margin-bottom:20px; }
+            .project-create .pc-heading h1 { font-size:24px; }
+            .project-create .pc-fields-group { padding:20px 18px; }
+            .project-create .pc-section-heading { gap:9px; }
+            .project-create .pc-section-heading p { max-width:250px; }
+            .project-create .pc-actions { bottom:8px;flex-direction:column;align-items:stretch;gap:10px;padding:12px; }
+            .project-create .pc-actions-note { text-align:center; }
+            .project-create .pc-actions-buttons > * { flex:1; }
         }
     </style>
 <nav class="pc-breadcrumb" aria-label="Breadcrumb"><a href="{{ route('projects.index') }}" wire:navigate.hover>Projects</a><span aria-hidden="true">/</span><span class="text-slate-800">New Project</span></nav>
-<div class="pc-heading"><div><h1>Create New Project</h1><p>Bring your next project to life. Add the details, build your team, and set the timeline.</p></div><span class="pc-admin"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4zm-4 9 3 3 5-6"/></svg>PMO Administration</span></div>
+<div class="pc-heading">
+    <h1>Create New Project</h1>
+    <p>Add project details, assign your team, and set the schedule.</p>
+</div>
 <form wire:submit="save" class="pc-form">
 @if($errors->any())
 <div id="project-create-errors" class="pc-errors" role="alert" tabindex="-1" x-data x-init="$nextTick(() => { $el.focus({ preventScroll: true }); $el.scrollIntoView({ block: 'center' }); })"><p class="font-bold">Please review the following before creating your project.</p><ul>@foreach($errors->all() as $message)<li>{{ $message }}</li>@endforeach</ul></div>
 @endif
-<div id="project-details" class="pc-fields-group space-y-5">
+<section id="project-details" class="pc-fields-group space-y-5" aria-labelledby="pc-information-title">
+    <div class="pc-section-heading">
+        <span class="pc-section-number" aria-hidden="true">1</span>
+        <div><h2 id="pc-information-title">Project information</h2><p>Name your project and choose its subsidiary.</p></div>
+    </div>
                 {{-- Project Name --}}
                 <div class="space-y-1.5">
                     <label for="project-name" class="block text-xs font-bold text-slate-700">
                         Project Name <span class="text-[#c3122e] font-bold">*</span>
                     </label>
-                    <input id="project-name" maxlength="255" type="text" wire:model="name" placeholder="e.g. Enterprise HR &amp; Payroll Digital Transformation" class="project-field-input" required autofocus>
+                    <input id="project-name" maxlength="255" type="text" wire:model="name" placeholder="Enter project name" class="project-field-input" required autofocus>
                     @error('name') <span class="text-xs text-[#c3122e] font-bold block">{{ $message }}</span> @enderror
                 </div>
 
@@ -299,10 +131,14 @@
                         <label for="project-description" class="block text-xs font-bold text-slate-700">Project Description</label>
                         <span class="text-xs text-slate-400 font-medium">Optional</span>
                     </div>
-                    <textarea id="project-description" wire:model="description" rows="3" placeholder="Briefly describe key business objectives, targets, and scope of deliverables..." class="project-textarea-input"></textarea>
+                    <textarea id="project-description" wire:model="description" rows="3" placeholder="What is this project about?" class="project-textarea-input"></textarea>
                 </div>
-</div>
-<div id="project-team" class="pc-fields-group space-y-5">
+</section>
+<section id="project-team" class="pc-fields-group space-y-5" aria-labelledby="pc-team-title">
+    <div class="pc-section-heading">
+        <span class="pc-section-number" aria-hidden="true">2</span>
+        <div><h2 id="pc-team-title">Project team</h2><p>Assign a project manager and add the people involved.</p></div>
+    </div>
 {{-- PM Error Alert if missing --}}
                 @error('project_manager_id')
                     <div class="p-3.5 bg-rose-50 border border-rose-200/90 rounded-xl text-xs font-bold text-rose-800 flex items-center gap-2.5 shadow-2xs">
@@ -417,7 +253,7 @@
                                 @if(count($owner_ids) > 0)
                                     <div class="flex flex-wrap gap-1.5 pt-1.5">
                                         @foreach($allParticipants->whereIn('id', $owner_ids) as $u)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs">
+                                            <span class="pc-team-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs">
                                                 <div class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold">
                                                     {{ strtoupper(substr($u->name, 0, 1)) }}
                                                 </div>
@@ -503,7 +339,7 @@
                                 @if(count($sponsor_ids) > 0)
                                     <div class="flex flex-wrap gap-1.5 pt-1.5">
                                         @foreach($allParticipants->whereIn('id', $sponsor_ids) as $u)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-purple-50 text-purple-900 border border-purple-200/80 shadow-2xs">
+                                            <span class="pc-team-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-purple-50 text-purple-900 border border-purple-200/80 shadow-2xs">
                                                 <div class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[9px] font-bold">
                                                     {{ strtoupper(substr($u->name, 0, 1)) }}
                                                 </div>
@@ -581,7 +417,7 @@
                                 @if(count($steering_committee_ids) > 0)
                                     <div class="flex flex-wrap gap-1.5 pt-1.5">
                                         @foreach($allParticipants->whereIn('id', $steering_committee_ids) as $u)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-teal-50 text-teal-900 border border-teal-200/80 shadow-2xs">
+                                            <span class="pc-team-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-teal-50 text-teal-900 border border-teal-200/80 shadow-2xs">
                                                 <div class="w-4 h-4 rounded-full bg-teal-600 text-white flex items-center justify-center text-[9px] font-bold">
                                                     {{ strtoupper(substr($u->name, 0, 1)) }}
                                                 </div>
@@ -647,7 +483,7 @@
                                     <p class="text-[11px] text-slate-500 font-medium">Team members assigned to execute project tasks and deliverables.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 self-start sm:self-auto">
+                            <span class="pc-team-count text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 self-start sm:self-auto">
                                 {{ count($selected_participant_ids) }} Assigned
                             </span>
                         </div>
@@ -669,7 +505,7 @@
                             @if(count($selected_participant_ids) > 0)
                                 <div class="flex flex-wrap gap-1.5 pt-1.5">
                                     @foreach($allParticipants->whereIn('id', $selected_participant_ids) as $u)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-50 text-blue-900 border border-blue-200/80 shadow-2xs">
+                                        <span class="pc-team-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-50 text-blue-900 border border-blue-200/80 shadow-2xs">
                                             <div class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px] font-bold">
                                                 {{ strtoupper(substr($u->name, 0, 1)) }}
                                             </div>
@@ -731,8 +567,12 @@
                         </div>
                     </div>
                 </div>
-</div>
-<div id="project-blueprint" class="pc-fields-group space-y-5 scroll-mt-28">
+</section>
+<section id="project-blueprint" class="pc-fields-group space-y-5 scroll-mt-28" aria-labelledby="pc-schedule-title">
+    <div class="pc-section-heading">
+        <span class="pc-section-number" aria-hidden="true">3</span>
+        <div><h2 id="pc-schedule-title">Tasks &amp; schedule</h2><p>Choose a starting point, then set your dates and budget.</p></div>
+    </div>
 {{-- Blueprint Selection Card --}}
                 <div class="space-y-4">
 
@@ -819,7 +659,7 @@
                 @endif
 
                 {{-- Date & Timeline Configuration (Redesigned & Beautified) --}}
-                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50/70 via-white to-slate-50/40 border border-slate-200/90 shadow-2xs space-y-4">
+                <div class="pc-timeline space-y-4">
 
                     {{-- Header with Presets --}}
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
@@ -968,7 +808,7 @@
                     </div>
 
                 </div>
-</div>
+</section>
 <div class="pc-actions"><div class="pc-actions-note">
 @if($errors->any())
 <a href="#project-create-errors" class="font-semibold text-rose-700">{{ $errors->count() }} field(s) need your attention</a>

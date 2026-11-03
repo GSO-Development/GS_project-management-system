@@ -51,11 +51,19 @@ class ProjectWorkspace extends Component
     public Project $project;
     public string $activeTab = 'wbs';
 
+    public function getCanViewProjectDetailsProperty(): bool
+    {
+        $user = auth()->user();
+
+        return $user && ($user->isPmoAdmin() || $this->project->userCan($user, 'project_details.view'));
+    }
+
     public function setTab(string $tab): void
     {
         $user = auth()->user();
 
-        if ($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user)) {
+        if (($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user))
+            || ($tab === 'details' && !$this->canViewProjectDetails)) {
             $this->activeTab = 'wbs';
             return;
         }
@@ -67,7 +75,8 @@ class ProjectWorkspace extends Component
     {
         $user = auth()->user();
 
-        if ($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user)) {
+        if (($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user))
+            || ($tab === 'details' && !$this->canViewProjectDetails)) {
             $this->activeTab = 'wbs';
         }
     }
@@ -96,6 +105,7 @@ class ProjectWorkspace extends Component
     public ?string $riskMitigation = null;
     public ?string $riskContingency = null;
     public ?int $riskOwnerId = null;
+    public bool $showCreateRiskModal = false;
     public bool $showEditRiskModal = false;
     public ?int $editingRiskId = null;
 
@@ -211,8 +221,7 @@ class ProjectWorkspace extends Component
 
     public function openProjectDetailsModal(): void
     {
-        $user = auth()->user();
-        if ($user && !$user->isPmoAdmin() && !$this->project->userCan($user, 'project_details.view')) {
+        if (!$this->canViewProjectDetails) {
             $this->dispatch('toast', message: 'You do not have permission to view project details.', type: 'error');
             return;
         }
@@ -855,10 +864,10 @@ class ProjectWorkspace extends Component
     {
         $this->project = $project;
         if (request()->has('tab')) {
-            $validTabs = ['wbs', 'kanban', 'team', 'updates', 'risks'];
+            $validTabs = ['wbs', 'kanban', 'team', 'updates', 'risks', 'details'];
             $requestedTab = (string) request()->query('tab', 'wbs');
             if (in_array($requestedTab, $validTabs)) {
-                $this->activeTab = $requestedTab;
+                $this->setTab($requestedTab);
             }
         }
         $this->project->load(['members', 'subsidiary', 'projectManager']);
@@ -989,6 +998,31 @@ class ProjectWorkspace extends Component
         $this->dispatch('toast', message: 'Daily status update published successfully!', type: 'success');
     }
 
+    public function openCreateRiskModal(): void
+    {
+        abort_unless($this->project->userCan(auth()->user(), 'risk.create'), 403);
+
+        $this->reset([
+            'riskTitle', 'riskDescription', 'riskCategory', 'riskProbability', 'riskImpact',
+            'riskWbsItemId', 'riskMitigation', 'riskContingency', 'riskOwnerId', 'editingRiskId',
+        ]);
+        $this->resetValidation([
+            'riskTitle', 'riskDescription', 'riskCategory', 'riskProbability', 'riskImpact',
+            'riskWbsItemId', 'riskMitigation', 'riskContingency', 'riskOwnerId',
+        ]);
+        $this->showEditRiskModal = false;
+        $this->showCreateRiskModal = true;
+    }
+
+    public function closeCreateRiskModal(): void
+    {
+        $this->showCreateRiskModal = false;
+        $this->resetValidation([
+            'riskTitle', 'riskDescription', 'riskCategory', 'riskProbability', 'riskImpact',
+            'riskWbsItemId', 'riskMitigation', 'riskContingency', 'riskOwnerId',
+        ]);
+    }
+
     public function addRisk()
     {
         $user = auth()->user();
@@ -1033,6 +1067,7 @@ class ProjectWorkspace extends Component
         }
 
         $this->reset(['riskTitle', 'riskDescription', 'riskWbsItemId', 'riskMitigation', 'riskContingency', 'riskOwnerId']);
+        $this->showCreateRiskModal = false;
         $this->dispatch('wbsUpdated');
         $this->dispatch('riskUpdated');
         $this->dispatch('toast', message: 'Project risk added successfully!', type: 'success');
@@ -1422,6 +1457,7 @@ class ProjectWorkspace extends Component
     {
         $project = $this->project->load([
             'subsidiary',
+            'creator',
             'projectManager',
             'template.tasks',
             'members',

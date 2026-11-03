@@ -39,11 +39,14 @@ test('project workspace displays Task Sheet tab right next to Task List and swit
         ->assertSet('activeTab', 'wbs');
 
     $component
-        ->call('openProjectDetailsModal')
-        ->assertSet('showProjectDetailsModal', true)
-        ->assertSee('Project Overview')
+        ->assertSeeInOrder(['Task List', 'Task Sheet', 'Project Details', 'Kanban', 'Team Roster', 'Status Updates', 'Risks &amp; Blockers'], false)
+        ->assertDontSee('wire:click="openProjectDetailsModal"', false)
+        ->call('setTab', 'details')
+        ->assertSet('activeTab', 'details')
+        ->assertSee('Project Description &amp; Scope', false)
+        ->assertSee('Delivery Blueprint Template')
         ->assertSee('Workspace Sheet Test')
-        ->call('closeProjectDetailsModal')
+        ->assertDontSee('role="dialog"', false)
         ->assertSet('showProjectDetailsModal', false);
 });
 

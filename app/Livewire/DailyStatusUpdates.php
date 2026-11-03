@@ -480,7 +480,7 @@ class DailyStatusUpdates extends Component
             });
         }
 
-        return $query->orderBy('name')->get();
+        return $query->orderByDesc('id')->get();
     }
 
     public function render()
@@ -496,23 +496,38 @@ class DailyStatusUpdates extends Component
         // Query for status updates feed
         $updatesQuery = ProjectStatusUpdate::with(['project.projectManager', 'project.subsidiary', 'wbsItem', 'creator', 'comments.user']);
 
+        // Scope to accessible projects
+        $updatesQuery->whereIn('project_id', $accessibleProjectIds);
+
         // Visibility Hierarchy Rules:
-        if ($hasPortfolioViewAccess) {
-            // Super Admin ONLY sees Project Manager updates, Overall Project Reports, and Super Admin posts.
-            $updatesQuery->where(function($q) {
-                $q->whereNull('wbs_item_id') // Overall Project Reports
-                  ->orWhereHas('creator', function($userQuery) {
-                      $userQuery->whereHas('roles', function($roleQuery) {
-                          $roleQuery->where('name', 'super_admin');
-                      })->orWhereHas('managedProjects');
-                  })
-                  ->orWhereHas('project', function($projQuery) {
-                      $projQuery->whereColumn('project_manager_id', 'project_status_updates.created_by');
-                  });
-            });
-        } else {
-            // Project Managers and Collaborators see status updates for all their accessible projects
-            $updatesQuery->whereIn('project_id', $accessibleProjectIds);
+        // Project Manager / Admins: see all updates and comments for projects they manage or have admin access to.
+        // Team Member: only see their own updates (created_by === user->id).
+        $isAdmin = $isSuperAdmin || ($user && $user->hasAdminInterfaceAccess());
+        $isProjectManager = $user && (
+            $user->isProjectManager() ||
+            $user->hasRole('project_manager') ||
+            $user->hasRole('lead') ||
+            Project::where('project_manager_id', $user->id)->exists()
+        );
+
+        if (!$isAdmin) {
+            if ($isProjectManager) {
+                // Project Managers see all updates on projects they manage or are assigned to as PM.
+                // For any other project where they might just be a regular member, they only see their own updates.
+                $updatesQuery->where(function($q) use ($user) {
+                    $q->whereHas('project', function($projQuery) use ($user) {
+                        $projQuery->where('project_manager_id', $user->id)
+                                  ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id)->whereIn('project_members.role', ['lead', 'sponsor', 'owner', 'steering_committee']));
+                    })
+                    ->when($user->hasRole('project_manager'), function($sub) use ($user) {
+                        $sub->orWhereHas('project.members', fn($mq) => $mq->where('users.id', $user->id));
+                    })
+                    ->orWhere('created_by', $user->id);
+                });
+            } else {
+                // Team Member: ONLY see their own updates and comments!
+                $updatesQuery->where('created_by', $user->id);
+            }
         }
 
         if ($this->selectedProjectId) {

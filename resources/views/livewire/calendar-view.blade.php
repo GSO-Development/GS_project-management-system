@@ -1,27 +1,31 @@
 <div data-ui-page="calendar" class="ui-page ui-page-collaboration space-y-4 sm:space-y-5 pb-16">
     <style>
         /* ── Team Attendee list (Create + Edit modals) ── */
-        .att-list { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
-        .att-list-scroll { max-height: 240px; min-height: 120px; overflow-y: auto; }
-        .att-list-scroll.att-list-tall { max-height: 240px; }
-        .att-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) 22px; align-items: center; column-gap: 12px; padding: 10px 14px; cursor: pointer; user-select: none; background: #fff; border-left: 3px solid transparent; transition: background-color .15s ease, border-color .15s ease; }
+        .att-list { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
+        .att-list-scroll { max-height: 250px; min-height: 120px; overflow-y: auto; }
+        .att-list-scroll.att-list-tall { max-height: 250px; }
+        .att-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 18px; align-items: center; column-gap: 10px; padding: 8px 12px; cursor: pointer; user-select: none; background: #fff; transition: background-color .15s ease; }
         .att-row + .att-row { border-top: 1px solid #f1f5f9; }
         .att-row:hover { background: #f8fafc; }
-        .att-row.is-selected { background: #fff5f6; border-left-color: #c3122e; }
-        .att-row.is-selected:hover { background: #ffeef0; }
-        .att-avatar { width: 32px; height: 32px; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
-        .att-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .att-row.is-selected { background: #f8fafc; }
+        .att-row.is-selected:hover { background: #f1f5f9; }
+        .att-avatar { width: 28px; height: 28px; border-radius: 8px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .att-row.is-selected .att-avatar { background: #fff1f3; color: #c3122e; border-color: #fecdd3; }
+        .att-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
         .att-name-line, .att-meta-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
-        .att-name { font-size: 12.5px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .att-name { font-size: 12px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
         .att-ms { width: 11px; height: 11px; flex-shrink: 0; }
-        .att-badge { flex-shrink: 0; max-width: 55%; padding: 1px 6px; border-radius: 5px; background: #f1f5f9; color: #475569; font-size: 9.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .att-email { font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .att-badge { flex-shrink: 0; max-width: 55%; padding: 1px 5px; border-radius: 4px; background: #f1f5f9; color: #475569; font-size: 9px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .att-email { font-size: 10.5px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
         .att-hidden { display: none !important; }
-        .att-check { width: 22px; height: 22px; border-radius: 9999px; border: 2px solid #cbd5e1; background: #fff; color: transparent; display: flex; align-items: center; justify-content: center; justify-self: end; transition: all .15s ease; }
+        .att-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #cbd5e1; background: #fff; color: transparent; display: flex; align-items: center; justify-content: center; justify-self: end; transition: all .15s ease; }
         .att-check svg { width: 11px; height: 11px; }
         .att-row:hover .att-check { border-color: #94a3b8; }
-        .att-row.is-selected .att-check { background: #c3122e; border-color: #c3122e; color: #fff; box-shadow: 0 2px 6px rgba(195,18,46,.3); }
-        .att-empty { padding: 24px; text-align: center; color: #94a3b8; font-size: 12px; font-weight: 500; }
+        .att-row.is-selected .att-check { background: #c3122e; border-color: #c3122e; color: #fff; }
+        .att-empty { padding: 20px; text-align: center; color: #94a3b8; font-size: 12px; font-weight: 500; }
+
+        .cal-modal-backdrop { display: flex; align-items: center; justify-content: center; }
+        .cal-modal-panel { margin: auto; }
 
         .cal-glass-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,.03); }
         .cal-btn-outline { background: #ffffff; border: 1px solid #e2e8f0; color: #475569; font-weight: 700; transition: all .15s; }
@@ -414,7 +418,6 @@
                                 <div class="text-[10px] font-bold opacity-75 uppercase tracking-wider font-mono">{{ $e['time_range'] }}</div>
                                 <div class="text-xs font-bold leading-tight line-clamp-2">{{ $e['title'] }}</div>
                                 <div class="text-[10px] opacity-75 truncate pt-0.5 flex items-center gap-1">
-                                    <span>📁</span>
                                     <span>{{ $e['project_code'] }}</span>
                                 </div>
                             </div>
@@ -483,12 +486,12 @@
                                 </div>
                                 <h3 class="text-sm font-bold text-slate-900 truncate">{{ $e['title'] }}</h3>
                                 <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
-                                    <span class="font-semibold text-slate-700">📁 {{ $e['project'] }}</span>
+                                    <span class="font-semibold text-slate-700">{{ $e['project'] }}</span>
                                     @if($e['location'])
-                                        <span>&middot; 📍 {{ $e['location'] }}</span>
+                                        <span>&middot; {{ $e['location'] }}</span>
                                     @endif
                                     @if($e['attendee_names'])
-                                        <span>&middot; 👤 {{ $e['attendee_names'] }}</span>
+                                        <span>&middot; {{ $e['attendee_names'] }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -609,9 +612,9 @@
                                     </div>
                                     <h4 class="text-sm font-bold text-slate-900 truncate">{{ $e['title'] }}</h4>
                                     <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
-                                        <span class="font-semibold text-slate-700">📁 {{ $e['project'] }} ({{ $e['project_code'] }})</span>
-                                        @if($e['location']) <span>&middot; 📍 {{ $e['location'] }}</span> @endif
-                                        @if($e['attendee_names']) <span>&middot; 👥 {{ $e['attendee_names'] }}</span> @endif
+                                        <span class="font-semibold text-slate-700">{{ $e['project'] }} ({{ $e['project_code'] }})</span>
+                                        @if($e['location']) <span>&middot; {{ $e['location'] }}</span> @endif
+                                        @if($e['attendee_names']) <span>&middot; {{ $e['attendee_names'] }}</span> @endif
                                     </div>
                                 </div>
 
@@ -643,9 +646,9 @@
          7. MODAL: EVENT DETAILS & MICROSOFT 365 ACTIONS
          ═══════════════════════════════════════════════════════════════ -->
     @teleport('body')
-    <div class="calendar-detail-backdrop" role="dialog" aria-modal="true" aria-labelledby="calendar-detail-title" x-data="{ open: @entangle('showEventModal') }" x-show="open" @keydown.escape.window="open = false; $wire.showEventModal = false" style="position: fixed; inset: 0; z-index: 2147483000; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px);" x-cloak>
+    <div class="calendar-detail-backdrop cal-modal-backdrop fixed inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="calendar-detail-title" x-data="{ open: @entangle('showEventModal') }" x-show="open" @keydown.escape.window="open = false; $wire.showEventModal = false" style="position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px);" x-cloak>
         <div class="fixed inset-0 -z-10" @click="open = false; $wire.showEventModal = false"></div>
-        <div class="calendar-detail-panel relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-lg p-5 sm:p-6 z-10 space-y-4 max-h-[90vh] overflow-y-auto" @click.outside="open = false; $wire.showEventModal = false">
+        <div class="calendar-detail-panel cal-modal-panel relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-lg p-5 sm:p-6 z-10 space-y-4 max-h-[90vh] overflow-y-auto m-auto" style="margin: auto;" @click.outside="open = false; $wire.showEventModal = false">
             @if($selectedEvent)
                 <div class="calendar-detail-header flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                     <div class="min-w-0">
@@ -736,6 +739,9 @@
                             <button
                                 wire:click="deleteEvent('{{ $selectedEvent['source_type'] }}', {{ $selectedEvent['raw_id'] }})"
                                 wire:confirm="Are you sure you want to remove this event from the calendar?"
+                                data-confirm-title="Remove calendar event?"
+                                data-confirm-button="Remove event"
+                                data-confirm-context="{{ $selectedEvent['title'] ?? 'Calendar event' }}"
                                 type="button"
                                 class="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 text-xs font-bold cursor-pointer flex items-center gap-1.5 transition-colors"
                             >
@@ -763,8 +769,8 @@
             x-data="{ open: @entangle('showCreateEventModal') }"
             x-show="open"
             @keydown.escape.window="open = false; $wire.showCreateEventModal = false"
-            class="fixed inset-0"
-            style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: none;"
+            class="cal-modal-backdrop fixed inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+            style="position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);"
             x-cloak
         >
             <!-- Backdrop -->
@@ -772,19 +778,19 @@
 
             <!-- Modal Card -->
             <div
-                class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden transition-all duration-200"
-                style="width: min(980px, calc(100vw - 32px)); height: min(680px, calc(100dvh - 36px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);"
+                class="cal-modal-panel relative bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden transition-all duration-200 m-auto"
+                style="width: min(940px, calc(100vw - 32px)); max-height: min(680px, calc(100dvh - 36px)); box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35); margin: auto;"
                 @click.outside="open = false; $wire.showCreateEventModal = false"
             >
 
                 <!-- Clean Modal Header with Integrated Minimal Stepper -->
                 <div class="px-5 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-rose-950/20" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200/80 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-4.5 h-4.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <div class="text-[10px] font-black uppercase tracking-[.18em] text-[#c3122e]">Event Scheduling Wizard</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-[#c3122e]">Event Scheduling Wizard</div>
                             <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">Schedule Project Event</h2>
                         </div>
                     </div>
@@ -878,12 +884,12 @@
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
                                     <div class="relative">
-                                        <select wire:model="newEventType" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2.5 border border-slate-200 bg-white hover:border-slate-300 focus:border-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800/10 appearance-none cursor-pointer text-slate-800 transition-all">
-                                            <option value="meeting">👥 Meeting / Sync</option>
-                                            <option value="review">📊 Governance Review</option>
-                                            <option value="milestone">🎯 Key Milestone</option>
-                                            <option value="task">📋 Deliverable Task</option>
-                                            <option value="deadline">⏰ Deadline</option>
+                                        <select wire:model="newEventType" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2 border border-slate-200 bg-white hover:border-slate-300 focus:border-[#c3122e] focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 appearance-none cursor-pointer text-slate-800 transition-all">
+                                            <option value="meeting">Meeting / Sync</option>
+                                            <option value="review">Governance Review</option>
+                                            <option value="milestone">Key Milestone</option>
+                                            <option value="task">Deliverable Task</option>
+                                            <option value="deadline">Deadline</option>
                                         </select>
                                         <div class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -893,11 +899,11 @@
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
                                     <div class="relative">
-                                        <select wire:model="newEventPriority" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2.5 border border-slate-200 bg-white hover:border-slate-300 focus:border-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800/10 appearance-none cursor-pointer text-slate-800 transition-all">
-                                            <option value="low">🟢 Low</option>
-                                            <option value="medium">🟡 Medium</option>
-                                            <option value="high">🔴 High</option>
-                                            <option value="critical">🚨 Critical</option>
+                                        <select wire:model="newEventPriority" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2 border border-slate-200 bg-white hover:border-slate-300 focus:border-[#c3122e] focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 appearance-none cursor-pointer text-slate-800 transition-all">
+                                            <option value="low">Low</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="high">High</option>
+                                            <option value="critical">Critical</option>
                                         </select>
                                         <div class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -965,7 +971,7 @@
                                              x-show="!attendeeSearch || {{ json_encode($filterText) }}.includes(attendeeSearch.toLowerCase())"
                                              wire:click="toggleAttendee({{ $attendee->id }})"
                                              class="att-row {{ $isSelected ? 'is-selected' : '' }}">
-                                            <div class="att-avatar" style="background:{{ $aColor }};">{{ $initials }}</div>
+                                            <div class="att-avatar">{{ $initials }}</div>
                                             <div class="att-info">
                                                 <div class="att-name-line">
                                                     <span class="att-name" title="{{ $attendee->name }}">{{ $attendee->name }}</span>
@@ -1299,7 +1305,7 @@
                                 <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 shadow-2xs">
                                     <div class="flex items-center justify-between">
                                         <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                                            <span>✨ Recommended Free Slots</span>
+                                            <span>Recommended Free Slots</span>
                                         </span>
                                         <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100/70 px-1.5 py-0.2 rounded">100% Free</span>
                                     </div>
@@ -1336,20 +1342,20 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="px-5 sm:px-6 py-3.5 border-t border-slate-100 flex items-center justify-between bg-slate-50/90 shrink-0">
+                <div class="px-5 sm:px-6 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
                     @if($createEventStep === 2)
-                        <button type="button" wire:click="goToStep1" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors cursor-pointer flex items-center gap-1.5">
+                        <button type="button" wire:click="goToStep1" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                             Back to Details
                         </button>
                     @else
-                        <button type="button" @click="open = false; $wire.showCreateEventModal = false" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-colors cursor-pointer">
+                        <button type="button" @click="open = false; $wire.showCreateEventModal = false" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition-all cursor-pointer">
                             Cancel
                         </button>
                     @endif
 
                     @if($createEventStep === 1)
-                        <button type="button" wire:click="goToStep2" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60 active:scale-98" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                        <button type="button" wire:click="goToStep2" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] active:scale-95 shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60">
                             <span wire:loading.remove wire:target="goToStep2" class="flex items-center gap-1.5">
                                 Check Availability &amp; Time
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
@@ -1360,7 +1366,7 @@
                             </span>
                         </button>
                     @elseif($createEventStep === 2)
-                        <button type="button" wire:click="createEvent" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60 active:scale-98" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
+                        <button type="button" wire:click="createEvent" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] active:scale-95 shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60">
                             <span wire:loading.remove wire:target="createEvent" class="flex items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 Confirm &amp; Schedule Event
@@ -1386,25 +1392,25 @@
          x-init="$watch('open', val => { if (val) $nextTick(() => { if ($refs.editModalBody) $refs.editModalBody.scrollTop = 0; }) })"
          x-show="open" 
          @keydown.escape.window="open = false; $wire.closeEditEventModal()"
-         class="fixed inset-0"
-         style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: none;" 
+         class="cal-modal-backdrop fixed inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+         style="position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);" 
          x-cloak>
         <!-- Backdrop -->
         <div class="fixed inset-0 -z-10" @click="open = false; $wire.closeEditEventModal()"></div>
 
         <!-- Modal Card -->
-        <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden transition-all duration-200"
-             style="width: min(980px, calc(100vw - 32px)); height: min(680px, calc(100dvh - 36px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);"
+        <div class="cal-modal-panel relative bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden transition-all duration-200 m-auto"
+             style="width: min(940px, calc(100vw - 32px)); max-height: min(680px, calc(100dvh - 36px)); box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35); margin: auto;"
              @click.outside="open = false; $wire.closeEditEventModal()">
 
             <!-- Clean Modal Header -->
             <div class="px-5 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-rose-950/20" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
-                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200/80 text-[#c3122e] flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-4.5 h-4.5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </div>
                     <div>
-                        <div class="text-[10px] font-black uppercase tracking-[.18em] text-[#c3122e]">Event Editor</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-[#c3122e]">Event Editor</div>
                         <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">Edit Meeting &amp; Schedule</h2>
                     </div>
                 </div>
@@ -1456,12 +1462,12 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
                                 <div class="relative">
-                                    <select wire:model="editEventType" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2.5 border border-slate-200 bg-white hover:border-slate-300 focus:border-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800/10 appearance-none cursor-pointer text-slate-800 transition-all">
-                                        <option value="meeting">👥 Meeting / Sync</option>
-                                        <option value="review">📊 Governance Review</option>
-                                        <option value="milestone">🎯 Key Milestone</option>
-                                        <option value="task">📋 Deliverable Task</option>
-                                        <option value="deadline">⏰ Deadline</option>
+                                    <select wire:model="editEventType" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2 border border-slate-200 bg-white hover:border-slate-300 focus:border-[#c3122e] focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 appearance-none cursor-pointer text-slate-800 transition-all">
+                                        <option value="meeting">Meeting / Sync</option>
+                                        <option value="review">Governance Review</option>
+                                        <option value="milestone">Key Milestone</option>
+                                        <option value="task">Deliverable Task</option>
+                                        <option value="deadline">Deadline</option>
                                     </select>
                                     <div class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -1471,11 +1477,11 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
                                 <div class="relative">
-                                    <select wire:model="editEventPriority" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2.5 border border-slate-200 bg-white hover:border-slate-300 focus:border-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800/10 appearance-none cursor-pointer text-slate-800 transition-all">
-                                        <option value="low">🟢 Low</option>
-                                        <option value="medium">🟡 Medium</option>
-                                        <option value="high">🔴 High</option>
-                                        <option value="critical">🚨 Critical</option>
+                                    <select wire:model="editEventPriority" class="w-full text-xs sm:text-sm font-medium rounded-xl px-3.5 pr-9 py-2 border border-slate-200 bg-white hover:border-slate-300 focus:border-[#c3122e] focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 appearance-none cursor-pointer text-slate-800 transition-all">
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="critical">Critical</option>
                                     </select>
                                     <div class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -1605,7 +1611,7 @@
                                          x-show="!editAttendeeSearch || {{ json_encode($filterText) }}.includes(editAttendeeSearch.toLowerCase())"
                                          wire:click="toggleEditAttendee({{ $attendee->id }})"
                                          class="att-row {{ $isSelected ? 'is-selected' : '' }}">
-                                        <div class="att-avatar" style="background:{{ $aColor }};">{{ $initials }}</div>
+                                        <div class="att-avatar">{{ $initials }}</div>
                                         <div class="att-info">
                                             <div class="att-name-line">
                                                 <span class="att-name" title="{{ $attendee->name }}">{{ $attendee->name }}</span>
@@ -1666,9 +1672,9 @@
          9. MODAL: OUTLOOK LIVE SUBSCRIPTION SETUP
          ═══════════════════════════════════════════════════════════════ -->
     @teleport('body')
-    <div x-data="{ open: @entangle('showSubscribeModal'), copied: false }" x-show="open" @keydown.escape.window="open = false; $wire.showSubscribeModal = false" style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px); display: none;" x-cloak>
+    <div x-data="{ open: @entangle('showSubscribeModal'), copied: false }" x-show="open" @keydown.escape.window="open = false; $wire.showSubscribeModal = false" class="cal-modal-backdrop fixed inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" style="position: fixed; inset: 0; z-index: 2147483000; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px);" x-cloak>
         <div class="fixed inset-0 -z-10" @click="open = false; $wire.showSubscribeModal = false"></div>
-        <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-md p-5 sm:p-6 z-10 space-y-4" @click.outside="open = false; $wire.showSubscribeModal = false">
+        <div class="cal-modal-panel relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-md p-5 sm:p-6 z-10 space-y-4 m-auto" style="margin: auto;" @click.outside="open = false; $wire.showSubscribeModal = false">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-[#eff6ff] text-[#0078d4] flex items-center justify-center">
