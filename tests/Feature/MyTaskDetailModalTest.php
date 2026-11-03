@@ -136,3 +136,32 @@ it('keeps completion unavailable to a read only viewer even when assigned', func
     expect($this->task->fresh()->status)->toBe(WbsStatus::IN_PROGRESS);
     Notification::assertNotSentTo($this->manager, TaskCompletedNotification::class);
 });
+
+it('lets an assignee complete their kanban task without opening the details popup', function () {
+    $component = Livewire::actingAs($this->assignee)->test(MyTasks::class)
+        ->set('viewMode', 'kanban')
+        ->assertSee('Complete task')
+        ->assertSet('showTaskDetailModal', false)
+        ->call('completeKanbanTask', $this->task->id)
+        ->assertSet('showTaskDetailModal', false)
+        ->assertDispatched('wbsUpdated');
+
+    expect($this->task->fresh()->status)->toBe(WbsStatus::COMPLETED)
+        ->and($this->task->fresh()->progress)->toBe(100);
+    Notification::assertSentToTimes($this->manager, TaskCompletedNotification::class, 1);
+
+    $component->call('completeKanbanTask', $this->task->id);
+    Notification::assertSentToTimes($this->manager, TaskCompletedNotification::class, 1);
+});
+
+it('does not let another user quick complete an assignees kanban task', function () {
+    $otherUser = User::factory()->create();
+
+    Livewire::actingAs($otherUser)->test(MyTasks::class)
+        ->call('completeKanbanTask', $this->task->id)
+        ->assertDispatched('toast', message: 'You can only complete tasks assigned to you.', type: 'error');
+
+    expect($this->task->fresh()->status)->toBe(WbsStatus::IN_PROGRESS)
+        ->and($this->task->fresh()->progress)->toBe(25);
+    Notification::assertNotSentTo($this->manager, TaskCompletedNotification::class);
+});

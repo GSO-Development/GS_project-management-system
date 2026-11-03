@@ -4482,21 +4482,21 @@ body:has(.daily-publish-dialog[open]) {
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table {
     width: 100%;
-    min-width: 980px;
+    min-width: 1080px;
     table-layout: fixed;
     margin: 0;
 }
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(1) {
-    width: 31%;
+    width: 25%;
 }
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(2) {
-    width: 19%;
+    width: 17%;
 }
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(3) {
-    width: 21%;
+    width: 24%;
 }
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(4) {
@@ -4504,7 +4504,7 @@ body:has(.daily-publish-dialog[open]) {
 }
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(5) {
-    width: 16%;
+    width: 21%;
 }
 
 .app-clean [data-ui-page="daily-updates"] .daily-updates-table :is(th, td) {
@@ -4699,15 +4699,15 @@ body:has(.daily-publish-dialog[open]) {
 
 @media (max-width: 1023px) {
     .app-clean [data-ui-page="daily-updates"] .daily-updates-table {
-        min-width: 900px;
+        min-width: 1080px;
     }
 
     .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(3) {
-        width: 31%;
+        width: 24%;
     }
 
     .app-clean [data-ui-page="daily-updates"] .daily-updates-table th:nth-child(5) {
-        width: 22%;
+        width: 21%;
     }
 }
 
@@ -5174,7 +5174,8 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
 
 .app-clean [data-ui-page="daily-updates"] .dur-project__name {
     display: block;
-    max-width: 320px;
+    min-width: 0;
+    max-width: 210px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -5195,9 +5196,19 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
     align-items: center;
     gap: 5px;
     margin-top: 2px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .app-clean [data-ui-page="daily-updates"] .dur-project__code {
+    flex: 0 0 auto;
+    display: inline-flex;
+    width: max-content;
+    max-width: none;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 10px;
     font-weight: 600;
@@ -5211,7 +5222,11 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
 .app-clean [data-ui-page="daily-updates"] .dur-project__sub {
     font-size: 11px;
     color: #94a3b8;
-    max-width: 160px;
+    min-width: 0;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Owner cell */
@@ -5365,6 +5380,7 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
     font-weight: 500;
     line-height: 1.45;
     color: #334155;
+    max-width: 260px;
 }
 
 .app-clean [data-ui-page="daily-updates"] .dur-empty {
@@ -5414,7 +5430,8 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
 
 /* Actions column */
 .app-clean [data-ui-page="daily-updates"] .dur-actions {
-    display: inline-flex;
+    display: flex;
+    width: 100%;
     align-items: center;
     justify-content: flex-end;
     gap: 6px;
@@ -5503,4 +5520,148 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
     border-color: #fecdd3;
     background: #fff1f2;
     color: #c3122e;
+}
+
+/* --------------------------------------------------------------------------
+   System-wide responsive foundation
+   -------------------------------------------------------------------------- */
+.app-clean,
+.app-clean body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.app-clean main,
+.app-clean main > div,
+.app-clean .ui-page,
+.app-clean [data-ui-page] {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.app-clean .ui-page > *,
+.app-clean [data-ui-page] > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.app-clean :is(img, video, canvas, svg):not([class*="w-"]) {
+    max-width: 100%;
+}
+
+.app-clean [data-ui-page] :is(input, select, textarea) {
+    max-width: 100%;
+}
+
+.app-clean [data-ui-page] :is(.overflow-x-auto, .workspace-mouse-scroll, [class*="-scroll"]) {
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.app-clean [data-ui-page] :is(.overflow-x-auto, .workspace-mouse-scroll, [class*="-scroll"]):focus-visible {
+    outline: 2px solid rgba(195, 18, 46, .55);
+    outline-offset: 2px;
+}
+
+.app-clean [data-ui-page] table {
+    border-spacing: 0;
+}
+
+.app-clean [data-ui-page] :is([role="dialog"], dialog) {
+    max-width: 100vw;
+}
+
+@media (max-width: 1023px) {
+    .app-clean main > div {
+        padding-inline: 14px !important;
+    }
+
+    .app-clean [data-ui-page] :is(.page-toolbar, .workspace-toolbar, .schedule-toolbar, .tasks-page-head) {
+        align-items: stretch;
+    }
+
+    .app-clean [data-ui-page] :is(.page-toolbar, .workspace-toolbar, .schedule-toolbar) > * {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .app-clean main > div {
+        padding: 10px !important;
+    }
+
+    .app-clean .ui-page,
+    .app-clean [data-ui-page] {
+        --mobile-page-gap: 14px;
+        overflow-x: clip;
+    }
+
+    .app-clean [data-ui-page] :is(h1, .page-title) {
+        max-width: 100%;
+        font-size: clamp(1.35rem, 6vw, 1.65rem) !important;
+        line-height: 1.18 !important;
+        overflow-wrap: anywhere;
+    }
+
+    .app-clean [data-ui-page] :is(h2, h3) {
+        overflow-wrap: anywhere;
+    }
+
+    .app-clean [data-ui-page] :is(button, a, input, select, textarea) {
+        touch-action: manipulation;
+    }
+
+    .app-clean [data-ui-page] :is(.page-toolbar, .workspace-toolbar, .schedule-toolbar, .tasks-page-head) {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .app-clean [data-ui-page] :is(.page-toolbar, .workspace-toolbar, .schedule-toolbar, .tasks-page-head) > * {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .app-clean [data-ui-page] :is(.data-table, .audit-table, .risk-register-table, .ts-table) {
+        min-width: 720px;
+    }
+
+    .app-clean [data-ui-page] :is(.overflow-x-auto, .workspace-mouse-scroll, [class*="-scroll"]) {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    .app-clean [data-ui-page] :is([role="dialog"], dialog) {
+        padding: 10px !important;
+    }
+
+    .app-clean [data-ui-page] [role="dialog"] > :is(div, section),
+    .app-clean dialog > :is(div, section) {
+        max-width: calc(100vw - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+
+    .app-clean #toast-container {
+        right: 10px !important;
+        bottom: 12px !important;
+        width: calc(100vw - 20px) !important;
+        max-width: none !important;
+        align-items: stretch !important;
+    }
+}
+
+@media (max-width: 479px) {
+    .app-clean main > div {
+        padding-inline: 8px !important;
+    }
+
+    .app-clean [data-ui-page] :is(.grid-cols-2, .grid-cols-3, .grid-cols-4):not(.schedule-week-strip) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .app-clean [data-ui-page] :is(.rounded-2xl, .rounded-3xl) {
+        border-radius: 14px;
+    }
 }

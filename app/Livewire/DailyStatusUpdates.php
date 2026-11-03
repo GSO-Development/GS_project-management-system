@@ -74,8 +74,6 @@ class DailyStatusUpdates extends Component
     public string $updateTitle = '';
     public string $updateSummary = '';
     public string $updateStatus = 'in_progress';
-    public string $updateWorkCompleted = '';
-    public string $updateBlockers = '';
 
     // Comment Input State indexed by updateId
     public array $newCommentContent = [];
@@ -427,8 +425,6 @@ class DailyStatusUpdates extends Component
             'updateTitle',
             'updateSummary',
             'updateStatus',
-            'updateWorkCompleted',
-            'updateBlockers',
         ]);
 
         if ($projectId) {
@@ -507,8 +503,8 @@ class DailyStatusUpdates extends Component
             'summary' => $this->updateSummary,
             'reporting_period' => now()->format('Y-m-d'),
             'current_progress' => $project->overall_progress,
-            'work_completed' => $this->updateWorkCompleted,
-            'current_blockers' => $this->updateBlockers,
+            'work_completed' => null,
+            'current_blockers' => null,
             'updated_status' => $this->updateStatus,
             'created_by' => $user->id,
         ]);

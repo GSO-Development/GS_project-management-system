@@ -271,9 +271,28 @@ class MyTasks extends Component
             $this->dispatch('toast', message: "Task '{$task->title}' completed! 🎉", type: 'success');
         }
 
-        $task->saveQuietly();
+        $task->save();
         (new ProgressCalculationService())->updateItemProgress($task);
         $this->dispatch('wbsUpdated');
+    }
+
+    public function completeKanbanTask(int $taskId): void
+    {
+        $task = WbsItem::findOrFail($taskId);
+        $user = auth()->user();
+
+        // The quick-complete control is intentionally limited to the assignee's own work.
+        if ($user->isAdminViewer() || $task->assigned_user_id !== $user->id) {
+            $this->dispatch('toast', message: 'You can only complete tasks assigned to you.', type: 'error');
+            return;
+        }
+
+        // Repeated/stale clicks must not re-send completion notifications.
+        if (in_array($task->status, [WbsStatus::COMPLETED, WbsStatus::CANCELLED], true)) {
+            return;
+        }
+
+        $this->updateStatus($task->id, WbsStatus::COMPLETED->value);
     }
 
     public function updateStatus(int $taskId, string $status): void
@@ -300,7 +319,7 @@ class MyTasks extends Component
             $task->progress = 0;
         }
 
-        $task->saveQuietly();
+        $task->save();
         (new ProgressCalculationService())->updateItemProgress($task);
         $this->dispatch('toast', message: "Status updated to " . $statusEnum->label(), type: 'success');
         $this->dispatch('wbsUpdated');
@@ -326,7 +345,7 @@ class MyTasks extends Component
             $task->status = WbsStatus::IN_PROGRESS;
         }
 
-        $task->saveQuietly();
+        $task->save();
         (new ProgressCalculationService())->updateItemProgress($task);
         $this->dispatch('toast', message: "Progress updated to {$progress}%", type: 'success');
         $this->dispatch('wbsUpdated');
@@ -432,7 +451,7 @@ class MyTasks extends Component
         $task->start_time  = $this->detailStartTime ?: null;
         $task->end_time    = $this->detailEndTime ?: null;
 
-        $task->saveQuietly();
+        $task->save();
 
         // Cascade time slots to subsequent siblings if intraday times were changed
         WbsScheduleCascadeService::cascadeTimeSlotsForSiblings($task);
@@ -481,7 +500,7 @@ class MyTasks extends Component
             $sub->status = WbsStatus::COMPLETED;
             $sub->progress = 100;
         }
-        $sub->saveQuietly();
+        $sub->save();
 
         if ($sub->parent_id) {
             $parent = WbsItem::find($sub->parent_id);
@@ -518,7 +537,7 @@ class MyTasks extends Component
         ]);
 
         $task->status = WbsStatus::BLOCKED;
-        $task->saveQuietly();
+        $task->save();
 
         $this->showBlockerModal = false;
         $this->dispatch('toast', message: 'Task blocker reported to Project Manager!', type: 'warning');
@@ -550,7 +569,7 @@ class MyTasks extends Component
             $task->status = WbsStatus::BLOCKED;
         }
 
-        $task->saveQuietly();
+        $task->save();
 
         TaskBlocker::create([
             'wbs_item_id' => $task->id,

@@ -477,24 +477,11 @@ class ProjectMonitor extends Component
         if (!\App\Enums\WbsStatus::tryFrom($newStatus)) {
             return;
         }
-        $oldStatus = $item->status;
         $item->status = \App\Enums\WbsStatus::from($newStatus);
         if ($newStatus === 'completed') {
             $item->progress = 100;
         }
         $item->save();
-
-        ActivityLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'pmo_task_status_updated',
-            'module' => 'wbs_items',
-            'record_type' => WbsItem::class,
-            'record_id' => $item->id,
-            'old_values' => ['status' => $oldStatus->value],
-            'new_values' => ['status' => $newStatus],
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
 
         session()->flash('success_message', "Task status updated to " . $item->status->label() . ".");
     }

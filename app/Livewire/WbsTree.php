@@ -913,10 +913,18 @@ class WbsTree extends Component
 
     public function updateItemPriority(int $itemId, string $priority): void
     {
-        $item = WbsItem::findOrFail($itemId);
+        $item = WbsItem::where('project_id', $this->project->id)->findOrFail($itemId);
         $user = auth()->user();
 
-        if (!$this->project->userCan($user, 'task.change_priority', $item)) {
+        $canChangePriority = $user
+            && !$user->isAdminViewer()
+            && (
+                $user->isPmoAdmin()
+                || $this->project->project_manager_id === $user->id
+                || $this->project->userCan($user, 'task.change_priority', $item)
+            );
+
+        if (!$canChangePriority) {
             $this->dispatch('toast', message: 'You are not authorized to update this task priority.', type: 'error');
             return;
         }

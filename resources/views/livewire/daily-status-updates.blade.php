@@ -1,17 +1,37 @@
-<div data-ui-page="daily-updates" class="ui-page ui-page-collaboration space-y-5 pb-12">
+<div data-ui-page="daily-updates" class="ui-page ui-page-collaboration space-y-6 pb-12">
     <style>
         html:has(.daily-history-backdrop), body:has(.daily-history-backdrop),
         html:has(.daily-history-dialog[open]), body:has(.daily-history-dialog[open]) { overflow: hidden; }
         .daily-history-backdrop { position: fixed; inset: 0; margin: 0; width: 100%; height: 100dvh; }
-        .daily-history-panel { width: min(100%, 1000px); max-height: min(860px, calc(100dvh - 48px)); min-height: 0; margin: auto; box-sizing: border-box; }
+        .daily-history-panel { width: min(100%, 1080px); max-height: min(820px, calc(100dvh - 48px)); min-height: 0; margin: auto; box-sizing: border-box; border-radius: 18px; box-shadow: 0 32px 80px -24px rgba(15,23,42,.42); }
         .daily-history-body { min-height: 0; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; overflow-wrap: anywhere; }
         .daily-history-header > div { min-width: 0; }
         .daily-history-header button { flex-shrink: 0; }
         .daily-history-panel button:focus-visible { outline: 2px solid #c3122e; outline-offset: 3px; }
+        .daily-history-header { min-height: 82px; }
+        .daily-history-title-icon { width: 42px; height: 42px; border: 1px solid #fecdd3; border-radius: 12px; color: #c3122e; background: #fff1f2; }
+        .daily-history-close { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+        .daily-history-tabs { gap: 4px; background: #fff; }
+        .daily-history-tabs > button { position: relative; border-radius: 0 !important; box-shadow: none !important; }
+        .daily-discussion-heading { padding: 0 2px; }
+        .daily-comment-composer { border-color: #dbe3ec; border-radius: 14px; box-shadow: 0 8px 24px -22px rgba(15,23,42,.55); }
+        .daily-visibility { background: #f1f5f9; border-color: #e2e8f0; }
+        .daily-comment-form input { min-height: 42px; border-color: #d8e0e9; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
+        .daily-comment-submit { min-height: 42px; box-shadow: 0 8px 18px -12px rgba(195,18,46,.65); }
+        .daily-comment-entry { border-color: #e2e8f0; border-radius: 14px; box-shadow: 0 8px 22px -24px rgba(15,23,42,.6); transition: border-color .15s ease, box-shadow .15s ease; }
+        .daily-comment-entry:hover { border-color: #cbd5e1; box-shadow: 0 12px 26px -24px rgba(15,23,42,.65); }
         @media (max-width: 640px) {
             dialog.daily-history-dialog { padding: 12px; }
             .daily-history-panel { max-height: calc(100dvh - 24px); }
             .daily-history-header, .daily-history-body { padding: 16px; }
+            .daily-history-header { min-height: 72px; }
+            .daily-history-tabs { padding-left: 12px !important; padding-right: 12px !important; }
+            .daily-history-tabs > button { padding-left: 12px !important; padding-right: 12px !important; }
+            .daily-comment-composer { padding: 14px !important; }
+            .daily-comment-form { flex-direction: column; }
+            .daily-comment-submit { width: 100%; }
+            .daily-comment-entry > div:first-child { align-items: flex-start; gap: 10px; }
+            .daily-comment-entry > div:first-child > div:last-child { width: 100%; justify-content: space-between; }
         }
 
         .daily-update-scroll::-webkit-scrollbar {
@@ -53,66 +73,135 @@
         @media (prefers-reduced-motion: reduce) {
             .dur-count.has-unread-logs { animation: none; }
         }
+        .daily-page-overview { padding-top: 2px; }
+        .daily-metric-grid { display: grid; grid-template-columns: repeat(3, minmax(92px, 1fr)); gap: 8px; }
+        .daily-metric { min-width: 0; min-height: 54px; padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 11px; background: #fff; }
+        .daily-metric__value { color: #111827; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 16px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+        .daily-metric__label { margin-top: 5px; color: #7c8798; font-size: 9px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+        .daily-metric.is-unread .daily-metric__value { color: #c3122e; }
+        .daily-filter-label { display: block; margin: 0 0 6px 2px; color: #64748b; font-size: 9.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+        .daily-register-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        .daily-register-scroll::-webkit-scrollbar { height: 8px; }
+        .daily-register-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: #cbd5e1; }
+        .daily-register-scroll::-webkit-scrollbar-track { background: transparent; }
         .daily-updates-ledger { box-shadow: 0 1px 2px rgba(15,23,42,.02), 0 12px 28px -26px rgba(15,23,42,.32) !important; }
+        .daily-updates-ledger__toolbar { background: #fff; }
         .daily-updates-table tbody td { padding-top: 14px !important; padding-bottom: 14px !important; border-bottom: 1px solid #eef2f6; }
         .daily-updates-table tbody tr:last-child td { border-bottom: 0; }
-        .daily-updates-table tbody tr:hover { background: #fafbfc !important; }
+        .daily-updates-table tbody tr { transition: background-color .16s ease, box-shadow .16s ease; }
+        .daily-updates-table tbody tr:hover { background: #f8fafc !important; }
+        .daily-updates-table tbody tr.has-unread-row { background: #fffafb; box-shadow: inset 3px 0 0 #c3122e; }
+        .daily-updates-table tbody tr.has-unread-row:hover { background: #fff5f6 !important; }
         .daily-updates-table thead th { position: sticky; top: 0; z-index: 2; }
+        .daily-updates-table th:nth-child(1) { width: 25% !important; }
+        .daily-updates-table th:nth-child(2) { width: 17% !important; }
+        .daily-updates-table th:nth-child(3) { width: 24% !important; }
+        .daily-updates-table th:nth-child(4) { width: 13% !important; }
+        .daily-updates-table th:nth-child(5) { width: 21% !important; }
+        .daily-updates-table :is(th, td):last-child { padding-left: 12px !important; padding-right: 14px !important; }
+        .daily-updates-table .dur-actions { display: flex !important; width: 100%; justify-content: flex-end !important; gap: 8px !important; }
+        .daily-updates-table .dur-actions .dur-btn { width: auto !important; min-width: 0 !important; height: 34px !important; padding: 0 11px !important; border-radius: 9px !important; font-size: 11px !important; line-height: 1 !important; }
+        .daily-updates-table .dur-actions .dur-btn--add { flex: 0 0 92px; justify-content: center; }
+        .daily-updates-table .dur-actions .dur-btn--logs { flex: 0 0 72px; justify-content: center; }
+        .daily-updates-table .dur-actions .dur-btn svg { width: 14px !important; height: 14px !important; flex: 0 0 14px; }
+        .dur-project__headline { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .dur-new-activity { display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; padding: 3px 7px; border: 1px solid #fecdd3; border-radius: 999px; color: #be123c; background: #fff1f2; font-size: 9px; font-weight: 800; line-height: 1; text-transform: uppercase; letter-spacing: .04em; }
+        .dur-new-activity__dot { width: 5px; height: 5px; border-radius: 999px; background: #e11d48; }
+        .dur-owner__identity { display: flex; flex-direction: column; min-width: 0; }
+        .dur-owner__role { margin-top: 2px; color: #94a3b8; font-size: 9.5px; font-weight: 600; }
+        .daily-updates-table .dur-project__code {
+            display: inline-flex !important;
+            flex: 0 0 auto !important;
+            width: max-content !important;
+            max-width: none !important;
+            white-space: nowrap !important;
+            word-break: keep-all !important;
+            overflow-wrap: normal !important;
+        }
         .daily-update-button { box-shadow: none !important; }
         .daily-history-button { box-shadow: none !important; }
         @media (max-width: 767px) {
+            .daily-metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .daily-updates-ledger__toolbar { padding: 14px 16px !important; }
-            .daily-updates-table th, .daily-updates-table td { padding-left: 12px !important; padding-right: 12px !important; }
+            .daily-register-scroll { overflow-x: visible; }
+            .daily-updates-table { min-width: 0 !important; table-layout: auto !important; }
+            .daily-updates-table thead { display: none; }
+            .daily-updates-table tbody { display: block; background: #f8fafc; }
+            .daily-updates-table .dur-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(112px, .72fr);
+                border-left: 0 !important;
+                border-bottom: 1px solid #e2e8f0;
+                background: #fff;
+                box-shadow: none !important;
+            }
+            .daily-updates-table .dur-row.has-unread-row { box-shadow: inset 3px 0 0 #c3122e !important; background: #fffafb; }
+            .daily-updates-table .dur-row > td { display: block; min-width: 0; height: auto; padding: 11px 16px !important; border: 0 !important; }
+            .daily-updates-table .dur-row > td:first-child { grid-column: 1 / -1; padding-top: 16px !important; padding-bottom: 13px !important; border-bottom: 1px solid #f1f5f9 !important; }
+            .daily-updates-table .dur-row > td:nth-child(2),
+            .daily-updates-table .dur-row > td:nth-child(4) { padding-top: 12px !important; padding-bottom: 8px !important; }
+            .daily-updates-table .dur-row > td:nth-child(3) { grid-column: 1 / -1; padding-top: 8px !important; padding-bottom: 12px !important; }
+            .daily-updates-table .dur-row > td:nth-child(5) { grid-column: 1 / -1; padding-top: 4px !important; padding-bottom: 16px !important; }
+            .daily-updates-table .dur-row > td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 6px; color: #94a3b8; font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+            .daily-updates-table .dur-project { align-items: flex-start; }
+            .daily-updates-table .dur-project__text { width: calc(100% - 43px); }
+            .daily-updates-table .dur-project__name { max-width: 100%; }
+            .daily-updates-table .dur-project__meta { width: 100%; }
+            .daily-updates-table .dur-project__code { white-space: nowrap !important; }
+            .daily-updates-table .dur-project__sub { max-width: none; }
+            .daily-updates-table .dur-entry__summary { max-width: 100%; }
+            .daily-updates-table .dur-actions { justify-content: flex-start !important; }
+            .daily-updates-table .dur-actions .dur-btn--add { flex-basis: 104px; }
+            .daily-updates-table .dur-actions .dur-btn--logs { flex-basis: 78px; }
         }
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & ACTION CONTROLS
          ═══════════════════════════════════════════════════════════════ -->
-    <div class="daily-updates-heading flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+    @php $unreadUpdateCount = $allGroupedProjectUpdates->sum('unreadCount'); @endphp
+    <section class="daily-page-overview" aria-labelledby="daily-updates-title">
+    <div class="daily-updates-heading flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         <div class="min-w-0">
             <div class="flex items-center gap-2.5 flex-wrap">
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                <h1 id="daily-updates-title" class="text-2xl font-extrabold text-slate-950 tracking-[-.03em] leading-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                     Latest Updates
                 </h1>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#c3122e]/10 text-[#c3122e] border border-rose-200/60 shadow-2xs">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>
-                    <span>Progress Tracking</span>
-                </span>
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200/80 shadow-2xs">
-                    {{ $totalUpdatesCount }} Total Logs
-                </span>
-                @if($updatedTodayCount > 0)
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 inline-flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>{{ $updatedTodayCount }} today</span>
-                    </span>
-                @endif
             </div>
             <p class="text-xs text-slate-500 font-medium mt-1.5">
-                Real-time activity logs, operational progress, and execution highlights across all corporate projects.
+                Review project activity, delivery notes and team discussions.
             </p>
         </div>
 
         <!-- Top Right Action Controls -->
-        <div class="flex items-center gap-2 self-start sm:self-center shrink-0">
+        <div class="w-full xl:w-auto flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="daily-metric-grid flex-1 xl:flex-none xl:w-[318px]">
+                <div class="daily-metric"><div class="daily-metric__value">{{ $totalUpdatesCount }}</div><div class="daily-metric__label">Total logs</div></div>
+                <div class="daily-metric"><div class="daily-metric__value">{{ $updatedTodayCount }}</div><div class="daily-metric__label">Today</div></div>
+                <div class="daily-metric {{ $unreadUpdateCount > 0 ? 'is-unread' : '' }}"><div class="daily-metric__value">{{ $unreadUpdateCount }}</div><div class="daily-metric__label">Unread</div></div>
+            </div>
             <!-- Filter Toggle Button -->
             <button wire:click="toggleFilters" type="button" aria-expanded="{{ $showFilters ? 'true' : 'false' }}" aria-controls="daily-update-filters"
-                    class="px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 {{ $showFilters ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-2xs' }}">
-                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    class="h-11 px-4 border rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shrink-0 {{ $showFilters ? 'bg-slate-900 border-slate-900 text-white shadow-md' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-950 shadow-sm' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                 </svg>
-                <span>Filter</span>
+                <span>{{ $showFilters ? 'Hide filters' : 'Filter view' }}</span>
                 @if($hasActiveFilters)
-                    <span class="w-2 h-2 rounded-full bg-[#c3122e]"></span>
+                    <span class="w-2 h-2 rounded-full {{ $showFilters ? 'bg-rose-300' : 'bg-[#c3122e]' }}"></span>
                 @endif
             </button>
         </div>
     </div>    <!-- ═══════════════════════════════════════════════════════════════
          2. COLLAPSIBLE FILTER TOOLBAR
          ═══════════════════════════════════════════════════════════════ -->
+    </section>
     @if($showFilters)
-        <div id="daily-update-filters" wire:key="daily-updates-filter-toolbar" class="daily-updates-filters bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs filter-toolbar-enter">
+        <div id="daily-update-filters" wire:key="daily-updates-filter-toolbar" class="daily-updates-filters bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm filter-toolbar-enter">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div><h2 class="text-xs font-extrabold text-slate-900">Refine update register</h2><p class="text-[10.5px] text-slate-500 mt-0.5">Combine filters to narrow operational activity.</p></div>
+                @if($hasActiveFilters)<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-bold text-rose-700"><span class="w-1.5 h-1.5 rounded-full bg-[#c3122e]"></span>Active</span>@endif
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {{-- Search Box --}}
                 <div class="relative">
@@ -192,18 +281,17 @@
          ═══════════════════════════════════════════════════════════════ -->
     <div class="daily-updates-ledger w-full rounded-2xl bg-white border border-slate-200 overflow-hidden transition-all">
         <!-- Section Bar / Table Header Toolbar -->
-        <div class="daily-updates-ledger__toolbar px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-4 flex-wrap bg-white">
+        <div class="daily-updates-ledger__toolbar px-5 sm:px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-4 flex-wrap">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200/70 flex items-center justify-center text-[#c3122e] shrink-0 shadow-2xs">
+                <div class="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
                 </div>
                 <div>
                     <h2 class="text-sm font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        Project update register
+                        Project activity register
                     </h2>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Review recent activity, share progress and keep delivery on track.</p>
                 </div>
             </div>
             
@@ -230,11 +318,11 @@
             <table class="daily-updates-table w-full text-left border-collapse text-xs">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-[.09em] text-slate-500" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        <th scope="col" class="py-3.5 pl-6 pr-4 w-[31%]">Project</th>
-                        <th scope="col" class="py-3.5 px-4 w-[19%]">Project Manager</th>
-                        <th scope="col" class="py-3.5 px-4 w-[21%]">Latest Update</th>
-                        <th scope="col" class="py-3.5 px-4 w-[13%]">Updated</th>
-                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right w-[16%] whitespace-nowrap">Actions</th>
+                        <th scope="col" class="py-3.5 pl-6 pr-4 w-[25%]">Project</th>
+                        <th scope="col" class="py-3.5 px-4 w-[17%]">Project Manager</th>
+                        <th scope="col" class="py-3.5 px-4 w-[24%]">Latest activity</th>
+                        <th scope="col" class="py-3.5 px-4 w-[13%]">Last updated</th>
+                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right w-[21%] whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -254,15 +342,23 @@
                                 : strtoupper(substr($pmName, 0, 2));
 
                             $projInitial = strtoupper(substr($project->name, 0, 1));
+                            $subsidiaryLabel = null;
+                            if ($project->subsidiary) {
+                                $subsidiaryWords = preg_split('/\s+/', trim($project->subsidiary->name));
+                                $subsidiaryLabel = collect($subsidiaryWords)
+                                    ->map(fn ($word, $index) => $index < 2 ? $word : \Illuminate\Support\Str::substr($word, 0, 3))
+                                    ->implode(' ');
+                            }
                         @endphp
 
                         <tr
                             class="daily-update-row dur-row group {{ $update?->current_blockers ? 'has-blocker' : '' }}"
+                            :class="{ 'has-unread-row': unreadLogs > 0 }"
                             x-data="{ unreadLogs: {{ $unreadUpdatesCount }} }"
                             @daily-updates-read.window="if (Number($event.detail.projectId) === {{ $project->id }}) unreadLogs = Number($event.detail.projectUnreadCount)"
                         >
                             <!-- 1. Project & Code -->
-                            <td class="py-3.5 pl-6 pr-4 align-middle">
+                            <td class="py-3.5 pl-6 pr-4 align-middle" data-label="Project">
                                 <div class="dur-project">
                                     <span class="dur-folder" aria-hidden="true">
                                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -270,11 +366,17 @@
                                         </svg>
                                     </span>
                                     <div class="dur-project__text min-w-0">
-                                        <a href="{{ route('projects.show', $project) }}" class="dur-project__name" title="{{ $project->name }}">{{ $project->name }}</a>
+                                        <div class="dur-project__headline">
+                                            <a href="{{ route('projects.show', $project) }}" class="dur-project__name" title="{{ $project->name }}">{{ \Illuminate\Support\Str::limit($project->name, 32) }}</a>
+                                            <span x-cloak x-show="unreadLogs > 0" class="dur-new-activity">
+                                                <span class="dur-new-activity__dot"></span>
+                                                <span x-text="`${unreadLogs} new`"></span>
+                                            </span>
+                                        </div>
                                         <div class="dur-project__meta">
-                                            <span class="dur-project__code">{{ $project->code ?? 'PRJ-' . $project->id }}</span>
+                                            <span class="dur-project__code">{{ preg_replace('/\s+/', '', $project->code ?? 'PRJ-' . $project->id) }}</span>
                                             @if($project->subsidiary)
-                                                <span class="dur-project__sub truncate" title="{{ $project->subsidiary->name }}">&bull; {{ $project->subsidiary->name }}</span>
+                                                <span class="dur-project__sub truncate" title="{{ $project->subsidiary->name }}">&bull; {{ $subsidiaryLabel }}</span>
                                             @endif
                                         </div>
                                     </div>
@@ -282,17 +384,23 @@
                             </td>
 
                             <!-- 2. Project Manager -->
-                            <td class="py-3.5 px-4 align-middle">
+                            <td class="py-3.5 px-4 align-middle" data-label="Project manager">
                                 <div class="dur-owner">
                                     <span class="dur-owner__avatar">{{ $pmInitials }}</span>
-                                    <span class="dur-owner__name" title="{{ $pmName }}">{{ $pmName }}</span>
+                                    <span class="dur-owner__identity">
+                                        <span class="dur-owner__name" title="{{ $pmName }}">{{ $pmName }}</span>
+                                        <span class="dur-owner__role">{{ $pm ? 'Project manager' : 'Not assigned' }}</span>
+                                    </span>
                                 </div>
                             </td>
 
                             <!-- 3. Latest Update Summary -->
-                            <td class="py-3.5 px-4 align-middle">
+                            <td class="py-3.5 px-4 align-middle" data-label="Latest activity">
                                 @if($update)
                                     <div class="dur-entry">
+                                        <p class="dur-entry__summary" title="{{ $update->summary ?: $update->title }}">
+                                            {{ \Illuminate\Support\Str::limit($update->summary ?: $update->title, 48) }}
+                                        </p>
                                         @if($update->current_blockers || $update->wbsItem || $update->comments->count() > 0)
                                             <div class="dur-entry__meta">
                                                 @if($update->current_blockers)
@@ -315,20 +423,17 @@
                                             </div>
                                         @endif
 
-                                        <p class="dur-entry__summary" title="{{ $update->summary ?: $update->title }}">
-                                            {{ \Illuminate\Support\Str::limit($update->summary ?: $update->title, 60) }}
-                                        </p>
                                     </div>
                                 @else
                                     <div class="dur-empty">
                                         <span class="dur-empty__dot"></span>
-                                        <span>No updates yet</span>
+                                        <span>Awaiting first update</span>
                                     </div>
                                 @endif
                             </td>
 
                             <!-- 4. Last Activity -->
-                            <td class="py-3.5 px-4 align-middle whitespace-nowrap">
+                            <td class="py-3.5 px-4 align-middle whitespace-nowrap" data-label="Last updated">
                                 @if($update)
                                     <div class="dur-time">
                                         <span class="dur-time__relative">{{ $update->created_at->diffForHumans() }}</span>
@@ -340,7 +445,7 @@
                             </td>
 
                             <!-- 5. Actions -->
-                            <td class="py-3.5 pl-3 pr-6 align-middle text-right whitespace-nowrap">
+                            <td class="py-3.5 pl-3 pr-6 align-middle text-right whitespace-nowrap" data-label="Actions">
                                 <div class="dur-actions">
                                     @unless(auth()->user()?->isAdminViewer())
                                     <button
@@ -463,10 +568,10 @@
                      style="margin: auto;"
                      @click.stop>
                     <!-- Modal Header -->
-                    <div class="daily-history-header px-6 py-4 flex items-center justify-between gap-3 border-b border-slate-100 bg-white flex-shrink-0">
+                    <div class="daily-history-header px-6 py-4 flex items-center justify-between gap-3 border-b border-slate-200 bg-white flex-shrink-0">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
-                                <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <div class="daily-history-title-icon flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             </div>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
@@ -487,7 +592,7 @@
                         <button 
                             wire:click="closeHistoryModal" 
                             type="button" 
-                            class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                            class="daily-history-close text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                             title="Close Window" aria-label="Close project activity logs" autofocus
                         >
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -495,7 +600,7 @@
                     </div>
 
                     <!-- Modal Navigation Tabs Bar -->
-                    <div class="daily-history-tabs px-6 pt-3 pb-0 bg-slate-50/70 border-b border-slate-200/80 flex items-center gap-2 overflow-x-auto scrollbar-none flex-shrink-0">
+                    <div class="daily-history-tabs px-6 pt-2 pb-0 border-b border-slate-200 flex items-center overflow-x-auto scrollbar-none flex-shrink-0">
                         <button 
                             @click="modalTab = 'report'" 
                             :class="modalTab === 'report' ? 'border-[#c3122e] text-[#c3122e] font-black bg-white shadow-2xs' : 'border-transparent text-slate-600 hover:text-slate-900 font-bold hover:bg-white/50'"
@@ -529,11 +634,11 @@
                     </div>
 
                     <!-- Modal Body Container -->
-                    <div class="daily-history-body flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                    <div class="daily-history-body flex-1 overflow-y-auto p-6 bg-[#f7f9fc]">
                         @if($historyLatestUpdate)
                             <!-- TAB 1: PROGRESS REPORT -->
                             <div x-show="modalTab === 'report'" class="daily-report space-y-4">
-                                <div class="flex items-center justify-between">
+                                <div class="daily-discussion-heading flex items-center justify-between">
                                     <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                         <span>Latest progress report</span>
@@ -607,12 +712,12 @@
                                 </div>
 
                                 <!-- Add Comment Form -->
-                                <div x-data="{ commentVis: '{{ $commentVisibility }}' }" class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                                <div x-data="{ commentVis: '{{ $commentVisibility }}' }" class="daily-comment-composer p-5 bg-white border space-y-4">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                         <label class="text-xs font-bold text-slate-800 block">Add Feedback or Comment</label>
 
                                         @if($isPmOrAdminForHistory)
-                                            <div class="inline-flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 select-none">
+                                            <div class="daily-visibility inline-flex items-center gap-1.5 p-1 rounded-xl border select-none">
                                                 <span class="text-[10px] font-bold text-slate-500 pl-2 pr-1">Send to:</span>
                                                 <button
                                                     type="button"
@@ -638,7 +743,7 @@
                                         @endif
                                     </div>
 
-                                    <div class="flex gap-2">
+                                    <div class="daily-comment-form flex gap-2.5">
                                         <input
                                             type="text"
                                             wire:model="newCommentContent.{{ $historyLatestUpdate->id }}"
@@ -650,7 +755,7 @@
                                         <button
                                             type="button"
                                             @click="$wire.addComment({{ $historyLatestUpdate->id }}, commentVis)"
-                                            class="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-[#c3122e] hover:bg-[#8b0d1f] shadow-xs active:scale-95 transition-all cursor-pointer flex-shrink-0"
+                                            class="daily-comment-submit px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-[#c3122e] hover:bg-[#8b0d1f] active:scale-95 transition-all cursor-pointer flex-shrink-0"
                                         >
                                             Post Comment
                                         </button>
@@ -675,7 +780,7 @@
                                             }
                                             $cVis = $comment->visibility;
                                         @endphp
-                                        <div class="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1.5 shadow-2xs">
+                                        <div class="daily-comment-entry p-4 bg-white border text-xs space-y-2">
                                             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                                                 <div class="flex items-center gap-2 flex-wrap">
                                                     <div class="w-6 h-6 rounded-lg bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center">
@@ -926,29 +1031,6 @@
                             class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
                         ></textarea>
                         @error('updateSummary') <span class="text-rose-500 text-[10px] font-bold block mt-1">⚠ {{ $message }}</span> @enderror
-                    </div>
-
-                    <!-- Deliverables and Blockers -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="daily-updateWorkCompleted" class="block text-xs font-black text-slate-700">Work Completed Today</label>
-                            <input
-                                type="text"
-                                id="daily-updateWorkCompleted" wire:model="updateWorkCompleted"
-                                placeholder="Deliverables finished..."
-                                class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
-                            >
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label for="daily-updateBlockers" class="block text-xs font-black text-slate-700">Blockers / Issues (If Any)</label>
-                            <input
-                                type="text"
-                                id="daily-updateBlockers" wire:model="updateBlockers"
-                                placeholder="Execution blockers faced..."
-                                class="w-full text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all text-slate-800 shadow-2xs"
-                            >
-                        </div>
                     </div>
 
                     </div>

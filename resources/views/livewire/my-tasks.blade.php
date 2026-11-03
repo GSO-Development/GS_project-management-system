@@ -27,13 +27,117 @@
         .kanban-scroll::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        .my-kanban-task-list {
+            height: 714px;
+            max-height: 714px !important;
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            scrollbar-gutter: stable;
+        }
+        .my-kanban-task-card {
+            flex: 0 0 230px;
+            min-height: 230px;
+        }
+        @media (max-width: 680px) {
+            .my-kanban-task-list { height: 654px; max-height: 654px !important; }
+            .my-kanban-task-card { flex-basis: 210px; min-height: 210px; }
+        }
+        .kanban-quick-complete {
+            display: flex;
+            width: 100%;
+            min-height: 34px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 6px 9px;
+            border: 1px solid #d1fae5;
+            border-radius: 9px;
+            color: #047857;
+            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+            font-size: 10.5px;
+            font-weight: 750;
+            transition: border-color .16s ease, background-color .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease;
+        }
+        .kanban-quick-complete:hover {
+            border-color: #6ee7b7;
+            color: #065f46;
+            background: #d1fae5;
+            box-shadow: 0 7px 16px -12px rgba(5,150,105,.8);
+            transform: translateY(-1px);
+        }
+        .kanban-quick-complete:active { transform: scale(.985); }
+        .kanban-quick-complete__check {
+            display: inline-flex;
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 20px;
+            border: 1px solid #a7f3d0;
+            border-radius: 999px;
+            background: #fff;
+        }
+        .kanban-quick-complete:hover .kanban-quick-complete__check { color: #fff; border-color: #059669; background: #059669; }
+        .kanban-completed-state {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #047857;
+            font-size: 10.5px;
+            font-weight: 750;
+        }
+        .kanban-complete-popover {
+            position: absolute;
+            z-index: 30;
+            right: 0;
+            bottom: calc(100% + 8px);
+            width: 238px;
+            padding: 12px;
+            border: 1px solid #dbe3ec;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 18px 40px -18px rgba(15,23,42,.45);
+        }
+        .kanban-complete-popover::after {
+            content: '';
+            position: absolute;
+            right: 20px;
+            bottom: -6px;
+            width: 11px;
+            height: 11px;
+            border-right: 1px solid #dbe3ec;
+            border-bottom: 1px solid #dbe3ec;
+            background: #fff;
+            transform: rotate(45deg);
+        }
+        .kanban-complete-popover__confirm {
+            display: inline-flex;
+            min-height: 30px;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            border-radius: 8px;
+            color: #fff;
+            background: #059669;
+            font-size: 10px;
+            font-weight: 750;
+        }
         .tasks-command { padding-bottom: 2px; }
         .tasks-page-head { padding-bottom: 15px; border-bottom: 1px solid #e4e9ef; }
         .tasks-page-head h1 { font-size: 28px !important; font-weight: 700 !important; letter-spacing: -.04em; }
-        .tasks-view-nav { border: 1px solid #e1e7ed; border-radius: 14px; background: #fff; padding: 5px 8px; box-shadow: 0 12px 28px -26px rgba(15,23,42,.35); }
-        .tasks-view-nav button { padding-top: 9px !important; padding-bottom: 9px !important; border-radius: 9px 9px 0 0; }
-        .tasks-view-nav .task-view-tab { min-width:92px; justify-content:center; }
-        .tasks-view-nav .task-scope-tab { margin-block:4px; padding:6px 11px !important; border:0 !important; border-radius:9px !important; background:#f5f7f9; }
+        .tasks-view-nav { border: 1px solid #e1e7ed; border-radius: 14px; background: #fff; padding: 7px; box-shadow: 0 12px 28px -26px rgba(15,23,42,.35); }
+        .task-view-group { display:flex; align-items:center; gap:4px; padding:3px; border-radius:11px; background:#f4f6f8; }
+        .tasks-view-nav .task-view-tab { min-width:108px; min-height:38px; justify-content:center; padding:8px 13px !important; border:0 !important; border-radius:9px !important; color:#64748b; }
+        .tasks-view-nav .task-view-tab:hover { color:#0f172a; background:rgba(255,255,255,.72); }
+        .tasks-view-nav .task-view-tab.is-active { color:#be123c !important; background:#fff; box-shadow:0 2px 7px rgba(15,23,42,.08), inset 0 0 0 1px #fecdd3; }
+        .tasks-view-nav .task-view-tab svg { width:15px; height:15px; color:#94a3b8; }
+        .tasks-view-nav .task-view-tab.is-active svg { color:#c3122e; }
+        .task-scope-group { display:flex; align-items:center; gap:5px; padding:3px; border-left:1px solid #e2e8f0; margin-left:6px; padding-left:13px; }
+        .tasks-view-nav .task-scope-tab { min-height:38px; padding:7px 11px !important; border:1px solid transparent !important; border-radius:9px !important; background:transparent; }
+        .tasks-view-nav .task-scope-tab:hover { background:#f8fafc; color:#0f172a; }
+        .tasks-view-nav .task-scope-tab.is-active { border-color:#e2e8f0 !important; background:#f8fafc; color:#0f172a !important; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+        .task-scope-count { display:inline-flex; min-width:22px; height:22px; align-items:center; justify-content:center; padding:0 6px; border-radius:999px; background:#e9eef4; color:#475569; font-size:10px; font-weight:800; }
+        .task-scope-tab.is-active .task-scope-count { background:#fff; color:#c3122e; box-shadow:inset 0 0 0 1px #fecdd3; }
         .tasks-filter-panel { background:#fff !important; border-color:#e1e7ed !important; border-radius:14px !important; box-shadow:0 12px 28px -27px rgba(15,23,42,.35); }
         .tasks-table-card { border-color:#dfe5ec !important; border-radius:16px !important; box-shadow:0 18px 42px -36px rgba(15,23,42,.42) !important; }
         .tasks-table-card table { table-layout:auto; }
@@ -58,16 +162,25 @@
         .schedule-workspace { --schedule-border:#e2e7ed; --schedule-muted:#7d899d; }
         .schedule-toolbar { border-color:var(--schedule-border) !important; border-radius:16px !important; padding:14px 16px !important; box-shadow:0 14px 34px -31px rgba(15,23,42,.38) !important; }
         .schedule-toolbar h2 { font-size:17px !important; font-weight:700 !important; letter-spacing:-.025em !important; }
-        .schedule-week-strip { gap:8px !important; padding:5px; border:1px solid var(--schedule-border); border-radius:15px; background:#fff; }
-        .schedule-day { min-height:58px; border:0 !important; border-radius:10px !important; background:transparent !important; box-shadow:none !important; }
-        .schedule-day:hover { background:#f6f8fa !important; }
-        .schedule-day.is-selected { background:#fff1f3 !important; color:#b51630 !important; box-shadow:inset 0 0 0 1px #f2cbd2 !important; }
-        .schedule-day.is-selected span { color:#b51630 !important; }
+        .schedule-week-strip { gap:6px !important; padding:7px; border:1px solid var(--schedule-border); border-radius:16px; background:#fff; box-shadow:0 12px 30px -30px rgba(15,23,42,.45); }
+        .schedule-day { position:relative; min-height:78px; padding:9px 8px !important; border:1px solid transparent !important; border-radius:11px !important; background:transparent !important; box-shadow:none !important; }
+        .schedule-day:hover { border-color:#e2e8f0 !important; background:#f8fafc !important; transform:translateY(-1px); }
+        .schedule-day.is-selected { border-color:#f1b8c2 !important; background:#fff5f6 !important; color:#b51630 !important; box-shadow:none !important; }
+        .schedule-day__weekday { color:#94a3b8; font-size:9px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+        .schedule-day__date { display:flex; align-items:baseline; justify-content:center; gap:3px; color:#0f172a; line-height:1; }
+        .schedule-day__month { color:#64748b; font-size:10px; font-weight:700; }
+        .schedule-day__number { font-size:18px; font-weight:800; letter-spacing:-.035em; }
+        .schedule-day__count { display:inline-flex; align-items:center; justify-content:center; gap:5px; color:#64748b; font-size:9px; font-weight:650; line-height:1; white-space:nowrap; }
+        .schedule-day__count-dot { width:5px; height:5px; border-radius:999px; background:#94a3b8; }
+        .schedule-day.is-selected :is(.schedule-day__weekday,.schedule-day__month,.schedule-day__date) { color:#b51630 !important; }
+        .schedule-day.is-selected .schedule-day__weekday { color:#9f1239 !important; }
+        .schedule-day.is-selected .schedule-day__count { color:#7f1d2d !important; }
+        .schedule-day.is-selected .schedule-day__count-dot { background:#c3122e; }
         .schedule-periods { gap:12px !important; }
         .schedule-period-card { min-height:245px; padding:16px !important; border-color:var(--schedule-border) !important; border-radius:16px !important; box-shadow:0 15px 34px -32px rgba(15,23,42,.38) !important; }
         .schedule-period-card h3 { font-size:11px !important; letter-spacing:.055em !important; }
         .schedule-empty { min-height:140px; padding:24px 12px !important; border:1px dashed #e0e6ed !important; background:#fafbfd !important; color:#94a3b8 !important; }
-        @media(max-width:767px){ .tasks-page-head h1{font-size:24px!important}.tasks-view-nav{overflow-x:auto}.tasks-table-card{border-radius:14px!important} }
+        @media(max-width:767px){ .tasks-page-head h1{font-size:24px!important}.tasks-view-nav{overflow-x:auto;justify-content:flex-start}.task-view-group,.task-scope-group{flex-shrink:0}.task-scope-group{margin-left:0}.tasks-table-card{border-radius:14px!important}.schedule-week-strip{grid-template-columns:repeat(7,minmax(92px,1fr))!important;overflow-x:auto;scroll-snap-type:x mandatory}.schedule-day{scroll-snap-align:start} }
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -114,47 +227,51 @@
         </div>
 
         <!-- View Tabs Line (Matching Uploaded UI Image with bottom border underline indicator) -->
-        <div class="tasks-view-nav border-b border-slate-200 flex items-center justify-between gap-4 overflow-x-auto" style="scrollbar-width: none;">
-            <div class="flex items-center gap-6 text-xs whitespace-nowrap">
+        <div class="tasks-view-nav flex items-center gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <div class="task-view-group text-xs whitespace-nowrap">
                 <!-- Kanban View Tab -->
                 <button wire:click="setViewMode('kanban')" type="button"
-                        class="task-view-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'kanban' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="task-view-tab transition-all cursor-pointer flex items-center gap-2 font-bold {{ $viewMode === 'kanban' ? 'is-active' : '' }}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
                     <span>Kanban View</span>
                 </button>
 
                 <!-- Table View Tab -->
                 <button wire:click="setViewMode('table')" type="button"
-                        class="task-view-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'table' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="task-view-tab transition-all cursor-pointer flex items-center gap-2 font-bold {{ $viewMode === 'table' ? 'is-active' : '' }}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     <span>Table View</span>
                 </button>
 
                 <!-- Schedule View Tab -->
                 <button wire:click="setViewMode('timeline')" type="button"
-                        class="task-view-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-2 {{ $viewMode === 'timeline' ? 'border-[#c3122e] text-[#c3122e] font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 font-semibold' }}">
+                        class="task-view-tab transition-all cursor-pointer flex items-center gap-2 font-bold {{ $viewMode === 'timeline' ? 'is-active' : '' }}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span>Schedule</span>
                 </button>
+            </div>
 
-                @if($isProjectManager)
-                    <div class="h-4 w-px bg-slate-200 my-auto"></div>
+            @if($isProjectManager)
+                <div class="task-scope-group text-xs whitespace-nowrap">
                     <!-- My Tasks Scope Tab -->
                     <button wire:click="setTaskScope('assigned')" type="button"
-                            class="task-scope-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'assigned' ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold' }}">
+                            class="task-scope-tab transition-all cursor-pointer flex items-center gap-2 font-bold text-slate-500 {{ $taskScope === 'assigned' ? 'is-active' : '' }}">
                         <span>My Tasks</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                        <span class="task-scope-count">
                             {{ $myAssignedCount }}
                         </span>
                     </button>
 
                     <!-- Managed Projects Scope Tab -->
                     <button wire:click="setTaskScope('pm_projects')" type="button"
-                            class="task-scope-tab py-3 px-1 border-b-2 transition-all cursor-pointer flex items-center gap-1.5 {{ $taskScope === 'pm_projects' ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold' }}">
+                            class="task-scope-tab transition-all cursor-pointer flex items-center gap-2 font-bold text-slate-500 {{ $taskScope === 'pm_projects' ? 'is-active' : '' }}">
                         <span>Managed Projects</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                        <span class="task-scope-count">
                             {{ $pmProjectsTasksCount }}
                         </span>
                     </button>
-                @endif
-            </div>
+                </div>
+            @endif
         </div>
 
         <!-- Filter Bar (Collapsible or visible when toggled) -->
@@ -329,7 +446,7 @@
                                     default        => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200/80' : ($isDueToday ? 'bg-amber-50 text-amber-800 border-amber-200/80' : 'bg-slate-100 text-slate-600 border-slate-200')),
                                 };
                             @endphp
-                            <tr class="task-table-row {{ $isOverdue ? 'is-overdue' : '' }} {{ $isDueToday ? 'is-due-today' : '' }} hover:bg-slate-50/70 transition-colors group cursor-pointer" wire:click="openTaskDetail({{ $task->id }})">
+                            <tr class="task-table-row {{ $isOverdue ? 'is-overdue' : '' }} {{ $isDueToday ? 'is-due-today' : '' }} hover:bg-slate-50/70 transition-colors group">
                                 <!-- Checkbox Column -->
                                 <td class="py-3.5 pl-5 pr-2 align-middle text-center" onclick="event.stopPropagation()">
                                     <button wire:click="toggleTaskComplete({{ $task->id }})" type="button"
@@ -346,8 +463,7 @@
                                 <!-- Task Name & Code -->
                                 <td class="py-3.5 px-3 align-middle">
                                     <div class="space-y-0.5 min-w-0">
-                                        <span wire:click="openTaskDetail({{ $task->id }})" 
-                                              class="task-title font-bold text-xs sm:text-[13px] text-slate-900 block leading-snug cursor-pointer hover:text-[#c3122e] transition-colors {{ $isCompleted ? 'line-through text-slate-400 font-normal' : '' }}" title="{{ $task->title }}">
+                                        <span class="task-title font-bold text-xs sm:text-[13px] text-slate-900 block leading-snug {{ $isCompleted ? 'line-through text-slate-400 font-normal' : '' }}" title="{{ $task->title }}">
                                             {{ ucwords(strtolower($task->title)) }}
                                         </span>
                                         <div class="flex items-center gap-1.5 whitespace-nowrap">
@@ -495,12 +611,6 @@
                                              x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                                              class="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-xl shadow-2xl border border-slate-200/90 py-1.5 z-[99] text-xs text-left divide-y divide-slate-100">
                                             <div class="py-0.5">
-                                                <button wire:click="openTaskDetail({{ $task->id }}); open = false" type="button" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-800 font-bold flex items-center gap-2.5 cursor-pointer">
-                                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                    <span>Task Details</span>
-                                                </button>
-                                            </div>
-                                            <div class="py-0.5">
                                                 <button wire:click="toggleTaskComplete({{ $task->id }}); open = false" type="button" class="w-full text-left px-3.5 py-2 hover:bg-emerald-50 text-emerald-700 font-bold flex items-center gap-2.5 cursor-pointer">
                                                     <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                     <span>{{ $isCompleted ? 'Mark Incomplete' : 'Mark Completed' }}</span>
@@ -616,7 +726,7 @@
                         </div>
 
                         <!-- Column Cards List -->
-                        <div class="flex-1 flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-290px)] pr-1">
+                        <div class="my-kanban-task-list flex-1 flex flex-col gap-3 pr-1">
                             @forelse($col['tasks'] as $kTask)
                                 @php
                                     $isKDone = $kTask->status === \App\Enums\WbsStatus::COMPLETED;
@@ -624,7 +734,7 @@
                                     $hasHourSlot = !empty($kTask->start_time_formatted) && !empty($kTask->end_time_formatted);
                                 @endphp
 
-                                <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 space-y-2.5 group relative {{ $isKDone ? 'bg-emerald-50/20' : ($isKOverdue ? 'bg-rose-50/20 border-rose-200' : '') }}">
+                                <div class="my-kanban-task-card bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 space-y-2.5 group relative {{ $isKDone ? 'bg-emerald-50/20' : ($isKOverdue ? 'bg-rose-50/20 border-rose-200' : '') }}">
                                     <!-- Top Row: Project Code Pill & Priority -->
                                     <div class="flex items-center justify-between gap-1.5">
                                         <span class="text-[10px] font-black font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 truncate max-w-[150px]" title="{{ $kTask->project->name ?? '' }}">
@@ -636,7 +746,7 @@
                                     </div>
 
                                     <!-- Middle Row: Task Title & Hour Pill -->
-                                    <div class="cursor-pointer" wire:click="openTaskDetail({{ $kTask->id }})">
+                                    <div>
                                         <div class="flex items-start gap-1.5 font-extrabold text-xs text-slate-900 group-hover:text-[#c3122e] transition-colors leading-relaxed">
                                             <span class="font-mono text-slate-400 flex-shrink-0">{{ $kTask->wbs_code }}</span>
                                             <span class="{{ $isKDone ? 'line-through text-slate-400' : '' }}">{{ $kTask->title }}</span>
@@ -662,6 +772,75 @@
                                             <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{{ $kTask->progress }}%</span>
                                         @endif
                                     </div>
+
+                                    @if($taskScope === 'assigned' && $kTask->assigned_user_id === auth()->id())
+                                        @if(!$isKDone && $kTask->status !== \App\Enums\WbsStatus::CANCELLED && !auth()->user()?->isAdminViewer())
+                                            <div class="relative" x-data="{ confirmingComplete: false }" @keydown.escape.window="confirmingComplete = false">
+                                                <button
+                                                    @click.stop="confirmingComplete = true"
+                                                    type="button"
+                                                    class="kanban-quick-complete cursor-pointer"
+                                                    title="Mark this task as completed"
+                                                    :aria-expanded="confirmingComplete"
+                                                >
+                                                    <span class="inline-flex items-center gap-2">
+                                                        <span class="kanban-quick-complete__check">
+                                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                        </span>
+                                                        <span>Complete task</span>
+                                                    </span>
+                                                    <svg class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                </button>
+
+                                                <div
+                                                    x-cloak
+                                                    x-show="confirmingComplete"
+                                                    x-transition:enter="transition ease-out duration-150"
+                                                    x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                    x-transition:leave="transition ease-in duration-100"
+                                                    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                    x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                                    @click.outside="confirmingComplete = false"
+                                                    @click.stop
+                                                    class="kanban-complete-popover"
+                                                    role="alertdialog"
+                                                    aria-label="Confirm task completion"
+                                                >
+                                                    <div class="flex items-start gap-2.5">
+                                                        <span class="inline-flex w-7 h-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                        </span>
+                                                        <div class="min-w-0">
+                                                            <p class="text-[11px] font-extrabold text-slate-900">Complete this task?</p>
+                                                            <p class="mt-0.5 text-[9.5px] leading-relaxed text-slate-500">Status will change to Completed and progress to 100%.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3 flex items-center justify-end gap-2">
+                                                        <button @click.stop="confirmingComplete = false" type="button" class="h-[30px] px-2.5 rounded-lg text-[10px] font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Cancel</button>
+                                                        <button
+                                                            wire:click.stop="completeKanbanTask({{ $kTask->id }})"
+                                                            wire:loading.attr="disabled"
+                                                            wire:target="completeKanbanTask({{ $kTask->id }})"
+                                                            @click="confirmingComplete = false"
+                                                            type="button"
+                                                            class="kanban-complete-popover__confirm cursor-pointer disabled:cursor-wait disabled:opacity-70"
+                                                        >
+                                                            <span wire:loading.remove wire:target="completeKanbanTask({{ $kTask->id }})">Yes, complete</span>
+                                                            <span wire:loading wire:target="completeKanbanTask({{ $kTask->id }})">Completing...</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="kanban-completed-state">
+                                                <span class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                </span>
+                                                <span>Completed</span>
+                                            </div>
+                                        @endif
+                                    @endif
 
                                     @if($taskScope === 'pm_projects')
                                         <!-- Assignee Badge in Kanban -->
@@ -781,20 +960,18 @@
                         <button 
                             wire:click="selectTimelineDay('{{ $wDateKey }}')" 
                             type="button" 
-                            class="schedule-day {{ $wIsSelected ? 'is-selected' : '' }} py-2.5 px-2 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 border {{ $wIsToday && !$wIsSelected ? 'text-[#b51630]' : 'text-slate-700' }}"
+                            class="schedule-day {{ $wIsSelected ? 'is-selected' : '' }} text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5"
                         >
-                            <span class="text-[10px] font-bold uppercase tracking-wider leading-none {{ $wIsSelected ? 'text-white/80' : ($wIsToday ? 'text-[#c3122e]' : 'text-slate-400') }}">
+                            <span class="schedule-day__weekday">
                                 {{ $wInfo['date']->format('D') }}
                             </span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-sm font-extrabold leading-none {{ $wIsSelected ? 'text-white' : 'text-slate-800' }}">
-                                    {{ $wInfo['date']->format('j') }}
-                                </span>
-                                @if($wTaskCount > 0)
-                                    <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded-full leading-none {{ $wIsSelected ? 'bg-white/25 text-white' : ($wIsToday ? 'bg-[#c3122e] text-white' : 'bg-slate-200 text-slate-700') }}">
-                                        {{ $wTaskCount }}
-                                    </span>
-                                @endif
+                            <div class="schedule-day__date" title="{{ $wInfo['date']->format('F j, Y') }}">
+                                <span class="schedule-day__month">{{ $wInfo['date']->format('M') }}</span>
+                                <span class="schedule-day__number">{{ $wInfo['date']->format('j') }}</span>
+                            </div>
+                            <div class="schedule-day__count" title="{{ $wTaskCount }} scheduled {{ \Illuminate\Support\Str::plural('task', $wTaskCount) }}">
+                                <span class="schedule-day__count-dot"></span>
+                                <span>{{ $wTaskCount }} scheduled</span>
                             </div>
                         </button>
                     @endforeach
@@ -817,7 +994,7 @@
                                 </div>
                             </div>
                             <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                                {{ $morningTasks->count() }}
+                                {{ $morningTasks->count() }} {{ \Illuminate\Support\Str::plural('task', $morningTasks->count()) }}
                             </span>
                         </div>
 
@@ -846,7 +1023,7 @@
                                 </div>
                             </div>
                             <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                                {{ $afternoonTasks->count() }}
+                                {{ $afternoonTasks->count() }} {{ \Illuminate\Support\Str::plural('task', $afternoonTasks->count()) }}
                             </span>
                         </div>
 
@@ -875,7 +1052,7 @@
                                 </div>
                             </div>
                             <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                                {{ $eveningTasks->count() + $allDayTasks->count() }}
+                                {{ $eveningTasks->count() + $allDayTasks->count() }} {{ \Illuminate\Support\Str::plural('task', $eveningTasks->count() + $allDayTasks->count()) }}
                             </span>
                         </div>
 
@@ -936,12 +1113,6 @@
     <!-- ═══════════════════════════════════════════════════════════════
          7. TASK DETAILS & COMPLETION
          ═══════════════════════════════════════════════════════════════ -->
-    @if($showTaskDetailModal && $detailTask)
-        @teleport('body')
-            @include('livewire.partials.my-task-detail-modal')
-        @endteleport
-    @endif
-
     @if($showCreateTaskModal)
         <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px);">
             <div style="position: relative; width: 100%; max-width: 520px; background: #ffffff; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); border: 1px solid #cbd5e1; overflow: hidden;">

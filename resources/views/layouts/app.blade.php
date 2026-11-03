@@ -734,7 +734,7 @@
         :class="{ 'pl-0 lg:pl-56': !sidebarCollapsed, 'pl-0 lg:pl-16': sidebarCollapsed }"
         style="background: #f6f7f8;"
     >
-        <div class="p-2.5 sm:p-4 lg:p-4 max-w-[1680px] mx-auto w-full">
+        <div class="app-content-shell p-2.5 sm:p-4 lg:p-4 max-w-[1680px] mx-auto w-full min-w-0 overflow-x-hidden">
             {{ $slot }}
         </div>
     </main>

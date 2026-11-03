@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\WbsStatus;
-use App\Models\ActivityLog;
 use App\Models\Project;
 use App\Models\WbsItem;
 use App\Services\ProgressCalculationService;
@@ -36,7 +35,6 @@ class KanbanBoard extends Component
             return;
         }
 
-        $prevStatus = $task->status->value;
         $task->status = WbsStatus::from($newStatus);
 
         if ($newStatus === 'completed') {
@@ -46,16 +44,6 @@ class KanbanBoard extends Component
         $task->save();
 
         (new ProgressCalculationService())->updateItemProgress($task);
-
-        ActivityLog::create([
-            'user_id' => $user->id,
-            'action' => 'moved_kanban_card',
-            'module' => 'kanban',
-            'record_type' => WbsItem::class,
-            'record_id' => $task->id,
-            'previous_values' => ['status' => $prevStatus],
-            'new_values' => ['status' => $newStatus],
-        ]);
 
         $this->dispatch('toast', message: "Task moved to " . ucfirst(str_replace('_', ' ', $newStatus)), type: 'success');
         $this->dispatch('wbsUpdated');

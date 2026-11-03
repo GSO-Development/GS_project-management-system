@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ProjectStatus;
+use App\Livewire\MyTasks;
 use App\Models\ActivityLog;
 use App\Models\Comment;
 use App\Models\Project;
@@ -10,6 +11,7 @@ use App\Models\Subsidiary;
 use App\Models\User;
 use App\Models\WbsItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AuditLogObserverTest extends TestCase
@@ -80,7 +82,7 @@ class AuditLogObserverTest extends TestCase
 
         $log = ActivityLog::where('record_type', WbsItem::class)
             ->where('record_id', $task->id)
-            ->where('action', 'updated_wbs_item')
+            ->where('action', 'changed_task_status')
             ->first();
 
         $this->assertNotNull($log);
@@ -88,6 +90,82 @@ class AuditLogObserverTest extends TestCase
         $this->assertEquals('wbs_items', $log->module);
         $this->assertEquals('not_started', $log->previous_values['status']);
         $this->assertEquals('in_progress', $log->new_values['status']);
+        $this->assertArrayNotHasKey('updated_at', $log->new_values);
+        $this->assertSame(1, ActivityLog::where('record_type', WbsItem::class)
+            ->where('record_id', $task->id)
+            ->count());
+    }
+
+    public function test_task_progress_and_assignment_changes_have_explicit_actions(): void
+    {
+        $user = User::factory()->create(['subsidiary_id' => $this->subsidiary->id]);
+        $assignee = User::factory()->create(['subsidiary_id' => $this->subsidiary->id]);
+        $project = Project::create([
+            'subsidiary_id' => $this->subsidiary->id,
+            'name' => 'Task Audit Project',
+            'code' => 'TASK-AUDIT',
+            'status' => ProjectStatus::IN_PROGRESS,
+        ]);
+        $task = WbsItem::create([
+            'project_id' => $project->id,
+            'title' => 'Audited Task',
+            'wbs_code' => '1.1',
+            'status' => 'not_started',
+            'progress' => 0,
+        ]);
+
+        ActivityLog::query()->delete();
+        $this->actingAs($user);
+
+        $task->update(['progress' => 25]);
+        $task->update(['assigned_user_id' => $assignee->id]);
+
+        $this->assertDatabaseHas('activity_logs', [
+            'record_type' => WbsItem::class,
+            'record_id' => $task->id,
+            'action' => 'updated_task_progress',
+        ]);
+        $this->assertDatabaseHas('activity_logs', [
+            'record_type' => WbsItem::class,
+            'record_id' => $task->id,
+            'action' => 'reassigned_task',
+        ]);
+    }
+
+    public function test_my_tasks_status_change_is_recorded_once_with_actor_and_diff(): void
+    {
+        $user = User::factory()->create(['subsidiary_id' => $this->subsidiary->id]);
+        $project = Project::create([
+            'subsidiary_id' => $this->subsidiary->id,
+            'name' => 'My Tasks Audit Project',
+            'code' => 'MY-AUDIT',
+            'status' => ProjectStatus::IN_PROGRESS,
+        ]);
+        $task = WbsItem::create([
+            'project_id' => $project->id,
+            'assigned_user_id' => $user->id,
+            'title' => 'Change status from My Tasks',
+            'wbs_code' => '1.1',
+            'status' => 'not_started',
+            'progress' => 0,
+        ]);
+
+        ActivityLog::query()->delete();
+
+        Livewire::actingAs($user)
+            ->test(MyTasks::class)
+            ->call('updateStatus', $task->id, 'in_progress')
+            ->assertDispatched('wbsUpdated');
+
+        $logs = ActivityLog::where('record_type', WbsItem::class)
+            ->where('record_id', $task->id)
+            ->get();
+
+        $this->assertCount(1, $logs);
+        $this->assertSame('changed_task_status', $logs->first()->action);
+        $this->assertSame($user->id, $logs->first()->user_id);
+        $this->assertSame('not_started', $logs->first()->previous_values['status']);
+        $this->assertSame('in_progress', $logs->first()->new_values['status']);
     }
 
     public function test_comment_creation_automatically_records_audit_log(): void
