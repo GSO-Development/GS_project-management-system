@@ -798,7 +798,7 @@
 
 .app-clean [data-ui-page="projects"] .projects-command-bar {
     padding-top: 0;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 1.25rem !important;
 }
 
 .app-clean [data-ui-page="projects"] .projects-command-bar h1 {
@@ -819,7 +819,7 @@
 }
 
 .app-clean [data-ui-page="projects"] .projects-view-tabs {
-    margin-top: .25rem;
+    margin-top: 0.875rem !important;
     border-color: #dfe4ea;
 }
 
@@ -5096,4 +5096,337 @@ body:has(.calendar-detail-backdrop:not([style*="display: none"])) {
 .app-clean .ui-page-projects .workspace-open-link:hover>span:last-child,
 .app-clean .ui-page-projects .workspace-open-link:focus-visible>span:last-child {
     color: #fff !important;
+}
+
+/* Latest Updates register (v2): self-contained, collision-free row layout. */
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table .dur-row > td {
+    height: auto;
+    vertical-align: middle;
+}
+
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table .dur-row:hover > td,
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table .dur-row:hover > td:first-child {
+    background: #f9fafc !important;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-project {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-folder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border-radius: 9px;
+    border: 1px solid #e3e8ef;
+    background: #f8fafc;
+    color: #64748b;
+    transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-row:hover .dur-folder {
+    border-color: #f5c2cb;
+    background: #fff5f6;
+    color: #c3122e;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-folder svg {
+    width: 16px;
+    height: 16px;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-project__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table td:first-child a.dur-project__name {
+    display: block;
+    max-width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 18px;
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table td:first-child a.dur-project__name:hover {
+    color: #c3122e;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-project__code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    line-height: 14px;
+    color: #94a3b8;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-owner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-owner__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-owner__name {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    max-width: 440px;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-entry__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-status,
+.app-clean [data-ui-page="daily-updates"] .dur-blocker,
+.app-clean [data-ui-page="daily-updates"] .dur-task {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-status__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-status.is-in-progress {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-status.is-completed {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-status.is-on-hold {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-blocker {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-blocker svg {
+    width: 11px;
+    height: 11px;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-task {
+    max-width: 260px;
+    min-width: 0;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #475569;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-task__label {
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-task__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-entry__summary {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    color: #334155;
+    word-break: break-word;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-empty {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-style: italic;
+    color: #94a3b8;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-empty__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table td .dur-time {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table td .dur-time span.dur-time__relative {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.app-clean [data-ui-page="daily-updates"] .daily-updates-table td .dur-time span.dur-time__date {
+    margin-top: 0;
+    padding-left: 0;
+    font-size: 10.5px;
+    color: #94a3b8;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-time__none {
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgb(15 23 42 / .04);
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn:active {
+    transform: scale(.96);
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn--add {
+    color: #c3122e;
+    border-color: #f5c2cb;
+    background: #fff5f6;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn--add:hover,
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn--add:focus-visible {
+    color: #fff;
+    border-color: #c3122e;
+    background: #c3122e;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn--logs svg {
+    color: #94a3b8;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-actions .dur-btn--logs:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.app-clean [data-ui-page="daily-updates"] .dur-count.has-logs {
+    border-color: #fecdd3;
+    background: #fff1f2;
+    color: #c3122e;
 }

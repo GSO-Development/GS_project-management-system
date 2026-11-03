@@ -238,31 +238,27 @@
                             $projInitial = strtoupper(substr($project->name, 0, 1));
                         @endphp
 
-                        <tr class="daily-update-row transition-colors duration-150 group {{ $update?->current_blockers ? 'has-blocker' : '' }}">
+                        <tr class="daily-update-row dur-row group {{ $update?->current_blockers ? 'has-blocker' : '' }}">
                             <!-- Project & Code -->
                             <td class="py-4 pl-6 pr-4 align-middle">
-                                <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="daily-project-avatar w-9 h-9 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center font-extrabold text-xs shrink-0 transition-colors group-hover:bg-white">
-                                        {{ $projInitial }}
-                                    </div>
-                                    <div class="min-w-0 flex-1 space-y-1">
-                                        <a href="{{ route('projects.show', $project) }}" class="font-bold text-xs sm:text-[13.5px] text-slate-900 hover:text-[#c3122e] transition-colors truncate block max-w-[260px]" title="{{ $project->name }}">
-                                            {{ $project->name }}
-                                        </a>
-                                        <div class="flex items-center">
-                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0 shadow-2xs">
-                                                {{ $project->code ?? 'PRJ-' . $project->id }}
-                                            </span>
-                                        </div>
-                                    </div>
+                                <div class="dur-project">
+                                    <span class="dur-folder" aria-hidden="true">
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="dur-project__text">
+                                        <a href="{{ route('projects.show', $project) }}" class="dur-project__name" title="{{ $project->name }}">{{ $project->name }}</a>
+                                        <span class="dur-project__code">{{ $project->code ?? 'PRJ-' . $project->id }}</span>
+                                    </span>
                                 </div>
                             </td>
 
                             <!-- Project Manager -->
                             <td class="py-4 px-4 align-middle">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <span class="daily-owner-avatar">{{ $pmInitials }}</span>
-                                    <span class="font-semibold text-slate-700 text-xs truncate block" title="{{ $pmName }}">{{ $pmName }}</span>
+                                <div class="dur-owner">
+                                    <span class="dur-owner__avatar">{{ $pmInitials }}</span>
+                                    <span class="dur-owner__name" title="{{ $pmName }}">{{ $pmName }}</span>
                                 </div>
                             </td>
 
@@ -272,66 +268,63 @@
                                     @php
                                         $statusKey = $update->updated_status?->value ?? (string)$update->updated_status;
                                         $statusConfig = match($statusKey) {
-                                            'completed' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200/80', 'dot' => 'bg-emerald-500', 'label' => 'Completed'],
-                                            'on_hold' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-800', 'border' => 'border-amber-200/80', 'dot' => 'bg-amber-500', 'label' => 'On Hold'],
-                                            default => ['bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200/80', 'dot' => 'bg-blue-500', 'label' => 'In Progress'],
+                                            'completed' => ['cls' => 'is-completed', 'label' => 'Completed'],
+                                            'on_hold' => ['cls' => 'is-on-hold', 'label' => 'On Hold'],
+                                            default => ['cls' => 'is-in-progress', 'label' => 'In Progress'],
                                         };
                                     @endphp
-                                    <div class="daily-log-summary space-y-1.5 min-w-0 max-w-lg">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold border {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} {{ $statusConfig['border'] }} shadow-2xs">
-                                                <span class="w-1.5 h-1.5 rounded-full {{ $statusConfig['dot'] }}"></span>
+                                    <div class="dur-entry">
+                                        <div class="dur-entry__meta">
+                                            <span class="dur-status {{ $statusConfig['cls'] }}">
+                                                <span class="dur-status__dot"></span>
                                                 {{ $statusConfig['label'] }}
                                             </span>
                                             @if($update->current_blockers)
-                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/70 shadow-2xs">
-                                                    <svg class="w-3 h-3 text-rose-500 shrink-0 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span class="dur-blocker">
+                                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                                     Blocker
                                                 </span>
                                             @endif
+                                            @if($update->wbsItem)
+                                                <span class="dur-task" title="Task: {{ $update->wbsItem->title }}">
+                                                    <span class="dur-task__label">Task</span>
+                                                    <span class="dur-task__title">{{ $update->wbsItem->title }}</span>
+                                                </span>
+                                            @endif
                                         </div>
-                                        <p class="text-xs text-slate-600 font-normal line-clamp-2 leading-relaxed" title="{{ $update->summary }}">
-                                            {{ $update->summary }}
-                                        </p>
-                                        <div class="daily-log-context" title="{{ $update->wbsItem?->title ?? 'Overall project update' }}">
-                                            <span>{{ $update->wbsItem ? 'Task' : 'Project' }}</span>
-                                            <span>{{ $update->wbsItem?->title ?? '' }}</span>
-                                        </div>
+                                        <p class="dur-entry__summary" title="{{ $update->summary }}">{{ $update->summary }}</p>
                                     </div>
                                 @else
-                                    <div class="daily-log-empty inline-flex items-center gap-2 py-1.5 text-slate-400 text-[11px] font-medium">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                        <span>No updates yet</span>
-                                    </div>
+                                    <span class="dur-empty">
+                                        <span class="dur-empty__dot"></span>
+                                        No updates yet
+                                    </span>
                                 @endif
                             </td>
 
                             <!-- Last Activity -->
-                            <td class="py-4 px-4 align-middle text-slate-500 whitespace-nowrap hidden lg:table-cell">
+                            <td class="py-4 px-4 align-middle whitespace-nowrap hidden lg:table-cell">
                                 @if($update)
-                                    <div class="space-y-0.5">
-                                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            {{ $update->created_at->diffForHumans() }}
-                                        </span>
-                                        <span class="text-[10.5px] text-slate-400 block font-mono pl-5">{{ $update->created_at->format('M d, Y') }}</span>
+                                    <div class="dur-time">
+                                        <span class="dur-time__relative">{{ $update->created_at->diffForHumans() }}</span>
+                                        <span class="dur-time__date">{{ $update->created_at->format('M d, Y') }}</span>
                                     </div>
                                 @else
-                                    <span class="text-slate-300 font-mono text-xs pl-2">—</span>
+                                    <span class="dur-time__none">—</span>
                                 @endif
                             </td>
 
                             <!-- Actions -->
                             <td class="py-4 pl-3 pr-6 align-middle text-right whitespace-nowrap">
-                                <div class="daily-row-actions inline-flex items-center justify-end gap-2">
+                                <div class="dur-actions">
                                     @unless(auth()->user()?->isAdminViewer())
                                     <button
                                         wire:click="openStatusUpdateModal({{ $project->id }})"
                                         type="button"
-                                        class="daily-update-button inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold text-white active:scale-95 transition-all cursor-pointer"
+                                        class="dur-btn dur-btn--add"
                                         title="Log latest progress update"
                                     >
-                                        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                         <span>Add update</span>
                                     </button>
                                     @endunless
@@ -339,14 +332,12 @@
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
                                         type="button"
-                                        class="daily-history-button inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 border border-slate-200 active:scale-95 transition-all cursor-pointer"
+                                        class="dur-btn dur-btn--logs"
                                         title="View project logs history"
                                     >
-                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>Logs</span>
-                                        <span class="px-1.5 py-0.2 rounded-md {{ $allUpdatesCount > 0 ? 'bg-rose-50 text-[#c3122e] border border-rose-200/70' : 'bg-slate-100 text-slate-500 border border-slate-200' }} text-[10px] font-black">
-                                            {{ $allUpdatesCount }}
-                                        </span>
+                                        <span class="dur-count {{ $allUpdatesCount > 0 ? 'has-logs' : '' }}">{{ $allUpdatesCount }}</span>
                                     </button>
                                 </div>
                             </td>

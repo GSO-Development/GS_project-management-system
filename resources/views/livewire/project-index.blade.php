@@ -74,7 +74,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          1. TOP HEADER & NAVIGATION TABS (Matching Uploaded UI Mockup)
          ═══════════════════════════════════════════════════════════════ -->
-    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-2 mb-2.5">
+    <div x-data="{ showFilters: {{ ($search || $subsidiaryFilter !== 'all' || $statusFilter !== 'all' || $managerFilter !== 'all' || $priorityFilter !== 'all' || $approvalFilter !== 'all' || $healthFilter !== 'all') ? 'true' : 'false' }} }" class="projects-command-bar space-y-3.5 mb-5">
         <!-- Top Row: Page Title, Subtitle & Top Right Controls -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
             <!-- Title -->
