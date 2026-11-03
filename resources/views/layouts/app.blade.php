@@ -77,7 +77,22 @@
     <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.15/dist/docx-preview.min.js"></script>
 </head>
-<body class="app-clean" style="background:#f6f7f8; font-family:'Inter',system-ui,sans-serif;">
+<body class="app-clean {{ auth()->user()?->isAdminViewer() ? 'admin-viewer-mode' : '' }}" style="background:#f6f7f8; font-family:'Inter',system-ui,sans-serif;">
+@if(auth()->user()?->isAdminViewer())
+<style>
+    .admin-viewer-mode [wire\:click^="openCreate"],
+    .admin-viewer-mode [wire\:click^="openEdit"],
+    .admin-viewer-mode [wire\:click^="edit("],
+    .admin-viewer-mode [wire\:click^="confirmDelete"],
+    .admin-viewer-mode [wire\:click^="delete"],
+    .admin-viewer-mode [wire\:click^="toggleStatus"],
+    .admin-viewer-mode [wire\:click^="batch"],
+    .admin-viewer-mode a[href$="/create"],
+    .admin-viewer-mode form button[type="submit"] {
+        display: none !important;
+    }
+</style>
+@endif
 
     <!-- =================== SIDEBAR =================== -->
     <aside
@@ -141,7 +156,8 @@
 
             @php
                 $user = auth()->user();
-                $isSuperAdmin = $user ? ($user->isPmoAdmin() || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
+                $isSuperAdmin = $user ? ($user->hasAdminInterfaceAccess() || $user->email === 'admin@nexuspm.local' || $user->id === 1) : false;
+                $isAdminViewer = $user?->isAdminViewer() ?? false;
                 $isPM = $user ? $user->hasRole('project_manager') : false;
 
                 // Unread Notifications Count
@@ -242,12 +258,14 @@
                            class="block px-3 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('projects.index') ? 'text-[#c3122e] bg-rose-50 font-bold' : 'text-slate-500 hover:text-[#c3122e] hover:bg-rose-50/50' }}">
                             Manage All Projects
                         </a>
+                        @unless($isAdminViewer)
                         <a href="{{ route('templates.index') }}"
                            wire:navigate.hover
                            @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
                            class="block px-3 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('templates.*') ? 'text-[#c3122e] bg-rose-50 font-bold' : 'text-slate-500 hover:text-[#c3122e] hover:bg-rose-50/50' }}">
                             Manage Templates
                         </a>
+                        @endunless
                     </div>
                 </div>
             @else
@@ -276,7 +294,7 @@
             @endif
 
             <!-- 3. Tasks (For Non-Super Admins) -->
-            @if(!($user && $user->isPmoAdmin()))
+            @if(!($user && $user->hasAdminInterfaceAccess()))
                 <a href="{{ route('my-tasks.index') }}"
                    wire:navigate.hover
                    @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
@@ -330,7 +348,7 @@
 
             {{-- Risks & Blockers removed from sidebar — accessible via dashboard KPI card --}}
 
-            <!-- Subsidiaries (Super Admin Only) -->
+            <!-- Subsidiaries (PMO interface) -->
             @if($isSuperAdmin)
                 <a href="{{ route('subsidiaries.index') }}"
                    wire:navigate.hover
@@ -376,8 +394,8 @@
                 <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Reports</span>
             </a>
 
-            <!-- ================= ADMINISTRATION (Super Admin Only) ================= -->
-            @if($isSuperAdmin)
+            <!-- ================= ADMINISTRATION (PMO Admin Only) ================= -->
+            @if($user?->isPmoAdmin())
                 <!-- Roles & Permissions -->
                 <a href="{{ route('roles-permissions.index') }}"
                    wire:navigate.hover

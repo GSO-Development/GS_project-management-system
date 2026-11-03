@@ -181,6 +181,13 @@ class DailyStatusUpdates extends Component
             || $user->id === 1;
     }
 
+    protected function hasPortfolioViewAccess(?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+
+        return $user?->hasAdminInterfaceAccess() ?? false;
+    }
+
     public function updatedUpdateProjectId()
     {
         $this->updateWbsItemId = null;
@@ -189,6 +196,11 @@ class DailyStatusUpdates extends Component
     public function openStatusUpdateModal(?int $projectId = null, ?int $wbsItemId = null)
     {
         $user = auth()->user();
+
+        if ($user?->isAdminViewer()) {
+            $this->dispatch('toast', message: 'Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
 
         $this->reset([
             'updateProjectId',
@@ -234,6 +246,11 @@ class DailyStatusUpdates extends Component
     public function saveStatusUpdate()
     {
         $user = auth()->user();
+
+        if ($user?->isAdminViewer()) {
+            $this->dispatch('toast', message: 'Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
 
         $this->validate([
             'updateProjectId' => 'required|exists:projects,id',
@@ -447,8 +464,8 @@ class DailyStatusUpdates extends Component
         }
         $query = Project::with(['subsidiary', 'projectManager']);
 
-        // Super Admin sees ALL projects in the entire organization
-        if (!$this->isSuperAdminUser($user)) {
+        // PMO Admin and Admin Viewer see every project in the organization.
+        if (!$this->hasPortfolioViewAccess($user)) {
             $query->where(function($q) use ($user) {
                 // PM sees their project
                 $q->where('project_manager_id', $user->id)
@@ -470,6 +487,7 @@ class DailyStatusUpdates extends Component
     {
         $user = auth()->user();
         $isSuperAdmin = $this->isSuperAdminUser($user);
+        $hasPortfolioViewAccess = $this->hasPortfolioViewAccess($user);
 
         // Fetch accessible projects (All projects for Super Admin)
         $accessibleProjects = $this->getAccessibleProjects();
@@ -479,7 +497,7 @@ class DailyStatusUpdates extends Component
         $updatesQuery = ProjectStatusUpdate::with(['project.projectManager', 'project.subsidiary', 'wbsItem', 'creator', 'comments.user']);
 
         // Visibility Hierarchy Rules:
-        if ($isSuperAdmin) {
+        if ($hasPortfolioViewAccess) {
             // Super Admin ONLY sees Project Manager updates, Overall Project Reports, and Super Admin posts.
             $updatesQuery->where(function($q) {
                 $q->whereNull('wbs_item_id') // Overall Project Reports

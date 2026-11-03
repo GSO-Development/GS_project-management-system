@@ -372,8 +372,11 @@ class ProjectApprovalActions extends Component
             return;
         }
 
-        $project = $this->contextualProject($projectId)->load(['subsidiary', 'projectManager', 'members']);
-        abort_unless($project->isPmRejected(), 409, 'Only rejected assignments can be reassigned.');
+        $project = $this->contextualProject($projectId)
+            ->load(['subsidiary', 'projectManager', 'members', 'template'])
+            ->loadCount('wbsItems');
+        $hasRejectedPlan = $project->isPmRejected() || $project->approvalRequests()->where('request_type', ApprovalType::NEW_PROJECT_PLAN)->where('status', ApprovalStatus::REJECTED)->exists();
+        abort_unless($hasRejectedPlan, 409, 'Only rejected assignments can be reassigned.');
         $this->showApprovalList = false;
         $this->resetValidation();
         if (!$project) {
@@ -458,7 +461,8 @@ class ProjectApprovalActions extends Component
         $newLeader = User::findOrFail($this->reassignPmId);
         DB::transaction(function () use ($project, $newLeader) {
             $project = Project::lockForUpdate()->findOrFail($project->id);
-            abort_unless($project->isPmRejected(), 409, 'Only rejected assignments can be reassigned.');
+            $hasRejectedPlan = $project->isPmRejected() || $project->approvalRequests()->where('request_type', ApprovalType::NEW_PROJECT_PLAN)->where('status', ApprovalStatus::REJECTED)->exists();
+            abort_unless($hasRejectedPlan, 409, 'Only rejected assignments can be reassigned.');
             $oldValues = $project->only(['project_manager_id', 'pm_rejection_reason', 'name', 'code', 'deadline']);
             $selfAssigned = auth()->id() === $newLeader->id;
             $project->update([

@@ -285,48 +285,4 @@ class WbsItem extends Model
 
         return null;
     }
-
-    /**
-     * Automatically transition tasks based on start_date schedule:
-     * - Tasks whose start_date has arrived (start_date <= today) -> in_progress (if currently not_started)
-     * - Future tasks (start_date > today) with 0% progress -> not_started (if incorrectly marked in_progress)
-     */
-    public static function autoStartDueTasks(?int $projectId = null): int
-    {
-        $today = now()->today()->toDateString();
-
-        // 1. Advance due tasks to in_progress
-        $dueQuery = static::whereNotNull('start_date')
-            ->whereDate('start_date', '<=', $today)
-            ->whereIn('status', [
-                WbsStatus::NOT_STARTED->value, 
-                WbsStatus::BACKLOG->value, 
-                'not_started', 
-                'backlog', 
-                'draft'
-            ]);
-
-        if ($projectId) {
-            $dueQuery->where('project_id', $projectId);
-        }
-
-        $started = $dueQuery->update(['status' => WbsStatus::IN_PROGRESS->value]);
-
-        // 2. Revert future tasks (start_date in future) that have 0% progress back to not_started
-        $futureQuery = static::whereNotNull('start_date')
-            ->whereDate('start_date', '>', $today)
-            ->where('progress', 0)
-            ->whereIn('status', [
-                WbsStatus::IN_PROGRESS->value,
-                'in_progress'
-            ]);
-
-        if ($projectId) {
-            $futureQuery->where('project_id', $projectId);
-        }
-
-        $futureQuery->update(['status' => WbsStatus::NOT_STARTED->value]);
-
-        return $started;
-    }
 }

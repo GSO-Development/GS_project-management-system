@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\ProjectCreate;
 use App\Livewire\ManageTemplates;
+use App\Livewire\TemplateGanttBuilder;
 use App\Models\Project;
 use App\Models\ProjectTemplate;
 use App\Models\Subsidiary;
@@ -65,6 +66,13 @@ class ProjectCreateTest extends TestCase
         $admin->assignRole('super_admin');
         $subsidiary = Subsidiary::create(['name' => 'Selection Sub', 'code' => 'SEL']);
         $template = ProjectTemplate::create(['name' => 'Selected Delivery Template']);
+        TemplateTask::create([
+            'project_template_id' => $template->id,
+            'name' => 'Selected Template Phase',
+            'duration' => 2,
+            'unit' => 'days',
+            'order_index' => 1,
+        ]);
 
         Livewire::actingAs($admin)
             ->test(ProjectCreate::class)
@@ -81,6 +89,16 @@ class ProjectCreateTest extends TestCase
             ->assertSet('selectForProject', true)
             ->assertSee('Use Template')
             ->call('selectTemplateForProject', $template->id)
+            ->assertRedirect(route('templates.manage', [
+                'template' => $template->id,
+                'select_for' => 'project',
+            ]));
+
+        Livewire::actingAs($admin)
+            ->withQueryParams(['select_for' => 'project'])
+            ->test(TemplateGanttBuilder::class, ['template' => $template])
+            ->assertSet('selectForProject', true)
+            ->call('continueToProject')
             ->assertRedirect(route('projects.create').'#project-blueprint');
 
         Livewire::actingAs($admin)
@@ -89,6 +107,57 @@ class ProjectCreateTest extends TestCase
             ->assertSet('creation_option', 'template')
             ->assertSet('selected_template_id', $template->id)
             ->assertSee('Selected Delivery Template');
+    }
+
+    public function test_new_template_is_saved_before_continuing_to_project_creation(): void
+    {
+        Role::findOrCreate('super_admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $template = ProjectTemplate::create(['name' => 'New Reusable Blueprint']);
+
+        session()->put('project_create_draft', ['name' => 'Draft Project']);
+
+        Livewire::actingAs($admin)
+            ->withQueryParams(['select_for' => 'project'])
+            ->test(TemplateGanttBuilder::class, ['template' => $template])
+            ->assertSet('selectForProject', true)
+            ->set('isConfigured', true)
+            ->set('tasks', [
+                [
+                    'id' => 'temp_phase',
+                    'parent_id' => null,
+                    'name' => 'Planning Phase',
+                    'duration' => 5,
+                    'unit' => 'days',
+                    'is_deleted' => false,
+                    'level' => 1,
+                    'is_expanded' => true,
+                ],
+                [
+                    'id' => 'temp_task',
+                    'parent_id' => 'temp_phase',
+                    'name' => 'Kick-off Task',
+                    'duration' => 1,
+                    'unit' => 'days',
+                    'is_deleted' => false,
+                    'level' => 2,
+                    'is_expanded' => false,
+                ],
+            ])
+            ->assertSee('Save &amp; Continue', false)
+            ->call('continueToProject')
+            ->assertRedirect(route('projects.create').'#project-blueprint');
+
+        $this->assertDatabaseHas('template_tasks', [
+            'project_template_id' => $template->id,
+            'name' => 'Planning Phase',
+        ]);
+        $this->assertDatabaseHas('template_tasks', [
+            'project_template_id' => $template->id,
+            'name' => 'Kick-off Task',
+        ]);
+        $this->assertSame($template->id, session('project_create_selected_template_id'));
     }
 
     public function test_project_creation_with_template_creates_tasks_and_subtasks(): void

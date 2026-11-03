@@ -242,9 +242,15 @@
                                         </svg>
                                     </div>
                                     <div class="min-w-0">
-                                        <a href="{{ route('projects.show', $p) }}" class="font-bold text-slate-900 hover:text-[#c3122e] transition-colors text-[12.5px] leading-snug line-clamp-1 block no-underline" title="Open {{ $p->name }} workspace">
-                                            {{ $p->name }}
-                                        </a>
+                                        @if($userRole === 'lead' && !$p->isPmAccepted())
+                                            <button type="button" wire:click="notifyWorkspaceLocked({{ $p->id }})" class="font-bold text-left text-slate-900 hover:text-amber-700 transition-colors text-[12.5px] leading-snug line-clamp-1 block cursor-pointer" title="Accept this project before opening its workspace">
+                                                {{ $p->name }}
+                                            </button>
+                                        @else
+                                            <a href="{{ route('projects.show', $p) }}" class="font-bold text-slate-900 hover:text-[#c3122e] transition-colors text-[12.5px] leading-snug line-clamp-1 block no-underline" title="Open {{ $p->name }} workspace">
+                                                {{ $p->name }}
+                                            </a>
+                                        @endif
                                         <span class="font-mono text-[10px] font-medium text-slate-400 leading-tight block mt-0.5">
                                             {{ $p->code }}
                                         </span>
@@ -396,6 +402,16 @@
                                     @endif
 
                                     {{-- 2. Open Workspace Button --}}
+                                    @if($userRole === 'lead' && !$p->isPmAccepted())
+                                    <button
+                                        type="button"
+                                        wire:click="notifyWorkspaceLocked({{ $p->id }})"
+                                        x-on:click.stop
+                                        class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                                        title="Workspace locked until project acceptance"
+                                        aria-label="Workspace locked until {{ $p->name }} is accepted"
+                                    >
+                                    @else
                                     <a
                                         href="{{ route('projects.show', $p) }}"
                                         x-on:click.stop
@@ -403,13 +419,14 @@
                                         title="Open Project Workspace"
                                         aria-label="Open Workspace for {{ $p->name }}"
                                     >
+                                    @endif
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                         </svg>
-                                    </a>
+                                    @if($userRole === 'lead' && !$p->isPmAccepted())</button>@else</a>@endif
 
                                     {{-- 3. Edit Project Button --}}
-                                    @if($p->project_manager_id === auth()->id() || auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $p->userCan(auth()->user(), 'project_details.edit'))
+                                    @if($p->isPmAccepted() && ($p->project_manager_id === auth()->id() || auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $p->userCan(auth()->user(), 'project_details.edit')))
                                         <a
                                             href="{{ route('projects.show', $p) . '?editProject=1' }}"
                                             x-on:click.stop
@@ -429,11 +446,22 @@
                 </tbody>
             </table>
         </div>
-        @if($projects->hasPages())
-            <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50/40">
+        <!-- Pagination Footer -->
+        <div class="px-5 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex-1 min-w-0">
                 {{ $projects->links() }}
             </div>
-        @endif
+
+            <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                <span class="text-xs text-slate-500 font-medium hidden sm:inline">Per page:</span>
+                <select wire:model.live="perPage" aria-label="Projects per page" class="text-xs font-bold py-1.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 focus:outline-none focus:border-[#c3122e] transition-all cursor-pointer">
+                    <option value="5">5 per page</option>
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     @else

@@ -113,6 +113,27 @@ class ProjectApprovalIntegrationTest extends TestCase
         $this->assertSame($this->pm->id, $request->fresh()->reviewed_by);
     }
 
+    public function test_pending_manager_cannot_open_workspace_until_assignment_is_accepted(): void
+    {
+        $project = $this->project(['name' => 'Locked Pending Workspace']);
+
+        Livewire::actingAs($this->pm)
+            ->test(\App\Livewire\MyLeadProjects::class)
+            ->call('notifyWorkspaceLocked', $project->id)
+            ->assertDispatched('toast');
+
+        $this->actingAs($this->pm)
+            ->get(route('projects.show', $project))
+            ->assertRedirect(route('projects.my-leads'))
+            ->assertSessionHas('warning');
+
+        $this->assertTrue($project->acceptByPm($this->pm));
+
+        $this->actingAs($this->pm)
+            ->get(route('projects.show', $project))
+            ->assertOk();
+    }
+
     public function test_rejection_requires_a_reason_and_is_saved_to_both_records(): void
     {
         $project = $this->project();

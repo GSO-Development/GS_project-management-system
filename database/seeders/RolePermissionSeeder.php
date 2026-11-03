@@ -27,6 +27,7 @@ class RolePermissionSeeder extends Seeder
         $rolesToSeed = [
             'super_admin',
             'pmo_admin',
+            'admin_viewer',
             'lead',
             'project_manager',
             'member',

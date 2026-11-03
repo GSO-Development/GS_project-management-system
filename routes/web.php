@@ -37,7 +37,9 @@ Route::middleware(['auth', 'verified', 'must_change_password'])->group(function 
 
     // Projects Directory & Workspace
     Route::get('/projects', ProjectIndex::class)->name('projects.index');
-    Route::get('/projects/create', \App\Livewire\ProjectCreate::class)->name('projects.create');
+    Route::get('/projects/create', \App\Livewire\ProjectCreate::class)
+        ->middleware('role:super_admin|pmo_admin')
+        ->name('projects.create');
 
     // User-facing sub-pages: My Lead Projects & My Collaborator Projects
     Route::get('/projects/my-leads', MyLeadProjects::class)->name('projects.my-leads');
@@ -81,7 +83,7 @@ Route::middleware(['auth', 'verified', 'must_change_password'])->group(function 
     });
 
     // Super Admin / PMO Admin Only Governance Routes
-    Route::middleware(['role:super_admin|pmo_admin'])->group(function () {
+    Route::middleware(['role:super_admin|pmo_admin|admin_viewer'])->group(function () {
         // All Tasks (Admin-only organisation-wide task view)
         Route::get('/all-tasks', AllTasksViewer::class)->name('all-tasks.index');
 
@@ -90,15 +92,16 @@ Route::middleware(['auth', 'verified', 'must_change_password'])->group(function 
             return redirect()->route('projects.index', $request->query());
         })->name('project-monitor.index');
 
-        // Templates (PMO Admin Only)
-        Route::get('/templates', \App\Livewire\ManageTemplates::class)->name('templates.index');
-        Route::get('/templates/{template}/manage', \App\Livewire\TemplateGanttBuilder::class)->name('templates.manage');
-
         Route::get('/team-monitor', \App\Livewire\TeamMonitor::class)->name('team-monitor.index');
         Route::get('/subsidiaries', SubsidiaryManager::class)->name('subsidiaries.index');
         Route::get('/users', UserManager::class)->name('users.index');
-        Route::get('/roles-permissions', \App\Livewire\RolePermissionManager::class)->name('roles-permissions.index');
         Route::get('/audit-logs', AuditLogViewer::class)->name('audit-logs.index');
+    });
+
+    Route::middleware(['role:super_admin|pmo_admin'])->group(function () {
+        Route::get('/templates', \App\Livewire\ManageTemplates::class)->name('templates.index');
+        Route::get('/templates/{template}/manage', \App\Livewire\TemplateGanttBuilder::class)->name('templates.manage');
+        Route::get('/roles-permissions', \App\Livewire\RolePermissionManager::class)->name('roles-permissions.index');
         Route::get('/settings', SettingsManager::class)->name('settings.index');
     });
 

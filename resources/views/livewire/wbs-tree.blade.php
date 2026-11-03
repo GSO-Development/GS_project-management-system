@@ -164,7 +164,9 @@
                         <th class="py-3.5 px-3 text-left min-w-[125px] w-32">Progress</th>
                         <th class="py-3.5 px-3 text-left min-w-[140px] w-36">Status</th>
                         <th class="py-3.5 px-3 text-left min-w-[120px] w-32">Priority</th>
-                        <th class="py-3.5 pr-5 pl-2 text-center w-12 shrink-0">Action</th>
+                        @unless(auth()->user()?->isAdminViewer())
+                            <th class="py-3.5 pr-5 pl-2 text-center w-12 shrink-0">Action</th>
+                        @endunless
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-slate-100">
@@ -174,7 +176,7 @@
 
                     @if($wbsItems->isEmpty())
                         <tr>
-                            <td colspan="11" class="text-center py-16 text-slate-400">
+                            <td colspan="{{ auth()->user()?->isAdminViewer() ? 10 : 11 }}" class="text-center py-16 text-slate-400">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-2.5 shadow-2xs">
                                     <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>

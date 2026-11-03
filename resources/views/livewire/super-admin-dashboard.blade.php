@@ -16,9 +16,11 @@
                     </p>
                 </div>
             </div>
+            @unless(auth()->user()?->isAdminViewer())
             <button wire:click="openReassignModal({{ $declinedProjects->first()->id }})" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-800 bg-white border border-rose-200 hover:bg-rose-100 shadow-2xs transition-colors shrink-0 cursor-pointer">
                 Reassign Leader &rarr;
             </button>
+            @endunless
         </div>
     @endif
 
@@ -43,6 +45,7 @@
                 {{ now()->format('D, M j, Y') }}
             </div>
 
+            @unless(auth()->user()?->isAdminViewer())
             <a href="{{ route('projects.create') }}" 
                wire:navigate.hover
                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer no-underline active:scale-98">
@@ -51,6 +54,7 @@
                 </svg>
                 <span>Create Project</span>
             </a>
+            @endunless
         </div>
     </div>
 
@@ -97,7 +101,7 @@
             <div class="min-w-0">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">At Risk</span>
                 <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-2 block tracking-tight font-mono">
-                    {{ $statusSummary['at_risk']['count'] }}
+                    {{ $atRiskProjectsCount }}
                 </span>
             </div>
             <div class="text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all">

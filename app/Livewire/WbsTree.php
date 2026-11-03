@@ -188,13 +188,10 @@ class WbsTree extends Component
         $user = auth()->user();
 
         // If project is not yet accepted by the Project Manager, only PMO Admin and the designated Project Manager can access it
-        if (!$project->isPmAccepted() && !$user->isPmoAdmin() && $project->project_manager_id !== $user->id) {
+        if (!$project->isPmAccepted() && !$user->hasAdminInterfaceAccess() && $project->project_manager_id !== $user->id) {
             abort(403, 'This project is pending Project Manager acceptance.');
         }
         
-        // Automatically transition tasks to in_progress if their start_date has arrived
-        WbsItem::autoStartDueTasks($this->project->id);
-
         // Auto-cascade schedule dates if all tasks are in default template date state
         \App\Services\WbsScheduleCascadeService::cascadeProjectSchedule($this->project->id);
 

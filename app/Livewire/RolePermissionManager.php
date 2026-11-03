@@ -520,7 +520,18 @@ class RolePermissionManager extends Component
     public function render()
     {
         $allRoles = RbacService::getAllRoles();
-        $roles = $allRoles;
+        // System access profiles are assigned from the User Directory. This matrix
+        // is intentionally limited to project-context roles and their permissions.
+        $matrixRoles = array_filter(
+            $allRoles,
+            fn (array $role, string|int $key) => !in_array(
+                $role['code'] ?? (is_string($key) ? $key : ''),
+                ['pmo_admin', 'admin_viewer'],
+                true
+            ),
+            ARRAY_FILTER_USE_BOTH
+        );
+        $roles = $matrixRoles;
 
         if (!empty($this->searchRole)) {
             $query = strtolower($this->searchRole);
@@ -551,7 +562,7 @@ class RolePermissionManager extends Component
         }
 
         $totalPermsCount = Permission::count();
-        $totalRolesCount = count($allRoles);
+        $totalRolesCount = count($matrixRoles);
 
         $currentPage = $this->getPage();
         $paginatedRoles = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -564,7 +575,7 @@ class RolePermissionManager extends Component
 
         return view('livewire.role-permission-manager', [
             'roles' => $paginatedRoles,
-            'allRoles' => $allRoles,
+            'allRoles' => $matrixRoles,
             'modules' => $modules,
             'allModules' => $allModules,
             'totalPermsCount' => $totalPermsCount,

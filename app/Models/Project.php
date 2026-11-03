@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ItemType;
 use App\Enums\Priority;
 use App\Enums\ProjectStatus;
+use App\Enums\WbsStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -81,83 +82,43 @@ class Project extends Model
 
     public function computeAutoStatus(): ProjectStatus
     {
-        if (!$this->exists) {
+        if (!$this->exists || !$this->isPmAccepted()) {
             return ProjectStatus::PLANNING;
         }
 
-        $progress = (int) ($this->overall_progress ?? 0);
+        // Only deliverables can start a project; phase and work-package summaries cannot.
+        $taskTypes = [ItemType::TASK, ItemType::SUBTASK, ItemType::MILESTONE];
+        $items = $this->relationLoaded('wbsItems')
+            ? $this->wbsItems
+            : $this->wbsItems()->whereIn('item_type', array_map(fn (ItemType $type) => $type->value, $taskTypes))->get();
+        $tasks = $items->filter(fn (WbsItem $item) => in_array($item->item_type, $taskTypes, true));
 
-        // 1. Completed: progress reached 100%
-        if ($progress >= 100) {
+        $hasStarted = $tasks->contains(fn (WbsItem $item) =>
+            in_array($item->status, [WbsStatus::IN_PROGRESS, WbsStatus::COMPLETED, WbsStatus::UNDER_REVIEW], true)
+        );
+
+        // Acceptance, elapsed dates and aggregate progress alone do not start a project.
+        if (!$hasStarted) {
+            return ProjectStatus::PLANNING;
+        }
+
+        if ((int) $this->overall_progress >= 100 || $tasks->every(fn (WbsItem $item) =>
+            $item->status === WbsStatus::COMPLETED || (int) $item->progress >= 100
+        )) {
             return ProjectStatus::COMPLETED;
         }
 
-        // 2. Delayed: deadline has passed (end of day) and project is not completed
-        if ($this->deadline && \Carbon\Carbon::parse($this->deadline)->endOfDay()->isPast()) {
+        if ($this->deadline && $this->deadline->copy()->endOfDay()->isPast()) {
             return ProjectStatus::DELAYED;
         }
 
-        // Check tasks if relation loaded or through query
-        $hasWbsLoaded = $this->relationLoaded('wbsItems');
-
-        if ($hasWbsLoaded) {
-            $wbs = $this->wbsItems;
-            $count = $wbs->count();
-
-            if ($count > 0) {
-                // If all tasks are completed
-                $allDone = $wbs->every(function ($t) {
-                    $st = $t->status instanceof \App\Enums\WbsStatus ? $t->status->value : (string) $t->status;
-                    return $st === 'completed' || (int) $t->progress >= 100;
-                });
-                if ($allDone) {
-                    return ProjectStatus::COMPLETED;
-                }
-
-                // If any task is blocked or at risk
-                $hasRisk = $wbs->contains(function ($t) {
-                    $st = $t->status instanceof \App\Enums\WbsStatus ? $t->status->value : (string) $t->status;
-                    return in_array($st, ['at_risk', 'blocked'], true);
-                });
-                if ($hasRisk) {
-                    return ProjectStatus::AT_RISK;
-                }
-
-                // If any task has started
-                $hasStarted = $wbs->contains(function ($t) {
-                    $st = $t->status instanceof \App\Enums\WbsStatus ? $t->status->value : (string) $t->status;
-                    return (int) $t->progress > 0 || in_array($st, ['in_progress', 'completed', 'under_review'], true);
-                });
-                if ($hasStarted) {
-                    return ProjectStatus::IN_PROGRESS;
-                }
-            }
-        } else {
-            if ($progress > 0) {
-                $hasRisk = $this->wbsItems()->whereIn('status', ['at_risk', 'blocked'])->exists();
-                return $hasRisk ? ProjectStatus::AT_RISK : ProjectStatus::IN_PROGRESS;
-            }
-
-            $hasRisk = $this->wbsItems()->whereIn('status', ['at_risk', 'blocked'])->exists();
-            if ($hasRisk) {
-                return ProjectStatus::AT_RISK;
-            }
-
-            $hasStarted = $this->wbsItems()->where(function ($q) {
-                $q->where('progress', '>', 0)
-                  ->orWhereIn('status', ['in_progress', 'completed', 'under_review']);
-            })->exists();
-
-            if ($hasStarted) {
-                return ProjectStatus::IN_PROGRESS;
-            }
+        if ($tasks->contains(fn (WbsItem $item) =>
+            in_array($item->status, [WbsStatus::AT_RISK, WbsStatus::BLOCKED], true)
+        )) {
+            return ProjectStatus::AT_RISK;
         }
 
-        if ($progress > 0) {
-            return ProjectStatus::IN_PROGRESS;
-        }
-
-        return ProjectStatus::PLANNING;
+        return ProjectStatus::IN_PROGRESS;
     }
 
     public function computeAutoPriority(): Priority
@@ -319,6 +280,8 @@ class Project extends Model
                 'pm_rejected_at' => null,
             ]);
 
+            $this->syncAutoStatus();
+
             ActivityLog::create([
                 'user_id' => $user->id,
                 'action' => 'accepted_project_assignment',
@@ -383,6 +346,8 @@ class Project extends Model
             'pm_rejection_reason' => $reason,
             'pm_rejected_at' => now(),
         ]);
+
+        $this->syncAutoStatus();
 
         // Sync any pending ApprovalRequest of type NEW_PROJECT_PLAN
         ApprovalRequest::where('project_id', $this->id)
@@ -586,7 +551,7 @@ class Project extends Model
         $u = $user instanceof User ? $user : User::find($user);
         if (!$u) return false;
 
-        if ($u->isSuperAdmin() || $u->hasRole('pmo_admin')) {
+        if ($u->hasAdminInterfaceAccess()) {
             return true;
         }
 

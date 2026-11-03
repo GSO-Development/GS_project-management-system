@@ -166,6 +166,7 @@ class ProjectIndex extends Component
     public function updatedPriorityFilter() { $this->resetPage(); }
     public function updatedHealthFilter() { $this->resetPage(); }
     public function updatedRoleFilter() { $this->resetPage(); }
+    public function updatedPerPage() { $this->resetPage(); }
     public function updatedStuckTypeFilter() { $this->resetPage(); }
     public function updatedStuckProjectFilter() { $this->resetPage(); }
     public function updatedStuckAssigneeFilter() { $this->resetPage(); }
@@ -394,6 +395,11 @@ class ProjectIndex extends Component
 
     public function openEditModal(int $id): void
     {
+        if (auth()->user()?->isAdminViewer()) {
+            $this->dispatch('toast', message: 'Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
+
         $project = Project::with('template')->findOrFail($id);
 
         $user = auth()->user();
@@ -478,6 +484,11 @@ class ProjectIndex extends Component
 
     public function save(bool $confirmWbsReplacement = false): void
     {
+        if (auth()->user()?->isAdminViewer()) {
+            $this->dispatch('toast', message: 'Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
+
         $this->validate();
 
         $user = auth()->user();
@@ -661,6 +672,10 @@ class ProjectIndex extends Component
             return false;
         }
 
+        if ($user->isAdminViewer()) {
+            return false;
+        }
+
         return $user->isPmoAdmin()
             || $user->hasRole('super_admin')
             || $user->hasRole('pmo_admin')
@@ -760,7 +775,7 @@ class ProjectIndex extends Component
         // Base query with strict role-based access scoping
         $baseQuery = Project::query();
 
-        if ($user && !$user->isPmoAdmin()) {
+        if ($user && !$user->hasAdminInterfaceAccess()) {
             $baseQuery->where(function($q) use ($user) {
                 // If user is the designated PM, they can see it
                 $q->where('project_manager_id', $user->id)
@@ -801,7 +816,7 @@ class ProjectIndex extends Component
                   ->orWhereHas('blockers', fn($bq) => $bq->where('status', 'open'));
             });
 
-        if ($user && !$user->isPmoAdmin()) {
+        if ($user && !$user->hasAdminInterfaceAccess()) {
             $allStuckTasksQuery->whereHas('project', function($pq) use ($user) {
                 $pq->where('project_manager_id', $user->id)
                    ->orWhere(function($subQ) use ($user) {

@@ -324,6 +324,7 @@
                             <!-- Actions -->
                             <td class="py-4 pl-3 pr-6 align-middle text-right whitespace-nowrap">
                                 <div class="daily-row-actions inline-flex items-center justify-end gap-2">
+                                    @unless(auth()->user()?->isAdminViewer())
                                     <button
                                         wire:click="openStatusUpdateModal({{ $project->id }})"
                                         type="button"
@@ -333,6 +334,7 @@
                                         <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                         <span>Add update</span>
                                     </button>
+                                    @endunless
 
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
@@ -712,7 +714,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          6. MODAL: POST DAILY STATUS UPDATE
          ═══════════════════════════════════════════════════════════════ -->
-    @if($showUpdateModal)
+    @if($showUpdateModal && !auth()->user()?->isAdminViewer())
         @teleport('body')
         <dialog class="daily-publish-dialog" x-data x-init="$nextTick(() => $el.showModal())" @cancel.prevent="$wire.set('showUpdateModal', false)" @click="if ($event.target === $el) $wire.set('showUpdateModal', false)" aria-labelledby="daily-publish-title">
             <div class="daily-publish-panel">

@@ -23,6 +23,7 @@ class RbacService
     public const PROTECTED_ROLES = [
         'super_admin',
         'pmo_admin',
+        'admin_viewer',
         'lead',
         'project_manager',
         'sponsor',
@@ -54,6 +55,15 @@ class RbacService
             'icon' => '🏛️',
             'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200 font-extrabold',
             'description' => 'Enterprise PMO authority overseeing subsidiary portfolios, workflows, and cross-project governance.',
+            'is_system' => true,
+            'is_protected' => true,
+        ],
+        'admin_viewer' => [
+            'name' => 'Admin Viewer',
+            'code' => 'admin_viewer',
+            'icon' => 'AV',
+            'badge' => 'bg-indigo-50 text-indigo-700 border-indigo-200 font-extrabold',
+            'description' => 'Organization-wide, read-only access to the PMO administration interface.',
             'is_system' => true,
             'is_protected' => true,
         ],
@@ -158,7 +168,8 @@ class RbacService
         // Sort roles by logical governance hierarchy order
         $priorityOrder = [
             'pmo_admin' => 1,
-            'lead' => 2,
+            'admin_viewer' => 2,
+            'lead' => 3,
             'sponsor' => 3,
             'owner' => 4,
             'steering_committee' => 5,
@@ -268,6 +279,11 @@ class RbacService
     {
         if (!$user) {
             return false;
+        }
+
+        // Organization-wide observer: project membership never grants mutations.
+        if ($user->isAdminViewer()) {
+            return str_contains($permission, '.view') || $permission === 'report.export';
         }
 
         // PMO Admin / Super Admin always has 100% full system access

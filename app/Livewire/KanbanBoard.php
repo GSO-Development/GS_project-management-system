@@ -19,13 +19,15 @@ class KanbanBoard extends Component
         $user = auth()->user();
 
         // If project is not yet accepted by the Project Manager, only PMO Admin and the designated Project Manager can access it
-        if (!$project->isPmAccepted() && !$user->isPmoAdmin() && $project->project_manager_id !== $user->id) {
+        if (!$project->isPmAccepted() && !$user->hasAdminInterfaceAccess() && $project->project_manager_id !== $user->id) {
             abort(403, 'This project is pending Project Manager acceptance.');
         }
     }
 
     public function updateCardStatus(int $taskId, string $newStatus)
     {
+        abort_if(auth()->user()?->isAdminViewer(), 403, 'Admin Viewer access is read-only.');
+
         $task = WbsItem::where('project_id', $this->project->id)->findOrFail($taskId);
         $user = auth()->user();
 

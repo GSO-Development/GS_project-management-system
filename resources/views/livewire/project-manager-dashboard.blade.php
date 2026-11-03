@@ -590,7 +590,8 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
 
     {{-- A. Review Project Assignment Modal --}}
-    @if($showReviewModal && $reviewProject)
+    @if($showReviewModal && $reviewProject && !$showRejectModal)
+        @teleport('body')
         @php
             $wbsItems = $reviewWbsItems ?? ($reviewProject->wbsItems ?? collect());
             $phases = $reviewPhases ?? $wbsItems->filter(fn($i) => ($i->item_type?->value === 'phase' || !$i->parent_id));
@@ -612,15 +613,16 @@
             x-data
             x-init="$nextTick(() => { if (!$el.open) $el.showModal() })"
             x-on:cancel.prevent="$wire.closeReviewModal()"
-            class="m-0 p-3 sm:p-6 w-screen h-screen max-w-none max-h-none border-0 bg-slate-900/65 backdrop:bg-slate-900/65 overflow-hidden"
-            style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:clamp(.75rem,2vw,1.5rem);background:rgba(15,23,42,.66);backdrop-filter:blur(7px);"
+            class="p-0 border-0 bg-transparent overflow-visible backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm"
+            style="position:fixed !important;inset:0 !important;margin:auto !important;padding:0 !important;width:calc(100vw - 32px) !important;max-width:{{ $showRejectModal ? '680px' : '896px' }} !important;height:auto !important;max-height:calc(100dvh - 32px) !important;background:transparent !important;overflow:visible !important;"
             aria-labelledby="leadership-signoff-title"
             wire:click.self="closeReviewModal"
         >
-            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" style="height:min(760px,calc(100dvh - 3rem));max-height:calc(100dvh - 1.5rem);box-shadow:0 30px 90px -30px rgba(15,23,42,.55);">
+            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                 style="width:100% !important;height:{{ $showRejectModal ? 'auto' : 'min(760px,calc(100dvh - 32px))' }};max-height:calc(100dvh - 32px);box-shadow:0 32px 80px -24px rgba(15,23,42,.65),0 12px 28px -18px rgba(15,23,42,.35);">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-slate-200 bg-white flex-shrink-0">
+                <div class="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-200 bg-white flex-shrink-0">
                     <div class="flex items-center gap-3.5 min-w-0">
                         <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-2xs">
                             ⭐
@@ -645,7 +647,7 @@
                 </div>
 
                 {{-- Modal Body Container --}}
-                <div class="flex-1 min-h-0 overflow-y-auto space-y-4 px-5 sm:px-7 py-5 bg-slate-50/50 scrollbar-thin overscroll-contain">
+                <div class="{{ $showRejectModal ? 'flex-none' : 'flex-1 min-h-0 overflow-y-auto' }} space-y-4 p-4 sm:p-6 bg-slate-50/70 scrollbar-thin overscroll-contain">
                     @if(!$showRejectModal)
                         {{-- 1. Project Title, Requester & Scope Card --}}
                         <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
@@ -875,18 +877,23 @@
                         @endif
                     @else
                         {{-- Decline Reason Form --}}
-                        <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-2.5">
-                            <label class="text-xs font-bold text-rose-800 block">
+                        <div class="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 space-y-5 shadow-2xs">
+                            <div>
+                                <h4 class="text-sm font-black text-slate-900">Decline leadership assignment</h4>
+                                <p class="mt-1.5 text-xs leading-5 text-slate-500">This decision will be sent to the PMO team for review and reassignment. Your reason will be recorded in the project history.</p>
+                            </div>
+                            <label class="text-xs font-bold text-slate-700 block">
                                 Reason for Declining Assignment: <span class="text-rose-600">*</span>
                             </label>
-                            <textarea wire:model="rejectionReasonInput" class="w-full text-xs p-3 rounded-xl border border-rose-300 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/30" rows="3" placeholder="Please state reasons preventing you from accepting leadership..."></textarea>
+                            <textarea wire:model="rejectionReasonInput" class="w-full min-h-32 resize-y text-sm leading-6 p-3.5 rounded-xl border border-slate-300 bg-white shadow-inner focus:outline-none focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" rows="4" maxlength="1000" placeholder="Explain why you cannot accept this project leadership assignment..."></textarea>
                             @error('rejectionReasonInput') <span class="text-xs text-rose-600 font-bold block">{{ $message }}</span> @enderror
-                            <div class="flex justify-end gap-2 pt-1">
-                                <button wire:click="$set('showRejectModal', false)" type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 bg-white border border-slate-200 cursor-pointer">
+                            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 pt-2 border-t border-slate-100">
+                                <button wire:click="$set('showRejectModal', false)" type="button" class="min-h-11 px-5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 bg-white border border-slate-300 cursor-pointer transition-colors">
                                     Back
                                 </button>
-                                <button wire:click="submitRejection" type="button" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 cursor-pointer shadow-xs">
-                                    Confirm Decline
+                                <button wire:click="submitRejection" wire:loading.attr="disabled" type="button" class="min-h-11 px-5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a50e26] cursor-pointer shadow-md shadow-rose-900/15 disabled:opacity-60 transition-all active:scale-[.98]">
+                                    <span wire:loading.remove wire:target="submitRejection">Confirm Decline</span>
+                                    <span wire:loading wire:target="submitRejection">Submitting...</span>
                                 </button>
                             </div>
                         </div>
@@ -894,6 +901,7 @@
                 </div>
 
                 {{-- Premium Action Footer --}}
+                @unless($showRejectModal)
                 <div class="flex-shrink-0" style="padding:15px 28px;border-top:1px solid #e2e8f0;background:linear-gradient(180deg,#fff 0%,#fafbfd 100%);box-shadow:0 -12px 28px -28px rgba(15,23,42,.45);">
                     <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;flex-wrap:wrap;">
                         <button wire:click="closeReviewModal" type="button" class="transition-all cursor-pointer active:scale-[.98]"
@@ -918,8 +926,82 @@
                         @endif
                     </div>
                 </div>
+                @endunless
             </div>
         </dialog>
+        @endteleport
+    @endif
+
+    {{-- A2. Dedicated Leadership Decline Confirmation --}}
+    @if($showReviewModal && $reviewProject && $showRejectModal)
+        @teleport('body')
+        <div
+            class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+            style="position:fixed !important;inset:0 !important;z-index:99999 !important;width:100vw !important;height:100dvh !important;"
+            wire:click.self="$set('showRejectModal', false)"
+            role="presentation"
+        >
+            <section
+                class="w-full max-w-xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+                style="box-shadow:0 32px 90px -24px rgba(15,23,42,.75);"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="decline-leadership-title"
+                x-data
+                x-on:keydown.escape.window="$wire.set('showRejectModal', false)"
+            >
+                <header class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-5 sm:px-6">
+                    <div class="flex min-w-0 items-center gap-3.5">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-700">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h2 id="decline-leadership-title" class="text-base font-black tracking-tight text-slate-900 sm:text-lg">Decline project leadership</h2>
+                            <p class="mt-0.5 truncate text-xs font-medium text-slate-500">
+                                {{ $reviewProject->name }} <span class="text-slate-300">&middot;</span> {{ $reviewProject->code }}
+                            </p>
+                        </div>
+                    </div>
+                    <button wire:click="$set('showRejectModal', false)" type="button" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xl font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700" aria-label="Close decline dialog">&times;</button>
+                </header>
+
+                <div class="space-y-5 px-5 py-5 sm:px-6 sm:py-6">
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+                        <p class="text-xs font-bold leading-5 text-amber-900">The PMO team will be notified and this decision will be recorded in the project history for reassignment.</p>
+                    </div>
+
+                    <div>
+                        <label for="leadership-decline-reason" class="mb-2 block text-xs font-extrabold text-slate-700">
+                            Reason for declining <span class="text-rose-600">*</span>
+                        </label>
+                        <textarea
+                            id="leadership-decline-reason"
+                            wire:model="rejectionReasonInput"
+                            rows="5"
+                            maxlength="1000"
+                            autofocus
+                            class="min-h-36 w-full resize-y rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-800 shadow-inner outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100"
+                            placeholder="Explain why you cannot accept this project leadership assignment..."
+                        ></textarea>
+                        <div class="mt-2 flex items-start justify-between gap-3">
+                            <div>
+                                @error('rejectionReasonInput') <p class="text-xs font-bold text-rose-600">{{ $message }}</p> @enderror
+                            </div>
+                            <span class="shrink-0 text-[10px] font-medium text-slate-400">Maximum 1,000 characters</span>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="flex flex-col-reverse gap-2.5 border-t border-slate-200 bg-slate-50/80 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                    <button wire:click="$set('showRejectModal', false)" type="button" class="min-h-11 rounded-xl border border-slate-300 bg-white px-5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Back to review</button>
+                    <button wire:click="submitRejection" wire:loading.attr="disabled" wire:target="submitRejection" type="button" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-5 text-xs font-extrabold text-white shadow-md shadow-rose-900/15 transition-all hover:bg-[#a50e26] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60">
+                        <span wire:loading.remove wire:target="submitRejection">Confirm decline</span>
+                        <span wire:loading wire:target="submitRejection">Submitting...</span>
+                    </button>
+                </footer>
+            </section>
+        </div>
+        @endteleport
     @endif
 
     {{-- B. Resolve Blocker Modal --}}

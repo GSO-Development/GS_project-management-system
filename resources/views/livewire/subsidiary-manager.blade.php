@@ -7,6 +7,7 @@
             </h1>
         </div>
 
+        @unless(auth()->user()?->isAdminViewer())
         <div class="flex items-center gap-3 flex-shrink-0">
             <button
                 wire:click="openCreateModal"
@@ -18,6 +19,7 @@
                 <span>Add New Subsidiary</span>
             </button>
         </div>
+        @endunless
     </div>
 
     <!-- 4 Key Summary Cards Bar -->
@@ -149,7 +151,9 @@
                         <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">USERS</th>
                         <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">STATUS</th>
                         <th class="!bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">CREATED DATE</th>
-                        <th class="text-right !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACTIONS</th>
+                        @unless(auth()->user()?->isAdminViewer())
+                            <th class="text-right !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACTIONS</th>
+                        @endunless
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -240,6 +244,7 @@
                                 </div>
                             </td>
 
+                            @unless(auth()->user()?->isAdminViewer())
                             <!-- ACTIONS -->
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-1">
@@ -251,9 +256,10 @@
                                     </button>
                                 </div>
                             </td>
+                            @endunless
                         </tr>
                     @empty
-                        <tr><td colspan="10" class="text-center py-12 text-slate-400 text-xs">No subsidiaries found.</td></tr>
+                        <tr><td colspan="{{ auth()->user()?->isAdminViewer() ? 8 : 9 }}" class="text-center py-12 text-slate-400 text-xs">No subsidiaries found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

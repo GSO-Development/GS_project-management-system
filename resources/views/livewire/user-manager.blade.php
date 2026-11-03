@@ -18,6 +18,7 @@
             </h1>
         </div>
 
+        @unless(auth()->user()?->isAdminViewer())
         <div class="flex items-center gap-3 flex-shrink-0">
             <button
                 wire:click="openCreateModal"
@@ -28,6 +29,7 @@
                 <span>Add New User</span>
             </button>
         </div>
+        @endunless
     </div>
 
     <!-- Filters Bar -->
@@ -49,6 +51,7 @@
                 <select wire:model.live="roleFilter" class="form-select text-xs font-bold py-1.5 w-full cursor-pointer custom-select">
                     <option value="all">All Roles</option>
                     <option value="super_admin">PMO Admin</option>
+                    <option value="admin_viewer">Admin Viewer</option>
                     <option value="regular_user">Regular User</option>
                 </select>
             </div>
@@ -110,8 +113,10 @@
                         <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">SYSTEM ROLE</th>
                         <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">SUBSIDIARY</th>
                         <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">PHONE</th>
-                        <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACCOUNT STATUS</th>
-                        <th class="text-right !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACTIONS</th>
+                        @unless(auth()->user()?->isAdminViewer())
+                            <th class="whitespace-nowrap !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACCOUNT STATUS</th>
+                            <th class="text-right !bg-white text-slate-500 text-[10.5px] font-bold uppercase tracking-wider" style="background-color: #ffffff !important;">ACTIONS</th>
+                        @endunless
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -120,7 +125,7 @@
                     @foreach($usersBySubsidiary as $group)
                         @php $hasAnyUsers = true; @endphp
                         <tr class="bg-slate-50 border-y border-slate-200">
-                            <td colspan="8" class="px-4 py-2 text-xs font-black text-[#c3122e] bg-[#fdf4f4]/60 tracking-wider uppercase">
+                            <td colspan="{{ auth()->user()?->isAdminViewer() ? 6 : 8 }}" class="px-4 py-2 text-xs font-black text-[#c3122e] bg-[#fdf4f4]/60 tracking-wider uppercase">
                                 🏢 {{ $group['subsidiary']->name }} (Code: {{ $group['subsidiary']->code }}) — {{ count($group['users']) }} Member(s)
                             </td>
                         </tr>
@@ -155,9 +160,9 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @php $isSuper = ($user->isPmoAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin')); @endphp
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isSuper ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }}">
-                                        {{ $isSuper ? 'PMO Admin' : 'Regular User' }}
+                                    @php $systemRole = $user->role_name; @endphp
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $systemRole === 'PMO Admin' ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : ($systemRole === 'Admin Viewer' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200') }}">
+                                        {{ $systemRole === 'User' ? 'Regular User' : $systemRole }}
                                     </span>
                                 </td>
                                 <td class="text-xs text-slate-700 font-medium">
@@ -166,6 +171,7 @@
                                 <td class="text-xs text-slate-500 font-mono">
                                     {{ $user->phone_number ?? '-' }}
                                 </td>
+                                @unless(auth()->user()?->isAdminViewer())
                                 <td>
                                     <button wire:click="toggleStatus({{ $user->id }})" class="cursor-pointer">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $user->is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200' }}">
@@ -184,6 +190,7 @@
                                         </button>
                                     </div>
                                 </td>
+                                @endunless
                             </tr>
                         @endforeach
                     @endforeach
@@ -191,7 +198,7 @@
                     @if($noSubUsers->isNotEmpty())
                         @php $hasAnyUsers = true; @endphp
                         <tr class="bg-slate-50 border-y border-slate-200">
-                            <td colspan="8" class="px-4 py-2 text-xs font-black text-slate-700 bg-slate-100 tracking-wider uppercase">
+                            <td colspan="{{ auth()->user()?->isAdminViewer() ? 6 : 8 }}" class="px-4 py-2 text-xs font-black text-slate-700 bg-slate-100 tracking-wider uppercase">
                                 🌐 Global / Unassigned — {{ count($noSubUsers) }} Member(s)
                             </td>
                         </tr>
@@ -226,9 +233,9 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @php $isSuper = ($user->isPmoAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin')); @endphp
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isSuper ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }}">
-                                        {{ $isSuper ? 'PMO Admin' : 'Regular User' }}
+                                    @php $systemRole = $user->role_name; @endphp
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $systemRole === 'PMO Admin' ? 'bg-[#fdf4f4] text-[#c3122e] border-[#f0dada]' : ($systemRole === 'Admin Viewer' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200') }}">
+                                        {{ $systemRole === 'User' ? 'Regular User' : $systemRole }}
                                     </span>
                                 </td>
                                 <td class="text-xs text-slate-700 font-medium">
@@ -237,6 +244,7 @@
                                 <td class="text-xs text-slate-500 font-mono">
                                     {{ $user->phone_number ?? '-' }}
                                 </td>
+                                @unless(auth()->user()?->isAdminViewer())
                                 <td>
                                     <button wire:click="toggleStatus({{ $user->id }})" class="cursor-pointer">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $user->is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200' }}">
@@ -255,12 +263,13 @@
                                         </button>
                                     </div>
                                 </td>
+                                @endunless
                             </tr>
                         @endforeach
                     @endif
 
                     @if(!$hasAnyUsers)
-                        <tr><td colspan="7" class="text-center py-12 text-slate-400 text-xs">No users found matching filters.</td></tr>
+                        <tr><td colspan="{{ auth()->user()?->isAdminViewer() ? 6 : 8 }}" class="text-center py-12 text-slate-400 text-xs">No users found matching filters.</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -417,6 +426,7 @@
                             <label class="form-label">System Role</label>
                             <select wire:model="role" class="form-select" @if($isEditingLastAdmin) disabled @endif>
                                 <option value="regular_user">Regular User</option>
+                                <option value="admin_viewer">Admin Viewer</option>
                                 <option value="super_admin">PMO Admin</option>
                             </select>
                             @if($isEditingLastAdmin)
@@ -489,6 +499,7 @@
                             <label class="form-label">System Role</label>
                             <select wire:model="role" class="form-select" @if($isEditingLastAdmin) disabled @endif>
                                 <option value="regular_user">Regular User</option>
+                                <option value="admin_viewer">Admin Viewer</option>
                                 <option value="super_admin">PMO Admin</option>
                             </select>
                             @if($isEditingLastAdmin)

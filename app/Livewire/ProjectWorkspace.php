@@ -25,12 +25,37 @@ class ProjectWorkspace extends Component
 {
     use WithFileUploads;
 
+    public function boot(): void
+    {
+        if (!auth()->user()?->isAdminViewer() || !request()->is('livewire/update')) {
+            return;
+        }
+
+        $viewOnlyMethods = [
+            '$refresh', '$set',
+            'setTab', 'updatedActiveTab', 'closeTaskSheet',
+            'openProjectDetailsModal', 'closeProjectDetailsModal',
+            'openPreview', 'closePreview',
+            'toggleCollapse', 'expandAll', 'collapseAll',
+        ];
+
+        $calls = collect(request()->input('components', []))
+            ->flatMap(fn (array $component) => $component['calls'] ?? [])
+            ->pluck('method');
+
+        if ($calls->contains(fn ($method) => !in_array($method, $viewOnlyMethods, true))) {
+            abort(403, 'Admin Viewer access is read-only.');
+        }
+    }
+
     public Project $project;
     public string $activeTab = 'wbs';
 
     public function setTab(string $tab): void
     {
-        if ($tab === 'sheet' && !$this->project->canUserManage(auth()->user())) {
+        $user = auth()->user();
+
+        if ($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user)) {
             $this->activeTab = 'wbs';
             return;
         }
@@ -40,7 +65,9 @@ class ProjectWorkspace extends Component
 
     public function updatedActiveTab(string $tab): void
     {
-        if ($tab === 'sheet' && !$this->project->canUserManage(auth()->user())) {
+        $user = auth()->user();
+
+        if ($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user)) {
             $this->activeTab = 'wbs';
         }
     }
@@ -838,7 +865,7 @@ class ProjectWorkspace extends Component
         $user = auth()->user();
 
         // Security check: Check if user is authorized to view this project
-        if ($user && !$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && !$user->isPmoAdmin()) {
+        if ($user && !$user->hasAdminInterfaceAccess() && $user->email !== 'admin@nexuspm.local') {
             $isGov = $project->isGovernanceMember($user);
             $isPm = ($project->project_manager_id === $user->id) || ($project->getUserRole($user) === 'lead');
             $isMember = $project->members->contains($user->id);
@@ -846,14 +873,15 @@ class ProjectWorkspace extends Component
             
             if (!$isGov && !$isPm && !$isMember && !$hasTask) {
                 session()->flash('error', '🔒 Unauthorized Access: You do not have permission to view or access this project workspace.');
-                $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
+                $targetRoute = $user->hasAdminInterfaceAccess() ? route('projects.index') : route('projects.my-leads');
                 return redirect()->to($targetRoute);
             }
 
-            // If project is awaiting PM acceptance, only the designated Project Manager can access it
-            if (!$project->isPmAccepted() && !$isPm) {
-                session()->flash('warning', "Project '{$project->name}' ({$project->code}) is currently awaiting Project Manager acceptance and initialization before opening to the team.");
-                $targetRoute = ($user->isPmoAdmin() || $user->isSuperAdmin()) ? route('projects.index') : route('projects.my-leads');
+            // The workspace remains locked for everyone, including the designated
+            // Project Manager, until the leadership assignment is accepted.
+            if (!$project->isPmAccepted()) {
+                session()->flash('warning', "Accept the project leadership assignment before opening the '{$project->name}' ({$project->code}) workspace.");
+                $targetRoute = $user->hasAdminInterfaceAccess() ? route('projects.index') : route('projects.my-leads');
                 return redirect()->to($targetRoute);
             }
         }

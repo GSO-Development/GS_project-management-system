@@ -28,55 +28,47 @@
     }
     .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile {
         min-width: 0;
-        min-height: 112px;
+        min-height: 108px;
         padding: 18px 16px !important;
         align-items: flex-start;
         justify-content: space-between;
-        border: 1px solid #dfe5ec !important;
+        border: 1px solid #e2e8f0 !important;
         border-radius: 12px !important;
-        background: #fff !important;
-        box-shadow: 0 3px 12px rgba(15, 23, 42, .045) !important;
+        background: #ffffff !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .03) !important;
         text-align: left;
     }
     .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile::before {
-        content: '';
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: 4px;
-        border-radius: 12px 0 0 12px;
-        background: #94a3b8;
-        opacity: .8;
+        display: none !important;
     }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(2)::before { background: #64748b; }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(3)::before { background: #2563eb; }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(4)::before { background: #059669; }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(5)::before { background: #d97706; }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(6)::before { background: #ea580c; }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:nth-child(7)::before { background: #e11d48; }
     .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile:hover {
-        transform: translateY(-2px) !important;
+        transform: none !important;
         border-color: #cbd5e1 !important;
-        box-shadow: 0 8px 20px rgba(15, 23, 42, .08) !important;
+        background: #f8fafc !important;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, .04) !important;
     }
     .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active {
-        border-color: #e9a5b0 !important;
-        background: #fff7f8 !important;
-        box-shadow: 0 0 0 2px rgba(195, 18, 46, .07), 0 6px 18px rgba(15, 23, 42, .06) !important;
+        border-color: #94a3b8 !important;
+        background: #f8fafc !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, .05) !important;
     }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active::before { background: #c3122e; opacity: 1; }
     .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile > div:first-child {
         font-size: 1.75rem !important;
         line-height: 1 !important;
-        color: #172033 !important;
+        color: #0f172a !important;
     }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active > div:first-child { color: #b10f29 !important; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active > div:first-child {
+        color: #0f172a !important;
+    }
     .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile > div:last-child {
         margin-top: 16px !important;
-        color: #718096 !important;
+        color: #64748b !important;
         font-size: .65rem !important;
         letter-spacing: .08em;
     }
-    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active > div:last-child { color: #8f2637 !important; }
+    .app-clean [data-ui-page="all-tasks"] .all-tasks-status-kpis .kpi-tile.active > div:last-child {
+        color: #334155 !important;
+    }
     @keyframes slideDownFade {
         from { opacity: 0; transform: translateY(-6px); }
         to { opacity: 1; transform: translateY(0); }
@@ -289,50 +281,46 @@
             <div class="all-tasks-kpi-grid all-tasks-status-kpis">
             {{-- Total --}}
             <button wire:click="clearFilters" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='all' && $dueFilter==='all' && $riskFilter==='all' ? 'active border-slate-800' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $statusFilter==='all' && $dueFilter==='all' && $riskFilter==='all' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
                 <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['total'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-400">Total</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">Total</div>
             </button>
             {{-- Not Started --}}
             <button wire:click="setStatusFilter('not_started')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='not_started' ? 'active border-slate-500' : 'bg-white border-slate-200 hover:border-slate-300' }}"
-                style="{{ $statusFilter==='not_started' ? 'background:linear-gradient(135deg,#64748b,#475569);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='not_started' ? 'text-white' : 'text-slate-600' }}">{{ $kpi['not_started'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='not_started' ? 'text-slate-200' : 'text-slate-400' }}">Not Started</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $statusFilter==='not_started' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['not_started'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">Not Started</div>
             </button>
             {{-- In Progress --}}
             <button wire:click="setStatusFilter('in_progress')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='in_progress' ? 'active border-blue-600' : 'bg-white border-slate-200 hover:border-blue-300' }}"
-                style="{{ $statusFilter==='in_progress' ? 'background:linear-gradient(135deg,#2563eb,#1d4ed8);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='in_progress' ? 'text-white' : 'text-blue-600' }}">{{ $kpi['in_progress'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='in_progress' ? 'text-blue-100' : 'text-slate-400' }}">In Progress</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $statusFilter==='in_progress' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['in_progress'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">In Progress</div>
             </button>
             {{-- Completed --}}
             <button wire:click="setStatusFilter('completed')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='completed' ? 'active border-emerald-500' : 'bg-white border-slate-200 hover:border-emerald-200' }}"
-                style="{{ $statusFilter==='completed' ? 'background:linear-gradient(135deg,#10b981,#059669);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='completed' ? 'text-white' : 'text-emerald-600' }}">{{ $kpi['completed'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='completed' ? 'text-emerald-100' : 'text-slate-400' }}">Completed</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $statusFilter==='completed' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['completed'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">Completed</div>
             </button>
             {{-- On Hold --}}
             <button wire:click="setStatusFilter('on_hold')" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $statusFilter==='on_hold' ? 'active border-amber-400' : 'bg-white border-slate-200 hover:border-amber-200' }}"
-                style="{{ $statusFilter==='on_hold' ? 'background:linear-gradient(135deg,#f59e0b,#d97706);' : '' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $statusFilter==='on_hold' ? 'text-white' : 'text-amber-600' }}">{{ $kpi['on_hold'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $statusFilter==='on_hold' ? 'text-amber-100' : 'text-slate-400' }}">On Hold</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $statusFilter==='on_hold' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['on_hold'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">On Hold</div>
             </button>
             {{-- At Risk --}}
             <button wire:click="setAtRiskFilter" type="button"
                 aria-label="Filter at-risk tasks: {{ $kpi['at_risk'] }}"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $riskFilter==='at_risk' ? 'active border-orange-500' : 'bg-white border-slate-200 hover:border-orange-200' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $riskFilter==='at_risk' ? 'text-orange-700' : ($kpi['at_risk'] > 0 ? 'text-orange-600' : 'text-slate-400') }}">{{ $kpi['at_risk'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $riskFilter==='at_risk' ? 'text-orange-700' : 'text-slate-400' }}">At Risk</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $riskFilter==='at_risk' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['at_risk'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">At Risk</div>
             </button>
             {{-- Overdue --}}
             <button wire:click="setOverdueFilter" type="button"
-                class="kpi-tile rounded-2xl border py-3.5 px-2 text-center cursor-pointer {{ $dueFilter==='overdue' ? 'active border-rose-500' : 'bg-white border-slate-200 hover:border-rose-200' }}">
-                <div class="text-2xl font-black font-mono leading-none {{ $dueFilter==='overdue' ? 'text-rose-700' : ($kpi['overdue'] > 0 ? 'text-rose-500' : 'text-slate-400') }}">{{ $kpi['overdue'] }}</div>
-                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 {{ $dueFilter==='overdue' ? 'text-rose-700' : 'text-slate-400' }}">Overdue</div>
+                class="kpi-tile rounded-2xl border py-3.5 px-2 text-left cursor-pointer {{ $dueFilter==='overdue' ? 'active border-slate-400' : 'bg-white border-slate-200 hover:border-slate-300' }}">
+                <div class="text-2xl font-black font-mono leading-none text-slate-900">{{ $kpi['overdue'] }}</div>
+                <div class="text-[9.5px] font-bold uppercase tracking-widest mt-1.5 text-slate-500">Overdue</div>
             </button>
             </div>
         </div>

@@ -16,7 +16,7 @@ class MyLeadProjects extends Component
     public string $search = '';
     public string $statusFilter = 'all';
     public string $roleFilter = 'all';
-    public int $perPage = 12;
+    public int $perPage = 10;
 
     public bool $showReviewModal = false;
     public ?int $reviewProjectId = null;
@@ -40,6 +40,10 @@ class MyLeadProjects extends Component
 
     public function mount()
     {
+        if (auth()->user()?->hasAdminInterfaceAccess()) {
+            return redirect()->route('projects.index');
+        }
+
         if (request()->has('role')) {
             $this->roleFilter = request('role');
         }
@@ -56,6 +60,7 @@ class MyLeadProjects extends Component
     public function updatedSearch() { $this->resetPage(); }
     public function updatedStatusFilter() { $this->resetPage(); }
     public function updatedRoleFilter() { $this->resetPage(); }
+    public function updatedPerPage() { $this->resetPage(); }
 
     public function clearFilters(): void
     {
@@ -71,6 +76,23 @@ class MyLeadProjects extends Component
         $this->rejectionReasonInput = '';
         $this->showRejectModal = false;
         $this->showReviewModal = true;
+    }
+
+    public function notifyWorkspaceLocked(int $projectId): void
+    {
+        $project = Project::findOrFail($projectId);
+        $user = auth()->user();
+
+        abort_unless(
+            $user && $project->project_manager_id === $user->id && !$project->isPmAccepted(),
+            403
+        );
+
+        $this->dispatch(
+            'toast',
+            message: "Accept the project leadership assignment before opening the {$project->name} workspace.",
+            type: 'warning'
+        );
     }
 
     public function closeReviewModal(): void

@@ -6,14 +6,14 @@
             font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; color: #0f172a;
         }
         .project-reassign-dialog {
-            width: 100%; max-width: 840px; max-height: min(860px, calc(100dvh - 48px));
+            width: 100%; max-width: 1040px; max-height: min(900px, calc(100dvh - 48px));
             display: flex; flex-direction: column; min-height: 0; margin: 0; overflow: hidden;
             border: 1px solid rgba(255, 255, 255, .65); border-radius: 20px; background: #fff;
             box-shadow: 0 28px 80px rgba(15, 23, 42, .24);
         }
         .project-reassign-dialog .reassign-header {
-            display: flex; align-items: flex-start; gap: 14px; padding: 24px 26px 20px;
-            border-bottom: 1px solid #edf0f4; flex-shrink: 0;
+            display: flex; align-items: flex-start; gap: 14px; padding: 22px 26px 19px;
+            border-bottom: 1px solid #edf0f4; flex-shrink: 0; background: linear-gradient(135deg,#fff 0%,#fff8fa 100%);
         }
         .project-reassign-dialog .reassign-header-icon {
             display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0;
@@ -40,7 +40,7 @@
         .project-reassign-dialog .reassign-decline-title svg { width: 15px; height: 15px; flex-shrink: 0; }
         .project-reassign-dialog .reassign-previous-manager { margin: 0; font-size: 11px; line-height: 1.6; color: #9c6672; overflow-wrap: anywhere; }
         .project-reassign-dialog .reassign-decline-message { max-height: 96px; overflow-y: auto; margin: 9px 0 0; color: #854053; font-size: 12px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
-        .project-reassign-dialog .reassign-leader { padding: 16px; background: #fff9fa; border: 1px solid #f1dce2; border-radius: 12px; }
+        .project-reassign-dialog .reassign-leader { padding: 18px; background: linear-gradient(135deg,#fff7f9 0%,#fff 100%); border: 1px solid #f1dce2; border-radius: 15px; }
         .project-reassign-dialog .reassign-field { min-width: 0; }
         .project-reassign-dialog label { display: block; margin-bottom: 7px; font-size: 12px; line-height: 1.4; font-weight: 650; color: #334155; }
         .project-reassign-dialog .reassign-required { color: #c3122e; }
@@ -64,7 +64,15 @@
         .project-reassign-dialog .reassign-errors p { margin: 0; font-weight: 650; }
         .project-reassign-dialog .reassign-errors ul { margin: 6px 0 0; padding-left: 18px; list-style: disc; line-height: 1.6; }
         .project-reassign-dialog h3 { margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: -.15px; }
-        .project-reassign-dialog .reassign-section { padding-top: 21px; border-top: 1px solid #edf0f4; }
+        .project-reassign-dialog .reassign-section { padding: 19px; border: 1px solid #e7ebf0; border-radius: 15px; background:#fff; box-shadow:0 1px 2px rgba(15,23,42,.025); }
+        .project-reassign-dialog .reassign-section h3 { display:flex;align-items:center;gap:8px;margin-bottom:16px; }
+        .project-reassign-dialog .reassign-section h3::before { content:'';width:4px;height:16px;border-radius:99px;background:#c3122e; }
+        .project-reassign-dialog .reassign-blueprint { display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff 0%,#fff 70%); }
+        .project-reassign-dialog .reassign-blueprint-copy { min-width:0; }
+        .project-reassign-dialog .reassign-blueprint-copy small { display:block;color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em; }
+        .project-reassign-dialog .reassign-blueprint-copy strong { display:block;margin-top:4px;color:#172554;font-size:13px; }
+        .project-reassign-dialog .reassign-blueprint-copy p { margin:4px 0 0;color:#64748b;font-size:10.5px;line-height:1.5; }
+        .project-reassign-dialog .reassign-blueprint-count { flex-shrink:0;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;background:#fff;color:#1d4ed8;font-size:11px;font-weight:800; }
         .project-reassign-dialog .reassign-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
         .project-reassign-dialog .reassign-grid + .reassign-grid { margin-top: 16px; }
         .project-reassign-dialog .reassign-identity { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
@@ -97,6 +105,8 @@
             .project-reassign-dialog h2 { font-size: 19px; }
             .project-reassign-dialog .reassign-body { padding: 18px; }
             .project-reassign-dialog .reassign-grid, .project-reassign-dialog .reassign-identity, .project-reassign-dialog .reassign-team-grid { grid-template-columns: minmax(0, 1fr); }
+            .project-reassign-dialog .reassign-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .project-reassign-dialog .reassign-blueprint { align-items:flex-start; }
             .project-reassign-dialog .reassign-footer { padding: 14px 18px; }
             .project-reassign-dialog .reassign-footer-note { display: none; }
             .project-reassign-dialog .reassign-footer-actions { width: 100%; }
@@ -220,13 +230,25 @@
                 </div>
             </section>
 
+            <section class="reassign-section" aria-labelledby="reassign-blueprint-heading">
+                <h3 id="reassign-blueprint-heading">Delivery blueprint &amp; WBS</h3>
+                <div class="reassign-blueprint">
+                    <div class="reassign-blueprint-copy">
+                        <small>{{ $reassignProject->wbs_breakdown_type === 'template' ? 'Reusable project template' : 'Custom project workspace' }}</small>
+                        <strong>{{ $reassignProject->template?->name ?? 'Blank / manually configured WBS' }}</strong>
+                        <p>The existing delivery structure is preserved during leadership reassignment so schedules and task history remain intact.</p>
+                    </div>
+                    <span class="reassign-blueprint-count">{{ $reassignProject->wbs_items_count ?? 0 }} WBS items</span>
+                </div>
+            </section>
+
             <div class="reassign-field">
                 <label for="reassign-description">Project description <span class="reassign-optional">Optional</span></label>
                 <textarea id="reassign-description" wire:model="reassignDescription" class="reassign-input" rows="3" placeholder="Add context, objectives, or an updated project scope."></textarea>
                 @error('reassignDescription') <span class="reassign-error">{{ $message }}</span> @enderror
             </div>
 
-            <section class="reassign-section" x-data="{ expanded: false }">
+            <section class="reassign-section" x-data="{ expanded: true }">
                 @php
                     $reassignRoles = [
                         ['key' => 'sponsors', 'label' => 'Project sponsors', 'ids' => $reassignSponsorIds, 'add' => 'addReassignSponsor', 'remove' => 'removeReassignSponsor'],
@@ -235,6 +257,7 @@
                         ['key' => 'members', 'label' => 'Team members', 'ids' => $reassignMemberIds, 'add' => 'addReassignMember', 'remove' => 'removeReassignMember'],
                     ];
                     $roleAssignmentCount = count($reassignSponsorIds) + count($reassignOwnerIds) + count($reassignSteeringIds) + count($reassignMemberIds);
+                    $customRoleMembers = $reassignProject->members->whereNotIn('pivot.role', ['sponsor', 'owner', 'steering_committee', 'member', 'lead']);
                 @endphp
                 <button type="button" class="reassign-team-toggle" @click="expanded = !expanded" :aria-expanded="expanded" aria-controls="reassign-team-settings">
                     <span>
@@ -265,6 +288,19 @@
                             @endif
                         </div>
                     @endforeach
+                    @if($customRoleMembers->isNotEmpty())
+                        <div class="reassign-field" style="grid-column:1/-1;">
+                            <label>Additional project roles <span class="reassign-optional">Preserved</span></label>
+                            <div class="reassign-chips">
+                                @foreach($customRoleMembers as $person)
+                                    <span class="reassign-chip">
+                                        <span class="reassign-chip-name"><strong>{{ $person->name }}</strong> &middot; {{ ucwords(str_replace('_', ' ', $person->pivot->role)) }}</span>
+                                    </span>
+                                @endforeach
+                            </div>
+                            <p class="reassign-helper">Custom governance assignments remain unchanged when the project leader is reassigned.</p>
+                        </div>
+                    @endif
                 </div>
             </section>
         </div>

@@ -583,13 +583,26 @@ class TemplateGanttBuilder extends Component
         $this->checkSuperAdmin();
         abort_unless($this->selectForProject && session()->has('project_create_draft'), 403);
 
+        $this->persistGantt();
         session()->put('project_create_selected_template_id', $this->template->id);
+        session()->flash('message', 'Template saved and selected for your project.');
 
         return redirect()->to(route('projects.create') . '#project-blueprint');
     }
+
     public function saveGantt()
     {
         $this->checkSuperAdmin();
+
+        $this->persistGantt();
+
+        session()->flash('message', 'Gantt chart saved successfully!');
+        return redirect()->route('templates.index', $this->selectForProject ? ['select_for' => 'project'] : []);
+    }
+
+    private function persistGantt(): void
+    {
+        abort_unless($this->isConfigured, 422, 'Configure the template before saving.');
 
         // Persist working-time configuration to the template
         $this->template->update([
@@ -627,9 +640,6 @@ class TemplateGanttBuilder extends Component
 
             $idMap[$task['id']] = $newTask->id;
         }
-
-        session()->flash('message', 'Gantt chart saved successfully!');
-        return redirect()->route('templates.index', $this->selectForProject ? ['select_for' => 'project'] : []);
     }
 
     public function render()

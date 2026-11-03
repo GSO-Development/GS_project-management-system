@@ -141,7 +141,7 @@
                     <span>Portfolio Gantt</span>
                 </button>
 
-                @if(auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('pmo_admin'))
+                @if(auth()->user()?->hasAdminInterfaceAccess())
                     <!-- All Tasks Tab (Admin / PMO) -->
                     <a href="{{ route('all-tasks.index') }}"
                        class="py-1.5 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-900 font-semibold transition-all cursor-pointer flex items-center gap-1.5 no-underline">
@@ -273,6 +273,23 @@
                     .projects-drag-scroll.is-panning, .projects-drag-scroll.is-panning * { cursor: grabbing !important; user-select: none; }
                     .projects-drag-scroll a, .projects-drag-scroll button { cursor: pointer; }
                     .projects-drag-scroll:focus-visible { outline: 2px solid #c3122e; outline-offset: -2px; }
+                    .project-reassign-action {
+                        background-color: #fff1f2 !important;
+                        color: #be123c !important;
+                        border: 1px solid #fda4af !important;
+                        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+                    }
+                    .project-reassign-action:hover,
+                    .project-reassign-action:focus-visible {
+                        background-color: #c3122e !important;
+                        color: #ffffff !important;
+                        border-color: #c3122e !important;
+                        box-shadow: 0 2px 6px rgba(195, 18, 46, 0.25) !important;
+                    }
+                    .project-reassign-action:hover *,
+                    .project-reassign-action:focus-visible * {
+                        color: #ffffff !important;
+                    }
                 </style>
                 <table class="project-approval-register w-full text-left border-collapse">
                     <colgroup>
@@ -283,7 +300,7 @@
                         <col style="width: 115px">       {{-- 5. Status --}}
                         <col style="width: 100px">       {{-- 6. Progress --}}
                         <col style="width: 105px">       {{-- 7. Deadline --}}
-                        <col style="width: 105px">       {{-- 8. Approval Status --}}
+                        <col style="width: 118px">       {{-- 8. Approval Status --}}
                         <col style="width: 110px">       {{-- 9. Budget --}}
                         <col style="width: 92px">        {{-- 10. Action --}}
                     </colgroup>
@@ -455,16 +472,35 @@
                                             default    => ['cls' => 'bg-amber-50 text-amber-800 border-amber-200/80',   'dot' => 'bg-amber-500',   'label' => 'Pending'],
                                         };
                                     @endphp
-                                    <button
-                                        type="button"
-                                        wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }} })"
-                                        x-on:click.stop
-                                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold {{ $leadConfig['cls'] }} shadow-2xs transition-all hover:opacity-90 cursor-pointer active:scale-95 whitespace-nowrap"
-                                        title="Click to review approvals for {{ $project->name }}"
-                                    >
-                                        <span class="w-1.5 h-1.5 rounded-full {{ $leadConfig['dot'] }} shrink-0"></span>
-                                        <span>{{ $leadConfig['label'] }}</span>
-                                    </button>
+                                    @if($leadState === 'rejected')
+                                        <div class="flex flex-col items-start gap-1">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold {{ $leadConfig['cls'] }} shadow-2xs whitespace-nowrap">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $leadConfig['dot'] }} shrink-0"></span>
+                                                <span>Rejected</span>
+                                            </span>
+
+                                            @if(!auth()->user()?->isAdminViewer() && (auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1))
+                                                <button
+                                                    type="button"
+                                                    wire:click="$dispatch('open-project-approvals', { projectId: {{ $project->id }}, action: 'reassign' })"
+                                                    x-on:click.stop
+                                                    class="project-reassign-action inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold transition-all duration-150 cursor-pointer active:scale-95 whitespace-nowrap group/reassign"
+                                                    title="Reassign Project Manager for {{ $project->name }}"
+                                                >
+                                                    <svg class="w-3 h-3 shrink-0 transition-transform group-hover/reassign:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                    </svg>
+                                                    <span>Reassign</span>
+                                                    <span aria-hidden="true">&rarr;</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-semibold {{ $leadConfig['cls'] }} shadow-2xs whitespace-nowrap">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $leadConfig['dot'] }} shrink-0"></span>
+                                            <span>{{ $leadConfig['label'] }}</span>
+                                        </span>
+                                    @endif
                                 </td>
 
                                 <!-- 9. Budget -->
@@ -510,7 +546,7 @@
                                         </a>
 
                                         {{-- 2. Edit Project Button --}}
-                                        @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $project->project_manager_id === auth()->id() || $project->userCan(auth()->user(), 'project_details.edit'))
+                                        @if(!auth()->user()?->isAdminViewer() && (auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $project->project_manager_id === auth()->id() || $project->userCan(auth()->user(), 'project_details.edit')))
                                             <button
                                                 type="button"
                                                 wire:click="openEditModal({{ $project->id }})"
@@ -526,7 +562,7 @@
                                         @endif
 
                                         {{-- 3. Delete Project Button --}}
-                                        @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1)
+                                        @if(!auth()->user()?->isAdminViewer() && (auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1))
                                             <button
                                                 type="button"
                                                 wire:click="confirmDelete({{ $project->id }})"
@@ -561,11 +597,21 @@
             </div>
 
             <!-- Pagination -->
-            @if($projects->hasPages())
-                <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50/40">
+            <div class="px-5 py-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex-1 min-w-0">
                     {{ $projects->links() }}
                 </div>
-            @endif
+
+                <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                    <span class="text-xs text-slate-500 font-medium hidden sm:inline">Per page:</span>
+                    <select wire:model.live="perPage" aria-label="Projects per page" class="text-xs font-bold py-1.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 focus:outline-none focus:border-[#c3122e] transition-all cursor-pointer">
+                        <option value="5">5 per page</option>
+                        <option value="10">10 per page</option>
+                        <option value="25">25 per page</option>
+                        <option value="50">50 per page</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
     <!-- ═══════════════════════════════════════════════════════════════

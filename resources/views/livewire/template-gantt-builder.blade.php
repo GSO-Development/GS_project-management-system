@@ -91,7 +91,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>{{ $selectForProject ? 'Continue to Project' : 'Save WBS Gantt' }}</span>
+                        <span>{{ $selectForProject ? 'Save & Continue' : 'Save WBS Gantt' }}</span>
                     </button>
                 @else
                     <div class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200">

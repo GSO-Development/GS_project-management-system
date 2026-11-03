@@ -673,9 +673,6 @@ class MyTasks extends Component
         $user = auth()->user();
         $today = now()->today()->toDateString();
 
-        // Transition tasks whose start_date has arrived
-        WbsItem::autoStartDueTasks();
-
         // 1. Project Manager Status & Scope Counts
         $managedProjectsCount = Project::where('project_manager_id', $user->id)->count();
         $isProjectManager = $managedProjectsCount > 0;

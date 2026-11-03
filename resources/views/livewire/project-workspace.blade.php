@@ -1,10 +1,11 @@
 <div data-ui-page="project-workspace" class="ui-page ui-page-workspace">
     @php
         $currentUser     = auth()->user();
+        $isAdminViewer   = $currentUser->isAdminViewer();
         $isSuperAdmin    = $currentUser->isSuperAdmin() || $currentUser->hasRole('pmo_admin');
-        $isPm            = ($project->project_manager_id === $currentUser->id);
+        $isPm            = !$isAdminViewer && ($project->project_manager_id === $currentUser->id);
         $userRoleCode    = $project->getUserRole($currentUser);
-        $hideTaskSheet = !$project->canUserManage($currentUser);
+        $hideTaskSheet = !$isAdminViewer && !$project->canUserManage($currentUser);
         $roleMeta        = $allRoles[$userRoleCode] ?? null;
 
         if ($isPm || $userRoleCode === 'lead') {
@@ -78,7 +79,7 @@
             </svg>
         </a>
         <span class="text-slate-300">/</span>
-        <a href="{{ auth()->user()?->isPmoAdmin() ? route('projects.index') : route('projects.my-leads') }}" wire:navigate.hover class="text-slate-500 hover:text-[#c3122e] font-medium transition-colors no-underline">
+        <a href="{{ auth()->user()?->hasAdminInterfaceAccess() ? route('projects.index') : route('projects.my-leads') }}" wire:navigate.hover class="text-slate-500 hover:text-[#c3122e] font-medium transition-colors no-underline">
             Projects
         </a>
         <span class="text-slate-300">/</span>
@@ -130,7 +131,7 @@
                     </button>
                 @endif
 
-                @if($project->project_manager_id === auth()->id())
+                @if(!$isAdminViewer && $project->project_manager_id === auth()->id())
                     @if($project->canApproveAssignment(auth()->user()))
                     <button
                         wire:click="acceptAssignment"
@@ -162,7 +163,7 @@
                         </span>
                     </div>
                     <p class="text-xs text-slate-500 font-normal mt-0.5">
-                        @if($project->project_manager_id === auth()->id())
+                        @if(!$isAdminViewer && $project->project_manager_id === auth()->id())
                             You have been designated as Project Leader. Review details to accept leadership and begin execution.
                         @else
                             Assigned Project Leader (<strong class="text-slate-800 font-semibold">{{ $project->projectManager->name ?? 'Unassigned' }}</strong>) has not yet accepted assignment.
@@ -172,7 +173,7 @@
             </div>
 
             <div class="flex items-center gap-2.5 shrink-0 flex-wrap pl-1.5 sm:pl-0">
-                @if($project->project_manager_id === auth()->id())
+                @if(!$isAdminViewer && $project->project_manager_id === auth()->id())
                     <button
                         wire:click="openRejectionModal"
                         type="button"
@@ -359,7 +360,7 @@
     </div>
 
     <!-- ===== LEADERSHIP GATEWAY (IF PENDING ACCEPTANCE) ===== -->
-    @if(!$project->isPmAccepted() && $project->project_manager_id === auth()->id() && !auth()->user()->isSuperAdmin())
+    @if(!$isAdminViewer && !$project->isPmAccepted() && $project->project_manager_id === auth()->id() && !auth()->user()->isSuperAdmin())
         <!-- 🔒 LEADERSHIP ACCEPTANCE GATEWAY SCREEN (WORKSPACE LOCKED UNTIL ACCEPTED) -->
         <div class="mb-6 space-y-4 animate-in fade-in duration-300">
             
@@ -964,7 +965,7 @@
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                     Download
                                 </a>
-                                @if($doc->uploaded_by === auth()->id() || auth()->user()->hasRole('super_admin') || $project->project_manager_id === auth()->id())
+                                @if(!$isAdminViewer && ($doc->uploaded_by === auth()->id() || auth()->user()->hasRole('super_admin') || $project->project_manager_id === auth()->id()))
                                     <button wire:click="deleteDocument({{ $doc->id }})"
                                             wire:confirm="Are you sure you want to delete this document?"
                                             class="p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
@@ -1342,7 +1343,7 @@
     @if($activeTab === 'approvals')
         <div class="space-y-6">
             <!-- PENDING LEADERSHIP ACCEPTANCE ALERT IN APPROVALS TAB -->
-            @if(!$project->isPmAccepted() && $project->project_manager_id === auth()->id())
+            @if(!$isAdminViewer && !$project->isPmAccepted() && $project->project_manager_id === auth()->id())
                 <div class="p-5 sm:p-6 rounded-2xl bg-white border border-amber-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
                         <div class="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200/70 text-amber-700 flex items-center justify-center shrink-0 shadow-2xs">

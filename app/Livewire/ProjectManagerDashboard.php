@@ -473,9 +473,6 @@ class ProjectManagerDashboard extends Component
             ->where('status', 'in_progress')
             ->count();
 
-        // Automatically transition tasks to in_progress if start_date has arrived
-        WbsItem::autoStartDueTasks();
-
         // Tasks due today in involved projects
         $tasksDueToday = WbsItem::whereIn('project_id', $involvedProjectIds)
             ->whereDate('end_date', now()->toDateString())

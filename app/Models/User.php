@@ -143,6 +143,17 @@ class User extends Authenticatable
         return $this->isSuperAdmin() || $this->hasRole('pmo_admin');
     }
 
+    public function isAdminViewer(): bool
+    {
+        return $this->hasRole('admin_viewer');
+    }
+
+    /** PMO interface access without granting PMO mutation authority. */
+    public function hasAdminInterfaceAccess(): bool
+    {
+        return $this->isPmoAdmin() || $this->isAdminViewer();
+    }
+
     /**
      * Strictly PMO Admins and Super Admins are authorized to initiate new projects.
      */
@@ -155,6 +166,9 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin() || $this->hasRole('pmo_admin')) {
             return 'PMO Admin';
+        }
+        if ($this->isAdminViewer()) {
+            return 'Admin Viewer';
         }
         return 'User';
     }

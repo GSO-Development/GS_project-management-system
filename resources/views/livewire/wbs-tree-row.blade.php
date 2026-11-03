@@ -67,7 +67,7 @@
     $cleanTitle = str_replace(['???', '??'], '–', $item->title);
     $usr = auth()->user();
     $isPmoAdmin = $usr?->isPmoAdmin();
-    $isProjectPm = $usr && $item->project && $item->project->project_manager_id === $usr->id;
+    $isProjectPm = $usr && !$usr->isAdminViewer() && $item->project && $item->project->project_manager_id === $usr->id;
     $canCreateTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.create')));
     $canEditTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned'))));
     $canDeleteTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.delete'));
@@ -402,6 +402,7 @@
         </div>
     </td>
 
+    @unless($usr?->isAdminViewer())
     <td class="py-3.5 pr-5 pl-2 text-center align-middle whitespace-nowrap w-12 shrink-0">
         @php
             $isAssignedUser = auth()->check() && $item->assigned_user_id === auth()->id();
@@ -471,6 +472,7 @@
             </div>
         @endif
     </td>
+    @endunless
 </tr>
 
 @if(!$isCollapsed)

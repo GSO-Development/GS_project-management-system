@@ -30,13 +30,13 @@ class ProjectTaskSheet extends Component
     public function getCanEditProperty(): bool
     {
         $user = auth()->user();
-        return $user && ($user->isPmoAdmin() || $this->project->project_manager_id === $user->id || $this->project->userCan($user, 'task.edit'));
+        return $user && !$user->isAdminViewer() && ($user->isPmoAdmin() || $this->project->project_manager_id === $user->id || $this->project->userCan($user, 'task.edit'));
     }
 
     public function getCanAssignProperty(): bool
     {
         $user = auth()->user();
-        return $user && ($user->isPmoAdmin() || $this->project->userCan($user, 'task.assign'));
+        return $user && !$user->isAdminViewer() && ($user->isPmoAdmin() || $this->project->userCan($user, 'task.assign'));
     }
 
     public function startEditing(): void
@@ -181,7 +181,8 @@ class ProjectTaskSheet extends Component
     public function mount(Project $project): void
     {
         $this->project = $project;
-        abort_unless($project->canUserManage(auth()->user()), 403);
+        $user = auth()->user();
+        abort_unless($user?->isAdminViewer() ? $project->canUserView($user) : $project->canUserManage($user), 403);
     }
 
     #[On('wbsUpdated')]

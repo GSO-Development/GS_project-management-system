@@ -50,7 +50,7 @@ class UserManager extends Component
     {
         if ($this->creationType === 'azure' && $this->selectedAzureUser) {
             return [
-                'role'          => 'required|in:super_admin,regular_user',
+                'role'          => 'required|in:super_admin,admin_viewer,regular_user',
                 'subsidiary_id' => 'nullable',
                 'is_active'     => 'boolean',
             ];
@@ -62,7 +62,7 @@ class UserManager extends Component
             'password'      => 'nullable|min:8',
             'phone_number'  => 'nullable|string|max:50',
             'subsidiary_id' => 'nullable',
-            'role'          => 'required|in:super_admin,regular_user',
+            'role'          => 'required|in:super_admin,admin_viewer,regular_user',
             'is_active'     => 'boolean',
         ];
     }
@@ -86,8 +86,10 @@ class UserManager extends Component
             }
             if ($this->roleFilter === 'super_admin') {
                 $q->role('super_admin');
+            } elseif ($this->roleFilter === 'admin_viewer') {
+                $q->role('admin_viewer');
             } elseif ($this->roleFilter === 'regular_user') {
-                $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super_admin'));
+                $q->whereDoesntHave('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin', 'admin_viewer']));
             }
             if ($this->subsidiaryFilter !== 'all') {
                 $q->where('subsidiary_id', $this->subsidiaryFilter);
@@ -402,7 +404,7 @@ class UserManager extends Component
         $this->password           = '';
         $this->phone_number       = $user->phone_number;
         $this->subsidiary_id      = $user->subsidiary_id;
-        $this->role               = $user->isPmoAdmin() ? 'super_admin' : 'regular_user';
+        $this->role               = $user->isPmoAdmin() ? 'super_admin' : ($user->isAdminViewer() ? 'admin_viewer' : 'regular_user');
         $this->is_active          = (bool) $user->is_active;
         $this->creationType       = 'system'; // Edit always uses system form
         $this->selectedAzureUser  = null;
@@ -437,7 +439,7 @@ class UserManager extends Component
             $existingUser = User::withTrashed()->where('azure_id', $azureId)->first()
                 ?? User::withTrashed()->where('email', $this->email)->first();
 
-            $targetRoles = ($this->role === 'super_admin') ? ['super_admin'] : [];
+            $targetRoles = in_array($this->role, ['super_admin', 'admin_viewer'], true) ? [$this->role] : [];
             if ($existingUser) {
                 // Guard: prevent demotion or deactivation of the last PMO Admin
                 if (PmoAdminGuard::isLastAdmin($existingUser) && ($this->role !== 'super_admin' || !$this->is_active)) {
@@ -522,7 +524,7 @@ class UserManager extends Component
                 $action = 'created_user';
             }
 
-            $targetRoles = ($this->role === 'super_admin') ? ['super_admin'] : [];
+            $targetRoles = in_array($this->role, ['super_admin', 'admin_viewer'], true) ? [$this->role] : [];
             $user->syncRoles($targetRoles);
         }
 
@@ -630,8 +632,10 @@ class UserManager extends Component
             }
             if ($this->roleFilter === 'super_admin') {
                 $q->role('super_admin');
+            } elseif ($this->roleFilter === 'admin_viewer') {
+                $q->role('admin_viewer');
             } elseif ($this->roleFilter === 'regular_user') {
-                $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super_admin'));
+                $q->whereDoesntHave('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin', 'admin_viewer']));
             }
             if ($this->subsidiaryFilter !== 'all') {
                 $q->where('subsidiary_id', $this->subsidiaryFilter);
