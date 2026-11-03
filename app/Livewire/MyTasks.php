@@ -32,6 +32,8 @@ class MyTasks extends Component
     public string $groupBy = 'flat';         // 'flat', 'project', 'date'
     public string $viewMode = 'table';          // 'table', 'kanban', 'timeline'
     public string $kanbanMode = 'time';         // 'time' (Overdue, Today, Tomorrow, Next Week, Later, Completed) or 'status'
+    public string $sortField = 'date';          // 'date' (overdue first + upcoming), 'deadline', 'title', 'progress', 'status'
+    public string $sortDirection = 'asc';
     public int $perPage = 10;
     public string $saView = 'mine';             // 'mine' or 'team' (super admin only)
     public bool $showAllTasks = false;          // true = show ALL tasks across ALL projects (admin only)
@@ -153,6 +155,17 @@ class MyTasks extends Component
             $this->statusFilter = 'all';
             $this->dueDateFilter = 'all';
         }
+    }
+
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
     }
 
     public function setKanbanMode(string $mode): void
@@ -819,11 +832,29 @@ class MyTasks extends Component
             $filteredQuery->whereBetween('end_date', [now()->startOfWeek(), now()->endOfWeek()]);
         }
 
-        $paginatedTasks = (clone $filteredQuery)
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('end_date', 'asc')
-            ->orderBy('id', 'asc')
-            ->paginate($this->perPage);
+        if ($this->sortField === 'date') {
+            $paginatedQuery = (clone $filteredQuery)->orderByDeadlineUrgency();
+        } elseif ($this->sortField === 'deadline') {
+            $paginatedQuery = (clone $filteredQuery)
+                ->orderByRaw("CASE WHEN end_date IS NULL THEN 1 ELSE 0 END ASC")
+                ->orderBy('end_date', $this->sortDirection)
+                ->orderBy('id', 'desc');
+        } elseif ($this->sortField === 'title') {
+            $paginatedQuery = (clone $filteredQuery)
+                ->orderBy('title', $this->sortDirection);
+        } elseif ($this->sortField === 'progress') {
+            $paginatedQuery = (clone $filteredQuery)
+                ->orderBy('progress', $this->sortDirection);
+        } elseif ($this->sortField === 'status') {
+            $paginatedQuery = (clone $filteredQuery)
+                ->orderBy('status', $this->sortDirection);
+        } else {
+            $paginatedQuery = (clone $filteredQuery)
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('end_date', 'asc');
+        }
+
+        $paginatedTasks = $paginatedQuery->paginate($this->perPage);
 
         $allFilteredTasks = $filteredQuery
             ->orderBy('project_id', 'asc')

@@ -974,7 +974,7 @@ class ProjectIndex extends Component
             fn ($project) => [$project->id => $delayService->analyze($project)]
         );
         $subsidiaries = Subsidiary::all();
-        $pms = User::where('is_active', true)->get();
+        $pms = User::getPmsForSubsidiary(null);
         $allUsers = User::where('is_active', true)->get();
 
         // ═══════════════════════════════════════════════════════════════

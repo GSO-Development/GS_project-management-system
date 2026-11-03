@@ -1,10 +1,9 @@
 <div data-ui-page="daily-updates" class="ui-page ui-page-collaboration space-y-5 pb-12">
     <style>
+        html:has(.daily-history-backdrop), body:has(.daily-history-backdrop),
         html:has(.daily-history-dialog[open]), body:has(.daily-history-dialog[open]) { overflow: hidden; }
-        dialog.daily-history-dialog { position: fixed; inset: 0; margin: 0; padding: 24px; width: 100%; max-width: none; height: 100dvh; max-height: none; border: 0; background: transparent; color: #0f172a; overflow: hidden; box-sizing: border-box; }
-        dialog.daily-history-dialog[open] { display: grid; place-items: center; }
-        dialog.daily-history-dialog::backdrop { background: rgba(15,23,42,.48); backdrop-filter: blur(5px); }
-        .daily-history-panel { width: min(100%, 1000px); max-height: min(860px, calc(100dvh - 48px)); min-height: 0; margin: 0; box-sizing: border-box; }
+        .daily-history-backdrop { position: fixed; inset: 0; margin: 0; width: 100%; height: 100dvh; }
+        .daily-history-panel { width: min(100%, 1000px); max-height: min(860px, calc(100dvh - 48px)); min-height: 0; margin: auto; box-sizing: border-box; }
         .daily-history-body { min-height: 0; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; overflow-wrap: anywhere; }
         .daily-history-header > div { min-width: 0; }
         .daily-history-header button { flex-shrink: 0; }
@@ -35,6 +34,24 @@
         }
         .filter-toolbar-enter {
             animation: slideDownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes unreadLogCountPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(195, 18, 46, .28); }
+            50% { transform: scale(1.12); box-shadow: 0 0 0 5px rgba(195, 18, 46, 0); }
+        }
+        .dur-count.has-unread-logs {
+            border-color: #fb7185 !important;
+            background: #c3122e !important;
+            color: #fff !important;
+            animation: unreadLogCountPulse 1.25s ease-in-out infinite;
+        }
+        .dur-btn--logs.has-unread-logs {
+            border-color: #fda4af !important;
+            background: #fff1f2 !important;
+            color: #9f1239 !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .dur-count.has-unread-logs { animation: none; }
         }
         .daily-updates-ledger { box-shadow: 0 1px 2px rgba(15,23,42,.02), 0 12px 28px -26px rgba(15,23,42,.32) !important; }
         .daily-updates-table tbody td { padding-top: 14px !important; padding-bottom: 14px !important; border-bottom: 1px solid #eef2f6; }
@@ -210,14 +227,14 @@
         </div>
 
         <div class="daily-register-scroll" x-data x-init="$el.scrollLeft = 0" tabindex="0" role="region" aria-label="Project updates table">
-            <table class="daily-updates-table w-full min-w-[920px] text-left border-collapse text-xs">
+            <table class="daily-updates-table w-full text-left border-collapse text-xs">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-[.09em] text-slate-500" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                        <th scope="col" class="py-3.5 pl-6 pr-4 w-[23%]">Project</th>
-                        <th scope="col" class="py-3.5 px-4 w-[18%]">Owner</th>
-                        <th scope="col" class="py-3.5 px-4 w-[34%]">Latest update</th>
-                        <th scope="col" class="py-3.5 px-4 w-[11%] hidden lg:table-cell">Updated</th>
-                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right w-[14%] whitespace-nowrap">Action</th>
+                        <th scope="col" class="py-3.5 pl-6 pr-4 w-[31%]">Project</th>
+                        <th scope="col" class="py-3.5 px-4 w-[19%]">Project Manager</th>
+                        <th scope="col" class="py-3.5 px-4 w-[21%]">Latest Update</th>
+                        <th scope="col" class="py-3.5 px-4 w-[13%]">Updated</th>
+                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right w-[16%] whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs bg-white">
@@ -227,6 +244,7 @@
                             $update = $group['latestUpdate'];
                             $pastUpdates = $group['pastUpdates'];
                             $allUpdatesCount = $group['allUpdates']->count();
+                            $unreadUpdatesCount = $group['unreadCount'] ?? 0;
                             $pm = $project->projectManager;
 
                             $pmName = $pm->name ?? 'Unassigned';
@@ -238,72 +256,79 @@
                             $projInitial = strtoupper(substr($project->name, 0, 1));
                         @endphp
 
-                        <tr class="daily-update-row dur-row group {{ $update?->current_blockers ? 'has-blocker' : '' }}">
-                            <!-- Project & Code -->
-                            <td class="py-4 pl-6 pr-4 align-middle">
+                        <tr
+                            class="daily-update-row dur-row group {{ $update?->current_blockers ? 'has-blocker' : '' }}"
+                            x-data="{ unreadLogs: {{ $unreadUpdatesCount }} }"
+                            @daily-updates-read.window="if (Number($event.detail.projectId) === {{ $project->id }}) unreadLogs = Number($event.detail.projectUnreadCount)"
+                        >
+                            <!-- 1. Project & Code -->
+                            <td class="py-3.5 pl-6 pr-4 align-middle">
                                 <div class="dur-project">
                                     <span class="dur-folder" aria-hidden="true">
                                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                                         </svg>
                                     </span>
-                                    <span class="dur-project__text">
+                                    <div class="dur-project__text min-w-0">
                                         <a href="{{ route('projects.show', $project) }}" class="dur-project__name" title="{{ $project->name }}">{{ $project->name }}</a>
-                                        <span class="dur-project__code">{{ $project->code ?? 'PRJ-' . $project->id }}</span>
-                                    </span>
+                                        <div class="dur-project__meta">
+                                            <span class="dur-project__code">{{ $project->code ?? 'PRJ-' . $project->id }}</span>
+                                            @if($project->subsidiary)
+                                                <span class="dur-project__sub truncate" title="{{ $project->subsidiary->name }}">&bull; {{ $project->subsidiary->name }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
 
-                            <!-- Project Manager -->
-                            <td class="py-4 px-4 align-middle">
+                            <!-- 2. Project Manager -->
+                            <td class="py-3.5 px-4 align-middle">
                                 <div class="dur-owner">
                                     <span class="dur-owner__avatar">{{ $pmInitials }}</span>
                                     <span class="dur-owner__name" title="{{ $pmName }}">{{ $pmName }}</span>
                                 </div>
                             </td>
 
-                            <!-- Latest Update Summary -->
-                            <td class="py-4 px-4 align-middle">
+                            <!-- 3. Latest Update Summary -->
+                            <td class="py-3.5 px-4 align-middle">
                                 @if($update)
-                                    @php
-                                        $statusKey = $update->updated_status?->value ?? (string)$update->updated_status;
-                                        $statusConfig = match($statusKey) {
-                                            'completed' => ['cls' => 'is-completed', 'label' => 'Completed'],
-                                            'on_hold' => ['cls' => 'is-on-hold', 'label' => 'On Hold'],
-                                            default => ['cls' => 'is-in-progress', 'label' => 'In Progress'],
-                                        };
-                                    @endphp
                                     <div class="dur-entry">
-                                        <div class="dur-entry__meta">
-                                            <span class="dur-status {{ $statusConfig['cls'] }}">
-                                                <span class="dur-status__dot"></span>
-                                                {{ $statusConfig['label'] }}
-                                            </span>
-                                            @if($update->current_blockers)
-                                                <span class="dur-blocker">
-                                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                    Blocker
-                                                </span>
-                                            @endif
-                                            @if($update->wbsItem)
-                                                <span class="dur-task" title="Task: {{ $update->wbsItem->title }}">
-                                                    <span class="dur-task__label">Task</span>
-                                                    <span class="dur-task__title">{{ $update->wbsItem->title }}</span>
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <p class="dur-entry__summary" title="{{ $update->summary }}">{{ $update->summary }}</p>
+                                        @if($update->current_blockers || $update->wbsItem || $update->comments->count() > 0)
+                                            <div class="dur-entry__meta">
+                                                @if($update->current_blockers)
+                                                    <span class="dur-blocker" title="Blocker reported">
+                                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        Blocker
+                                                    </span>
+                                                @endif
+                                                @if($update->wbsItem)
+                                                    <span class="dur-task" title="WBS Task: {{ $update->wbsItem->title }}">
+                                                        <span class="dur-task__label">Task</span>
+                                                        <span class="dur-task__title">{{ \Illuminate\Support\Str::limit($update->wbsItem->title, 25) }}</span>
+                                                    </span>
+                                                @endif
+                                                @if($update->comments->count() > 0)
+                                                    <span class="dur-comments-pill" title="{{ $update->comments->count() }} comment(s)">
+                                                        💬 {{ $update->comments->count() }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        <p class="dur-entry__summary" title="{{ $update->summary ?: $update->title }}">
+                                            {{ \Illuminate\Support\Str::limit($update->summary ?: $update->title, 60) }}
+                                        </p>
                                     </div>
                                 @else
-                                    <span class="dur-empty">
+                                    <div class="dur-empty">
                                         <span class="dur-empty__dot"></span>
-                                        No updates yet
-                                    </span>
+                                        <span>No updates yet</span>
+                                    </div>
                                 @endif
                             </td>
 
-                            <!-- Last Activity -->
-                            <td class="py-4 px-4 align-middle whitespace-nowrap hidden lg:table-cell">
+                            <!-- 4. Last Activity -->
+                            <td class="py-3.5 px-4 align-middle whitespace-nowrap">
                                 @if($update)
                                     <div class="dur-time">
                                         <span class="dur-time__relative">{{ $update->created_at->diffForHumans() }}</span>
@@ -314,8 +339,8 @@
                                 @endif
                             </td>
 
-                            <!-- Actions -->
-                            <td class="py-4 pl-3 pr-6 align-middle text-right whitespace-nowrap">
+                            <!-- 5. Actions -->
+                            <td class="py-3.5 pl-3 pr-6 align-middle text-right whitespace-nowrap">
                                 <div class="dur-actions">
                                     @unless(auth()->user()?->isAdminViewer())
                                     <button
@@ -332,12 +357,17 @@
                                     <button
                                         wire:click="openHistoryModal({{ $project->id }})"
                                         type="button"
-                                        class="dur-btn dur-btn--logs"
-                                        title="View project logs history"
+                                        class="dur-btn dur-btn--logs {{ $allUpdatesCount > 0 ? 'is-active-logs' : 'is-zero-logs' }}"
+                                        :class="{ 'has-unread-logs': unreadLogs > 0 }"
+                                        :title="unreadLogs > 0 ? `${unreadLogs} new log or comment notification${unreadLogs === 1 ? '' : 's'}` : 'View project logs history'"
                                     >
                                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>Logs</span>
-                                        <span class="dur-count {{ $allUpdatesCount > 0 ? 'has-logs' : '' }}">{{ $allUpdatesCount }}</span>
+                                        <span
+                                            class="dur-count {{ $allUpdatesCount > 0 ? 'has-logs' : '' }}"
+                                            :class="{ 'has-unread-logs': unreadLogs > 0 }"
+                                            :aria-label="unreadLogs > 0 ? `${unreadLogs} new; ${@js($allUpdatesCount)} total logs` : `${@js($allUpdatesCount)} total logs`"
+                                        >{{ $allUpdatesCount }}</span>
                                     </button>
                                 </div>
                             </td>
@@ -390,20 +420,17 @@
         @php
             $historyProject = \App\Models\Project::with(['projectManager', 'subsidiary'])->find($historyProjectId);
             $authUser = auth()->user();
-            $isPmOrAdminForHistory = $authUser && (
-                $authUser->isSuperAdmin() ||
-                $authUser->hasAdminInterfaceAccess() ||
-                $authUser->hasRole('project_manager') ||
-                ($historyProject && $historyProject->project_manager_id === $authUser->id) ||
-                ($historyProject && $historyProject->members()->where('users.id', $authUser->id)->whereIn('project_members.role', ['lead', 'sponsor', 'owner', 'steering_committee'])->exists())
-            );
+            $isPmOrAdminForHistory = $authUser && $historyProject && $this->canViewAllProjectUpdates($historyProject, $authUser);
 
-            $historyQuery = \App\Models\ProjectStatusUpdate::with(['creator', 'comments.user', 'wbsItem'])
+            $historyQuery = \App\Models\ProjectStatusUpdate::with(['creator.roles', 'comments.user.roles', 'wbsItem'])
                 ->where('project_id', $historyProjectId);
 
             if (!$isPmOrAdminForHistory && $authUser) {
-                // Team member: only see their own updates in the history modal
-                $historyQuery->where('created_by', $authUser->id);
+                // Team member: only see their own updates or updates with comments sent to Team Member
+                $historyQuery->where(function ($hq) use ($authUser) {
+                    $hq->where('created_by', $authUser->id)
+                       ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
+                });
             }
 
             $historyAllUpdates = $historyProject ? $historyQuery->latest()->get() : collect();
@@ -411,19 +438,30 @@
                 ? ($historyAllUpdates->firstWhere('id', $selectedHistoryUpdateId) ?? $historyAllUpdates->first())
                 : $historyAllUpdates->first();
             $historyUpdatesCount = $historyAllUpdates->count();
+            $visibleComments = $historyLatestUpdate
+                ? $this->getVisibleCommentsForUpdate($historyLatestUpdate, $historyProject, $authUser)
+                : collect();
         @endphp
 
         @if($historyProject)
             @teleport('body')
-            <dialog class="daily-history-dialog" x-data="{ modalTab: 'report' }"
-                x-init="$nextTick(() => $el.showModal())"
-                @cancel.prevent="$wire.closeHistoryModal()"
-                @click="if ($event.target === $el) $wire.closeHistoryModal()"
+            <div
+                class="daily-history-backdrop fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+                style="position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(6px);"
+                role="dialog"
+                aria-modal="true"
                 aria-labelledby="daily-history-title"
-                wire:key="daily-history-{{ $historyProjectId }}">
+                x-data="{ modalTab: @entangle('historyTab').live }"
+                @keydown.escape.window="$wire.closeHistoryModal()"
+                wire:key="daily-history-{{ $historyProjectId }}"
+            >
+                <!-- Backdrop click to close -->
+                <div class="fixed inset-0 -z-10" @click="$wire.closeHistoryModal()"></div>
 
                 <!-- Popup Content Box -->
-                <div class="daily-history-panel bg-white rounded-2xl w-full shadow-2xl flex flex-col overflow-hidden border border-slate-200">
+                <div class="daily-history-panel bg-white rounded-2xl w-full shadow-2xl flex flex-col overflow-hidden border border-slate-200 relative z-10 m-auto"
+                     style="margin: auto;"
+                     @click.stop>
                     <!-- Modal Header -->
                     <div class="daily-history-header px-6 py-4 flex items-center justify-between gap-3 border-b border-slate-100 bg-white flex-shrink-0">
                         <div class="flex items-center gap-3">
@@ -472,7 +510,7 @@
                             class="px-4 py-2.5 rounded-t-xl text-xs border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
                         >
                             <span>💬 Team Discussion</span>
-                            @php $commentsCnt = $historyLatestUpdate ? $historyLatestUpdate->comments->count() : 0; @endphp
+                            @php $commentsCnt = $visibleComments->count(); @endphp
                             <span :class="modalTab === 'discussion' ? 'bg-rose-50 text-[#c3122e] border-rose-200' : 'bg-slate-200/70 text-slate-600 border-slate-300'" class="px-2 py-0.2 rounded-full text-[10px] font-bold border">
                                 {{ $commentsCnt }}
                             </span>
@@ -518,7 +556,7 @@
                                             </div>
                                         </div>
                                         <button @click="modalTab = 'discussion'" class="text-xs font-bold text-[#c3122e] hover:underline flex items-center gap-1 cursor-pointer">
-                                            <span>💬 {{ $historyLatestUpdate->comments->count() }} comment(s)</span>
+                                            <span>💬 {{ $visibleComments->count() }} comment(s)</span>
                                             <span>→</span>
                                         </button>
                                     </div>
@@ -565,22 +603,53 @@
                                     <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                         <span>💬 Team Discussion &amp; Feedback Thread</span>
                                     </div>
-                                    <span class="text-xs text-slate-500 font-medium">{{ $historyLatestUpdate->comments->count() }} comment(s)</span>
+                                    <span class="text-xs text-slate-500 font-medium">{{ $visibleComments->count() }} comment(s)</span>
                                 </div>
 
                                 <!-- Add Comment Form -->
-                                <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-                                    <label class="text-xs font-bold text-slate-800 block">Add Feedback or Comment</label>
+                                <div x-data="{ commentVis: '{{ $commentVisibility }}' }" class="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <label class="text-xs font-bold text-slate-800 block">Add Feedback or Comment</label>
+
+                                        @if($isPmOrAdminForHistory)
+                                            <div class="inline-flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 select-none">
+                                                <span class="text-[10px] font-bold text-slate-500 pl-2 pr-1">Send to:</span>
+                                                <button
+                                                    type="button"
+                                                    @click="commentVis = 'team'"
+                                                    :class="commentVis === 'team' ? 'bg-white text-emerald-700 shadow-2xs ring-1 ring-emerald-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                                    class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                                                    title="Feedback visible to the team member and project manager"
+                                                >
+                                                    <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'team' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                                                    <span>Team Member</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    @click="commentVis = 'pmo_pm'"
+                                                    :class="commentVis === 'pmo_pm' ? 'bg-white text-[#c3122e] shadow-2xs ring-1 ring-rose-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                                    class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                                                    title="Private comment strictly between PMO Admin & Project Manager"
+                                                >
+                                                    <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'pmo_pm' ? 'bg-[#c3122e]' : 'bg-slate-400'"></span>
+                                                    <span>PMO Admin Only</span>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     <div class="flex gap-2">
                                         <input
                                             type="text"
                                             wire:model="newCommentContent.{{ $historyLatestUpdate->id }}"
-                                            wire:keydown.enter="addComment({{ $historyLatestUpdate->id }})"
-                                            placeholder="Type a feedback comment or question for the team..."
+                                            @keydown.enter.prevent="$wire.addComment({{ $historyLatestUpdate->id }}, commentVis)"
+                                            :placeholder="commentVis === 'pmo_pm' ? 'Write a private comment between Project Manager & PMO Admin...' : 'Write feedback visible to the Team Member...'"
+                                            placeholder="{{ $isPmOrAdminForHistory ? ($commentVisibility === 'pmo_pm' ? 'Write a private comment between Project Manager & PMO Admin...' : 'Write feedback visible to the Team Member...') : 'Type a feedback comment or reply...' }}"
                                             class="w-full text-xs font-medium py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all flex-1"
                                         >
                                         <button
-                                            wire:click="addComment({{ $historyLatestUpdate->id }})"
+                                            type="button"
+                                            @click="$wire.addComment({{ $historyLatestUpdate->id }}, commentVis)"
                                             class="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-[#c3122e] hover:bg-[#8b0d1f] shadow-xs active:scale-95 transition-all cursor-pointer flex-shrink-0"
                                         >
                                             Post Comment
@@ -590,20 +659,47 @@
 
                                 <!-- Comments Thread List -->
                                 <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                                    @forelse($historyLatestUpdate->comments as $comment)
+                                    @forelse($visibleComments as $comment)
+                                        @php
+                                            $cAuthor = $comment->user;
+                                            $cRoleLabel = 'Team Member';
+                                            $cRoleBadge = 'bg-slate-100 text-slate-600 border-slate-200';
+                                            if ($cAuthor) {
+                                                if ($this->isSuperAdminUser($cAuthor)) {
+                                                    $cRoleLabel = 'PMO Admin';
+                                                    $cRoleBadge = 'bg-rose-50 text-[#c3122e] border-rose-200';
+                                                } elseif ($historyProject && $this->isProjectManagerOf($historyProject, $cAuthor)) {
+                                                    $cRoleLabel = 'Project Manager';
+                                                    $cRoleBadge = 'bg-amber-50 text-amber-800 border-amber-200';
+                                                }
+                                            }
+                                            $cVis = $comment->visibility;
+                                        @endphp
                                         <div class="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1.5 shadow-2xs">
                                             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-2 flex-wrap">
                                                     <div class="w-6 h-6 rounded-lg bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center">
                                                         {{ strtoupper(substr($comment->user->name ?? 'U', 0, 1)) }}
                                                     </div>
                                                     <span class="font-bold text-slate-900">{{ $comment->user->name ?? 'User' }}</span>
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold border {{ $cRoleBadge }}">{{ $cRoleLabel }}</span>
+                                                    @if($isPmOrAdminForHistory)
+                                                        @if($cVis === 'pmo_pm')
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                                🔒 PMO Admin &amp; PM Only
+                                                            </span>
+                                                        @else
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                👥 Team Member Visible
+                                                            </span>
+                                                        @endif
+                                                    @endif
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-[10px] text-slate-500 font-semibold whitespace-nowrap">
                                                         {{ $comment->created_at->format('M d, Y · h:i A') }} ({{ $comment->created_at->diffForHumans() }})
                                                     </span>
-                                                    @if($isSuperAdmin || $comment->user_id === auth()->id() || ($historyProject && $historyProject->project_manager_id === auth()->id()))
+                                                    @if($isSuperAdmin || $comment->user_id === auth()->id() || ($historyProject && $this->isProjectManagerOf($historyProject, auth()->user())))
                                                         <button
                                                             wire:click="deleteComment({{ $comment->id }})"
                                                             wire:confirm="Are you sure you want to delete this comment?"
@@ -652,10 +748,10 @@
                                         $pBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
 
                                         if ($pCreator) {
-                                            if ($pCreator->hasRole('super_admin')) {
+                                            if ($this->isSuperAdminUser($pCreator)) {
                                                 $pCreatorRole = 'PMO Admin';
                                                 $pBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
-                                            } elseif ($pCreator->hasRole('project_manager') || $historyProject->project_manager_id === $pCreator->id) {
+                                            } elseif ($historyProject && $this->isProjectManagerOf($historyProject, $pCreator)) {
                                                 $pCreatorRole = 'Project Manager';
                                                 $pBadgeClass = 'bg-amber-50 text-amber-800 border-amber-200';
                                             }
@@ -708,7 +804,7 @@
                         </div>
                     </div>
                 </div>
-            </dialog>
+            </div>
             @endteleport
 
         @endif
@@ -764,7 +860,10 @@
                     </div>
 
                     <!-- Scope Selector (Task vs Project Overall) -->
-                    @if(auth()->user()->hasAnyRole(['super_admin', 'project_manager']))
+                    @php
+                        $canPostFullProjectReport = $this->isSuperAdminUser(auth()->user()) || ($updateProjectId && $this->isProjectManagerOf((int) $updateProjectId, auth()->user()));
+                    @endphp
+                    @if($canPostFullProjectReport)
                         <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200/60 shadow-inner">
                             <button
                                 type="button"

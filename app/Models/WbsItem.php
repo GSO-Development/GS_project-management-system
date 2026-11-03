@@ -105,6 +105,34 @@ class WbsItem extends Model
         });
     }
 
+    /**
+     * Put unfinished work first: overdue, today, upcoming, then undated tasks.
+     */
+    public function scopeOrderByDeadlineUrgency(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        $today = now()->today()->toDateString();
+
+        return $query
+            ->orderByRaw("CASE
+                WHEN status IN ('completed', 'cancelled') THEN 5
+                WHEN end_date IS NULL THEN 4
+                WHEN end_date < ? THEN 1
+                WHEN end_date = ? THEN 2
+                ELSE 3
+            END ASC", [$today, $today])
+            ->orderByRaw("CASE WHEN status NOT IN ('completed', 'cancelled') THEN end_date END ASC")
+            ->orderByRaw("CASE WHEN status IN ('completed', 'cancelled') THEN end_date END DESC")
+            ->orderByRaw("CASE priority
+                WHEN 'critical' THEN 0
+                WHEN 'high' THEN 1
+                WHEN 'medium' THEN 2
+                WHEN 'low' THEN 3
+                ELSE 4
+            END ASC")
+            ->orderBy('title', 'asc')
+            ->orderBy('id', 'asc');
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

@@ -15,7 +15,8 @@ class DailyUpdateNotification extends Notification
         public string $projectName,
         public ?string $url = null,
         public string $actionType = 'daily_update',
-        public ?string $summary = null
+        public ?string $summary = null,
+        public ?int $commentId = null
     ) {}
 
     public function via(object $notifiable): array
@@ -40,6 +41,7 @@ class DailyUpdateNotification extends Notification
         return [
             'category'    => 'updates',
             'action'      => $this->actionType,
+            'comment_id'  => $this->commentId,
             'title'       => $title,
             'message'     => $message,
             'summary'     => $this->summary,

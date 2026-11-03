@@ -536,7 +536,7 @@ class ProjectApprovalActions extends Component
             : collect();
         $reassignProject = $this->showReassignModal && $this->reassignProjectId ? $this->contextualProject($this->reassignProjectId)->load(['projectManager', 'subsidiary', 'members']) : null;
         $availablePms = $reassignProject ? User::getUsersForSubsidiary($this->reassignSubsidiaryId)
-            ->concat($reassignProject->members)->unique('id')->sortBy('name')->values() : collect();
+            ->concat($reassignProject->members)->reject(fn($u) => $u->isGovernanceOrAdminUser())->unique('id')->sortBy('name')->values() : collect();
         $subsidiaries = $reassignProject ? Subsidiary::orderBy('name')->get() : collect();
 
         return view('livewire.project-approval-actions', compact(

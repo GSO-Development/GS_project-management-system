@@ -43,6 +43,7 @@
         .tasks-table-card .task-table-row { border-left:3px solid transparent; }
         .tasks-table-card .task-table-row:hover { background:#fafbfd !important; }
         .tasks-table-card .task-table-row.is-overdue { border-left-color:#d94a5f; background:#fffdfd; }
+        .tasks-table-card .task-table-row.is-due-today { border-left-color:#f59e0b; background:#fffdfa; }
         .tasks-table-card .task-table-row td { padding-top:15px !important; padding-bottom:15px !important; }
         .tasks-table-card .task-title { font-size:13px !important; font-weight:650 !important; white-space:normal; line-height:1.35; }
         .task-meta-priority { display:inline-flex; align-items:center; gap:5px; color:#64748b; font-size:10px; font-weight:600; }
@@ -239,16 +240,48 @@
                     <thead>
                         <tr class="bg-slate-50/70 border-b border-slate-100 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
                             <th class="py-3.5 pl-5 pr-2 w-10 text-center"></th>
-                            <th class="py-3.5 px-3 min-w-[200px]">Task</th>
+                            <th class="py-3.5 px-3 min-w-[200px] cursor-pointer hover:text-slate-700 transition-colors select-none" wire:click="sortBy('title')">
+                                <div class="flex items-center gap-1.5">
+                                    <span>Task</span>
+                                    @if($sortField === 'title')
+                                        <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sortDirection === 'asc' ? 'M4.5 15.75l7.5-7.5 7.5 7.5' : 'M19.5 8.25l-7.5 7.5-7.5-7.5' }}"/></svg>
+                                    @endif
+                                </div>
+                            </th>
                             <th class="py-3.5 px-3 min-w-[150px]">Project</th>
                             @if($taskScope === 'pm_projects')
                                 <th class="py-3.5 px-3 min-w-[130px]">Assignee</th>
                             @endif
                             <th class="hide-from-register py-3.5 px-3 min-w-[90px]">Priority</th>
                             <th class="hide-from-register py-3.5 px-3 min-w-[100px]">Start Date</th>
-                            <th class="py-3.5 px-3 min-w-[120px]">Deadline</th>
-                            <th class="py-3.5 px-3 min-w-[90px]">Progress</th>
-                            <th class="py-3.5 px-3 min-w-[110px]">Status</th>
+                            <th class="py-3.5 px-3 min-w-[120px] cursor-pointer hover:text-slate-700 transition-colors select-none" wire:click="sortBy('date')">
+                                <div class="flex items-center gap-1.5">
+                                    <span>Deadline</span>
+                                    @if($sortField === 'date')
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200/60 lowercase tracking-normal">
+                                            <span>overdue first</span>
+                                        </span>
+                                    @elseif($sortField === 'deadline')
+                                        <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sortDirection === 'asc' ? 'M4.5 15.75l7.5-7.5 7.5 7.5' : 'M19.5 8.25l-7.5 7.5-7.5-7.5' }}"/></svg>
+                                    @endif
+                                </div>
+                            </th>
+                            <th class="py-3.5 px-3 min-w-[90px] cursor-pointer hover:text-slate-700 transition-colors select-none" wire:click="sortBy('progress')">
+                                <div class="flex items-center gap-1.5">
+                                    <span>Progress</span>
+                                    @if($sortField === 'progress')
+                                        <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sortDirection === 'asc' ? 'M4.5 15.75l7.5-7.5 7.5 7.5' : 'M19.5 8.25l-7.5 7.5-7.5-7.5' }}"/></svg>
+                                    @endif
+                                </div>
+                            </th>
+                            <th class="py-3.5 px-3 min-w-[110px] cursor-pointer hover:text-slate-700 transition-colors select-none" wire:click="sortBy('status')">
+                                <div class="flex items-center gap-1.5">
+                                    <span>Status</span>
+                                    @if($sortField === 'status')
+                                        <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sortDirection === 'asc' ? 'M4.5 15.75l7.5-7.5 7.5 7.5' : 'M19.5 8.25l-7.5 7.5-7.5-7.5' }}"/></svg>
+                                    @endif
+                                </div>
+                            </th>
                             <th class="py-3.5 pl-2 pr-5 text-right w-12 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
@@ -296,7 +329,7 @@
                                     default        => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200/80' : ($isDueToday ? 'bg-amber-50 text-amber-800 border-amber-200/80' : 'bg-slate-100 text-slate-600 border-slate-200')),
                                 };
                             @endphp
-                            <tr class="task-table-row {{ $isOverdue ? 'is-overdue' : '' }} hover:bg-slate-50/70 transition-colors group cursor-pointer" wire:click="openTaskDetail({{ $task->id }})">
+                            <tr class="task-table-row {{ $isOverdue ? 'is-overdue' : '' }} {{ $isDueToday ? 'is-due-today' : '' }} hover:bg-slate-50/70 transition-colors group cursor-pointer" wire:click="openTaskDetail({{ $task->id }})">
                                 <!-- Checkbox Column -->
                                 <td class="py-3.5 pl-5 pr-2 align-middle text-center" onclick="event.stopPropagation()">
                                     <button wire:click="toggleTaskComplete({{ $task->id }})" type="button"
@@ -396,10 +429,23 @@
                                             <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <span>Due today</span>
                                         </span>
-                                    @elseif($task->end_date)
-                                        <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">
-                                            {{ max(1, (int)now()->diffInDays($task->end_date)) }}d left
+                                    @elseif($isCompleted)
+                                        <span class="text-[10px] text-emerald-600 font-semibold mt-0.5 block">
+                                            Completed
                                         </span>
+                                    @elseif($task->end_date)
+                                        @php
+                                            $daysLeft = (int)now()->startOfDay()->diffInDays($task->end_date->startOfDay(), false);
+                                        @endphp
+                                        @if($daysLeft > 0)
+                                            <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">
+                                                {{ $daysLeft }}d left
+                                            </span>
+                                        @else
+                                            <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">
+                                                Past due
+                                            </span>
+                                        @endif
                                     @endif
                                 </td>
 

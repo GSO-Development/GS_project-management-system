@@ -4,6 +4,64 @@
     .at-table-row:hover .at-task-title { color: #c3122e; }
     .at-status-dot { width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0; }
     .at-avatar { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
+    [data-ui-page="all-tasks"] .at-table-scroll {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        cursor: grab;
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    [data-ui-page="all-tasks"] .at-table-scroll::-webkit-scrollbar {
+        height: 10px;
+    }
+    [data-ui-page="all-tasks"] .at-table-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    [data-ui-page="all-tasks"] .at-table-scroll::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border: 2px solid #f1f5f9;
+        border-radius: 6px;
+    }
+    [data-ui-page="all-tasks"] .at-table-scroll:focus-visible {
+        outline: 2px solid #c3122e;
+        outline-offset: -2px;
+    }
+    [data-ui-page="all-tasks"] .at-table-scroll.is-dragging,
+    [data-ui-page="all-tasks"] .at-table-scroll.is-dragging * {
+        cursor: grabbing !important;
+        user-select: none;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table {
+        min-width: 1200px;
+        table-layout: fixed;
+        font-variant-numeric: tabular-nums;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table :is(th, td) {
+        padding-left: 12px;
+        padding-right: 12px;
+        vertical-align: middle;
+        white-space: normal;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table th {
+        white-space: nowrap;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table :is(th, td):nth-child(6) {
+        text-align: center;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table td:last-child {
+        padding-right: 20px;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table .at-stuck-text {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        line-height: 1.5;
+    }
+    [data-ui-page="all-tasks"] .at-stuck-table .at-stuck-date,
+    [data-ui-page="all-tasks"] .at-stuck-table .at-stuck-delay {
+        white-space: nowrap;
+    }
     .kpi-tile { transition: all 0.15s ease; }
     .kpi-tile:hover { transform: translateY(-1px); }
     .kpi-tile.active { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
@@ -199,7 +257,7 @@
                             <div class="relative flex-1 sm:flex-initial min-w-[130px]">
                                 <select wire:model.live="sortBy"
                                         class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
-                                    <option value="end_date">Sort: Due Date</option>
+                                    <option value="end_date">Sort: Due Date (Overdue First)</option>
                                     <option value="priority">Sort: Priority</option>
                                     <option value="project">Sort: Project</option>
                                     <option value="title">Sort: Title A–Z</option>
@@ -352,10 +410,12 @@
                     <tbody class="divide-y divide-slate-100 text-slate-700">
                         @forelse($tasks as $task)
                             @php
-                                $today     = now()->today();
-                                $daysLeft  = $task->end_date ? (int) $today->diffInDays($task->end_date, false) : null;
-                                $isOverdue = $daysLeft !== null && $daysLeft < 0 && !in_array($task->status->value, ['completed','cancelled']);
-                                $isDueToday = $daysLeft === 0 && !in_array($task->status->value, ['completed','cancelled']);
+                                $today       = now()->today();
+                                $daysLeft    = $task->end_date ? (int) $today->diffInDays($task->end_date, false) : null;
+                                $taskStatus  = $task->status?->value ?? (string)$task->status;
+                                $isCompleted = in_array($taskStatus, ['completed','cancelled']);
+                                $isOverdue   = $daysLeft !== null && $daysLeft < 0 && !$isCompleted;
+                                $isDueToday  = $daysLeft === 0 && !$isCompleted;
 
                                 [$priText, $priDot, $priBg, $priBorder, $priTextCls] = match($task->priority?->value ?? 'medium') {
                                     'high'  => ['High',   'bg-rose-500',   'bg-rose-50',   'border-rose-200',   'text-rose-700'],
@@ -363,14 +423,14 @@
                                     default => ['Medium', 'bg-amber-500',  'bg-amber-50',  'border-amber-200',  'text-amber-700'],
                                 };
 
-                                [$statusLabel, $statusBadge] = match($task->status->value) {
+                                [$statusLabel, $statusBadge] = match($taskStatus) {
                                     'completed' => ['Completed', 'bg-emerald-50 text-emerald-700 border-emerald-200'],
                                     'on_hold', 'blocked' => ['On Hold', 'bg-amber-50 text-amber-800 border-amber-200'],
                                     'in_progress', 'under_review', 'at_risk' => ['In Progress', 'bg-blue-50 text-blue-700 border-blue-200'],
                                     default => ['Not Started', 'bg-slate-50 text-slate-700 border-slate-200'],
                                 };
 
-                                $dotColorCls = match($task->status->value) {
+                                $dotColorCls = match($taskStatus) {
                                     'in_progress'  => 'bg-blue-600',
                                     'completed'    => 'bg-emerald-500',
                                     'on_hold'      => 'bg-amber-500',
@@ -383,7 +443,7 @@
                                 $avatarBgs = ['bg-indigo-100 text-indigo-700', 'bg-pink-100 text-pink-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-rose-100 text-rose-700', 'bg-sky-100 text-sky-700'];
                                 $avatarStyle = $avatarBgs[crc32($task->assignedUser?->name ?? '') % count($avatarBgs)];
                             @endphp
-                            <tr class="at-table-row hover:bg-slate-50/70 transition-colors cursor-pointer" onclick="window.location='{{ route('projects.show', $task->project_id) }}'">
+                            <tr class="at-table-row hover:bg-slate-50/70 transition-colors cursor-pointer {{ $isDueToday ? 'bg-amber-50/30' : '' }}" onclick="window.location='{{ route('projects.show', $task->project_id) }}'">
                                 {{-- Task --}}
                                 <td class="py-3.5 pl-6 pr-4 align-middle">
                                     <div class="flex items-center gap-2.5 min-w-0">
@@ -440,17 +500,30 @@
                                 {{-- Due Date --}}
                                 <td class="py-3.5 pl-4 pr-6 align-middle text-right whitespace-nowrap">
                                     @if($task->end_date)
-                                        <div class="font-mono font-bold text-xs {{ $isOverdue ? 'text-rose-600' : ($isDueToday ? 'text-amber-600' : 'text-slate-700') }}">
-                                            {{ $task->end_date->format('d M') }}
+                                        <div class="text-xs font-bold {{ $isCompleted ? 'text-slate-500' : ($isOverdue ? 'text-rose-600' : ($isDueToday ? 'text-amber-600 font-extrabold' : 'text-slate-800')) }}">
+                                            {{ $task->end_date->format('M d, Y') }}
                                         </div>
-                                        @if($isOverdue)
-                                            <div class="text-[10px] font-extrabold text-rose-600 mt-0.5">{{ abs($daysLeft) }}d late</div>
+                                        @if($isCompleted)
+                                            <div class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 mt-0.5">
+                                                <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Completed</span>
+                                            </div>
+                                        @elseif($isOverdue)
+                                            <div class="inline-flex items-center gap-1 text-[10px] font-extrabold text-rose-600 mt-0.5">
+                                                <svg class="w-2.5 h-2.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span>{{ abs($daysLeft) }}d late</span>
+                                            </div>
                                         @elseif($isDueToday)
-                                            <div class="text-[10px] font-extrabold text-amber-600 mt-0.5">Today</div>
-                                        @elseif($daysLeft !== null && $daysLeft <= 3)
-                                            <div class="text-[10px] font-bold text-amber-500 mt-0.5">{{ $daysLeft }}d left</div>
+                                            <div class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-600 mt-0.5">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                                <span>Due today</span>
+                                            </div>
+                                        @elseif($daysLeft !== null && $daysLeft > 0 && $daysLeft <= 3)
+                                            <div class="text-[10px] font-bold text-amber-600 mt-0.5">{{ $daysLeft }}d left</div>
+                                        @elseif($daysLeft !== null && $daysLeft > 3)
+                                            <div class="text-[10px] font-medium text-slate-400 mt-0.5">{{ $daysLeft }}d left</div>
                                         @else
-                                            <div class="text-[10px] font-medium text-emerald-600 mt-0.5">{{ $daysLeft }}d left</div>
+                                            <div class="text-[10px] font-medium text-slate-400 mt-0.5">Past due</div>
                                         @endif
                                     @else
                                         <span class="text-xs text-slate-400 font-light">—</span>
@@ -505,7 +578,7 @@
          MODE 2: STUCK & BLOCKED TASKS RADAR VIEW
          ═══════════════════════════════════════════════════════════════ --}}
     @elseif($viewMode === 'stuck')
-        <div wire:key="view-content-stuck-tasks" class="space-y-4">
+        <div wire:key="view-content-stuck-tasks" class="space-y-4 min-w-0">
             <!-- Stuck Tasks Table -->
             <div class="all-tasks-table bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -520,18 +593,91 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                <div
+                    class="at-table-scroll"
+                    role="region"
+                    aria-label="Stuck tasks table. Drag left or right, or use Shift and the mouse wheel to scroll horizontally."
+                    tabindex="0"
+                    x-data="{
+                        pressed: false,
+                        dragging: false,
+                        moved: false,
+                        startX: 0,
+                        startScroll: 0,
+                        startDrag(event) {
+                            this.stopDrag();
+                            this.moved = false;
+                            if (event.pointerType !== 'mouse' || event.button !== 0) return;
+                            if (!event.target.closest('table')) return;
+                            if (event.target.closest('button, input, select, textarea, [contenteditable]')) return;
+                            if (this.$el.scrollWidth <= this.$el.clientWidth) return;
+                            this.pressed = true;
+                            this.startX = event.clientX;
+                            this.startScroll = this.$el.scrollLeft;
+                        },
+                        moveDrag(event) {
+                            if (!this.pressed) return;
+                            if (event.buttons !== 1) {
+                                this.stopDrag();
+                                return;
+                            }
+                            const distance = event.clientX - this.startX;
+                            if (!this.moved && Math.abs(distance) <= 5) return;
+                            this.dragging = true;
+                            this.moved = true;
+                            event.preventDefault();
+                            this.$el.scrollLeft = this.startScroll - distance;
+                        },
+                        stopDrag() {
+                            this.pressed = false;
+                            this.dragging = false;
+                        },
+                        cancelDragClick(event) {
+                            if (!this.moved || event.detail === 0) return;
+                            this.moved = false;
+                            event.preventDefault();
+                            event.stopImmediatePropagation();
+                        },
+                        scrollWithWheel(event) {
+                            if (!event.shiftKey || event.ctrlKey || event.deltaX !== 0) return;
+                            const unit = event.deltaMode === 1 ? 16 : (event.deltaMode === 2 ? this.$el.clientWidth : 1);
+                            const previous = this.$el.scrollLeft;
+                            this.$el.scrollLeft += event.deltaY * unit;
+                            if (this.$el.scrollLeft !== previous) event.preventDefault();
+                        }
+                    }"
+                    :class="{ 'is-dragging': dragging }"
+                    @pointerdown="startDrag($event)"
+                    @pointermove.window="moveDrag($event)"
+                    @pointerup.window="stopDrag()"
+                    @pointercancel.window="stopDrag()"
+                    @blur.window="stopDrag()"
+                    @dragstart.prevent
+                    @click.capture="cancelDragClick($event)"
+                    @wheel="scrollWithWheel($event)"
+                >
+                    <table class="at-stuck-table w-full text-left border-collapse text-xs">
+                        <caption class="sr-only">Stuck and blocked tasks with deadlines and delay days.</caption>
+                        <colgroup>
+                            <col style="width: 18%">
+                            <col style="width: 15%">
+                            <col style="width: 19%">
+                            <col style="width: 10%">
+                            <col style="width: 13%">
+                            <col style="width: 8%">
+                            <col style="width: 8%">
+                            <col style="width: 9%">
+                        </colgroup>
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-200/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
-                                <th class="py-3.5 pl-6 pr-4">Task / Deliverable</th>
-                                <th class="py-3.5 px-4">Project</th>
-                                <th class="py-3.5 px-4">Assignee</th>
-                                <th class="py-3.5 px-4">Status</th>
-                                <th class="py-3.5 px-4">Delay</th>
-                                <th class="py-3.5 px-4">Reason / Blocker</th>
-                                <th class="py-3.5 px-4">Priority</th>
-                                <th class="py-3.5 pl-4 pr-6 text-right">Action</th>
+                                <th scope="col" class="py-3.5 pl-6 pr-4">Task / Deliverable</th>
+                                <th scope="col" class="py-3.5 px-4">Project</th>
+                                <th scope="col" class="py-3.5 px-4">Assignee</th>
+                                <th scope="col" class="py-3.5 px-4">Status</th>
+                                <th scope="col" class="py-3.5 px-4">Deadline</th>
+                                <th scope="col" class="py-3.5 px-4">Delay</th>
+                                <th scope="col" class="py-3.5 px-4">Priority</th>
+                                <th scope="col" class="py-3.5 pl-4 pr-6 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -547,12 +693,12 @@
                                 <tr class="hover:bg-slate-50/60 transition-colors">
                                     <!-- 1. Task Title & Code -->
                                     <td class="py-3.5 pl-6 pr-4 align-middle">
-                                        <div class="flex items-center gap-2.5">
+                                        <div class="flex items-center gap-2.5 min-w-0">
                                             @if($isBlocked)
                                                 <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse flex-shrink-0" title="Blocked Task"></span>
                                             @endif
-                                            <div>
-                                                <a href="{{ route('projects.show', $task->project_id) }}?tab=wbs" class="font-bold text-slate-900 hover:text-[#c3122e] no-underline block leading-tight">
+                                            <div class="at-stuck-text">
+                                                <a href="{{ route('projects.show', $task->project_id) }}?tab=wbs" title="{{ $task->title }}" class="font-bold text-slate-900 hover:text-[#c3122e] no-underline line-clamp-2 leading-tight">
                                                     {{ $task->title }}
                                                 </a>
                                                 <span class="text-[10px] font-mono font-semibold text-slate-400">{{ $task->wbs_code }}</span>
@@ -565,17 +711,17 @@
                                         <a href="{{ route('projects.show', $task->project_id) }}" class="font-bold text-xs text-slate-800 hover:text-[#c3122e] no-underline block">
                                             {{ $pObj->code ?? 'PRJ' }}
                                         </a>
-                                        <span class="text-[10.5px] text-slate-400 block truncate max-w-[140px] font-medium">{{ $pObj->name ?? '—' }}</span>
+                                        <span class="text-[10.5px] text-slate-400 block truncate font-medium" title="{{ $pObj->name }}">{{ $pObj->name ?? '—' }}</span>
                                     </td>
 
                                     <!-- 3. Assignee -->
                                     <td class="py-3.5 px-4 align-middle whitespace-nowrap">
                                         @if($assignee)
-                                            <div class="flex items-center gap-2">
-                                                <span class="w-6 h-6 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <span class="w-6 h-6 shrink-0 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">
                                                     {{ strtoupper(substr($assignee->name, 0, 1)) }}
                                                 </span>
-                                                <span class="font-semibold text-slate-800 text-xs">{{ $assignee->name }}</span>
+                                                <span class="at-stuck-text font-semibold text-slate-800 text-xs" title="{{ $assignee->name }}">{{ $assignee->name }}</span>
                                             </div>
                                         @else
                                             <span class="text-slate-400 italic text-[11px]">Unassigned</span>
@@ -602,27 +748,24 @@
                                         @endif
                                     </td>
 
-                                    <!-- 5. Delay Days -->
-                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap font-mono font-bold text-slate-700">
-                                        @if($daysOverdue > 0)
-                                            <span class="text-rose-600 font-black">+{{ $daysOverdue }}d</span>
+                                    <!-- 5. Deadline -->
+                                    <td class="py-3.5 px-4 align-middle">
+                                        @if($task->end_date)
+                                            <time datetime="{{ $task->end_date->toDateString() }}"
+                                                  class="at-stuck-date block text-xs font-semibold {{ $daysOverdue > 0 ? 'text-rose-700' : 'text-slate-800' }}">
+                                                {{ $task->end_date->format('M d, Y') }}
+                                            </time>
                                         @else
-                                            <span class="text-slate-400 font-normal">—</span>
+                                            <span class="text-slate-400 text-[11px]">Not set</span>
                                         @endif
                                     </td>
 
-                                    <!-- 6. Blocker / Reason -->
-                                    <td class="py-3.5 px-4 align-middle">
-                                        @if(!empty($task->delay_reason))
-                                            <span class="text-[11px] text-slate-600 italic block line-clamp-1 font-medium" title="{{ $task->delay_reason }}">
-                                                "{{ $task->delay_reason }}"
-                                            </span>
-                                        @elseif($task->blockers && $task->blockers->where('status', 'open')->count() > 0)
-                                            <span class="text-[11px] text-rose-700 font-medium block line-clamp-1">
-                                                {{ $task->blockers->where('status', 'open')->first()->description ?? 'Active blocker logged' }}
-                                            </span>
+                                    <!-- 6. Delay Days -->
+                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap font-mono font-bold text-slate-700">
+                                        @if($daysOverdue > 0)
+                                            <span class="at-stuck-delay inline-flex items-center px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-[11px] font-bold" title="{{ $daysOverdue }} days past the deadline">{{ $daysOverdue }} {{ $daysOverdue === 1 ? 'day' : 'days' }}</span>
                                         @else
-                                            <span class="text-slate-400 font-light text-[11px]">—</span>
+                                            <span class="text-slate-400 font-normal">—</span>
                                         @endif
                                     </td>
 

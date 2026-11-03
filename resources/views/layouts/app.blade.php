@@ -313,6 +313,8 @@
             <!-- 4. Latest Updates -->
             <a href="{{ route('daily-updates.index') }}"
                wire:navigate.hover
+               x-data="{ unreadCount: {{ $unreadDailyUpdatesCount }} }"
+               @daily-updates-read.window="unreadCount = Number($event.detail.count)"
                @click="if (window.innerWidth < 1024) mobileSidebarOpen = false"
                class="{{ $navItemClass(request()->routeIs('daily-updates.*')) }}"
                :class="{ 'justify-center w-10 h-10 mx-auto': sidebarCollapsed && !mobileSidebarOpen, 'justify-between gap-3 px-3 py-2.5': !sidebarCollapsed || mobileSidebarOpen }"
@@ -324,13 +326,12 @@
                     </svg>
                     <span x-show="!sidebarCollapsed || mobileSidebarOpen" class="truncate">Latest Updates</span>
                 </div>
-                @if($unreadDailyUpdatesCount > 0)
-                    <span x-show="!sidebarCollapsed || mobileSidebarOpen"
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('daily-updates.*') ? 'bg-white text-[#c3122e]' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70 shadow-2xs' }}">
-                        {{ $unreadDailyUpdatesCount }}
-                    </span>
-                    <span x-show="sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#c3122e] ring-2 ring-white animate-pulse"></span>
-                @endif
+                <span x-cloak x-show="unreadCount > 0 && (!sidebarCollapsed || mobileSidebarOpen)"
+                      x-text="unreadCount"
+                      class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('daily-updates.*') ? 'bg-white text-[#c3122e]' : 'bg-rose-50 text-[#c3122e] border border-rose-200/70 shadow-2xs' }}">
+                    {{ $unreadDailyUpdatesCount }}
+                </span>
+                <span x-cloak x-show="unreadCount > 0 && sidebarCollapsed && !mobileSidebarOpen" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#c3122e] ring-2 ring-white animate-pulse"></span>
             </a>
 
             <!-- 5. Calendar -->

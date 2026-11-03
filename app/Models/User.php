@@ -91,10 +91,23 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
-    public static function getUsersForSubsidiary(?int $subsidiaryId)
+    /**
+     * Determine if user is a governance or administrative user:
+     * Super Admin, PMO Admin, or Admin Viewer.
+     */
+    public function isGovernanceOrAdminUser(): bool
+    {
+        return $this->isSuperAdmin() 
+            || $this->isPmoAdmin() 
+            || $this->isAdminViewer() 
+            || $this->hasAdminInterfaceAccess();
+    }
+
+    public static function getUsersForSubsidiary(?int $subsidiaryId, bool $excludeAdmins = true)
     {
         if (!$subsidiaryId) {
-            return static::with(['subsidiary', 'roles'])->where('is_active', true)->orderBy('name')->get();
+            $all = static::with(['subsidiary', 'roles'])->where('is_active', true)->orderBy('name')->get();
+            return $excludeAdmins ? $all->reject(fn($u) => $u->isGovernanceOrAdminUser())->values() : $all;
         }
 
         $sub = Subsidiary::find($subsidiaryId);
@@ -120,15 +133,16 @@ class User extends Authenticatable
             ->get();
 
         if ($users->isEmpty()) {
-            return static::with(['subsidiary', 'roles'])->where('is_active', true)->orderBy('name')->get();
+            $fallback = static::with(['subsidiary', 'roles'])->where('is_active', true)->orderBy('name')->get();
+            return $excludeAdmins ? $fallback->reject(fn($u) => $u->isGovernanceOrAdminUser())->values() : $fallback;
         }
 
-        return $users;
+        return $excludeAdmins ? $users->reject(fn($u) => $u->isGovernanceOrAdminUser())->values() : $users;
     }
 
-    public static function getPmsForSubsidiary(?int $subsidiaryId)
+    public static function getPmsForSubsidiary(?int $subsidiaryId, bool $excludeAdmins = true)
     {
-        return static::getUsersForSubsidiary($subsidiaryId);
+        return static::getUsersForSubsidiary($subsidiaryId, $excludeAdmins);
     }
 
     public function isSuperAdmin(): bool

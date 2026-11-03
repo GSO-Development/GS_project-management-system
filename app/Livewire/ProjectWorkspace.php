@@ -90,7 +90,6 @@ class ProjectWorkspace extends Component
     public string $statusTitle = '';
     public string $statusSummary = '';
     public ?string $workCompleted = null;
-    public ?string $nextSteps = null;
 
     // Comment Form
     public string $commentContent = '';
@@ -952,7 +951,6 @@ class ProjectWorkspace extends Component
             'title' => $this->statusTitle,
             'summary' => $this->statusSummary,
             'work_completed' => $this->workCompleted,
-            'next_steps' => $this->nextSteps,
             'current_progress' => $this->project->overall_progress,
             'updated_status' => $this->project->status,
             'created_by' => $user->id,
@@ -960,14 +958,8 @@ class ProjectWorkspace extends Component
 
         try {
             $recipients = collect();
-            if ($this->project->project_manager_id === $user->id || $user->hasRole('super_admin')) {
-                foreach ($this->project->members()->where('users.id', '!=', $user->id)->get() as $m) {
-                    $recipients->push($m);
-                }
-            } else {
-                if ($this->project->projectManager && $this->project->projectManager->id !== $user->id) {
-                    $recipients->push($this->project->projectManager);
-                }
+            if ($this->project->projectManager && $this->project->projectManager->id !== $user->id) {
+                $recipients->push($this->project->projectManager);
             }
 
             $superAdmins = \App\Models\User::where(function($q) {
@@ -994,7 +986,7 @@ class ProjectWorkspace extends Component
             \Illuminate\Support\Facades\Log::warning('Failed to dispatch daily update notification from workspace: ' . $e->getMessage());
         }
 
-        $this->reset(['statusTitle', 'statusSummary', 'workCompleted', 'nextSteps']);
+        $this->reset(['statusTitle', 'statusSummary', 'workCompleted']);
         $this->dispatch('toast', message: 'Daily status update published successfully!', type: 'success');
     }
 

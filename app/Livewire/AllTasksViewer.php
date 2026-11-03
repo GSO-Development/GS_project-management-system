@@ -270,13 +270,63 @@ class AllTasksViewer extends Component
             $query->where('priority', $this->priorityFilter);
         }
 
-        $query->orderBy(match($this->sortBy) {
-            'priority' => 'priority',
-            'title'    => 'title',
-            'project'  => 'project_id',
-            default    => 'end_date',
-        }, 'asc')
-        ->orderBy('id', 'asc');
+        $todayStr = now()->today()->toDateString();
+
+        if ($this->sortBy === 'end_date') {
+            $query->orderByRaw("
+                CASE 
+                    -- 1. Due Today active tasks (end_date = today)
+                    WHEN DATE(end_date) = '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN 1
+                    -- 2. Active today (started on/before today and ending on/after today)
+                    WHEN DATE(start_date) <= '{$todayStr}' AND DATE(end_date) >= '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN 2
+                    WHEN DATE(start_date) = '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN 3
+                    -- 3. Upcoming active tasks (nearest future deadline first)
+                    WHEN end_date > '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN 4
+                    -- 4. Overdue active tasks (yesterday backwards)
+                    WHEN end_date < '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN 5
+                    -- 5. Completed / cancelled tasks
+                    WHEN status IN ('completed', 'cancelled') THEN 6
+                    ELSE 7
+                END ASC
+            ")
+            ->orderByRaw("
+                CASE 
+                    -- Today and upcoming tasks sorted nearest deadline first
+                    WHEN end_date >= '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN end_date
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderByRaw("
+                CASE 
+                    -- Overdue tasks sorted most recent date first (yesterday first, not months ago)
+                    WHEN end_date < '{$todayStr}' AND status NOT IN ('completed', 'cancelled') THEN end_date
+                    ELSE NULL
+                END DESC
+            ")
+            ->orderByRaw("
+                CASE 
+                    -- Completed tasks sorted most recent date first
+                    WHEN status IN ('completed', 'cancelled') THEN end_date
+                    ELSE NULL
+                END DESC
+            ")
+            ->orderBy('id', 'desc');
+        } elseif ($this->sortBy === 'priority') {
+            $query->orderByRaw("
+                CASE priority 
+                    WHEN 'high' THEN 1 
+                    WHEN 'medium' THEN 2 
+                    WHEN 'low' THEN 3 
+                    ELSE 4 
+                END ASC
+            ")->orderBy('end_date', 'asc')->orderBy('id', 'asc');
+        } elseif ($this->sortBy === 'title') {
+            $query->orderBy('title', 'asc')->orderBy('id', 'asc');
+        } elseif ($this->sortBy === 'project') {
+            $query->orderBy('project_id', 'asc')->orderBy('end_date', 'asc')->orderBy('id', 'asc');
+        } else {
+            $query->orderBy('end_date', 'asc')->orderBy('id', 'asc');
+        }
 
         $tasks    = $query->paginate($this->perPage);
         $projects = Project::orderBy('name')->get(['id', 'name']);

@@ -21,6 +21,35 @@ class Comment extends Model
         'content',
     ];
 
+    public static function encodeContentWithVisibility(string $content, ?string $visibility = null): string
+    {
+        $clean = preg_replace('/^\[VIS:(pmo_pm|team)\]\s*/', '', trim($content));
+        if (in_array($visibility, ['pmo_pm', 'team'], true)) {
+            return "[VIS:{$visibility}] " . $clean;
+        }
+
+        return $clean;
+    }
+
+    public function getVisibilityAttribute(): ?string
+    {
+        $raw = $this->attributes['content'] ?? '';
+        if (preg_match('/^\[VIS:(pmo_pm|team)\]/', $raw, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    public function getContentAttribute(?string $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        return preg_replace('/^\[VIS:(pmo_pm|team)\]\s*/', '', $value);
+    }
+
     public function commentable(): MorphTo
     {
         return $this->morphTo();

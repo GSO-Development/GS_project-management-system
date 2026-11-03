@@ -357,6 +357,15 @@ class ProjectCreate extends Component
             }
         }
 
+        // Validate that PM is not an admin/governance user
+        if ($this->project_manager_id) {
+            $selectedPmUser = User::find($this->project_manager_id);
+            if ($selectedPmUser && $selectedPmUser->isGovernanceOrAdminUser()) {
+                $this->addError('project_manager_id', 'Super Admins, PMO Admins, and Admin Viewers cannot be assigned as Project Manager.');
+                return;
+            }
+        }
+
         $validationRules = [
             'subsidiary_id' => 'required|exists:subsidiaries,id',
             'name' => 'required|string|max:255',
@@ -531,8 +540,8 @@ class ProjectCreate extends Component
     {
         $subsidiaries = Subsidiary::all();
         $currentSub = $this->subsidiary_id ? Subsidiary::find($this->subsidiary_id) : null;
-        $allPms = $this->subsidiary_id ? User::getPmsForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
-        $allParticipants = $this->subsidiary_id ? User::getUsersForSubsidiary($this->subsidiary_id) : User::where('is_active', true)->get();
+        $allPms = User::getPmsForSubsidiary($this->subsidiary_id);
+        $allParticipants = User::getUsersForSubsidiary($this->subsidiary_id);
         $allTemplates = \App\Models\ProjectTemplate::all();
 
         // Load custom roles and filter their user lists

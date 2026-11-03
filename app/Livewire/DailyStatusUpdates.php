@@ -76,59 +76,166 @@ class DailyStatusUpdates extends Component
     public string $updateStatus = 'in_progress';
     public string $updateWorkCompleted = '';
     public string $updateBlockers = '';
-    public string $updateNextSteps = '';
 
     // Comment Input State indexed by updateId
     public array $newCommentContent = [];
+    public string $commentVisibility = 'team'; // 'team' (Team Member & PM) or 'pmo_pm' (PMO Admin & PM Only)
 
     // Modal State for viewing history
     public bool $showHistoryModal = false;
     public ?int $historyProjectId = null;
     public ?int $selectedHistoryUpdateId = null;
+    public string $historyTab = 'report';
 
-    public function markProjectUpdatesAsRead(?int $projectId = null, ?int $updateId = null): void
+    protected function syncDefaultCommentVisibility(?ProjectStatusUpdate $update): void
     {
-        $user = auth()->user();
-        if (!$user) return;
+        if (!$update) {
+            $this->commentVisibility = 'team';
+            return;
+        }
 
-        $user->unreadNotifications()
-            ->where(function($q) {
-                $q->where('type', DailyUpdateNotification::class)
-                  ->orWhere('type', 'App\\Notifications\\DailyUpdateNotification');
-            })
-            ->get()
-            ->filter(function($n) use ($projectId, $updateId) {
-                $url = $n->data['url'] ?? '';
-                if ($updateId && (str_contains($url, "update={$updateId}") || str_contains($url, "update%3D{$updateId}"))) {
-                    return true;
-                }
-                if ($projectId && (str_contains($url, "project={$projectId}") || str_contains($url, "project%3D{$projectId}"))) {
-                    return true;
-                }
-                if (!$projectId && !$updateId) {
-                    return true;
-                }
-                return false;
-            })
-            ->each(fn($n) => $n->markAsRead());
+        $creator = $update->creator ?? ($update->created_by ? User::find($update->created_by) : null);
+        $project = $update->project ?? ($update->project_id ? Project::find($update->project_id) : null);
+
+        if ($creator && ($this->isSuperAdminUser($creator) || $this->isProjectManagerOf($project, $creator))) {
+            $this->commentVisibility = 'pmo_pm';
+        } else {
+            $this->commentVisibility = 'team';
+        }
     }
 
-    public function openHistoryModal(int $projectId, ?int $updateId = null)
+    protected function findVisibleHistoryUpdate(int $projectId, ?int $updateId = null): ?ProjectStatusUpdate
     {
-        $this->historyProjectId = $projectId;
-        $this->selectedHistoryUpdateId = $updateId;
-        $this->showHistoryModal = true;
+        $project = $this->getAccessibleProjects()->firstWhere('id', $projectId);
+        if (!$project) {
+            return null;
+        }
 
-        $this->markProjectUpdatesAsRead($projectId, $updateId);
+        $query = ProjectStatusUpdate::with(['creator', 'project', 'comments.user.roles'])
+            ->where('project_id', $projectId);
+        if (!$this->canViewAllProjectUpdates($project)) {
+            $query->where(function ($q) {
+                $q->where('created_by', auth()->id())
+                    ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
+            });
+        }
+
+        return $updateId ? $query->find($updateId) : $query->latest()->first();
+    }
+
+    protected function dailyUpdateNotificationParameters($notification): array
+    {
+        $url = html_entity_decode($notification->data['url'] ?? '');
+        $queryString = parse_url($url, PHP_URL_QUERY) ?: '';
+        parse_str($queryString, $parameters);
+
+        // Support notifications created before URLs were stored in decoded form.
+        if (!isset($parameters['project']) && !isset($parameters['update'])) {
+            parse_str(rawurldecode($queryString), $parameters);
+        }
+
+        return $parameters;
+    }
+
+    protected function unreadDailyUpdateCountsByProject(User $user): \Illuminate\Support\Collection
+    {
+        return $user->unreadNotifications()
+            ->where('type', DailyUpdateNotification::class)
+            ->get()
+            ->map(fn ($notification) => $this->dailyUpdateNotificationParameters($notification))
+            ->filter(fn (array $parameters) => isset($parameters['project']) && ctype_digit((string) $parameters['project']))
+            ->countBy(fn (array $parameters) => (int) $parameters['project']);
+    }
+
+    protected function markProjectUpdatesAsRead(?int $projectId = null, ?int $updateId = null, string $tab = 'report'): void
+    {
+        $user = auth()->user();
+        if (!$user || !$projectId || !$updateId || !in_array($tab, ['report', 'discussion'], true)) {
+            return;
+        }
+
+        $update = $this->findVisibleHistoryUpdate($projectId, $updateId);
+        if (!$update) {
+            return;
+        }
+        $visibleCommentIds = $this->getVisibleCommentsForUpdate($update)->modelKeys();
+
+        $notificationIds = $user->unreadNotifications()
+            ->where('type', DailyUpdateNotification::class)
+            ->get()
+            ->filter(function ($notification) use ($projectId, $updateId, $tab, $visibleCommentIds) {
+                $data = $notification->data;
+                $parameters = $this->dailyUpdateNotificationParameters($notification);
+
+                // Match complete IDs; update=1 must never match update=10.
+                if ((string) ($parameters['update'] ?? '') !== (string) $updateId) {
+                    return false;
+                }
+                if (isset($parameters['project']) && (string) $parameters['project'] !== (string) $projectId) {
+                    return false;
+                }
+
+                $isComment = ($data['action'] ?? '') === 'comment';
+                if ($tab === 'report') {
+                    return !$isComment;
+                }
+                if (!$isComment || empty($visibleCommentIds)) {
+                    return false;
+                }
+
+                // Older notifications do not contain a comment ID.
+                return empty($data['comment_id']) || in_array((int) $data['comment_id'], $visibleCommentIds, true);
+            })
+            ->modelKeys();
+
+        if (empty($notificationIds)) {
+            return;
+        }
+
+        $user->unreadNotifications()->whereIn('id', $notificationIds)->update(['read_at' => now()]);
+        $projectUnreadCount = (int) $this->unreadDailyUpdateCountsByProject($user)->get($projectId, 0);
+        $this->dispatch('daily-updates-read', count: $user->unreadNotifications()
+            ->where('type', DailyUpdateNotification::class)->count(),
+            projectId: $projectId,
+            projectUnreadCount: $projectUnreadCount);
+    }
+
+    public function openHistoryModal(int $projectId, ?int $updateId = null, string $tab = 'report')
+    {
+        abort_unless($this->getAccessibleProjects()->contains('id', $projectId), 403);
+        $targetUpdate = $this->findVisibleHistoryUpdate($projectId, $updateId);
+        abort_if($updateId && !$targetUpdate, 404);
+
+        $this->historyProjectId = $projectId;
+        $this->selectedHistoryUpdateId = $targetUpdate?->id;
+        $this->historyTab = in_array($tab, ['report', 'discussion', 'history'], true) ? $tab : 'report';
+        $this->showHistoryModal = true;
+        $this->syncDefaultCommentVisibility($targetUpdate);
+        $this->markProjectUpdatesAsRead($projectId, $targetUpdate?->id, $this->historyTab);
     }
 
     public function selectHistoryUpdate(int $updateId)
     {
-        $this->selectedHistoryUpdateId = $updateId;
+        if (!$this->showHistoryModal || !$this->historyProjectId) {
+            return;
+        }
+        $update = $this->findVisibleHistoryUpdate($this->historyProjectId, $updateId);
+        abort_unless($update, 404);
 
-        $update = ProjectStatusUpdate::find($updateId);
-        if ($update) {
-            $this->markProjectUpdatesAsRead($update->project_id, $updateId);
+        $this->selectedHistoryUpdateId = $update->id;
+        $this->historyTab = 'report';
+        $this->syncDefaultCommentVisibility($update);
+        $this->markProjectUpdatesAsRead($update->project_id, $update->id);
+    }
+
+    public function updatedHistoryTab(string $tab): void
+    {
+        if (!in_array($tab, ['report', 'discussion', 'history'], true)) {
+            $this->historyTab = 'report';
+            return;
+        }
+        if ($this->showHistoryModal) {
+            $this->markProjectUpdatesAsRead($this->historyProjectId, $this->selectedHistoryUpdateId, $tab);
         }
     }
 
@@ -137,6 +244,7 @@ class DailyStatusUpdates extends Component
         $this->showHistoryModal = false;
         $this->historyProjectId = null;
         $this->selectedHistoryUpdateId = null;
+        $this->historyTab = 'report';
     }
 
     protected $queryString = [
@@ -151,6 +259,7 @@ class DailyStatusUpdates extends Component
         $taskId = request()->query('task') ? (int) request()->query('task') : null;
         $updateId = request()->query('update') ? (int) request()->query('update') : null;
         $shouldCreate = request()->boolean('create');
+        $historyTab = (string) request()->query('tab', 'report');
 
         if ($projectId) {
             $this->selectedProjectId = $projectId;
@@ -159,9 +268,12 @@ class DailyStatusUpdates extends Component
         if ($shouldCreate) {
             $this->openStatusUpdateModal($projectId, $taskId);
         } elseif ($projectId) {
-            $this->openHistoryModal($projectId, $updateId);
+            $this->openHistoryModal($projectId, $updateId, $historyTab);
         } elseif ($updateId) {
-            $this->markProjectUpdatesAsRead(null, $updateId);
+            $targetUpdate = ProjectStatusUpdate::find($updateId);
+            if ($targetUpdate) {
+                $this->openHistoryModal($targetUpdate->project_id, $updateId, $historyTab);
+            }
         }
 
         if ($this->hasActiveFilters()) {
@@ -176,9 +288,101 @@ class DailyStatusUpdates extends Component
         $user = $user ?? auth()->user();
         if (!$user) return false;
 
-        return $user->hasRole('super_admin')
-            || $user->email === 'admin@nexuspm.local'
-            || $user->id === 1;
+        return $user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1;
+    }
+
+    public function isProjectManagerOf(Project|int|null $project, ?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+        if (!$user || !$project) {
+            return false;
+        }
+
+        $projectModel = $project instanceof Project ? $project : Project::find($project);
+        if (!$projectModel) {
+            return false;
+        }
+
+        if ((int) $projectModel->project_manager_id === (int) $user->id) {
+            return true;
+        }
+
+        return $projectModel->members()
+            ->where('users.id', $user->id)
+            ->where('project_members.role', 'lead')
+            ->exists();
+    }
+
+    public function canViewAllProjectUpdates(Project|int|null $project, ?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($this->isSuperAdminUser($user) || $this->hasPortfolioViewAccess($user)) {
+            return true;
+        }
+
+        return $this->isProjectManagerOf($project, $user);
+    }
+
+    public function getVisibleCommentsForUpdate(?ProjectStatusUpdate $update, ?Project $project = null, ?User $user = null)
+    {
+        if (!$update) {
+            return collect();
+        }
+
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return collect();
+        }
+
+        $project = $project ?? $update->project;
+
+        // PMO Admin, Super Admin, Admin Viewer, or this project's Project Manager see all comments
+        if ($this->canViewAllProjectUpdates($project, $user)) {
+            return $update->comments;
+        }
+
+        // Team Member: never see 'pmo_pm' comments.
+        // Only see their own comments, or comments from this project's PM / PMO Admin marked 'team' (or legacy comments on their own update).
+        $isOwnUpdate = ((int) $update->created_by === (int) $user->id);
+        $pmId = $project ? (int) $project->project_manager_id : 0;
+
+        return $update->comments->filter(function ($comment) use ($user, $pmId, $project, $isOwnUpdate) {
+            // Comments marked 'pmo_pm' are strictly private between PMO Admin and Project Manager
+            if ($comment->visibility === 'pmo_pm') {
+                return false;
+            }
+
+            if (!$isOwnUpdate && $comment->visibility !== 'team') {
+                return false;
+            }
+
+            $author = $comment->user;
+            if (!$author) {
+                return false;
+            }
+
+            if ((int) $author->id === (int) $user->id) {
+                return true;
+            }
+
+            if ($pmId && (int) $author->id === $pmId) {
+                return true;
+            }
+
+            if ($this->isSuperAdminUser($author)) {
+                return true;
+            }
+
+            if ($project && $this->isProjectManagerOf($project, $author)) {
+                return true;
+            }
+
+            return false;
+        })->values();
     }
 
     protected function hasPortfolioViewAccess(?User $user = null): bool
@@ -191,6 +395,21 @@ class DailyStatusUpdates extends Component
     public function updatedUpdateProjectId()
     {
         $this->updateWbsItemId = null;
+        $user = auth()->user();
+        $canManageProject = $this->isSuperAdminUser($user) || $this->isProjectManagerOf($this->updateProjectId, $user);
+
+        if (!$canManageProject) {
+            $this->updateScopeType = 'task';
+            if ($this->updateProjectId && $user) {
+                $firstTask = WbsItem::where('project_id', $this->updateProjectId)
+                    ->where('assigned_user_id', $user->id)
+                    ->orderBy('id')
+                    ->first();
+                if ($firstTask) {
+                    $this->updateWbsItemId = $firstTask->id;
+                }
+            }
+        }
     }
 
     public function openStatusUpdateModal(?int $projectId = null, ?int $wbsItemId = null)
@@ -210,7 +429,6 @@ class DailyStatusUpdates extends Component
             'updateStatus',
             'updateWorkCompleted',
             'updateBlockers',
-            'updateNextSteps',
         ]);
 
         if ($projectId) {
@@ -230,10 +448,19 @@ class DailyStatusUpdates extends Component
                 $this->updateTitle = 'Daily Progress Log: ' . $wbs->title . ' (' . now()->format('M d') . ')';
             }
         } else {
-            $isPmOnProject = ($this->updateProjectId && Project::where('id', $this->updateProjectId)->where('project_manager_id', $user->id)->exists());
-            if (!$this->isSuperAdminUser($user) && !$isPmOnProject) {
+            $isPmOrAdminOnProject = $this->isSuperAdminUser($user) || $this->isProjectManagerOf($this->updateProjectId, $user);
+            if (!$isPmOrAdminOnProject) {
                 $this->updateScopeType = 'task';
                 $this->updateTitle = 'Task Progress Log — ' . now()->format('M d, Y');
+                if ($this->updateProjectId && $user) {
+                    $firstTask = WbsItem::where('project_id', $this->updateProjectId)
+                        ->where('assigned_user_id', $user->id)
+                        ->orderBy('id')
+                        ->first();
+                    if ($firstTask) {
+                        $this->updateWbsItemId = $firstTask->id;
+                    }
+                }
             } else {
                 $this->updateScopeType = 'project';
                 $this->updateTitle = 'Daily Project Update — ' . now()->format('M d, Y');
@@ -260,17 +487,16 @@ class DailyStatusUpdates extends Component
         ]);
 
         $project = Project::findOrFail($this->updateProjectId);
+        $isPmOrAdminOnProject = $this->isSuperAdminUser($user) || $this->isProjectManagerOf($project, $user);
 
-        if (!$this->isSuperAdminUser($user) && $project->project_manager_id !== $user->id) {
+        if (!$isPmOrAdminOnProject) {
+            $this->updateScopeType = 'task';
             if ($this->updateWbsItemId) {
                 $wbs = WbsItem::find($this->updateWbsItemId);
-                if (!$wbs || $wbs->assigned_user_id !== $user->id) {
+                if (!$wbs || (int) $wbs->project_id !== (int) $project->id || (int) $wbs->assigned_user_id !== (int) $user->id) {
                     $this->dispatch('toast', message: 'You can only log updates for tasks assigned to you.', type: 'error');
                     return;
                 }
-            } else {
-                $this->dispatch('toast', message: 'Only Project Managers and Admins can publish full project status updates.', type: 'error');
-                return;
             }
         }
 
@@ -283,7 +509,6 @@ class DailyStatusUpdates extends Component
             'current_progress' => $project->overall_progress,
             'work_completed' => $this->updateWorkCompleted,
             'current_blockers' => $this->updateBlockers,
-            'next_steps' => $this->updateNextSteps,
             'updated_status' => $this->updateStatus,
             'created_by' => $user->id,
         ]);
@@ -297,33 +522,25 @@ class DailyStatusUpdates extends Component
             }
         }
 
-        if (!$this->updateWbsItemId && ($this->isSuperAdminUser($user) || $project->project_manager_id === $user->id)) {
+        if (!$this->updateWbsItemId && $isPmOrAdminOnProject) {
             $project->update(['status' => $this->updateStatus]);
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // DISPATCH NOTIFICATIONS TO PM, TEAM MEMBERS, AND SUPER ADMINS
+        // DISPATCH NOTIFICATIONS TO PM AND PMO ADMINS / SUPER ADMINS
+        // (Team members do not receive notifications for PM <-> Admin updates)
         // ═══════════════════════════════════════════════════════════════
         try {
             $recipients = collect();
 
-            // 1. If author is PM or Admin -> notify all assigned project team members
-            if ($project->project_manager_id === $user->id || $this->isSuperAdminUser($user)) {
-                $members = $project->members()->where('users.id', '!=', $user->id)->get();
-                foreach ($members as $m) {
-                    $recipients->push($m);
-                }
-            } else {
-                // 2. If author is a team member -> notify the designated Project Manager
-                if ($project->projectManager && $project->projectManager->id !== $user->id) {
-                    $recipients->push($project->projectManager);
-                }
+            if ($project->projectManager && (int) $project->projectManager->id !== (int) $user->id) {
+                $recipients->push($project->projectManager);
             }
 
-            // Also notify super admins
             $superAdmins = User::where(function($q) {
                 $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin']))
                   ->orWhere('email', 'admin@nexuspm.local')
+                  ->orWhere('email', 'superadmin@georgesteuart.com')
                   ->orWhere('id', 1);
             })->where('id', '!=', $user->id)->get();
 
@@ -352,47 +569,70 @@ class DailyStatusUpdates extends Component
         $this->dispatch('toast', message: 'Daily status update published successfully!', type: 'success');
     }
 
-    public function addComment(int $updateId)
+    public function addComment(int $updateId, ?string $visibility = null)
     {
+        $user = auth()->user();
+        if (!$user || $user->isAdminViewer()) {
+            $this->dispatch('toast', message: 'Unauthorized to post comments.', type: 'error');
+            return;
+        }
+
         $content = trim($this->newCommentContent[$updateId] ?? '');
         if (empty($content)) {
             $this->dispatch('toast', message: 'Please write a comment before sending.', type: 'warning');
             return;
         }
 
-        $update = ProjectStatusUpdate::findOrFail($updateId);
-        $user = auth()->user();
+        $update = ProjectStatusUpdate::with('project.projectManager', 'creator')->findOrFail($updateId);
+        $isPmOrAdminOnProject = $this->isSuperAdminUser($user) || $this->isProjectManagerOf($update->project, $user);
 
-        Comment::create([
+        if (!$isPmOrAdminOnProject && (int) $update->created_by !== (int) $user->id) {
+            $this->dispatch('toast', message: 'You can only comment on your own updates.', type: 'error');
+            return;
+        }
+
+        // Determine visibility: Team Members always post in 'team' thread; PM/Admin can choose 'team' or 'pmo_pm'
+        $chosenVisibility = $visibility ?: $this->commentVisibility;
+        $finalVisibility = $isPmOrAdminOnProject
+            ? (in_array($chosenVisibility, ['pmo_pm', 'team'], true) ? $chosenVisibility : 'team')
+            : 'team';
+
+        $comment = Comment::create([
             'commentable_id' => $update->id,
             'commentable_type' => ProjectStatusUpdate::class,
             'user_id' => $user->id,
-            'content' => $content,
+            'content' => Comment::encodeContentWithVisibility($content, $finalVisibility),
         ]);
 
-        $this->markProjectUpdatesAsRead($update->project_id, $updateId);
+        $this->markProjectUpdatesAsRead($update->project_id, $updateId, 'discussion');
 
         // ═══════════════════════════════════════════════════════════════
-        // DISPATCH COMMENT NOTIFICATIONS (SUPERADMIN <-> PM RECIPROCALLY)
+        // DISPATCH COMMENT NOTIFICATIONS
         // ═══════════════════════════════════════════════════════════════
         try {
             $commentRecipients = collect();
 
-            // 1. Notify original update author if different from commenter (e.g. PM who wrote the update)
-            if ($update->created_by && $update->created_by !== $user->id) {
-                $creator = User::find($update->created_by);
-                if ($creator) $commentRecipients->push($creator);
+            // 1. Notify original update author ONLY if visibility is 'team' OR the author is PM/Admin
+            if ($update->created_by && (int) $update->created_by !== (int) $user->id) {
+                $creator = $update->creator ?? User::find($update->created_by);
+                if ($creator) {
+                    $creatorIsPmOrAdmin = $this->isSuperAdminUser($creator) || $this->isProjectManagerOf($update->project, $creator);
+                    if ($finalVisibility === 'team' || $creatorIsPmOrAdmin) {
+                        $commentRecipients->push($creator);
+                    }
+                }
             }
 
-            // 2. If commenter is not PM, notify the Project Manager of the project
-            if ($update->project && $update->project->projectManager && $update->project->projectManager->id !== $user->id) {
+            // 2. Notify the Project Manager of the project if different from commenter
+            if ($update->project && $update->project->projectManager && (int) $update->project->projectManager->id !== (int) $user->id) {
                 $commentRecipients->push($update->project->projectManager);
             }
 
-            // 3. Always notify all Super Admins (unless commenter is super admin)
+            // 3. Notify all PMO Admins / Super Admins (unless commenter is that admin)
             $superAdmins = User::where(function($q) {
                 $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['super_admin', 'pmo_admin']))
                   ->orWhere('email', 'admin@nexuspm.local')
+                  ->orWhere('email', 'superadmin@georgesteuart.com')
                   ->orWhere('id', 1);
             })->where('id', '!=', $user->id)->get();
 
@@ -407,9 +647,10 @@ class DailyStatusUpdates extends Component
                     updateTitle: $update->title,
                     reporterName: $user->name,
                     projectName: $update->project->name ?? 'Project',
-                    url: route('daily-updates.index', ['project' => $update->project_id, 'update' => $update->id]),
+                    url: route('daily-updates.index', ['project' => $update->project_id, 'update' => $update->id, 'tab' => 'discussion']),
                     actionType: 'comment',
-                    summary: Str::limit($content, 120)
+                    summary: Str::limit($content, 120),
+                    commentId: $comment->id
                 ));
             }
         } catch (\Throwable $e) {
@@ -417,15 +658,24 @@ class DailyStatusUpdates extends Component
         }
 
         $this->newCommentContent[$updateId] = '';
+        $this->historyTab = 'discussion';
         $this->dispatch('toast', message: 'Feedback comment posted successfully!', type: 'success');
+    }
+
+    public function setCommentVisibility(string $visibility): void
+    {
+        if (in_array($visibility, ['team', 'pmo_pm'], true)) {
+            $this->commentVisibility = $visibility;
+        }
+        $this->historyTab = 'discussion';
     }
 
     public function deleteUpdate(int $updateId)
     {
         $user = auth()->user();
-        $update = ProjectStatusUpdate::findOrFail($updateId);
+        $update = ProjectStatusUpdate::with('project')->findOrFail($updateId);
 
-        if ($update->created_by !== $user->id && !$this->isSuperAdminUser($user) && $update->project->project_manager_id !== $user->id) {
+        if ((int) $update->created_by !== (int) $user->id && !$this->isSuperAdminUser($user) && !$this->isProjectManagerOf($update->project, $user)) {
             $this->dispatch('toast', message: 'Unauthorized.', type: 'error');
             return;
         }
@@ -439,12 +689,12 @@ class DailyStatusUpdates extends Component
         $user = auth()->user();
         $comment = Comment::findOrFail($commentId);
 
-        $isAuthor = ($comment->user_id === $user->id);
+        $isAuthor = ((int) $comment->user_id === (int) $user->id);
         $isSuperAdmin = $this->isSuperAdminUser($user);
 
         $isPm = false;
         if ($comment->commentable instanceof ProjectStatusUpdate && $comment->commentable->project) {
-            $isPm = ($comment->commentable->project->project_manager_id === $user->id);
+            $isPm = $this->isProjectManagerOf($comment->commentable->project, $user);
         }
 
         if (!$isAuthor && !$isSuperAdmin && !$isPm) {
@@ -453,6 +703,7 @@ class DailyStatusUpdates extends Component
         }
 
         $comment->delete();
+        $this->historyTab = 'discussion';
         $this->dispatch('toast', message: 'Feedback comment removed successfully.', type: 'info');
     }
 
@@ -499,35 +750,28 @@ class DailyStatusUpdates extends Component
         // Scope to accessible projects
         $updatesQuery->whereIn('project_id', $accessibleProjectIds);
 
-        // Visibility Hierarchy Rules:
-        // Project Manager / Admins: see all updates and comments for projects they manage or have admin access to.
-        // Team Member: only see their own updates (created_by === user->id).
-        $isAdmin = $isSuperAdmin || ($user && $user->hasAdminInterfaceAccess());
-        $isProjectManager = $user && (
-            $user->isProjectManager() ||
-            $user->hasRole('project_manager') ||
-            $user->hasRole('lead') ||
-            Project::where('project_manager_id', $user->id)->exists()
-        );
+        // Visibility Hierarchy Rules (Per-Project):
+        // - PMO Admin / Super Admin / Admin Viewer: see all updates across all projects.
+        // - Project Manager of a specific project: see all updates on THAT project.
+        // - Team Member on a project: ONLY see their own updates (created_by === user->id).
+        $isAdmin = $isSuperAdmin || $hasPortfolioViewAccess;
 
-        if (!$isAdmin) {
-            if ($isProjectManager) {
-                // Project Managers see all updates on projects they manage or are assigned to as PM.
-                // For any other project where they might just be a regular member, they only see their own updates.
-                $updatesQuery->where(function($q) use ($user) {
-                    $q->whereHas('project', function($projQuery) use ($user) {
-                        $projQuery->where('project_manager_id', $user->id)
-                                  ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id)->whereIn('project_members.role', ['lead', 'sponsor', 'owner', 'steering_committee']));
-                    })
-                    ->when($user->hasRole('project_manager'), function($sub) use ($user) {
-                        $sub->orWhereHas('project.members', fn($mq) => $mq->where('users.id', $user->id));
-                    })
-                    ->orWhere('created_by', $user->id);
-                });
-            } else {
-                // Team Member: ONLY see their own updates and comments!
-                $updatesQuery->where('created_by', $user->id);
-            }
+        if (!$isAdmin && $user) {
+            $managedProjectIds = $accessibleProjects
+                ->filter(fn (Project $proj) => $this->isProjectManagerOf($proj, $user))
+                ->pluck('id')
+                ->toArray();
+
+            $updatesQuery->where(function ($q) use ($user, $managedProjectIds) {
+                if (!empty($managedProjectIds)) {
+                    $q->whereIn('project_id', $managedProjectIds)
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
+                } else {
+                    $q->where('created_by', $user->id)
+                      ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
+                }
+            });
         }
 
         if ($this->selectedProjectId) {
@@ -559,7 +803,6 @@ class DailyStatusUpdates extends Component
                     ->orWhere('summary', 'like', "%{$q}%")
                     ->orWhere('work_completed', 'like', "%{$q}%")
                     ->orWhere('current_blockers', 'like', "%{$q}%")
-                    ->orWhere('next_steps', 'like', "%{$q}%")
                     ->orWhere('updated_status', 'like', "%{$q}%")
                     ->orWhereHas('creator', fn($cu) => $cu->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%"))
                     ->orWhereHas('project', fn($pr) => $pr->where('name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
@@ -569,6 +812,9 @@ class DailyStatusUpdates extends Component
         }
 
         $statusUpdates = $updatesQuery->latest()->get();
+        $unreadUpdatesByProject = $user
+            ? $this->unreadDailyUpdateCountsByProject($user)
+            : collect();
 
         $groupedProjectUpdates = collect();
         $isSearchingOrFiltering = !empty(trim($this->searchQuery)) || $this->selectedSubsidiaryId !== null || $this->selectedScope !== 'all' || $this->dateFilter !== 'all';
@@ -604,6 +850,7 @@ class DailyStatusUpdates extends Component
                 'latestUpdate' => $pUpdates->first(),
                 'allUpdates' => $pUpdates,
                 'pastUpdates' => $pUpdates->slice(1),
+                'unreadCount' => (int) $unreadUpdatesByProject->get($proj->id, 0),
             ]);
         }
 
@@ -614,7 +861,7 @@ class DailyStatusUpdates extends Component
 
             if (!$isSuperAdmin && $user) {
                 $proj = Project::find($this->updateProjectId);
-                if ($proj && $proj->project_manager_id !== $user->id) {
+                if ($proj && !$this->isProjectManagerOf($proj, $user)) {
                     $wbsQuery->where('assigned_user_id', $user->id);
                 }
             }
