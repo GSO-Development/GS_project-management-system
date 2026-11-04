@@ -141,10 +141,12 @@
             <h1>Project Risks</h1>
             <p class="risk-page-subtitle">Monitor exposure, assign ownership, and track mitigation across your projects.</p>
         </div>
+        @unless(auth()->user()?->isAdminViewer())
         <button wire:click="openAddRiskModal()" type="button" class="risk-button risk-button-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
             Log project risk
         </button>
+        @endunless
     </header>
 
     <dl class="risk-page-kpis" aria-label="Risk overview">
@@ -246,19 +248,21 @@
                         <th scope="col">Exposure</th>
                         <th scope="col">Status</th>
                         <th scope="col">Owner</th>
+                        @unless(auth()->user()?->isAdminViewer())
                         <th scope="col" class="text-right">Actions</th>
+                        @endunless
                     </tr>
                 </thead>
                     <tbody>
                         @if($risks->isEmpty() && $taskRisks->isEmpty())
                             <tr>
-                                <td colspan="8">
+                                <td colspan="{{ auth()->user()?->isAdminViewer() ? 7 : 8 }}">
                                     <div class="risk-register-empty">
                                         <strong>{{ $hasActiveFilters ? 'No matching risks' : 'No risks recorded' }}</strong>
                                         <p>{{ $hasActiveFilters ? 'Adjust your search or filters to find the risks you need.' : 'Log a project risk to assign an owner and start tracking its mitigation.' }}</p>
                                         @if($hasActiveFilters)
                                             <button wire:click="resetAllFilters" type="button" class="risk-button">Clear filters</button>
-                                        @else
+                                        @elseif(!auth()->user()?->isAdminViewer())
                                             <button wire:click="openAddRiskModal()" type="button" class="risk-button risk-button-primary">Log project risk</button>
                                         @endif
                                     </div>
@@ -298,17 +302,22 @@
                                     </td>
                                     <td><span class="risk-exposure {{ $threatClass }}"><i></i>{{ $threatLabel }} <b>{{ $score }}/12</b></span></td>
                                     <td>
+                                        @if(auth()->user()?->isAdminViewer())
+                                            <span class="risk-status-static">{{ ucfirst($r->status) }}</span>
+                                        @else
                                         <select wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)" class="risk-table-status">
                                             <option value="open" @selected($r->status === 'open')>Open</option>
                                             <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
                                             <option value="mitigated" @selected($r->status === 'mitigated')>Mitigated</option>
                                             <option value="closed" @selected($r->status === 'closed')>Closed</option>
                                         </select>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="risk-table-owner">{{ $r->owner->name ?? 'Unassigned' }}</div>
                                         <div class="risk-table-subtext">{{ $r->created_at->diffForHumans() }}</div>
                                     </td>
+                                    @unless(auth()->user()?->isAdminViewer())
                                     <td>
                                         <div class="risk-table-actions">
                                             <button wire:click="openEditRiskModal({{ $r->id }})" type="button" title="Edit risk" aria-label="Edit risk" class="risk-table-icon-button">
@@ -319,6 +328,7 @@
                                             </button>
                                         </div>
                                     </td>
+                                    @endunless
                                 </tr>
                             @endforeach
 
@@ -355,6 +365,7 @@
                                         <div class="risk-table-owner">{{ $taskRisk->assignedUser->name ?? 'Unassigned' }}</div>
                                         <div class="risk-table-subtext">Updated {{ $taskRisk->updated_at->diffForHumans() }}</div>
                                     </td>
+                                    @unless(auth()->user()?->isAdminViewer())
                                     <td>
                                         <div class="risk-table-actions">
                                             <a href="{{ route('projects.show', $taskRisk->project_id) }}" wire:navigate.hover title="Open project" aria-label="Open project" class="risk-table-icon-button">
@@ -362,6 +373,7 @@
                                             </a>
                                         </div>
                                     </td>
+                                    @endunless
                                 </tr>
                             @endforeach
                         @endif

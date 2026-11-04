@@ -666,8 +666,9 @@ class SuperAdminDashboard extends Component
         // ⚠️ RISKS & BLOCKERS CENTER DATA (Full Integrated View)
         // ══════════════════════════════════════════════════════════
         $allRisks = ProjectRisk::with(['project.subsidiary', 'owner'])->latest()->get();
-        $openProjectRisks = $allRisks->where('status', 'open');
-        $linkedAtRiskTaskIds = $openProjectRisks->pluck('wbs_item_id')->filter();
+        // Active = open or under monitoring (same definition as the Project Risks page).
+        $openProjectRisks = $allRisks->whereIn('status', ['open', 'monitoring']);
+        $linkedAtRiskTaskIds = $allRisks->where('status', 'open')->pluck('wbs_item_id')->filter();
         $atRiskTasks = WbsItem::with('project:id,name')
             ->where('status', 'at_risk')
             ->whereNotIn('id', $linkedAtRiskTaskIds)

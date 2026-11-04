@@ -101,7 +101,7 @@
             <div class="min-w-0">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">At Risk</span>
                 <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none mt-2 block tracking-tight font-mono">
-                    {{ $atRiskProjectsCount }}
+                    {{ $openRisksCount }}
                 </span>
             </div>
             <div class="text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all">
@@ -386,8 +386,8 @@
                 </span>
             </div>
 
-            <!-- Crisp 3-Tile Stat Bar -->
-            <div class="executive-stat-strip grid grid-cols-3 gap-2.5">
+            <!-- Crisp 2-Tile Stat Bar -->
+            <div class="executive-stat-strip grid grid-cols-2 gap-2.5">
                 <div class="flex flex-col items-center justify-center bg-slate-50/80 border border-slate-200/70 rounded-xl py-2.5 px-2 hover:bg-slate-100/60 transition-colors">
                     <span class="text-xl font-extrabold text-slate-900 leading-none font-mono tracking-tight">{{ $openRisksCount }}</span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 block">OPEN</span>
@@ -395,10 +395,6 @@
                 <div class="flex flex-col items-center justify-center bg-slate-50/80 border border-slate-200/70 rounded-xl py-2.5 px-2 hover:bg-slate-100/60 transition-colors">
                     <span class="text-xl font-extrabold text-slate-900 leading-none font-mono tracking-tight">{{ $highRisksCount }}</span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 block">HIGH</span>
-                </div>
-                <div class="flex flex-col items-center justify-center bg-slate-50/80 border border-slate-200/70 rounded-xl py-2.5 px-2 hover:bg-slate-100/60 transition-colors">
-                    <span class="text-xl font-extrabold text-slate-900 leading-none font-mono tracking-tight">{{ $activeBlockersCount }}</span>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 block">BLOCKERS</span>
                 </div>
             </div>
 

@@ -69,7 +69,7 @@ class RiskBlockerManager extends Component
     public function mount()
     {
         $user = auth()->user();
-        if (\App\Models\Project::where('project_manager_id', $user->id)->exists() && !$user->hasRole('super_admin')) {
+        if (\App\Models\Project::where('project_manager_id', $user->id)->exists() && !$user->hasAdminInterfaceAccess() && !$user->hasRole('super_admin')) {
             $firstProject = Project::where('project_manager_id', $user->id)->first();
             if ($firstProject && !$this->selectedProjectId) {
                 // Default to all or user's first project
@@ -95,6 +95,9 @@ class RiskBlockerManager extends Component
 
     public function openAddRiskModal(?int $projectId = null)
     {
+        if (auth()->user()?->isAdminViewer()) {
+            return;
+        }
         $this->resetRiskForm();
         if ($projectId) {
             $this->riskProjectId = $projectId;
@@ -132,6 +135,11 @@ class RiskBlockerManager extends Component
 
     public function addRisk()
     {
+        if (auth()->user()?->isAdminViewer()) {
+            $this->dispatch('toast', message: '🔒 Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
+
         $this->validate([
             'riskProjectId' => 'required|exists:projects,id',
             'riskTitle' => 'required|string|max:255',
@@ -184,6 +192,10 @@ class RiskBlockerManager extends Component
 
     public function openEditRiskModal(int $riskId)
     {
+        if (auth()->user()?->isAdminViewer()) {
+            return;
+        }
+
         $risk = ProjectRisk::findOrFail($riskId);
         if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
             $this->dispatch('toast', message: '🔒 You do not have permission to edit this risk.', type: 'error');
@@ -207,6 +219,11 @@ class RiskBlockerManager extends Component
 
     public function updateRisk()
     {
+        if (auth()->user()?->isAdminViewer()) {
+            $this->dispatch('toast', message: '🔒 Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
+
         $this->validate([
             'riskProjectId' => 'required|exists:projects,id',
             'riskTitle' => 'required|string|max:255',
@@ -265,6 +282,11 @@ class RiskBlockerManager extends Component
 
     public function updateRiskStatus(int $riskId, string $status)
     {
+        if (auth()->user()?->isAdminViewer()) {
+            $this->dispatch('toast', message: '🔒 Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
+
         $risk = ProjectRisk::findOrFail($riskId);
         if (!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
             $this->dispatch('toast', message: '🔒 You do not have permission to update status of this risk.', type: 'error');
@@ -295,6 +317,11 @@ class RiskBlockerManager extends Component
 
     public function deleteRisk(int $riskId)
     {
+        if (auth()->user()?->isAdminViewer()) {
+            $this->dispatch('toast', message: '🔒 Admin Viewer access is read-only.', type: 'error');
+            return;
+        }
+
         $risk = ProjectRisk::findOrFail($riskId);
         if (!$risk->project?->userCan(auth()->user(), 'risk.delete') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
             $this->dispatch('toast', message: '🔒 You do not have permission to delete this risk.', type: 'error');
@@ -322,7 +349,7 @@ class RiskBlockerManager extends Component
 
         // Projects list for dropdown filter
         $projectsQuery = Project::query();
-        if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+        if (!$user->hasRole('super_admin') && !$user->hasRole('pmo_admin') && !$user->isAdminViewer() && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
             $projectsQuery->where(function($q) use ($user) {
                 $q->where('project_manager_id', $user->id)
                   ->orWhere(function($subQ) use ($user) {

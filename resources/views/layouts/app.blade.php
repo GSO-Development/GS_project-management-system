@@ -88,7 +88,7 @@
     .admin-viewer-mode [wire\:click^="toggleStatus"],
     .admin-viewer-mode [wire\:click^="batch"],
     .admin-viewer-mode a[href$="/create"],
-    .admin-viewer-mode form button[type="submit"] {
+    .admin-viewer-mode form:not([action$="/logout"]) button[type="submit"] {
         display: none !important;
     }
 </style>

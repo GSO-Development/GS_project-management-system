@@ -108,35 +108,47 @@ class GanttChart extends Component
         $user = auth()->user();
 
         // ── 1. Query WBS items for this project ────────────────────────
-        $query = WbsItem::with(['assignedUser', 'children', 'risks', 'predecessors.predecessor'])
-            ->where('project_id', $this->project->id);
+        // The full project tree is always loaded so dates can be cascaded and rolled up
+        // correctly. Search / status filters only decide which rows are *displayed*.
+        $fullItems = WbsItem::with(['assignedUser', 'children', 'risks', 'predecessors.predecessor'])
+            ->where('project_id', $this->project->id)
+            ->get()
+            ->sort(function ($a, $b) {
+                return strnatcmp($a->wbs_code ?? (string)$a->id, $b->wbs_code ?? (string)$b->id);
+            })
+            ->values();
 
-        if ($this->search) {
-            $query->where('title', 'like', "%{$this->search}%");
-        }
-        if ($this->statusFilter !== 'all') {
-            if ($this->statusFilter === 'at_risk') {
-                $query->where(function ($q) {
-                    $q->where('status', 'at_risk')
-                      ->orWhereHas('risks', function ($rq) {
-                          $rq->whereIn('status', ['open', 'active', 'identified']);
-                      });
-                });
-            } elseif ($this->statusFilter === 'milestone') {
-                $query->where(function ($q) {
-                    $q->where('is_milestone', true)
-                      ->orWhere('item_type', 'milestone');
-                });
-            } elseif ($this->statusFilter === 'task') {
-                $query->where('item_type', 'task');
-            } else {
-                $query->where('status', $this->statusFilter);
+        $isFiltering = $this->search !== '' || $this->statusFilter !== 'all';
+        $matchedIds = null;
+
+        if ($isFiltering) {
+            $filterQuery = WbsItem::where('project_id', $this->project->id);
+
+            if ($this->search) {
+                $filterQuery->where('title', 'like', "%{$this->search}%");
             }
-        }
+            if ($this->statusFilter !== 'all') {
+                if ($this->statusFilter === 'at_risk') {
+                    $filterQuery->where(function ($q) {
+                        $q->where('status', 'at_risk')
+                          ->orWhereHas('risks', function ($rq) {
+                              $rq->whereIn('status', ['open', 'active', 'identified']);
+                          });
+                    });
+                } elseif ($this->statusFilter === 'milestone') {
+                    $filterQuery->where(function ($q) {
+                        $q->where('is_milestone', true)
+                          ->orWhere('item_type', 'milestone');
+                    });
+                } elseif ($this->statusFilter === 'task') {
+                    $filterQuery->where('item_type', 'task');
+                } else {
+                    $filterQuery->where('status', $this->statusFilter);
+                }
+            }
 
-        $allRawItems = $query->get()->sort(function ($a, $b) {
-            return strnatcmp($a->wbs_code ?? (string)$a->id, $b->wbs_code ?? (string)$b->id);
-        })->values();
+            $matchedIds = array_flip($filterQuery->pluck('id')->map(fn($id) => (int) $id)->all());
+        }
 
         // ── 2. Smart Hierarchical Date Cascade & Rollup ─────────────────────
         // Ensure every child has a valid start & end date based on project start and hierarchy
@@ -151,14 +163,14 @@ class GanttChart extends Component
         // Group items by parent_id
         $childrenMap = [];
         $itemMap = [];
-        foreach ($allRawItems as $item) {
+        foreach ($fullItems as $item) {
             $pId = $item->parent_id ?? 0;
             $childrenMap[$pId][] = $item;
             $itemMap[$item->id] = $item;
         }
 
         // Check if items have distinct dates or need cascade
-        $datedCount = $allRawItems->filter(fn($i) => $i->start_date && $i->end_date)->count();
+        $datedCount = $fullItems->filter(fn($i) => $i->start_date && $i->end_date)->count();
         $needsCascade = ($datedCount === 0);
 
         if ($needsCascade) {
@@ -240,25 +252,35 @@ class GanttChart extends Component
 
         $rollupDates(0);
 
-        // ── 4. Filter out items under collapsed parent nodes for display ────
+        // ── 4. Apply filter & hide items under collapsed parent nodes ───────
         $parentIds = array_keys(array_filter($childrenMap, fn($c) => !empty($c)));
 
-        $collapsedCodes = [];
-        foreach ($allRawItems as $item) {
-            if (in_array($item->id, $this->collapsedIds) && !empty($item->wbs_code)) {
-                $collapsedCodes[] = $item->wbs_code . '.';
-            }
-        }
+        // Rows that match the active search / status filter (all rows when not filtering).
+        $allRawItems = $isFiltering
+            ? $fullItems->filter(fn($item) => isset($matchedIds[(int) $item->id]))->values()
+            : $fullItems;
 
+        $collapsedCodes = [];
         $hiddenIds = [];
-        $collectHidden = function ($pId) use (&$collectHidden, &$childrenMap, &$hiddenIds) {
-            foreach ($childrenMap[$pId] ?? [] as $child) {
-                $hiddenIds[$child->id] = true;
-                $collectHidden($child->id);
+
+        // While filtering, show every match as a flat list: its parents are not part of the
+        // result, so collapsed-parent hiding would otherwise swallow the matching rows.
+        if (!$isFiltering) {
+            foreach ($allRawItems as $item) {
+                if (in_array($item->id, $this->collapsedIds) && !empty($item->wbs_code)) {
+                    $collapsedCodes[] = $item->wbs_code . '.';
+                }
             }
-        };
-        foreach ($this->collapsedIds as $cId) {
-            $collectHidden($cId);
+
+            $collectHidden = function ($pId) use (&$collectHidden, &$childrenMap, &$hiddenIds) {
+                foreach ($childrenMap[$pId] ?? [] as $child) {
+                    $hiddenIds[$child->id] = true;
+                    $collectHidden($child->id);
+                }
+            };
+            foreach ($this->collapsedIds as $cId) {
+                $collectHidden($cId);
+            }
         }
 
         $wbsItems = $allRawItems->filter(function ($item) use ($hiddenIds, $collapsedCodes) {
@@ -536,6 +558,7 @@ class GanttChart extends Component
         return view('livewire.gantt-chart', compact(
             'wbsItems',
             'allRawItems',
+            'isFiltering',
             'project',
             'timelineStart',
             'timelineEnd',

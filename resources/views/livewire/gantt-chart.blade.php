@@ -378,7 +378,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                 'is_at_risk' => $isAtRisk,
                                 'risk_alert' => $riskAlert,
                             ], JSON_HEX_APOS | JSON_HEX_QUOT);
-                            $hasChildren = in_array($item->id, $parentIds ?? []) || ($item->children && $item->children->count() > 0);
+                            $hasChildren = empty($isFiltering) && (in_array($item->id, $parentIds ?? []) || ($item->children && $item->children->count() > 0));
                             $isCollapsed = in_array($item->id, $collapsedIds ?? []);
                             $cleanTitle = str_replace(['???', '??'], '–', $item->title);
                         @endphp

@@ -261,6 +261,24 @@
                                     @if($isParent && $item->children_count > 0)
                                         <span class="ts-count" title="{{ $item->children_count }} sub-items">{{ $item->children_count }}</span>
                                     @endif
+                                    @php
+                                        $sheetActiveRisks = $item->relationLoaded('risks')
+                                            ? $item->risks->filter(fn($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified']))
+                                            : collect();
+                                        $sheetStatusValue = is_object($item->status) ? $item->status->value : (string) $item->status;
+                                        $sheetIsAtRisk = $sheetStatusValue === 'at_risk';
+                                    @endphp
+                                    @if($sheetActiveRisks->isNotEmpty())
+                                        <span class="ts-risk" title="{{ $sheetActiveRisks->count() }} active risk(s): {{ $sheetActiveRisks->pluck('title')->implode(' • ') }}">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                            <span>Risk{{ $sheetActiveRisks->count() > 1 ? ' · ' . $sheetActiveRisks->count() : '' }}</span>
+                                        </span>
+                                    @elseif($sheetIsAtRisk)
+                                        <span class="ts-risk" title="Task flagged as At Risk">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                            <span>At Risk</span>
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                             @endif
@@ -656,6 +674,8 @@
         .ts-task__title { font-size: 12.5px; font-weight: 500; color: var(--ts-ink-2); line-height: 1.4; }
         .ts-task__title--l1 { font-weight: 700; color: #1e293b; }
         .ts-task__title--parent { font-weight: 800; font-size: 13.5px; color: var(--ts-ink); letter-spacing: -0.01em; }
+        .ts-risk { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; padding: 2px 8px; border-radius: 999px; background: #fff1f3; border: 1px solid #fecdd3; color: #be123c; font-size: 10px; font-weight: 800; line-height: 1.4; white-space: nowrap; }
+        .ts-risk svg { width: 11px; height: 11px; }
         .ts-caret {
             width: 22px; height: 22px; padding: 0; border-radius: 7px; flex-shrink: 0; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
