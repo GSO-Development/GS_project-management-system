@@ -241,13 +241,48 @@
             }
             $selectedCount = count(array_filter($activeRolePermissions));
             $visibleTotalPermsCount = count($activeRolePermissions);
+
+            $roleAbbr = match($selectedRole) {
+                'pmo_admin' => 'PM',
+                'lead' => 'PM',
+                'sponsor' => 'PS',
+                'owner' => 'PO',
+                'steering_committee' => 'SC',
+                'member' => 'CT',
+                'collaborator' => 'CS',
+                default => strtoupper(substr($currentRoleInfo['name'] ?? $selectedRole, 0, 2))
+            };
         @endphp
 
-        <div class="fixed inset-0 overflow-hidden" style="z-index: 9999;">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" style="z-index: 9999;" wire:click="closeManageModal"></div>
+        @teleport('body')
+        <div 
+            x-data 
+            @keydown.escape.window="$wire.closeManageModal()" 
+            class="fixed inset-0 overflow-hidden z-[2147483640]" 
+            role="dialog" 
+            aria-modal="true"
+        >
+            <div 
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                wire:click="closeManageModal"
+            ></div>
 
-            <div class="fixed inset-y-0 right-0 max-w-full flex pl-8" style="z-index: 10000;">
-                <div class="w-screen max-w-2xl bg-white shadow-2xl flex flex-col border-l border-slate-200">
+            <div class="fixed inset-y-0 right-0 max-w-full flex pl-8 z-10 pointer-events-none">
+                <div 
+                    x-transition:enter="transform transition ease-in-out duration-300"
+                    x-transition:enter-start="translate-x-full"
+                    x-transition:enter-end="translate-x-0"
+                    x-transition:leave="transform transition ease-in-out duration-300"
+                    x-transition:leave-start="translate-x-0"
+                    x-transition:leave-end="translate-x-full"
+                    class="w-screen max-w-2xl bg-white shadow-2xl flex flex-col border-l border-slate-200 pointer-events-auto"
+                >
                     
                     <!-- Top Brand Line -->
                     <div class="h-1.5 w-full flex-shrink-0" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, #c3122e 100%);"></div>
@@ -255,21 +290,21 @@
                     <!-- Drawer Header -->
                     <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between gap-4 flex-shrink-0 bg-white">
                         <div class="flex items-center gap-3.5 min-w-0">
-                            <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-xl border shadow-2xs flex-shrink-0 {{ $currentRoleInfo['badge'] }}">
-                                {{ $currentRoleInfo['icon'] }}
+                            <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-xs font-black border shadow-2xs flex-shrink-0 {{ $currentRoleInfo['badge'] }}">
+                                {{ $roleAbbr }}
                             </div>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 class="text-base font-black text-slate-900 tracking-tight leading-tight">
                                         {{ $currentRoleInfo['name'] }}
                                     </h3>
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600">
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                         {{ $selectedRole }}
                                     </span>
                                     @if($hasUnsaved)
                                         <span class="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
                                             UNSAVED CHANGES
-                                        </span>
+                                         </span>
                                     @endif
                                 </div>
                                 <p class="text-xs text-slate-400 font-medium mt-0.5">
@@ -341,7 +376,9 @@
                                 <!-- Module Header -->
                                 <div class="px-4.5 py-3 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3">
                                     <div class="flex items-center gap-2">
-                                        <span>{{ $modDef['icon'] ?? '📁' }}</span>
+                                        <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 text-xs font-bold">
+                                            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                                        </div>
                                         <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">{{ $modDef['name'] }}</h4>
                                         <span class="px-2 py-0.2 rounded text-[10px] font-bold {{ $grantedInMod === $totalInMod ? 'bg-emerald-100 text-emerald-800' : ($grantedInMod > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500') }}">
                                             {{ $grantedInMod }}/{{ $totalInMod }}
@@ -422,14 +459,16 @@
                             <button 
                                 wire:click="savePermissions" 
                                 type="button" 
-                                class="px-5 py-2 rounded-xl text-xs font-black text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
-                                style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
+                                class="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5 bg-[#c3122e] hover:bg-[#a50e26]"
                                 wire:loading.attr="disabled"
                             >
-                                <span wire:loading.remove wire:target="savePermissions">💾 Save Permissions</span>
+                                <span wire:loading.remove wire:target="savePermissions" class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                                    <span>Save Permissions</span>
+                                </span>
                                 <span wire:loading wire:target="savePermissions" class="flex items-center gap-1.5">
                                     <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                                    Saving...
+                                    <span>Saving...</span>
                                 </span>
                             </button>
                         </div>
@@ -438,6 +477,7 @@
                 </div>
             </div>
         </div>
+        @endteleport
     @endif
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -445,21 +485,51 @@
          ═══════════════════════════════════════════════════════════════ -->
     @if($showCreateRoleModal)
         @teleport('body')
-        <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5" x-data x-trap.inert.noscroll="true" @keydown.escape.window="$wire.set('showCreateRoleModal', false)" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
-            <div class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm" wire:click="$set('showCreateRoleModal', false)"></div>
+        <div 
+            x-data 
+            x-trap.inert.noscroll="true" 
+            @keydown.escape.window="$wire.set('showCreateRoleModal', false)" 
+            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-3 sm:p-5 overflow-y-auto" 
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="role-modal-title"
+        >
+            <div 
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                wire:click="$set('showCreateRoleModal', false)"
+            ></div>
 
-            <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,.28)]">
+            <div 
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
+                class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all"
+            >
+                <!-- Top Brand Line -->
+                <div class="h-1 w-full bg-gradient-to-r from-[#c3122e] to-[#8b0d1f]"></div>
+
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-lg">
-                            🏷️
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-5 h-5 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
                         </div>
                         <div>
-                            <h3 id="role-modal-title" class="text-base font-black text-slate-900">Create project role</h3>
-                            <p class="mt-0.5 text-xs text-slate-500">Define a reusable governance or delivery role.</p>
+                            <h3 id="role-modal-title" class="text-base font-extrabold text-slate-900 tracking-tight">Create Project Role</h3>
+                            <p class="mt-0.5 text-xs text-slate-500 font-medium">Define a reusable governance or delivery role.</p>
                         </div>
                     </div>
-                    <button type="button" wire:click="$set('showCreateRoleModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close role form">
+                    <button type="button" wire:click="$set('showCreateRoleModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 cursor-pointer" aria-label="Close role form">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -467,20 +537,20 @@
                 <form wire:submit="createRole" class="space-y-4 px-5 py-5 sm:px-6">
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Role display name <span class="text-rose-600">*</span></label>
-                        <input type="text" wire:model.live="newRoleName" maxlength="100" placeholder="e.g. Quality Assurance Lead" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
+                        <input type="text" wire:model.live="newRoleName" maxlength="100" placeholder="e.g. Quality Assurance Lead" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
                         @error('newRoleName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <div class="mb-1.5 flex items-center justify-between gap-3"><label class="text-xs font-bold text-slate-700">System role code <span class="text-rose-600">*</span></label><span class="text-[10px] text-slate-400">Unique slug</span></div>
-                        <input type="text" wire:model="newRoleCode" maxlength="100" placeholder="e.g. qa_lead" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
-                        <p class="mt-1.5 text-[10px] text-slate-400">Use lowercase letters, numbers and underscores only.</p>
+                        <div class="mb-1.5 flex items-center justify-between gap-3"><label class="text-xs font-bold text-slate-700">System role code <span class="text-rose-600">*</span></label><span class="text-[10px] text-slate-400 font-mono">Unique slug</span></div>
+                        <input type="text" wire:model="newRoleCode" maxlength="100" placeholder="e.g. qa_lead" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1 text-[10px] text-slate-400 font-medium">Use lowercase letters, numbers and underscores only.</p>
                         @error('newRoleCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Base permissions <span class="font-medium text-slate-400">(optional)</span></label>
-                        <select wire:model="clonePermissionsFrom" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100">
+                        <select wire:model="clonePermissionsFrom" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100 cursor-pointer">
                             <option value="">Start with no permissions</option>
                             @foreach($allRoles as $rKey => $rDef)
                                 <option value="{{ $rKey }}">{{ $rDef['name'] }} ({{ $rKey }})</option>
@@ -490,14 +560,17 @@
 
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Role description <span class="font-medium text-slate-400">(optional)</span></label>
-                        <textarea wire:model="newRoleDescription" rows="3" maxlength="500" placeholder="Responsibilities and scope of this role..." class="w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100"></textarea>
+                        <textarea wire:model="newRoleDescription" rows="3" maxlength="500" placeholder="Responsibilities and scope of this role..." class="w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100"></textarea>
                     </div>
 
                     <div class="-mx-5 -mb-5 mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:-mx-6 sm:px-6">
-                        <button type="button" wire:click="$set('showCreateRoleModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
-                        <button type="submit" wire:loading.attr="disabled" wire:target="createRole" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60">
+                        <button type="button" wire:click="$set('showCreateRoleModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer">Cancel</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="createRole" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-sm">
                             <span wire:loading.remove wire:target="createRole">Create role</span>
-                            <span wire:loading wire:target="createRole">Creating...</span>
+                            <span wire:loading wire:target="createRole" class="flex items-center gap-1.5">
+                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                <span>Creating...</span>
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -511,21 +584,51 @@
          ═══════════════════════════════════════════════════════════════ -->
     @if($showCreatePermissionModal)
         @teleport('body')
-        <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5" x-data x-trap.inert.noscroll="true" @keydown.escape.window="$wire.set('showCreatePermissionModal', false)" role="dialog" aria-modal="true" aria-labelledby="permission-modal-title">
-            <div class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm" wire:click="$set('showCreatePermissionModal', false)"></div>
+        <div 
+            x-data 
+            x-trap.inert.noscroll="true" 
+            @keydown.escape.window="$wire.set('showCreatePermissionModal', false)" 
+            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-3 sm:p-5 overflow-y-auto" 
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="permission-modal-title"
+        >
+            <div 
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                wire:click="$set('showCreatePermissionModal', false)"
+            ></div>
 
-            <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,.28)]">
+            <div 
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
+                class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all"
+            >
+                <!-- Top Brand Line -->
+                <div class="h-1 w-full bg-gradient-to-r from-amber-500 to-amber-600"></div>
+
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
-                            🔐
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
                         </div>
                         <div>
-                            <h3 id="permission-modal-title" class="text-base font-black text-slate-900">Add granular permission</h3>
-                            <p class="mt-0.5 text-xs text-slate-500">Register a reusable capability for role-based access control.</p>
+                            <h3 id="permission-modal-title" class="text-base font-extrabold text-slate-900 tracking-tight">Add Granular Permission</h3>
+                            <p class="mt-0.5 text-xs text-slate-500 font-medium">Register a reusable capability for role-based access control.</p>
                         </div>
                     </div>
-                    <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700" aria-label="Close permission form">
+                    <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 cursor-pointer" aria-label="Close permission form">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -533,7 +636,7 @@
                 <form wire:submit="createPermission" class="space-y-4 px-5 py-5 sm:px-6">
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Target module <span class="text-rose-600">*</span></label>
-                        <select wire:model.live="newPermissionModule" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100">
+                        <select wire:model.live="newPermissionModule" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100 cursor-pointer">
                             @foreach($allModules as $mKey => $mDef)
                                 <option value="{{ $mKey }}">{{ $mDef['name'] }} ({{ $mKey }})</option>
                             @endforeach
@@ -542,25 +645,28 @@
 
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Permission display name <span class="text-rose-600">*</span></label>
-                        <input type="text" wire:model.live="newPermissionName" maxlength="100" placeholder="e.g. Export Audit Report" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
+                        <input type="text" wire:model.live="newPermissionName" maxlength="100" placeholder="e.g. Export Audit Report" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
                         @error('newPermissionName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <div class="mb-1.5 flex items-center justify-between gap-3">
                             <label class="text-xs font-bold text-slate-700">Permission code <span class="text-rose-600">*</span></label>
-                            <span class="text-[10px] text-slate-400">Spatie permission name</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Spatie permission name</span>
                         </div>
-                        <input type="text" wire:model="newPermissionCode" maxlength="150" placeholder="e.g. project.export_audit" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
-                        <p class="mt-1.5 text-[10px] text-slate-400">Use lowercase words separated by dots or underscores.</p>
+                        <input type="text" wire:model="newPermissionCode" maxlength="150" placeholder="e.g. project.export_audit" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1 text-[10px] text-slate-400 font-medium">Use lowercase words separated by dots or underscores.</p>
                         @error('newPermissionCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="-mx-5 -mb-5 mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:-mx-6 sm:px-6">
-                        <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50">Cancel</button>
-                        <button type="submit" wire:loading.attr="disabled" wire:target="createPermission" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60">
+                        <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer">Cancel</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="createPermission" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-sm">
                             <span wire:loading.remove wire:target="createPermission">Register permission</span>
-                            <span wire:loading wire:target="createPermission">Registering...</span>
+                            <span wire:loading wire:target="createPermission" class="flex items-center gap-1.5">
+                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                <span>Registering...</span>
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -573,62 +679,129 @@
          8. DELETE ROLE CONFIRMATION MODAL
          ═══════════════════════════════════════════════════════════════ -->
     @if($showDeleteRoleModal)
-        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 10001;">
-            <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" wire:click="cancelDeleteRole"></div>
+        @teleport('body')
+        <div 
+            x-data
+            @keydown.escape.window="$wire.cancelDeleteRole()"
+            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+            role="dialog" 
+            aria-modal="true"
+            aria-labelledby="delete-role-modal-title"
+        >
+            <!-- Backdrop with blur -->
+            <div 
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                wire:click="cancelDeleteRole"
+            ></div>
 
-            <div class="relative bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4" style="z-index: 10002;">
-                <div class="flex items-start gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-[#c3122e] flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-2xs">
-                        🗑️
+            <!-- Modal Content Card -->
+            <div 
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
+                class="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl transition-all z-10 space-y-4"
+            >
+                <!-- Top Accent Line -->
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-[#c3122e] to-rose-600"></div>
+
+                <!-- Header with Icon & Close Button -->
+                <div class="flex items-start justify-between gap-3.5">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 border border-rose-200 text-[#c3122e] shadow-xs">
+                            <svg class="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 id="delete-role-modal-title" class="text-base font-extrabold text-slate-900 tracking-tight leading-snug">
+                                Delete Role
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">This action cannot be undone.</p>
+                        </div>
                     </div>
-                    <div class="min-w-0 flex-1">
-                        <h3 class="text-base font-black text-slate-900 tracking-tight">Delete Role</h3>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">This action will permanently delete this role.</p>
-                    </div>
-                    <button wire:click="cancelDeleteRole" class="text-slate-400 hover:text-slate-700 cursor-pointer -mt-1 -mr-1 p-1">
+                    <button 
+                        type="button" 
+                        wire:click="cancelDeleteRole" 
+                        class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+                        aria-label="Close dialog"
+                    >
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-100 text-xs text-slate-700 space-y-2">
-                    <p class="font-semibold text-slate-900">
-                        Are you sure you want to permanently delete the role <span class="font-black text-[#c3122e]">"{{ $roleNameToDelete }}"</span> <code class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-rose-200 text-slate-700">({{ $roleToDelete }})</code>?
+                <!-- Confirmation Alert Card -->
+                <div class="p-4 rounded-xl bg-rose-50/70 border border-rose-100/90 text-xs text-slate-700 space-y-3">
+                    <p class="font-medium text-slate-700 leading-relaxed">
+                        Are you sure you want to permanently delete this role?
                     </p>
+
+                    <!-- Dedicated Role Name & Slug Badge -->
+                    <div class="p-3 rounded-lg bg-white border border-rose-200/90 flex items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#c3122e] shrink-0 ring-4 ring-rose-50"></span>
+                            <span class="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                                {{ $roleNameToDelete ?: $roleToDelete }}
+                            </span>
+                        </div>
+                        <span class="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-slate-50 border border-rose-200 text-[#c3122e] shrink-0">
+                            {{ $roleToDelete }}
+                        </span>
+                    </div>
+
                     <p class="text-[11px] text-slate-500 leading-relaxed">
                         All permissions assigned to this role will be detached and removed. This operation cannot be undone.
                     </p>
+
                     @if($roleUsersCountToDelete > 0)
-                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold flex items-center gap-2">
-                            <span>⚠️</span>
-                            <span>Notice: {{ $roleUsersCountToDelete }} user(s) currently assigned to this role will be unassigned automatically upon deletion.</span>
+                        <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-start gap-2">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span class="leading-snug">
+                                <strong>{{ $roleUsersCountToDelete }} user(s)</strong> currently assigned to this role will be unassigned automatically upon deletion.
+                            </span>
                         </div>
                     @endif
                 </div>
 
+                <!-- Action Buttons -->
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <button 
                         wire:click="cancelDeleteRole" 
                         type="button" 
-                        class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                        class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 transition-colors cursor-pointer"
                     >
                         Cancel
                     </button>
                     <button 
                         wire:click="confirmDeleteRole" 
-                        type="button" 
-                        class="px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
-                        style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);"
                         wire:loading.attr="disabled"
+                        wire:target="confirmDeleteRole"
+                        type="button" 
+                        class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5 bg-[#c3122e] hover:bg-[#a50e26] disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        <span wire:loading.remove wire:target="confirmDeleteRole">Yes, Permanently Delete</span>
+                        <span wire:loading.remove wire:target="confirmDeleteRole" class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>Yes, Permanently Delete</span>
+                        </span>
                         <span wire:loading wire:target="confirmDeleteRole" class="flex items-center gap-1.5">
                             <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                            Deleting...
+                            <span>Deleting...</span>
                         </span>
                     </button>
                 </div>
             </div>
         </div>
+        @endteleport
     @endif
 
 </div>
