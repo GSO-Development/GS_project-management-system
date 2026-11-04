@@ -151,6 +151,7 @@ class ProjectDeletionService
                 action: 'deleted_project',
                 module: 'projects',
                 record: Project::class,
+                recordId: $projectId,
                 previous: $previousSnapshot,
                 new: [
                     'status'           => 'permanently_deleted',

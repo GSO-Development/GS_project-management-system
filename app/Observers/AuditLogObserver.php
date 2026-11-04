@@ -128,8 +128,6 @@ class AuditLogObserver
         }
 
         try {
-            AuditLogService::markLogged($class, $model->getKey(), $action);
-
             ActivityLog::create([
                 'user_id'         => $userId,
                 'action'          => $action,

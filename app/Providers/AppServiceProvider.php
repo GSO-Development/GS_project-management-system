@@ -56,6 +56,11 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Subsidiary::observe(\App\Observers\AuditLogObserver::class);
         \App\Models\ApprovalRequest::observe(\App\Observers\AuditLogObserver::class);
 
+        // Reset audit log lifecycle state upon request termination
+        $this->app->terminating(function () {
+            \App\Services\AuditLogService::resetState();
+        });
+
         // Register Microsoft Azure Socialite Provider
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('azure', AzureProvider::class);

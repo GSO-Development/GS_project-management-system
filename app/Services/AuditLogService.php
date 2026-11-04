@@ -174,7 +174,23 @@ class AuditLogService
     public static function hasLogged(string $class, $id, string $action): bool
     {
         $k = "{$class}:{$id}:{$action}";
-        return !empty(self::$requestLoggedKeys[$k]);
+        if (!empty(self::$requestLoggedKeys[$k])) {
+            unset(self::$requestLoggedKeys[$k]);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Reset static state between requests or tests.
+     */
+    public static function resetState(): void
+    {
+        self::$currentActorType = null;
+        self::$currentBatchUuid = null;
+        self::$isMuted = false;
+        self::$silencedModels = [];
+        self::$requestLoggedKeys = [];
     }
 
     /**
