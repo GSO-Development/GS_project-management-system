@@ -131,7 +131,6 @@ class AuditLogService
         try {
             return $callback();
         } finally {
-            self::$currentMuted = $prevMuted;
             self::$isMuted = $prevMuted;
         }
     }
