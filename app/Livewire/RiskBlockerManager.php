@@ -183,6 +183,10 @@ class RiskBlockerManager extends Component
             }
         }
 
+        $project->unsetRelation('risks');
+        $project->unsetRelation('wbsItems');
+        $project->syncAutoStatus(true);
+
         $this->showAddRiskModal = false;
         $this->resetRiskForm();
         $this->dispatch('wbsUpdated');
@@ -273,6 +277,12 @@ class RiskBlockerManager extends Component
             }
         }
 
+        if ($project = Project::find($this->riskProjectId)) {
+            $project->unsetRelation('risks');
+            $project->unsetRelation('wbsItems');
+            $project->syncAutoStatus(true);
+        }
+
         $this->showEditRiskModal = false;
         $this->resetRiskForm();
         $this->dispatch('wbsUpdated');
@@ -310,6 +320,12 @@ class RiskBlockerManager extends Component
             }
         }
 
+        if ($project = Project::find($risk->project_id)) {
+            $project->unsetRelation('risks');
+            $project->unsetRelation('wbsItems');
+            $project->syncAutoStatus(true);
+        }
+
         $this->dispatch('wbsUpdated');
         $this->dispatch('riskUpdated');
         $this->dispatch('toast', message: 'Risk status updated to ' . ucfirst($status), type: 'success');
@@ -329,6 +345,7 @@ class RiskBlockerManager extends Component
         }
 
         $wbsId = $risk->wbs_item_id;
+        $projectId = $risk->project_id;
         $risk->delete();
 
         if ($wbsId) {
@@ -336,6 +353,12 @@ class RiskBlockerManager extends Component
             if ($wbs && $wbs->openRisks()->count() === 0 && $wbs->status === WbsStatus::AT_RISK) {
                 $wbs->update(['status' => ($wbs->progress > 0 ? WbsStatus::IN_PROGRESS : WbsStatus::NOT_STARTED)]);
             }
+        }
+
+        if ($projectId && ($project = Project::find($projectId))) {
+            $project->unsetRelation('risks');
+            $project->unsetRelation('wbsItems');
+            $project->syncAutoStatus(true);
         }
 
         $this->dispatch('wbsUpdated');

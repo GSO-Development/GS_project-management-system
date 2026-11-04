@@ -401,7 +401,10 @@
                                         <p class="dur-entry__summary" title="{{ $update->summary ?: $update->title }}">
                                             {{ \Illuminate\Support\Str::limit($update->summary ?: $update->title, 48) }}
                                         </p>
-                                        @if($update->current_blockers || $update->wbsItem || $update->comments->count() > 0)
+                                        @php
+                                            $visibleRowCommentsCount = $this->getVisibleCommentsForUpdate($update, $project, auth()->user())->count();
+                                        @endphp
+                                        @if($update->current_blockers || $update->wbsItem || $visibleRowCommentsCount > 0)
                                             <div class="dur-entry__meta">
                                                 @if($update->current_blockers)
                                                     <span class="dur-blocker" title="Blocker reported">
@@ -415,9 +418,9 @@
                                                         <span class="dur-task__title">{{ \Illuminate\Support\Str::limit($update->wbsItem->title, 25) }}</span>
                                                     </span>
                                                 @endif
-                                                @if($update->comments->count() > 0)
-                                                    <span class="dur-comments-pill" title="{{ $update->comments->count() }} comment(s)">
-                                                        💬 {{ $update->comments->count() }}
+                                                @if($visibleRowCommentsCount > 0)
+                                                    <span class="dur-comments-pill" title="{{ $visibleRowCommentsCount }} comment(s)">
+                                                        💬 {{ $visibleRowCommentsCount }}
                                                     </span>
                                                 @endif
                                             </div>
@@ -529,14 +532,6 @@
 
             $historyQuery = \App\Models\ProjectStatusUpdate::with(['creator.roles', 'comments.user.roles', 'wbsItem'])
                 ->where('project_id', $historyProjectId);
-
-            if (!$isPmOrAdminForHistory && $authUser) {
-                // Team member: only see their own updates or updates with comments sent to Team Member
-                $historyQuery->where(function ($hq) use ($authUser) {
-                    $hq->where('created_by', $authUser->id)
-                       ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
-                });
-            }
 
             $historyAllUpdates = $historyProject ? $historyQuery->latest()->get() : collect();
             $historyLatestUpdate = $selectedHistoryUpdateId 
@@ -719,26 +714,49 @@
                                         @if($isPmOrAdminForHistory)
                                             <div class="daily-visibility inline-flex items-center gap-1.5 p-1 rounded-xl border select-none">
                                                 <span class="text-[10px] font-bold text-slate-500 pl-2 pr-1">Send to:</span>
-                                                <button
-                                                    type="button"
-                                                    @click="commentVis = 'team'"
-                                                    :class="commentVis === 'team' ? 'bg-white text-emerald-700 shadow-2xs ring-1 ring-emerald-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
-                                                    class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
-                                                    title="Feedback visible to the team member and project manager"
-                                                >
-                                                    <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'team' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
-                                                    <span>Team Member</span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    @click="commentVis = 'pmo_pm'"
-                                                    :class="commentVis === 'pmo_pm' ? 'bg-white text-[#c3122e] shadow-2xs ring-1 ring-rose-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
-                                                    class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
-                                                    title="Private comment strictly between PMO Admin & Project Manager"
-                                                >
-                                                    <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'pmo_pm' ? 'bg-[#c3122e]' : 'bg-slate-400'"></span>
-                                                    <span>PMO Admin Only</span>
-                                                </button>
+                                                @if($isSuperAdmin)
+                                                    <button
+                                                        type="button"
+                                                        @click="commentVis = 'pmo_pm'"
+                                                        :class="commentVis === 'pmo_pm' ? 'bg-white text-[#c3122e] shadow-2xs ring-1 ring-rose-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                                        class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                                                        title="Visible only to the Project Manager and PMO Admin"
+                                                    >
+                                                        <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'pmo_pm' ? 'bg-[#c3122e]' : 'bg-slate-400'"></span>
+                                                        <span>PM</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        @click="commentVis = 'team'"
+                                                        :class="commentVis === 'team' ? 'bg-white text-emerald-700 shadow-2xs ring-1 ring-emerald-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                                        class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                                                        title="Visible to both Project Manager and Team Members"
+                                                    >
+                                                        <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'team' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                                                        <span>Both</span>
+                                                    </button>
+                                                @else
+                                                    <button
+                                                        type="button"
+                                                        @click="commentVis = 'team'"
+                                                        :class="commentVis === 'team' ? 'bg-white text-emerald-700 shadow-2xs ring-1 ring-emerald-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                                        class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                                                        title="Feedback visible to the team member and project manager"
+                                                    >
+                                                        <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'team' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                                                        <span>Team Member</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        @click="commentVis = 'pmo_pm'"
+                                                        :class="commentVis === 'pmo_pm' ? 'bg-white text-[#c3122e] shadow-2xs ring-1 ring-rose-300 font-black' : 'text-slate-600 hover:text-slate-900 font-bold'"
+                                                        class="px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                                                        title="Private comment strictly between PMO Admin & Project Manager"
+                                                    >
+                                                        <span class="w-1.5 h-1.5 rounded-full transition-colors" :class="commentVis === 'pmo_pm' ? 'bg-[#c3122e]' : 'bg-slate-400'"></span>
+                                                        <span>PMO Admin Only</span>
+                                                    </button>
+                                                @endif
                                             </div>
                                         @endif
                                     </div>
@@ -748,8 +766,8 @@
                                             type="text"
                                             wire:model="newCommentContent.{{ $historyLatestUpdate->id }}"
                                             @keydown.enter.prevent="$wire.addComment({{ $historyLatestUpdate->id }}, commentVis)"
-                                            :placeholder="commentVis === 'pmo_pm' ? 'Write a private comment between Project Manager & PMO Admin...' : 'Write feedback visible to the Team Member...'"
-                                            placeholder="{{ $isPmOrAdminForHistory ? ($commentVisibility === 'pmo_pm' ? 'Write a private comment between Project Manager & PMO Admin...' : 'Write feedback visible to the Team Member...') : 'Type a feedback comment or reply...' }}"
+                                            :placeholder="commentVis === 'pmo_pm' ? '{{ $isSuperAdmin ? 'Write a comment visible only to the Project Manager...' : 'Write a private comment between Project Manager & PMO Admin...' }}' : '{{ $isSuperAdmin ? 'Write a comment visible to both Project Manager & Team Members...' : 'Write feedback visible to the Team Member...' }}'"
+                                            placeholder="{{ $isPmOrAdminForHistory ? ($commentVisibility === 'pmo_pm' ? ($isSuperAdmin ? 'Write a comment visible only to the Project Manager...' : 'Write a private comment between Project Manager & PMO Admin...') : ($isSuperAdmin ? 'Write a comment visible to both Project Manager & Team Members...' : 'Write feedback visible to the Team Member...')) : 'Type a feedback comment or reply...' }}"
                                             class="w-full text-xs font-medium py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none transition-all flex-1"
                                         >
                                         <button
@@ -791,11 +809,11 @@
                                                     @if($isPmOrAdminForHistory)
                                                         @if($cVis === 'pmo_pm')
                                                             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                                                🔒 PMO Admin &amp; PM Only
+                                                                🔒 {{ $isSuperAdmin ? 'PM Only' : 'PMO Admin & PM Only' }}
                                                             </span>
                                                         @else
                                                             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                                👥 Team Member Visible
+                                                                👥 {{ $isSuperAdmin ? 'Both (PM & Team)' : 'Team Member Visible' }}
                                                             </span>
                                                         @endif
                                                     @endif

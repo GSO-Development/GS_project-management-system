@@ -318,13 +318,13 @@
             </div>
         </a>
 
-        <div class="manager-kpi-card {{ $overdueTasksCount > 0 ? 'is-overdue' : '' }}">
-            <span class="manager-kpi-label">Overdue</span>
-            <span class="manager-kpi-value">{{ $overdueTasksCount }}</span>
+        <a href="{{ route('projects.my-leads', ['status' => 'delayed']) }}" wire:navigate.hover class="manager-kpi-card manager-kpi-link {{ $overdueProjectsCount > 0 ? 'is-overdue' : '' }}" aria-label="View overdue projects I lead">
+            <span class="manager-kpi-label">Overdue projects</span>
+            <span class="manager-kpi-value">{{ $overdueProjectsCount }}</span>
             <div class="manager-kpi-footer">
-                <span class="manager-kpi-status">{{ $overdueTasksCount > 0 ? 'Action required' : 'All clear' }}</span>
+                <span class="manager-kpi-status">{{ $overdueProjectsCount > 0 ? 'Action required' : 'All clear' }}</span>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- ══════════════════════════════════════════════════════════ --}}

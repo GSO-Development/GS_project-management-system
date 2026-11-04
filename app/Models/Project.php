@@ -86,15 +86,30 @@ class Project extends Model
             return ProjectStatus::PLANNING;
         }
 
-        // Only deliverables can start a project; phase and work-package summaries cannot.
+        // Only deliverables can complete a project, but any WBS item or active risk can start or flag it as At Risk.
         $taskTypes = [ItemType::TASK, ItemType::SUBTASK, ItemType::MILESTONE];
-        $items = $this->relationLoaded('wbsItems')
+        $allItems = $this->relationLoaded('wbsItems')
             ? $this->wbsItems
-            : $this->wbsItems()->whereIn('item_type', array_map(fn (ItemType $type) => $type->value, $taskTypes))->get();
-        $tasks = $items->filter(fn (WbsItem $item) => in_array($item->item_type, $taskTypes, true));
+            : $this->wbsItems()->get();
+        $tasks = $allItems->filter(fn (WbsItem $item) => in_array($item->item_type, $taskTypes, true));
 
-        $hasStarted = $tasks->contains(fn (WbsItem $item) =>
-            in_array($item->status, [WbsStatus::IN_PROGRESS, WbsStatus::COMPLETED, WbsStatus::UNDER_REVIEW], true)
+        $hasOpenRisks = $this->relationLoaded('risks')
+            ? $this->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->isNotEmpty()
+            : $this->risks()->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->exists();
+
+        $hasAtRiskItem = $allItems->contains(fn (WbsItem $item) =>
+            in_array($item->status, [WbsStatus::AT_RISK, WbsStatus::BLOCKED], true)
+        );
+
+        $hasStarted = $hasOpenRisks || $hasAtRiskItem || $allItems->contains(fn (WbsItem $item) =>
+            in_array($item->status, [
+                WbsStatus::IN_PROGRESS,
+                WbsStatus::COMPLETED,
+                WbsStatus::UNDER_REVIEW,
+                WbsStatus::AT_RISK,
+                WbsStatus::ON_HOLD,
+                WbsStatus::BLOCKED,
+            ], true)
         );
 
         // Acceptance, elapsed dates and aggregate progress alone do not start a project.
@@ -102,9 +117,9 @@ class Project extends Model
             return ProjectStatus::PLANNING;
         }
 
-        if ((int) $this->overall_progress >= 100 || $tasks->every(fn (WbsItem $item) =>
+        if ((int) $this->overall_progress >= 100 || ($tasks->isNotEmpty() && $tasks->every(fn (WbsItem $item) =>
             $item->status === WbsStatus::COMPLETED || (int) $item->progress >= 100
-        )) {
+        ))) {
             return ProjectStatus::COMPLETED;
         }
 
@@ -112,9 +127,7 @@ class Project extends Model
             return ProjectStatus::DELAYED;
         }
 
-        if ($tasks->contains(fn (WbsItem $item) =>
-            in_array($item->status, [WbsStatus::AT_RISK, WbsStatus::BLOCKED], true)
-        )) {
+        if ($hasOpenRisks || $hasAtRiskItem) {
             return ProjectStatus::AT_RISK;
         }
 
@@ -201,7 +214,7 @@ class Project extends Model
     public static function syncAllProjectStatuses(): void
     {
         \App\Services\AuditLogService::asMaintenance(function () {
-            $projects = static::with('wbsItems')->get();
+            $projects = static::with(['wbsItems', 'risks'])->get();
             foreach ($projects as $project) {
                 $project->syncAutoStatus(true);
             }
@@ -226,14 +239,14 @@ class Project extends Model
             return 'delayed';
         }
 
-        // Check if project has open risks or blocked tasks
+        // Check if project has open risks or at-risk/blocked tasks
         $hasOpenRisks = $this->relationLoaded('risks')
-            ? $this->risks->where('status', 'open')->isNotEmpty()
-            : $this->risks()->where('status', 'open')->exists();
+            ? $this->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->isNotEmpty()
+            : $this->risks()->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->exists();
 
         $hasBlockedTasks = $this->relationLoaded('wbsItems')
-            ? ($this->wbsItems->where('status', 'blocked')->isNotEmpty() || $this->wbsItems->some(fn($w) => $w->relationLoaded('blockers') && $w->blockers->where('status', 'open')->isNotEmpty()))
-            : $this->wbsItems()->where('status', 'blocked')->exists();
+            ? ($this->wbsItems->contains(fn (WbsItem $w) => in_array($w->status, [WbsStatus::AT_RISK, WbsStatus::BLOCKED], true)) || $this->wbsItems->some(fn($w) => $w->relationLoaded('blockers') && $w->blockers->where('status', 'open')->isNotEmpty()))
+            : $this->wbsItems()->whereIn('status', ['at_risk', 'blocked'])->exists();
 
         if ($statusVal === 'at_risk' || $hasOpenRisks || $hasBlockedTasks) {
             return 'at_risk';

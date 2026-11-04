@@ -189,8 +189,8 @@
                         <select wire:model.live="statusFilter"
                                 class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
                             <option value="all">All Statuses</option>
-                            @foreach(\App\Enums\ProjectStatus::cases() as $st)
-                                <option value="{{ $st->value }}">{{ $st->label() }}</option>
+                            @foreach(\App\Enums\ProjectStatus::filterOptions() as $statusValue => $statusLabel)
+                                <option value="{{ $statusValue }}">{{ $statusLabel }}</option>
                             @endforeach
                         </select>
                         <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -1590,6 +1590,12 @@
                                         @endif
                                         @if($issue['is_critical'] ?? false)
                                             <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">CRITICAL TASK</span>
+                                        @endif
+                                        @if(!empty($issue['is_on_hold']))
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">ON HOLD</span>
+                                        @endif
+                                        @if(!empty($issue['is_at_risk']))
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200">AT RISK</span>
                                         @endif
                                         @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
                                     </div>

@@ -551,7 +551,7 @@ class WbsTree extends Component
         $this->start_time = $item->start_time ? \Carbon\Carbon::parse($item->start_time)->format('H:i') : null;
         $this->end_date = $item->end_date?->toDateString();
         $this->end_time = $item->end_time ? \Carbon\Carbon::parse($item->end_time)->format('H:i') : null;
-        $this->status = $item->status->value;
+        $this->status = WbsStatus::normalizeValue($item->status);
         $this->priority = $item->priority->value;
         $this->progress = $item->progress;
         $this->estimated_hours = $item->estimated_hours;
@@ -1114,7 +1114,7 @@ class WbsTree extends Component
 
     public function setStatusFilter(string $filter)
     {
-        $this->statusFilter = in_array($filter, ['all', 'in_progress', 'at_risk', 'blocked', 'completed', 'not_started']) ? $filter : 'all';
+        $this->statusFilter = in_array($filter, ['all', 'not_started', 'in_progress', 'at_risk', 'on_hold', 'completed']) ? $filter : 'all';
         $this->resetPage();
     }
 
@@ -1183,14 +1183,22 @@ class WbsTree extends Component
         // Calculate status statistics across scoped items for the current user view
         $statusStats = [
             'total'       => $scopedProjectItems->count(),
+            'not_started' => 0,
             'in_progress' => 0,
             'at_risk'     => 0,
+            'on_hold'     => 0,
             'blocked'     => 0,
             'completed'   => 0,
         ];
 
+        $hasActiveRisk = fn ($item) => $item->relationLoaded('risks')
+            && $item->risks->contains(fn ($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified'], true));
+
         foreach ($scopedProjectItems as $item) {
-            $st = $item->status?->value ?? 'not_started';
+            $st = WbsStatus::normalizeValue($item->status);
+            if ($st !== 'at_risk' && $hasActiveRisk($item)) {
+                $statusStats['at_risk']++;
+            }
             if (isset($statusStats[$st])) {
                 $statusStats[$st]++;
             }
@@ -1200,14 +1208,16 @@ class WbsTree extends Component
 
         // Filter items if user selected a specific status filter
         if ($this->statusFilter !== 'all') {
-            $wbsItems = $wbsItems->filter(function ($item) {
-                if ($item->status?->value === $this->statusFilter) {
+            $matchesFilter = fn ($item) => $this->statusFilter === 'at_risk'
+                ? (WbsStatus::normalizeValue($item->status) === 'at_risk' || $hasActiveRisk($item))
+                : (WbsStatus::normalizeValue($item->status) === $this->statusFilter);
+
+            $wbsItems = $wbsItems->filter(function ($item) use ($matchesFilter) {
+                if ($matchesFilter($item)) {
                     return true;
                 }
                 // Also show parent if any of its children match the selected status filter
-                return $item->children->contains(function ($child) {
-                    return $child->status?->value === $this->statusFilter;
-                });
+                return $item->children->contains(fn ($child) => $matchesFilter($child));
             });
         }
 

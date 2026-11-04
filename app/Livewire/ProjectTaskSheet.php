@@ -52,7 +52,7 @@ class ProjectTaskSheet extends Component
                 'start_time' => $item->start_time ? substr($item->start_time, 0, 5) : null,
                 'end_time' => $item->end_time ? substr($item->end_time, 0, 5) : null,
                 'progress' => $item->progress ?? 0,
-                'status' => $item->status?->value ?? 'not_started',
+                'status' => \App\Enums\WbsStatus::normalizeValue($item->status),
                 'priority' => $item->priority?->value ?? 'medium',
             ];
         }
@@ -172,6 +172,9 @@ class ProjectTaskSheet extends Component
                 if (!empty($plan['deadline'])) $this->project->update(['deadline' => $plan['deadline']]);
             }
             foreach ($changed as $item) (new \App\Services\ProgressCalculationService())->updateItemProgress($item);
+            $this->project->unsetRelation('wbsItems');
+            $this->project->unsetRelation('risks');
+            $this->project->syncAutoStatus(true);
         });
         $this->cancelEditing();
         $this->dispatch('wbsUpdated');

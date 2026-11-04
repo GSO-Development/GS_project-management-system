@@ -132,9 +132,11 @@ class GanttChart extends Component
                     $filterQuery->where(function ($q) {
                         $q->where('status', 'at_risk')
                           ->orWhereHas('risks', function ($rq) {
-                              $rq->whereIn('status', ['open', 'active', 'identified']);
+                              $rq->whereIn('status', ['open', 'monitoring', 'active', 'identified']);
                           });
                     });
+                } elseif ($this->statusFilter === 'on_hold') {
+                    $filterQuery->whereIn('status', ['on_hold', 'blocked']);
                 } elseif ($this->statusFilter === 'milestone') {
                     $filterQuery->where(function ($q) {
                         $q->where('is_milestone', true)
@@ -551,8 +553,12 @@ class GanttChart extends Component
         $atRiskCount = WbsItem::where('project_id', $this->project->id)
             ->where(function ($q) {
                 $q->where('status', 'at_risk')
-                  ->orWhereHas('risks', fn($rq) => $rq->whereIn('status', ['open', 'active', 'identified']));
+                  ->orWhereHas('risks', fn($rq) => $rq->whereIn('status', ['open', 'monitoring', 'active', 'identified']));
             })
+            ->count();
+
+        $onHoldCount = WbsItem::where('project_id', $this->project->id)
+            ->whereIn('status', ['on_hold', 'blocked'])
             ->count();
 
         return view('livewire.gantt-chart', compact(
@@ -575,6 +581,7 @@ class GanttChart extends Component
             'collapsedIds',
             'parentIds',
             'atRiskCount',
+            'onHoldCount',
             'ganttDependencies'
         ));
     }

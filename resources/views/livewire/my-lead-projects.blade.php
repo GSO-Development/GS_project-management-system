@@ -27,7 +27,7 @@
             $metricTiles = [
                 ['label' => 'Total Projects', 'count' => $totalCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', 'iconBg' => 'bg-slate-100 text-slate-700', 'border' => 'hover:border-slate-400', 'active' => $statusFilter === 'all', 'action' => '$set("statusFilter", "all")'],
                 ['label' => 'In Progress', 'count' => $activeCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>', 'iconBg' => 'bg-blue-50 text-blue-600', 'border' => 'hover:border-blue-400', 'active' => $statusFilter === 'in_progress', 'action' => '$set("statusFilter", "in_progress")'],
-                ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => $statusFilter === 'overdue', 'action' => '$set("statusFilter", "overdue")'],
+                ['label' => 'Overdue Attention', 'count' => $overdueCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>', 'iconBg' => 'bg-rose-50 text-rose-600', 'border' => 'hover:border-rose-400', 'active' => $statusFilter === 'delayed', 'action' => '$set("statusFilter", "delayed")'],
                 ['label' => 'Completed', 'count' => $completedCount, 'icon' => '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', 'iconBg' => 'bg-emerald-50 text-emerald-600', 'border' => 'hover:border-emerald-400', 'active' => $statusFilter === 'completed', 'action' => '$set("statusFilter", "completed")'],
             ];
         @endphp
@@ -70,18 +70,15 @@
         {{-- Filters --}}
         <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
             {{-- Status Filter --}}
-            <div class="min-w-[160px]">
+            <div class="relative min-w-[160px]">
                 <select aria-label="Filter by status" wire:model.live="statusFilter"
-                    class="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
+                    class="w-full appearance-none py-2.5 pl-3.5 pr-9 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
                     <option value="all">All Statuses</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="overdue">Overdue Attention</option>
-                    <option value="completed">Completed</option>
-                    <option value="planning">Planning</option>
-                    <option value="at_risk">At Risk</option>
-                    <option value="on_hold">On Hold</option>
-                    <option value="under_review">Under Review</option>
+                    @foreach(\App\Enums\ProjectStatus::filterOptions() as $statusValue => $statusLabel)
+                        <option value="{{ $statusValue }}">{{ $statusLabel }}</option>
+                    @endforeach
                 </select>
+                <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </div>
 
             {{-- Role Filter --}}
@@ -575,6 +572,12 @@
                                         @endif
                                         @if($issue['is_critical'] ?? false)
                                             <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">CRITICAL TASK</span>
+                                        @endif
+                                        @if(!empty($issue['is_on_hold']))
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">ON HOLD</span>
+                                        @endif
+                                        @if(!empty($issue['is_at_risk']))
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200">AT RISK</span>
                                         @endif
                                         @if($issue['wbs_code'])<span class="text-[11px] font-mono font-bold text-slate-500">{{ $issue['wbs_code'] }}</span>@endif
                                     </div>

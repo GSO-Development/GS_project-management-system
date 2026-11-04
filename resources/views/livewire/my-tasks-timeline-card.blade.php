@@ -4,9 +4,12 @@
     $isDone = $t->status === \App\Enums\WbsStatus::COMPLETED;
     $isOverdue = $t->isOverdue();
     $hasTime = !empty($t->start_time_formatted) && !empty($t->end_time_formatted);
+    $rawStatusVal = \App\Enums\WbsStatus::normalizeValue($t->status);
+    $hasActiveRisk = $t->risks && $t->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->isNotEmpty();
+    $normalizedStatusVal = ($hasActiveRisk && !in_array($rawStatusVal, ['completed', 'on_hold'])) ? 'at_risk' : $rawStatusVal;
 @endphp
 
-<div x-data="{ currentStatus: '{{ $t->status->value }}', pendingStatus: '{{ $t->status->value }}', confirmingStatus: false }" @keydown.escape.window="pendingStatus = currentStatus; confirmingStatus = false" class="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 space-y-2.5 group relative {{ $isDone ? 'bg-emerald-50/20 border-emerald-200/80' : ($isOverdue ? 'bg-rose-50/25 border-rose-200' : '') }}">
+<div x-data="{ currentStatus: '{{ $normalizedStatusVal }}', pendingStatus: '{{ $normalizedStatusVal }}', confirmingStatus: false }" @keydown.escape.window="pendingStatus = currentStatus; confirmingStatus = false" class="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all duration-200 space-y-2.5 group relative {{ $isDone ? 'bg-emerald-50/20 border-emerald-200/80' : ($isOverdue ? 'bg-rose-50/25 border-rose-200' : '') }}">
     <!-- Top Row: Project Code Pill & Priority -->
     <div class="flex items-center justify-between gap-1.5">
         <span class="text-[9.5px] font-mono font-black px-2 py-0.5 rounded-lg bg-rose-50 text-[#c3122e] border border-rose-100 truncate max-w-[140px]" title="{{ $t->project->name ?? '' }}">
@@ -19,9 +22,19 @@
 
     <!-- Middle: Task Title & Hour Capsule -->
     <div class="space-y-1.5">
-        <div class="flex items-start gap-1.5 font-bold text-xs text-slate-900 group-hover:text-[#c3122e] transition-colors leading-snug">
+        <div class="flex items-start gap-1.5 font-bold text-xs text-slate-900 group-hover:text-[#c3122e] transition-colors leading-snug flex-wrap">
             <span class="font-mono text-slate-400 font-extrabold flex-shrink-0 text-[11px]">{{ $t->wbs_code }}</span>
             <span class="{{ $isDone ? 'line-through text-slate-400' : 'text-slate-800' }}">{{ $t->title }}</span>
+            @if(($normalizedStatusVal === 'at_risk' || $hasActiveRisk) && !$isDone)
+                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                    ⚠️ {{ $hasActiveRisk ? 'Risk' : 'At Risk' }}
+                </span>
+            @endif
+            @if($rawStatusVal === 'on_hold' && !$isDone)
+                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                    On Hold
+                </span>
+            @endif
         </div>
 
         @if($hasTime)

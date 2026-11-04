@@ -18,6 +18,12 @@
         'medium'             => 'bg-blue-50 text-blue-700 border-blue-200/80',
         default              => 'bg-slate-50 text-slate-600 border-slate-200/80',
     };
+
+    $activeRisks = $task->risks ? $task->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified']) : collect();
+    $hasActiveRisk = $activeRisks->isNotEmpty();
+    $normalizedRowStatus = \App\Enums\WbsStatus::normalizeValue($task->status);
+    $isRowAtRisk = $normalizedRowStatus === 'at_risk' || $hasActiveRisk;
+    $isRowOnHold = $normalizedRowStatus === 'on_hold';
 @endphp
 
 <tr class="hover:bg-slate-50/70 transition-colors group {{ $isDone ? 'bg-emerald-50/20' : ($isOverdue ? 'bg-rose-50/15' : ($isDueToday ? 'bg-amber-50/15' : '')) }}">
@@ -68,6 +74,18 @@
                 @if($task->is_milestone)
                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200/70">
                         <span>🏁 Milestone</span>
+                    </span>
+                @endif
+
+                @if($isRowAtRisk && !$isDone)
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80" title="{{ $hasActiveRisk ? 'Active Risk: ' . $activeRisks->pluck('title')->implode(', ') : 'Task Marked At Risk' }}">
+                        <span>⚠️ {{ $hasActiveRisk ? 'Risk' : 'At Risk' }}</span>
+                    </span>
+                @endif
+
+                @if($isRowOnHold && !$isDone)
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
+                        <span>On Hold</span>
                     </span>
                 @endif
             </div>
@@ -125,7 +143,7 @@
     <!-- 5. STATUS (Interactive Dropdown Pill) -->
     <td class="py-3 px-4 align-middle whitespace-nowrap min-w-[145px]">
         @php
-            $currentStatusVal = is_object($task->status) ? $task->status->value : $task->status;
+            $currentStatusVal = ($hasActiveRisk && !in_array($normalizedRowStatus, ['completed', 'on_hold'])) ? 'at_risk' : $normalizedRowStatus;
             $stBadge = match($currentStatusVal) {
                 'in_progress'  => [
                     'bg' => 'bg-blue-50 text-blue-700 border-blue-200/90',
@@ -138,16 +156,6 @@
                     'style' => 'background-color: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0 !important;'
                 ],
                 'at_risk'      => [
-                    'bg' => 'bg-amber-50 text-amber-800 border-amber-200/90',
-                    'dot' => 'bg-amber-500',
-                    'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'
-                ],
-                'under_review' => [
-                    'bg' => 'bg-purple-50 text-purple-700 border-purple-200/90',
-                    'dot' => 'bg-purple-500',
-                    'style' => 'background-color: #faf5ff !important; color: #6b21a8 !important; border-color: #e9d5ff !important;'
-                ],
-                'blocked'      => [
                     'bg' => 'bg-rose-50 text-rose-700 border-rose-200/90',
                     'dot' => 'bg-rose-500',
                     'style' => 'background-color: #fff1f2 !important; color: #be123c !important; border-color: #fecdd3 !important;'
@@ -177,7 +185,7 @@
                     style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important; {{ $stBadge['style'] }}"
                     title="Update Task Status">
                 @foreach(\App\Enums\WbsStatus::selectableCases() as $st)
-                    <option value="{{ $st->value }}" {{ $task->status === $st ? 'selected' : '' }} class="bg-white text-slate-900 font-semibold">
+                    <option value="{{ $st->value }}" @selected($currentStatusVal === $st->value) class="bg-white text-slate-900 font-semibold">
                         {{ $st->label() }}
                     </option>
                 @endforeach

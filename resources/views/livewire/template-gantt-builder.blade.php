@@ -264,159 +264,180 @@
 
     <!-- Setup Modal Dialog (PMO Admin Only) -->
     @if($showSetupModal && auth()->user()?->isSuperAdmin())
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
-            <!-- Backdrop -->
-            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" wire:click="$set('showSetupModal', false)"></div>
+    @teleport('body')
+    <div class="fixed inset-0 z-[2147483640] flex items-center justify-center bg-slate-900/55 p-4 sm:p-6 backdrop-blur-sm"
+         x-data
+         x-trap.inert.noscroll="true"
+         @keydown.escape.window="$wire.set('showSetupModal', false)"
+         wire:click.self="$set('showSetupModal', false)"
+         aria-labelledby="modal-title"
+         aria-describedby="modal-description"
+         role="dialog"
+         aria-modal="true">
+        <!-- Modal Panel -->
+        <form wire:submit.prevent="generateTasks"
+              class="relative flex max-h-[calc(100dvh-2rem)] sm:max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-[0_30px_80px_rgba(15,23,42,.26)]">
+            <!-- Modal Header -->
+            <header class="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6 bg-white">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-[#c3122e]">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="text-base font-black text-slate-900" id="modal-title">Setup WBS Timeline</h3>
+                        <p class="mt-0.5 text-xs font-medium text-slate-500" id="modal-description">Generate initial schedule duration and structural units.</p>
+                    </div>
+                </div>
+                <button type="button"
+                        wire:click="$set('showSetupModal', false)"
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-lg text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 cursor-pointer"
+                        aria-label="Close setup modal">&times;</button>
+            </header>
 
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <!-- Scrollable Modal Body -->
+            <div class="flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6 bg-white">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Total Duration Target</label>
+                    <input type="number" wire:model.live="setupDuration" min="1" max="1000" class="w-full px-3.5 py-2.5 text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 focus:border-[#c3122e]" placeholder="e.g. 30" required autofocus>
+                    @error('setupDuration') <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> @enderror
+                </div>
 
-            <!-- Modal Panel -->
-            <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-100">
-                <form wire:submit.prevent="generateTasks">
-                    <div class="bg-white p-6">
-                        <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
-                            <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-[#c3122e]">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                                </svg>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Hierarchy Base Unit</label>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="setupUnit" value="days" class="peer sr-only">
+                            <div class="text-center px-3 py-2 rounded-xl border transition-all peer-checked:border-[#c3122e] peer-checked:bg-[#fdf4f4] peer-checked:text-[#c3122e] border-slate-200 text-slate-600 hover:border-slate-300 font-bold text-xs">
+                                Days
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="setupUnit" value="weeks" class="peer sr-only">
+                            <div class="text-center px-3 py-2 rounded-xl border transition-all peer-checked:border-[#c3122e] peer-checked:bg-[#fdf4f4] peer-checked:text-[#c3122e] border-slate-200 text-slate-600 hover:border-slate-300 font-bold text-xs">
+                                Weeks
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="setupUnit" value="months" class="peer sr-only">
+                            <div class="text-center px-3 py-2 rounded-xl border transition-all peer-checked:border-[#c3122e] peer-checked:bg-[#fdf4f4] peer-checked:text-[#c3122e] border-slate-200 text-slate-600 hover:border-slate-300 font-bold text-xs">
+                                Months
+                            </div>
+                        </label>
+                    </div>
+                    @error('setupUnit') <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> @enderror
+                </div>
+
+                @if($setupUnit === 'weeks' || $setupUnit === 'months')
+                <div class="space-y-2.5 pt-3 border-t border-slate-100">
+                    <label class="block text-xs font-bold text-slate-800">Subtask Structure Divider</label>
+                    @if($setupUnit === 'months')
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model.live="divideByWeeks" class="w-4 h-4 text-[#c3122e] border-slate-300 rounded focus:ring-[#c3122e]">
+                        <span class="text-xs font-semibold text-slate-700">Divide into Weeks (Level 2 Subtasks)</span>
+                    </label>
+                    @endif
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model.live="divideByDays" class="w-4 h-4 text-[#c3122e] border-slate-300 rounded focus:ring-[#c3122e]">
+                        <span class="text-xs font-semibold text-slate-700">Divide into Days (Level 3 Deliverables)</span>
+                    </label>
+                </div>
+                @endif
+
+                {{-- ── Level 4: Hour Slots ───────────────────────── --}}
+                <div class="space-y-3 pt-3 border-t border-slate-100">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model.live="divideByHours" class="w-4 h-4 text-amber-500 border-slate-300 rounded focus:ring-amber-400">
+                        <div>
+                            <span class="text-xs font-bold text-slate-800">Divide into Hours</span>
+                            <span class="ml-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">Level 4 Time Slots</span>
+                        </div>
+                    </label>
+
+                    @if($divideByHours)
+                    <div class="ml-6 space-y-3 p-3.5 bg-amber-50/60 border border-amber-200/70 rounded-xl">
+                        <p class="text-[10.5px] font-bold text-amber-800 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Daily Working Time Window
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wide">Start Time</label>
+                                <input type="time" wire:model.live="workStartTime"
+                                       class="w-full px-3 py-2 text-xs font-bold text-slate-900 bg-white border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400">
+                                @error('workStartTime') <span class="text-[10px] text-rose-500 font-medium">{{ $message }}</span> @enderror
                             </div>
                             <div>
-                                <h3 class="text-base font-black text-slate-900" id="modal-title">Setup WBS Timeline</h3>
-                                <p class="text-xs text-slate-500 font-medium">Generate initial schedule duration and structural units.</p>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wide">End Time</label>
+                                <input type="time" wire:model.live="workEndTime"
+                                       class="w-full px-3 py-2 text-xs font-bold text-slate-900 bg-white border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400">
+                                @error('workEndTime') <span class="text-[10px] text-rose-500 font-medium">{{ $message }}</span> @enderror
                             </div>
                         </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-800 mb-1.5">Total Duration Target</label>
-                                <input type="number" wire:model.live="setupDuration" min="1" max="1000" class="w-full px-3.5 py-2.5 text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 focus:border-[#c3122e]" placeholder="e.g. 30" required autofocus>
-                                @error('setupDuration') <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> @enderror
-                            </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-800 mb-1.5">Hierarchy Base Unit</label>
-                                <div class="grid grid-cols-3 gap-2.5">
-                                    <label class="cursor-pointer">
-                                        <input type="radio" wire:model.live="setupUnit" value="days" class="peer sr-only">
-                                        <div class="text-center px-3 py-2 rounded-xl border transition-all peer-checked:border-[#c3122e] peer-checked:bg-[#fdf4f4] peer-checked:text-[#c3122e] border-slate-200 text-slate-600 hover:border-slate-300 font-bold text-xs">
-                                            Days
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" wire:model.live="setupUnit" value="weeks" class="peer sr-only">
-                                        <div class="text-center px-3 py-2 rounded-xl border transition-all peer-checked:border-[#c3122e] peer-checked:bg-[#fdf4f4] peer-checked:text-[#c3122e] border-slate-200 text-slate-600 hover:border-slate-300 font-bold text-xs">
-                                            Weeks
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" wire:model.live="setupUnit" value="months" class="peer sr-only">
-                                        <div class="text-center px-3 py-2 rounded-xl border transition-all peer-checked:border-[#c3122e] peer-checked:bg-[#fdf4f4] peer-checked:text-[#c3122e] border-slate-200 text-slate-600 hover:border-slate-300 font-bold text-xs">
-                                            Months
-                                        </div>
-                                    </label>
-                                </div>
-                                @error('setupUnit') <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> @enderror
-                            </div>
+                        {{-- Hour slot preview --}}
+                        @php
+                            $previewSlots = 0;
+                            try {
+                                $pStart = \Carbon\Carbon::createFromFormat('H:i', $workStartTime);
+                                $pEnd   = \Carbon\Carbon::createFromFormat('H:i', $workEndTime);
+                                if ($pEnd->greaterThan($pStart)) {
+                                    $previewSlots = (int) $pStart->diffInHours($pEnd);
+                                }
+                            } catch (\Throwable $e) {}
+                        @endphp
+                        @if($previewSlots > 0)
+                        <p class="text-[10.5px] font-semibold text-amber-700">
+                            ⏰ Generates <span class="font-black">{{ $previewSlots }} hour slot{{ $previewSlots !== 1 ? 's' : '' }}</span> per day
+                            ({{ \Carbon\Carbon::createFromFormat('H:i', $workStartTime)->format('h:i A') }}
+                             – {{ \Carbon\Carbon::createFromFormat('H:i', $workEndTime)->format('h:i A') }})
+                        </p>
+                        @endif
 
-                            @if($setupUnit === 'weeks' || $setupUnit === 'months')
-                            <div class="space-y-2.5 pt-3 border-t border-slate-100">
-                                <label class="block text-xs font-bold text-slate-800">Subtask Structure Divider</label>
-                                @if($setupUnit === 'months')
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" wire:model.live="divideByWeeks" class="w-4 h-4 text-[#c3122e] border-slate-300 rounded focus:ring-[#c3122e]">
-                                    <span class="text-xs font-semibold text-slate-700">Divide into Weeks (Level 2 Subtasks)</span>
+                        {{-- Working days selector --}}
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Working Days</label>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach(['mon' => 'Mon', 'tue' => 'Tue', 'wed' => 'Wed', 'thu' => 'Thu', 'fri' => 'Fri', 'sat' => 'Sat', 'sun' => 'Sun'] as $val => $label)
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" wire:model.live="workDays" value="{{ $val }}" class="peer sr-only">
+                                    <span class="inline-block px-2.5 py-1 rounded-lg border text-[10.5px] font-bold transition-all
+                                        peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500
+                                        {{ in_array($val, $workDays) ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200 hover:border-amber-300' }}">
+                                        {{ $label }}
+                                    </span>
                                 </label>
-                                @endif
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" wire:model.live="divideByDays" class="w-4 h-4 text-[#c3122e] border-slate-300 rounded focus:ring-[#c3122e]">
-                                    <span class="text-xs font-semibold text-slate-700">Divide into Days (Level 3 Deliverables)</span>
-                                </label>
-                            </div>
-                            @endif
-
-                            {{-- ── Level 4: Hour Slots ───────────────────────── --}}
-                            <div class="space-y-3 pt-3 border-t border-slate-100">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" wire:model.live="divideByHours" class="w-4 h-4 text-amber-500 border-slate-300 rounded focus:ring-amber-400">
-                                    <div>
-                                        <span class="text-xs font-bold text-slate-800">Divide into Hours</span>
-                                        <span class="ml-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">Level 4 Time Slots</span>
-                                    </div>
-                                </label>
-
-                                @if($divideByHours)
-                                <div class="ml-6 space-y-3 p-3.5 bg-amber-50/60 border border-amber-200/70 rounded-xl">
-                                    <p class="text-[10.5px] font-bold text-amber-800 flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Daily Working Time Window
-                                    </p>
-
-                                    <div class="grid grid-cols-2 gap-2.5">
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wide">Start Time</label>
-                                            <input type="time" wire:model.live="workStartTime"
-                                                   class="w-full px-3 py-2 text-xs font-bold text-slate-900 bg-white border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400">
-                                            @error('workStartTime') <span class="text-[10px] text-rose-500 font-medium">{{ $message }}</span> @enderror
-                                        </div>
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wide">End Time</label>
-                                            <input type="time" wire:model.live="workEndTime"
-                                                   class="w-full px-3 py-2 text-xs font-bold text-slate-900 bg-white border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400">
-                                            @error('workEndTime') <span class="text-[10px] text-rose-500 font-medium">{{ $message }}</span> @enderror
-                                        </div>
-                                    </div>
-
-                                    {{-- Hour slot preview --}}
-                                    @php
-                                        $previewSlots = 0;
-                                        try {
-                                            $pStart = \Carbon\Carbon::createFromFormat('H:i', $workStartTime);
-                                            $pEnd   = \Carbon\Carbon::createFromFormat('H:i', $workEndTime);
-                                            if ($pEnd->greaterThan($pStart)) {
-                                                $previewSlots = (int) $pStart->diffInHours($pEnd);
-                                            }
-                                        } catch (\Throwable $e) {}
-                                    @endphp
-                                    @if($previewSlots > 0)
-                                    <p class="text-[10.5px] font-semibold text-amber-700">
-                                        ⏰ Generates <span class="font-black">{{ $previewSlots }} hour slot{{ $previewSlots !== 1 ? 's' : '' }}</span> per day
-                                        ({{ \Carbon\Carbon::createFromFormat('H:i', $workStartTime)->format('h:i A') }}
-                                         – {{ \Carbon\Carbon::createFromFormat('H:i', $workEndTime)->format('h:i A') }})
-                                    </p>
-                                    @endif
-
-                                    {{-- Working days selector --}}
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Working Days</label>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @foreach(['mon' => 'Mon', 'tue' => 'Tue', 'wed' => 'Wed', 'thu' => 'Thu', 'fri' => 'Fri', 'sat' => 'Sat', 'sun' => 'Sun'] as $val => $label)
-                                            <label class="cursor-pointer">
-                                                <input type="checkbox" wire:model.live="workDays" value="{{ $val }}" class="peer sr-only">
-                                                <span class="inline-block px-2.5 py-1 rounded-lg border text-[10.5px] font-bold transition-all
-                                                    peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500
-                                                    {{ in_array($val, $workDays) ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200 hover:border-amber-300' }}">
-                                                    {{ $label }}
-                                                </span>
-                                            </label>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                                @endif
+                                @endforeach
                             </div>
                         </div>
                     </div>
-
-                    <div class="bg-slate-50 px-6 py-3.5 border-t border-slate-100 flex justify-end gap-2.5">
-                        <button type="button" wire:click="$set('showSetupModal', false)" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 disabled:opacity-50" @if(!$setupDuration || !$setupUnit) disabled @endif>
-                            Generate WBS Chart
-                        </button>
-                    </div>
-                </form>
+                    @endif
+                </div>
             </div>
-        </div>
+
+            <!-- Modal Footer -->
+            <footer class="flex shrink-0 items-center justify-end gap-2.5 border-t border-slate-100 bg-slate-50/80 px-5 py-3.5 sm:px-6">
+                <button type="button"
+                        wire:click="$set('showSetupModal', false)"
+                        class="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit"
+                        wire:loading.attr="disabled"
+                        wire:target="generateTasks"
+                        class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#c3122e] px-5 py-2 text-xs font-bold text-white shadow-md shadow-[#c3122e]/20 transition-all hover:bg-[#a00e24] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                        @if(!$setupDuration || !$setupUnit) disabled @endif>
+                    <span wire:loading.remove wire:target="generateTasks">Generate WBS Chart</span>
+                    <span wire:loading wire:target="generateTasks" class="inline-flex items-center gap-1.5">
+                        <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        Generating...
+                    </span>
+                </button>
+            </footer>
+        </form>
     </div>
+    @endteleport
     @endif
 </div>

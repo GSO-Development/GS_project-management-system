@@ -745,6 +745,13 @@ class ProjectManagerDashboard extends Component
             return $t->end_date && $t->end_date->lt(now()->today()) && !in_array($t->status?->value, ['completed', 'cancelled']);
         })->count();
 
+        // Overdue projects: projects this user leads (as Project Manager) that are Delayed.
+        // Uses the same auto-status rule as the "Delayed" project status / My Projects filter.
+        $overdueProjectsCount = $myProjects
+            ->filter(fn($p) => $p->project_manager_id === $user->id
+                && $p->computeAutoStatus() === \App\Enums\ProjectStatus::DELAYED)
+            ->count();
+
         // New projects this week count
         $newProjectsThisWeekCount = $myProjects->filter(function($p) {
             return $p->created_at && $p->created_at->gte(now()->startOfWeek());
@@ -1049,6 +1056,7 @@ class ProjectManagerDashboard extends Component
             'pendingTasksCount',
             'tasksDueSoonCount',
             'overdueTasksCount',
+            'overdueProjectsCount',
             'pendingApprovalsCount',
             'hoursThisWeekFormatted',
             'overallAvgProgress',

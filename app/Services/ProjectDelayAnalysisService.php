@@ -13,6 +13,7 @@ class ProjectDelayAnalysisService
             'projectManager',
             'wbsItems.assignedUser',
             'wbsItems.blockers',
+            'wbsItems.risks',
             'wbsItems.predecessors.predecessor',
             'wbsItems.successors.successor',
         ]);
@@ -65,20 +66,35 @@ class ProjectDelayAnalysisService
         // ── Per-task issues ─────────────────────────────────────────────────
         $issues = $allTasks
             ->filter(function ($task) use ($today, $statusOf, $isDone, $lateDays) {
+                if ($isDone($task)) {
+                    return false;
+                }
                 $taskStatus = $statusOf($task);
                 $overdue = $lateDays($task) > 0;
                 $openBlocker = $task->blockers->contains(fn ($blocker) => $blocker->status === 'open');
+                $openRisk = $task->relationLoaded('risks')
+                    && $task->risks->contains(fn ($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified'], true));
                 $incompletePredecessor = $task->predecessors->contains(fn ($dependency) => $dependency->predecessor && !$isDone($dependency->predecessor));
                 $dependencyDelay = $incompletePredecessor
                     && $task->start_date
                     && $task->start_date->copy()->startOfDay()->lte($today)
                     && !$isDone($task);
 
-                return $overdue || $taskStatus === 'blocked' || $taskStatus === 'on_hold' || $openBlocker || filled($task->delay_reason) || $dependencyDelay;
+                return $overdue
+                    || in_array($taskStatus, ['blocked', 'on_hold', 'at_risk'], true)
+                    || $openRisk
+                    || $openBlocker
+                    || filled($task->delay_reason)
+                    || $dependencyDelay;
             })
             ->map(function ($task) use ($today, $project, $statusOf, $isDone, $lateDays, $ownerOf, $findRoots, $byId, $childrenByParent) {
                 $taskStatus = $statusOf($task);
                 $openBlocker = $task->blockers->first(fn ($blocker) => $blocker->status === 'open');
+                $openRisks = $task->relationLoaded('risks')
+                    ? $task->risks->filter(fn ($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified'], true))->values()
+                    : collect();
+                $isAtRisk = $taskStatus === 'at_risk' || $openRisks->isNotEmpty();
+                $isOnHold = in_array($taskStatus, ['on_hold', 'blocked'], true);
                 $overdueDays = $lateDays($task);
                 $progress = (int) ($task->progress ?? 0);
 
@@ -149,11 +165,20 @@ class ProjectDelayAnalysisService
                 foreach ($openBlockers as $blocker) {
                     $causes[] = ['type' => 'blocker', 'label' => 'Open blocker', 'detail' => $blocker, 'responsible' => $self['name']];
                 }
+                foreach ($openRisks as $risk) {
+                    $riskDetail = $risk->title
+                        . ($risk->description ? ' — ' . $risk->description : '')
+                        . ($risk->impact ? ' (Impact: ' . ucfirst((string) $risk->impact) . ')' : '');
+                    $causes[] = ['type' => 'blocker', 'label' => 'Active risk', 'detail' => $riskDetail, 'responsible' => $self['name']];
+                }
+                if ($taskStatus === 'at_risk' && $openRisks->isEmpty()) {
+                    $causes[] = ['type' => 'status', 'label' => 'At Risk', 'detail' => 'This task is flagged as At Risk and requires attention to prevent schedule slippage.', 'responsible' => $self['name']];
+                }
                 if ($taskStatus === 'blocked') {
-                    $causes[] = ['type' => 'status', 'label' => 'Blocked status', 'detail' => 'This task is currently marked as blocked.', 'responsible' => $self['name']];
+                    $causes[] = ['type' => 'status', 'label' => 'On hold / blocked', 'detail' => 'This task is currently marked as blocked / on hold.', 'responsible' => $self['name']];
                 }
                 if ($taskStatus === 'on_hold') {
-                    $causes[] = ['type' => 'status', 'label' => 'On hold', 'detail' => 'Work on this task is currently paused.', 'responsible' => $self['name']];
+                    $causes[] = ['type' => 'status', 'label' => 'On Hold', 'detail' => 'Work on this task is currently paused (On Hold).', 'responsible' => $self['name']];
                 }
                 foreach ($incompleteDependencies as $dependency) {
                     $late = $dependency['overdue_days'] > 0;
@@ -197,26 +222,34 @@ class ProjectDelayAnalysisService
                     $causes[] = ['type' => 'owner', 'label' => 'No owner assigned', 'detail' => 'No team member is assigned; the project manager is shown as responsible.', 'responsible' => $self['name']];
                 }
 
+                $firstRisk = $openRisks->first();
                 $reason = $task->delay_reason
                     ?: $openBlocker?->description
+                    ?: ($firstRisk ? ('Active risk: ' . $firstRisk->title) : null)
+                    ?: ($taskStatus === 'at_risk' ? 'Task is flagged as At Risk and requires mitigation.' : null)
+                    ?: ($taskStatus === 'on_hold' ? 'Task is currently On Hold — work is paused.' : null)
                     ?: ($taskStatus === 'blocked'
                         ? 'Task is marked as blocked; a detailed blocker reason has not been recorded.'
                         : "Task missed its planned end date by {$overdueDays} day(s).");
 
                 // A delayed task has missed its schedule or has an explicit
-                // execution delay. Being delayed alone does not make it critical.
+                // execution delay, On Hold, or At Risk status.
                 $isDelayed = $overdueDays > 0
                     || filled($task->delay_reason)
-                    || in_array($taskStatus, ['blocked', 'on_hold'], true)
+                    || $isOnHold
+                    || $isAtRisk
                     || $openBlocker
                     || count($incompleteDependencies) > 0;
 
-                // A critical task actively threatens other work: it is blocked,
-                // waiting on an unfinished dependency, or holds up successors.
-                $isCritical = in_array($taskStatus, ['blocked', 'on_hold'], true)
+                // A critical task actively threatens other work: it is On Hold,
+                // At Risk, blocked, waiting on an unfinished dependency, or holds up successors.
+                $isCritical = $isOnHold
+                    || $isAtRisk
                     || (bool) $openBlocker
                     || count($incompleteDependencies) > 0
                     || $downstreamCount > 0;
+
+                $effectiveStatus = $isAtRisk && !$isOnHold ? 'at_risk' : ($isOnHold ? 'on_hold' : $taskStatus);
 
                 return [
                     'task_id' => $task->id,
@@ -238,8 +271,10 @@ class ProjectDelayAnalysisService
                     'end_date' => $task->end_date?->format('M d, Y'),
                     'is_delayed' => (bool) $isDelayed,
                     'is_critical' => $isCritical,
+                    'is_at_risk' => $isAtRisk,
+                    'is_on_hold' => $isOnHold,
                     'is_dependency_delay' => count($incompleteDependencies) > 0,
-                    'status' => $taskStatus,
+                    'status' => $effectiveStatus,
                 ];
             })
             ->sortByDesc(fn ($issue) => ($issue['is_critical'] ? 100000 : 0) + ($issue['overdue_days'] * 100) + $issue['downstream_count'])
@@ -329,12 +364,21 @@ class ProjectDelayAnalysisService
             ];
         }
 
-        $blocked = $issues->filter(fn ($i) => in_array($i['status'] ?? '', ['blocked', 'on_hold'], true) || !empty($i['open_blockers']));
+        $blocked = $issues->filter(fn ($i) => in_array($i['status'] ?? '', ['blocked', 'on_hold'], true) || !empty($i['is_on_hold']) || !empty($i['open_blockers']));
         if ($blocked->isNotEmpty()) {
             $reasons[] = [
                 'type' => 'blocker',
-                'label' => $blocked->count().' task(s) blocked or on hold',
-                'detail' => 'Open blockers or a blocked/on-hold status are preventing progress.',
+                'label' => $blocked->count().' task(s) on hold',
+                'detail' => 'Tasks placed On Hold or with open blockers are preventing progress.',
+            ];
+        }
+
+        $atRiskIssues = $issues->filter(fn ($i) => ($i['status'] ?? '') === 'at_risk' || !empty($i['is_at_risk']));
+        if ($atRiskIssues->isNotEmpty()) {
+            $reasons[] = [
+                'type' => 'blocker',
+                'label' => $atRiskIssues->count().' task(s) at risk',
+                'detail' => 'Active task risks or At Risk status require mitigation to prevent schedule slippage.',
             ];
         }
 

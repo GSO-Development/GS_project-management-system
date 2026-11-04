@@ -82,4 +82,25 @@ enum ProjectStatus: string
     {
         return collect(self::cases())->mapWithKeys(fn($case) => [$case->value => $case->label()])->toArray();
     }
+
+    /**
+     * Statuses offered in project list filter dropdowns, in lifecycle order.
+     *
+     * Project status is auto-computed from task progress and schedule
+     * (see Project::computeAutoStatus()), so only these statuses can actually
+     * occur on a project. Draft / Not Started / On Hold / Under Review /
+     * Cancelled / Archived are never produced and would only give empty results.
+     *
+     * @return array<string, string> value => label
+     */
+    public static function filterOptions(): array
+    {
+        return collect([
+            self::PLANNING,
+            self::IN_PROGRESS,
+            self::AT_RISK,
+            self::DELAYED,
+            self::COMPLETED,
+        ])->mapWithKeys(fn(self $case) => [$case->value => $case->label()])->toArray();
+    }
 }

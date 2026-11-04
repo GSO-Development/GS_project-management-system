@@ -17,7 +17,7 @@
                 </div>
             </div>
             @unless(auth()->user()?->isAdminViewer())
-            <button wire:click="openReassignModal({{ $declinedProjects->first()->id }})" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-800 bg-white border border-rose-200 hover:bg-rose-100 shadow-2xs transition-colors shrink-0 cursor-pointer">
+            <button type="button" wire:click="$dispatch('open-project-approvals', { projectId: {{ $declinedProjects->first()->id }}, action: 'reassign' })" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-800 bg-white border border-rose-200 hover:bg-rose-100 shadow-2xs transition-colors shrink-0 cursor-pointer">
                 Reassign Leader &rarr;
             </button>
             @endunless
@@ -591,5 +591,7 @@
             </div>
         </div>
     @endif
+
+    <livewire:project-approval-actions wire:key="dashboard-project-approval-actions" />
 
 </div>

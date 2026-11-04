@@ -76,8 +76,22 @@ enum WbsStatus: string
         return [
             self::NOT_STARTED,
             self::IN_PROGRESS,
-            self::COMPLETED,
+            self::AT_RISK,
             self::ON_HOLD,
+            self::COMPLETED,
         ];
+    }
+
+    public static function normalizeValue(self|string|null $status): string
+    {
+        $val = $status instanceof self ? $status->value : (string) ($status ?? 'not_started');
+
+        return match ($val) {
+            'in_progress', 'under_review' => self::IN_PROGRESS->value,
+            'at_risk' => self::AT_RISK->value,
+            'on_hold', 'blocked' => self::ON_HOLD->value,
+            'completed' => self::COMPLETED->value,
+            default => self::NOT_STARTED->value,
+        };
     }
 }

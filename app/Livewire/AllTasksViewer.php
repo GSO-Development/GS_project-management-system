@@ -14,7 +14,8 @@ class AllTasksViewer extends Component
 
     private const WORKFLOW_STATUS_GROUPS = [
         'not_started' => ['backlog', 'not_started'],
-        'in_progress' => ['in_progress', 'under_review', 'at_risk'],
+        'in_progress' => ['in_progress', 'under_review'],
+        'at_risk' => ['at_risk'],
         'completed' => ['completed'],
         'on_hold' => ['on_hold', 'blocked'],
     ];
@@ -186,17 +187,18 @@ class AllTasksViewer extends Component
         // 2. STUCK & BLOCKED TASKS BASE QUERY & METRICS
         // ═══════════════════════════════════════════════════════════════
         $stuckProjectId = $this->stuckProjectFilter !== 'all' ? $this->stuckProjectFilter : $this->projectFilter;
-        $stuckBaseQuery = WbsItem::with(['project.subsidiary', 'project.projectManager', 'assignedUser', 'blockers.reporter'])
+        $stuckBaseQuery = WbsItem::with(['project.subsidiary', 'project.projectManager', 'assignedUser', 'blockers.reporter', 'risks'])
             ->whereHas('project', fn($q) => $q->whereNull('deleted_at'))
             ->when($stuckProjectId !== 'all', fn ($q) => $q->where('project_id', $stuckProjectId))
             ->where(function($q) use ($today) {
-                $q->where('status', WbsStatus::BLOCKED)
+                $q->whereIn('status', [WbsStatus::BLOCKED, WbsStatus::ON_HOLD, WbsStatus::AT_RISK])
                   ->orWhereNotNull('delay_reason')
                   ->orWhere(function($subQ) use ($today) {
                       $subQ->where('end_date', '<', $today)
                            ->whereNotIn('status', ['completed', 'cancelled']);
                   })
-                  ->orWhereHas('blockers', fn($bq) => $bq->where('status', 'open'));
+                  ->orWhereHas('blockers', fn($bq) => $bq->where('status', 'open'))
+                  ->orWhereHas('risks', fn($rq) => $rq->whereIn('status', ['open', 'monitoring', 'active', 'identified']));
             });
 
         $totalStuckTasksCount  = (clone $stuckBaseQuery)->count();
@@ -217,6 +219,7 @@ class AllTasksViewer extends Component
             if ($this->stuckTypeFilter === 'overdue' && !($task->end_date && $task->end_date->lt($today) && $task->status?->value !== 'completed')) return false;
             if ($this->stuckTypeFilter === 'delay_reported' && empty($task->delay_reason)) return false;
             if ($this->stuckTypeFilter === 'on_hold' && $task->status?->value !== 'on_hold' && ($task->project?->status?->value ?? '') !== 'on_hold') return false;
+            if ($this->stuckTypeFilter === 'at_risk' && $task->status?->value !== 'at_risk' && !($task->risks && $task->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->isNotEmpty())) return false;
 
             if ($this->stuckAssigneeFilter !== 'all' && (string)$task->assigned_user_id !== $this->stuckAssigneeFilter) return false;
             if ($this->stuckPriorityFilter !== 'all' && strtolower($task->priority?->value ?? '') !== strtolower($this->stuckPriorityFilter)) return false;
@@ -237,7 +240,7 @@ class AllTasksViewer extends Component
         // ═══════════════════════════════════════════════════════════════
         // 3. ALL TASKS QUERY
         // ═══════════════════════════════════════════════════════════════
-        $query = (clone $taskBaseQuery)->with(['project.subsidiary', 'assignedUser']);
+        $query = (clone $taskBaseQuery)->with(['project.subsidiary', 'assignedUser', 'risks']);
 
         if ($this->search && $this->viewMode === 'all') {
             $s = "%{$this->search}%";
@@ -249,7 +252,12 @@ class AllTasksViewer extends Component
             });
         }
 
-        if ($this->statusFilter !== 'all') {
+        if ($this->statusFilter === 'at_risk') {
+            $query->where(function ($q) {
+                $q->where('status', 'at_risk')
+                    ->orWhereHas('risks', fn ($riskQuery) => $riskQuery->whereIn('status', ['open', 'monitoring']));
+            });
+        } elseif ($this->statusFilter !== 'all') {
             $statuses = self::WORKFLOW_STATUS_GROUPS[$this->statusFilter] ?? [];
             $query->whereIn('status', $statuses);
         }

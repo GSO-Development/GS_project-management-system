@@ -102,12 +102,9 @@
             </div>
             <select wire:model.live="statusFilter" class="ts-input">
                 <option value="all">All Statuses</option>
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="under_review">Under Review</option>
-                <option value="completed">Completed</option>
-                <option value="on_hold">On Hold</option>
-                <option value="blocked">Blocked</option>
+                @foreach(\App\Enums\WbsStatus::selectableCases() as $option)
+                    <option value="{{ $option->value }}">{{ $option->label() }}</option>
+                @endforeach
             </select>
             <select wire:model.live="assigneeFilter" class="ts-input">
                 <option value="all">All Members</option>
@@ -196,7 +193,13 @@
                         $isCollapsed = in_array($item->id, $collapsedIds, true);
                         $durationFormatted = $item->duration_formatted;
                         $isOverdue = $item->isOverdue();
-                        $statusVal = $item->status ? $item->status->value : 'not_started';
+                        $sheetActiveRisks = $item->relationLoaded('risks')
+                            ? $item->risks->filter(fn($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified']))
+                            : collect();
+                        $statusVal = \App\Enums\WbsStatus::normalizeValue($item->status);
+                        if ($statusVal !== 'completed' && $statusVal !== 'on_hold' && $sheetActiveRisks->isNotEmpty()) {
+                            $statusVal = 'at_risk';
+                        }
                         $progressVal = max(0, min(100, (int) ($item->progress ?? 0)));
 
                         $rowClass = match(true) {
@@ -214,11 +217,11 @@
                         };
 
                         $statusKey = match($statusVal) {
-                            'completed', 'in_progress', 'under_review', 'blocked', 'on_hold' => $statusVal,
-                            default => ($isOverdue ? 'blocked' : 'idle'),
+                            'completed', 'in_progress', 'at_risk', 'on_hold' => $statusVal,
+                            default => 'idle',
                         };
 
-                        $progressKey = $progressVal === 100 ? 'done' : ($statusVal === 'blocked' ? 'blocked' : 'active');
+                        $progressKey = $progressVal === 100 ? 'done' : ($statusVal === 'at_risk' ? 'blocked' : 'active');
 
                         $pVal = $item->priority ? $item->priority->value : 'medium';
                         $pKey = in_array($pVal, ['critical', 'high', 'low'], true) ? $pVal : 'medium';
@@ -262,11 +265,8 @@
                                         <span class="ts-count" title="{{ $item->children_count }} sub-items">{{ $item->children_count }}</span>
                                     @endif
                                     @php
-                                        $sheetActiveRisks = $item->relationLoaded('risks')
-                                            ? $item->risks->filter(fn($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified']))
-                                            : collect();
-                                        $sheetStatusValue = is_object($item->status) ? $item->status->value : (string) $item->status;
-                                        $sheetIsAtRisk = $sheetStatusValue === 'at_risk';
+                                        $sheetIsAtRisk = $statusVal === 'at_risk';
+                                        $sheetIsOnHold = $statusVal === 'on_hold';
                                     @endphp
                                     @if($sheetActiveRisks->isNotEmpty())
                                         <span class="ts-risk" title="{{ $sheetActiveRisks->count() }} active risk(s): {{ $sheetActiveRisks->pluck('title')->implode(' • ') }}">
@@ -277,6 +277,12 @@
                                         <span class="ts-risk" title="Task flagged as At Risk">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                                             <span>At Risk</span>
+                                        </span>
+                                    @endif
+                                    @if($sheetIsOnHold)
+                                        <span class="ts-hold" title="Task is On Hold">
+                                            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" clip-rule="evenodd"/></svg>
+                                            <span>On Hold</span>
                                         </span>
                                     @endif
                                 </div>
@@ -390,7 +396,7 @@
                         <!-- STATUS -->
                         <td class="ts-td">
 @if($editing)
-<select class="ts-input" aria-label="status #{{ $item->wbs_code }}" wire:model="drafts.{{ $item->id }}.status">@foreach(\App\Enums\WbsStatus::cases() as $option)<option value="{{ $option->value }}">{{ $option->label() }}</option>@endforeach</select>
+<select class="ts-input" aria-label="status #{{ $item->wbs_code }}" wire:model="drafts.{{ $item->id }}.status">@foreach(\App\Enums\WbsStatus::selectableCases() as $option)<option value="{{ $option->value }}">{{ $option->label() }}</option>@endforeach</select>
                             @else
                             <span class="ts-status ts-status--{{ $statusKey }}">
                                 <i class="ts-dot"></i>{{ ucwords(str_replace('_', ' ', $statusVal)) }}
@@ -676,6 +682,8 @@
         .ts-task__title--parent { font-weight: 800; font-size: 13.5px; color: var(--ts-ink); letter-spacing: -0.01em; }
         .ts-risk { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; padding: 2px 8px; border-radius: 999px; background: #fff1f3; border: 1px solid #fecdd3; color: #be123c; font-size: 10px; font-weight: 800; line-height: 1.4; white-space: nowrap; }
         .ts-risk svg { width: 11px; height: 11px; }
+        .ts-hold { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; padding: 2px 8px; border-radius: 999px; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; font-size: 10px; font-weight: 800; line-height: 1.4; white-space: nowrap; }
+        .ts-hold svg { width: 11px; height: 11px; }
         .ts-caret {
             width: 22px; height: 22px; padding: 0; border-radius: 7px; flex-shrink: 0; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
@@ -743,6 +751,7 @@
         }
         .ts-status--completed { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
         .ts-status--in_progress { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .ts-status--at_risk { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
         .ts-status--under_review { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
         .ts-status--blocked { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
         .ts-status--on_hold { background: #fffbeb; color: #b45309; border-color: #fde68a; }

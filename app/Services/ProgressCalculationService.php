@@ -74,6 +74,9 @@ class ProgressCalculationService
 
         if ($topLevelItems->isEmpty()) {
             $project->overall_progress = 0;
+            $project->unsetRelation('wbsItems');
+            $project->unsetRelation('risks');
+            $project->syncAutoStatus(false);
             $project->saveQuietly();
             return;
         }
@@ -106,6 +109,8 @@ class ProgressCalculationService
             $project->actual_hours = $wbsActHours;
         }
 
+        $project->unsetRelation('wbsItems');
+        $project->unsetRelation('risks');
         $project->syncAutoStatus(false);
         $project->saveQuietly();
     }

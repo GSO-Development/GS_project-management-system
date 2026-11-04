@@ -57,18 +57,19 @@
                             wire:change="setStatusFilter($event.target.value)" 
                             class="text-xs font-extrabold rounded-xl px-3 py-1.5 pr-8 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c3122e]/20 appearance-none border 
                             @if($statusFilter === 'in_progress') bg-blue-50 text-blue-700 border-blue-200 shadow-2xs
-                            @elseif($statusFilter === 'at_risk') bg-amber-50 text-amber-800 border-amber-200 shadow-2xs
-                            @elseif($statusFilter === 'blocked') bg-rose-50 text-rose-700 border-rose-200 shadow-2xs
+                            @elseif($statusFilter === 'at_risk') bg-rose-50 text-rose-700 border-rose-200 shadow-2xs
+                            @elseif($statusFilter === 'on_hold') bg-amber-50 text-amber-800 border-amber-200 shadow-2xs
                             @elseif($statusFilter === 'completed') bg-emerald-50 text-emerald-800 border-emerald-200 shadow-2xs
                             @else bg-slate-100/90 hover:bg-slate-200/70 text-slate-800 border-slate-200/80
                             @endif"
                             style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2364748b\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2.2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 9px center; background-size: 11px;"
                         >
                             <option value="all" class="text-slate-800 bg-white font-semibold">⚡ All Statuses ({{ $statusStats['total'] }})</option>
+                            <option value="not_started" class="text-slate-700 bg-white font-bold">⚪ Not Started ({{ $statusStats['not_started'] ?? 0 }})</option>
                             <option value="in_progress" class="text-blue-700 bg-white font-bold">🔵 In Progress ({{ $statusStats['in_progress'] }})</option>
-                            <option value="at_risk" class="text-amber-800 bg-white font-bold">🟠 At Risk ({{ $statusStats['at_risk'] }})</option>
-                            <option value="blocked" class="text-rose-700 bg-white font-bold">🔴 Blocked ({{ $statusStats['blocked'] }})</option>
-                            <option value="completed" class="text-emerald-800 bg-white font-bold">🟢 Done ({{ $statusStats['completed'] }})</option>
+                            <option value="at_risk" class="text-rose-700 bg-white font-bold">🟠 At Risk ({{ $statusStats['at_risk'] }})</option>
+                            <option value="on_hold" class="text-amber-800 bg-white font-bold">🟡 On Hold ({{ $statusStats['on_hold'] ?? 0 }})</option>
+                            <option value="completed" class="text-emerald-800 bg-white font-bold">🟢 Completed ({{ $statusStats['completed'] }})</option>
                         </select>
                     </div>
                 </div>
@@ -714,10 +715,9 @@
                             <select wire:model="status" style="width: 100%; height: 34px; padding: 0 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 11.5px; font-weight: 700; color: #0f172a; outline: none;">
                                 <option value="not_started">⚪ Not Started</option>
                                 <option value="in_progress">🔄 In Progress</option>
-                                <option value="under_review">🟣 Under Review</option>
-                                <option value="completed">✔ Completed</option>
+                                <option value="at_risk">🟠 At Risk</option>
                                 <option value="on_hold">🟡 On Hold</option>
-                                <option value="blocked">🔴 Blocked</option>
+                                <option value="completed">✔ Completed</option>
                             </select>
                         </div>
 

@@ -149,6 +149,19 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                         </span>
                     @endif
                 </button>
+                <!-- On Hold Pill -->
+                <button wire:click="$set('statusFilter', '{{ $statusFilter === 'on_hold' ? 'all' : 'on_hold' }}')"
+                        type="button" 
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all cursor-pointer text-[11px] {{ $statusFilter === 'on_hold' ? 'bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs' : 'bg-amber-50/80 text-amber-800 border border-amber-200/80 hover:bg-amber-100' }}"
+                        title="Click to filter On Hold tasks">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>On Hold</span>
+                    @if(isset($onHoldCount) && $onHoldCount > 0)
+                        <span class="px-1.5 py-0.2 rounded-full text-[9.5px] font-black bg-amber-600 text-white">
+                            {{ $onHoldCount }}
+                        </span>
+                    @endif
+                </button>
                 <!-- Milestone Pill -->
                 <button wire:click="$set('statusFilter', '{{ $statusFilter === 'milestone' ? 'all' : 'milestone' }}')"
                         type="button" 
@@ -330,20 +343,30 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                             };
 
                             /* ── Risk & Status Detection ── */
-                            $statusVal = is_object($item->status) ? $item->status->value : (string) $item->status;
+                            $statusVal = \App\Enums\WbsStatus::normalizeValue($item->status);
                             $openRisks = $item->relationLoaded('risks') 
-                                ? $item->risks->filter(fn($r) => in_array(strtolower($r->status), ['open', 'active', 'identified'])) 
+                                ? $item->risks->filter(fn($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified'])) 
                                 : collect();
                             $isAtRisk = ($statusVal === 'at_risk' || $openRisks->isNotEmpty());
+                            $isOnHold = ($statusVal === 'on_hold');
                             $isCompleted = ($statusVal === 'completed' || $item->progress == 100);
                             $isInProgress = ($statusVal === 'in_progress' || ($item->progress > 0 && $item->progress < 100));
 
-                            /* ── Bar Color: Prioritize At Risk with Rose/Red styling ── */
+                            /* ── Bar Color: Prioritize At Risk and On Hold styling ── */
                             $barBg = $isCompleted 
                                 ? 'bg-[#10b981]' 
                                 : ($isAtRisk 
                                     ? 'bg-[#e11d48] ring-2 ring-rose-400 ring-offset-1 shadow-md shadow-rose-200' 
-                                    : ($isInProgress ? 'bg-[#3b82f6]' : 'bg-[#f59e0b]'));
+                                    : ($isOnHold
+                                        ? 'bg-amber-600 ring-2 ring-amber-300 ring-offset-1 shadow-md shadow-amber-100'
+                                        : ($isInProgress ? 'bg-[#3b82f6]' : 'bg-[#f59e0b]')));
+                            $barHex = $isCompleted
+                                ? '#10b981'
+                                : ($isAtRisk
+                                    ? '#e11d48'
+                                    : ($isOnHold
+                                        ? '#d97706'
+                                        : ($isInProgress ? '#3b82f6' : '#f59e0b')));
 
                             /* ── Duration Days Calculation ── */
                             $durDays = ($item->start_date && $item->end_date)
@@ -359,12 +382,14 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                 } else {
                                     $riskAlert = 'Task flagged as At Risk';
                                 }
+                            } elseif ($isOnHold) {
+                                $riskAlert = $item->delay_reason ?: 'Task is currently On Hold';
                             }
 
                             /* ── Tooltip Data ── */
                             $typeLabel = $item->is_milestone ? 'Milestone' : ucfirst($item->item_type->value);
                             $assigneeName = $item->assignedUser ? $item->assignedUser->name : 'Unassigned';
-                            $statusLabel = $isAtRisk ? 'At Risk' : (is_object($item->status) ? $item->status->label() : ucfirst(str_replace('_', ' ', $statusVal)));
+                            $statusLabel = $isAtRisk ? 'At Risk' : ($isOnHold ? 'On Hold' : (is_object($item->status) ? $item->status->label() : ucfirst(str_replace('_', ' ', $statusVal))));
                             $tooltipData = json_encode([
                                 'wbs'        => $item->wbs_code,
                                 'title'      => $item->title,
@@ -376,6 +401,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                 'progress'   => $item->progress,
                                 'status'     => $statusLabel,
                                 'is_at_risk' => $isAtRisk,
+                                'is_on_hold' => $isOnHold,
                                 'risk_alert' => $riskAlert,
                             ], JSON_HEX_APOS | JSON_HEX_QUOT);
                             $hasChildren = empty($isFiltering) && (in_array($item->id, $parentIds ?? []) || ($item->children && $item->children->count() > 0));
@@ -424,7 +450,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                         </svg>
                                     @endif
                                     <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                                        <span class="truncate font-medium {{ $isAtRisk ? 'text-rose-950 font-semibold' : 'text-slate-800' }}" title="{{ $cleanTitle }}">
+                                        <span class="truncate font-medium {{ $isAtRisk ? 'text-rose-950 font-semibold' : ($isOnHold ? 'text-amber-950 font-semibold' : 'text-slate-800') }}" title="{{ $cleanTitle }}">
                                             {{ $cleanTitle }}
                                         </span>
                                         @if($isAtRisk)
@@ -434,6 +460,15 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                                     <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
                                                 </svg>
                                                 <span>Risk</span>
+                                            </span>
+                                        @endif
+                                        @if($isOnHold)
+                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 shadow-2xs"
+                                                  title="Task is On Hold">
+                                                <svg class="w-2.5 h-2.5 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <span>On Hold</span>
                                             </span>
                                         @endif
                                     </div>
@@ -459,7 +494,7 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                     </div>
                                 @else
                                     <div class="absolute top-1/2 -translate-y-1/2 h-6 rounded-md {{ $barBg }} z-20 cursor-pointer shadow-2xs hover:brightness-105 transition-all overflow-hidden flex items-center px-2 gap-1.5"
-                                         style="left: {{ $barLeft }}px; width: {{ max(18, $barWidth) }}px;"
+                                         style="left: {{ $barLeft }}px; width: {{ max(18, $barWidth) }}px; background-color: {{ $barHex }};"
                                          data-pan-ignore @mouseenter="showTooltip($el, {{ $tooltipData }})"
                                          @mouseleave="hideTooltip()">
                                         @if($item->progress > 0 && $item->progress < 100)
@@ -468,6 +503,10 @@ x-on:scroll-timeline.window="scrollTimeline($event.detail.direction)">
                                         @if($isAtRisk)
                                             <svg class="relative z-10 w-3.5 h-3.5 text-white shrink-0 drop-shadow-xs" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                                            </svg>
+                                        @elseif($isOnHold)
+                                            <svg class="relative z-10 w-3.5 h-3.5 text-white shrink-0 drop-shadow-xs" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" clip-rule="evenodd"/>
                                             </svg>
                                         @endif
                                         @if($barWidth >= 70)

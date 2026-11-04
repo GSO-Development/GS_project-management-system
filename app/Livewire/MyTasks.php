@@ -773,11 +773,16 @@ class MyTasks extends Component
         }
 
         // 3. KPI Cockpit Counts across active scope
-        $allAssigned = (clone $baseQuery)->get();
+        $allAssigned = (clone $baseQuery)->with('risks')->get();
         $totalCount       = $allAssigned->count();
-        $inProgressCount  = $allAssigned->where('status', WbsStatus::IN_PROGRESS)->count();
+        $inProgressCount  = $allAssigned->whereIn('status', [WbsStatus::IN_PROGRESS, WbsStatus::UNDER_REVIEW])->count();
         $completedCount   = $allAssigned->where('status', WbsStatus::COMPLETED)->count();
-        $blockedCount     = $allAssigned->where('status', WbsStatus::BLOCKED)->count();
+        $atRiskCount      = $allAssigned->filter(fn($t) =>
+            $t->status === WbsStatus::AT_RISK ||
+            ($t->risks && $t->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->isNotEmpty())
+        )->count();
+        $onHoldCount      = $allAssigned->whereIn('status', [WbsStatus::ON_HOLD, WbsStatus::BLOCKED])->count();
+        $blockedCount     = $onHoldCount;
         $notStartedCount  = $allAssigned->whereIn('status', [WbsStatus::NOT_STARTED, WbsStatus::BACKLOG])->count();
         
         $dueTodayCount = $allAssigned->filter(function($t) use ($today) {
@@ -832,6 +837,17 @@ class MyTasks extends Component
 
         if ($this->statusFilter === 'incomplete') {
             $filteredQuery->whereNotIn('status', ['completed', 'cancelled']);
+        } elseif ($this->statusFilter === 'not_started') {
+            $filteredQuery->whereIn('status', ['not_started', 'backlog']);
+        } elseif ($this->statusFilter === 'in_progress') {
+            $filteredQuery->whereIn('status', ['in_progress', 'under_review']);
+        } elseif ($this->statusFilter === 'on_hold') {
+            $filteredQuery->whereIn('status', ['on_hold', 'blocked']);
+        } elseif ($this->statusFilter === 'at_risk') {
+            $filteredQuery->where(function($q) {
+                $q->where('status', 'at_risk')
+                  ->orWhereHas('risks', fn($rq) => $rq->whereIn('status', ['open', 'monitoring', 'active', 'identified']));
+            });
         } elseif ($this->statusFilter !== 'all') {
             $filteredQuery->where('status', $this->statusFilter);
         }
@@ -952,44 +968,44 @@ class MyTasks extends Component
         ];
 
         $statusKanbanColumns = [
-            'to_do' => [
-                'title'  => 'To Do',
+            'not_started' => [
+                'title'  => 'Not Started',
                 'badge'  => 'bg-slate-100 text-slate-700 border-slate-200',
                 'accent' => 'border-t-slate-400',
                 'icon'   => '⚪',
-                'tasks'  => $allFilteredTasks->filter(fn($t) => in_array($t->status->value, ['not_started', 'backlog']) && $t->status->value !== 'blocked'),
+                'tasks'  => $allFilteredTasks->filter(fn($t) => WbsStatus::normalizeValue($t->status) === 'not_started'),
                 'status' => 'not_started'
             ],
             'in_progress' => [
                 'title'  => 'In Progress',
                 'badge'  => 'bg-blue-100 text-blue-800 border-blue-200',
                 'accent' => 'border-t-blue-500',
-                'icon'   => '🟡',
-                'tasks'  => $allFilteredTasks->filter(fn($t) => in_array($t->status->value, ['in_progress', 'on_hold']) && $t->status->value !== 'blocked'),
+                'icon'   => '🔵',
+                'tasks'  => $allFilteredTasks->filter(fn($t) => WbsStatus::normalizeValue($t->status) === 'in_progress'),
                 'status' => 'in_progress'
             ],
-            'under_review' => [
-                'title'  => 'In Review',
-                'badge'  => 'bg-purple-100 text-purple-800 border-purple-200',
-                'accent' => 'border-t-purple-500',
-                'icon'   => '🔵',
-                'tasks'  => $allFilteredTasks->filter(fn($t) => $t->status->value === 'under_review' && $t->status->value !== 'blocked'),
-                'status' => 'under_review'
+            'at_risk' => [
+                'title'  => 'At Risk',
+                'badge'  => 'bg-rose-100 text-rose-800 border-rose-200',
+                'accent' => 'border-t-rose-500',
+                'icon'   => '🟠',
+                'tasks'  => $allFilteredTasks->filter(fn($t) => WbsStatus::normalizeValue($t->status) === 'at_risk'),
+                'status' => 'at_risk'
             ],
-            'blocked' => [
-                'title'  => 'Blocked',
-                'badge'  => 'bg-red-100 text-red-800 border-red-200',
-                'accent' => 'border-t-red-500',
-                'icon'   => '🔴',
-                'tasks'  => $allFilteredTasks->filter(fn($t) => $t->status->value === 'blocked' || ($t->blockers && $t->blockers->where('status', 'open')->count() > 0)),
-                'status' => 'blocked'
+            'on_hold' => [
+                'title'  => 'On Hold',
+                'badge'  => 'bg-amber-100 text-amber-800 border-amber-200',
+                'accent' => 'border-t-amber-500',
+                'icon'   => '🟡',
+                'tasks'  => $allFilteredTasks->filter(fn($t) => WbsStatus::normalizeValue($t->status) === 'on_hold'),
+                'status' => 'on_hold'
             ],
             'completed' => [
                 'title'  => 'Completed',
                 'badge'  => 'bg-emerald-100 text-emerald-800 border-emerald-300',
                 'accent' => 'border-t-emerald-500',
                 'icon'   => '🟢',
-                'tasks'  => $allFilteredTasks->filter(fn($t) => $t->status->value === 'completed'),
+                'tasks'  => $allFilteredTasks->filter(fn($t) => WbsStatus::normalizeValue($t->status) === 'completed'),
                 'status' => 'completed'
             ],
         ];
@@ -1069,6 +1085,8 @@ class MyTasks extends Component
             'overdueCount',
             'completedCount',
             'notStartedCount',
+            'atRiskCount',
+            'onHoldCount',
             'blockedCount',
             'activeProjectsCount',
             'allFilteredTasks',

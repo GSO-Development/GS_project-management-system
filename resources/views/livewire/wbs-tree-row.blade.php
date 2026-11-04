@@ -7,15 +7,20 @@
 
     $wbsCode = (string)($item->wbs_code ?: '1');
 
-    $currentStatus = $item->status ? $item->status->value : 'not_started';
+    $currentStatus = \App\Enums\WbsStatus::normalizeValue($item->status);
+    $activeRisks = $item->relationLoaded('risks')
+        ? $item->risks->filter(fn($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified']))
+        : ($item->risks ? $item->risks->filter(fn($r) => in_array(strtolower((string) $r->status), ['open', 'monitoring', 'active', 'identified'])) : collect());
+    $isAtRiskRow = ($currentStatus === 'at_risk' || $activeRisks->isNotEmpty());
+    $isOnHoldRow = ($currentStatus === 'on_hold');
     $isOverdue = $item->isOverdue();
     $progressVal = (int) ($item->progress ?? 0);
-    $progressBarColor = match($currentStatus) {
-        'completed'          => 'background: linear-gradient(90deg, #10b981 0%, #059669 100%);',
-        'blocked'            => 'background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);',
-        'at_risk', 'on_hold' => 'background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);',
-        'in_progress'        => 'background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);',
-        default              => ($isOverdue ? 'background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);' : 'background: linear-gradient(90deg, #cbd5e1 0%, #94a3b8 100%);'),
+    $progressBarColor = match(true) {
+        $currentStatus === 'completed' => 'background: linear-gradient(90deg, #10b981 0%, #059669 100%);',
+        $isAtRiskRow                   => 'background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);',
+        $isOnHoldRow                   => 'background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);',
+        $currentStatus === 'in_progress' => 'background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);',
+        default                        => ($isOverdue ? 'background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);' : 'background: linear-gradient(90deg, #cbd5e1 0%, #94a3b8 100%);'),
     };
 
     $avatarBg = match(($item->assigned_user_id ?? 0) % 5) {
@@ -116,14 +121,26 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
                 </div>
+            @elseif($isAtRiskRow)
+                <div class="w-6 h-6 rounded-full bg-rose-50 text-rose-600 border border-rose-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="At Risk">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            @elseif($isOnHoldRow)
+                <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 border border-amber-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="On Hold">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
             @elseif($currentStatus === 'in_progress')
                 <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 border border-blue-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="In Progress">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/>
                     </svg>
                 </div>
-            @elseif($isOverdue || $currentStatus === 'blocked')
-                <div class="w-6 h-6 rounded-full bg-rose-50 text-rose-600 border border-rose-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="{{ $isOverdue ? 'Overdue' : 'Blocked' }}">
+            @elseif($isOverdue)
+                <div class="w-6 h-6 rounded-full bg-rose-50 text-rose-600 border border-rose-200/90 flex items-center justify-center shrink-0 shadow-2xs" title="Overdue">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
@@ -155,11 +172,26 @@
                 </span>
             @endif
 
-            {{-- Risks Tag --}}
-            @if($item->risks && $item->risks->count() > 0)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs shrink-0" title="{{ $item->risks->count() }} Associated Risk(s)">
+            {{-- Risks / At Risk Tag --}}
+            @if($activeRisks->isNotEmpty())
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs shrink-0" title="{{ $activeRisks->count() }} Active Risk(s): {{ $activeRisks->pluck('title')->implode(' • ') }}">
                     <span>⚠️</span>
-                    <span>{{ $item->risks->count() }}</span>
+                    <span>Risk{{ $activeRisks->count() > 1 ? ' · ' . $activeRisks->count() : '' }}</span>
+                </span>
+            @elseif($currentStatus === 'at_risk')
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs shrink-0" title="Task flagged as At Risk">
+                    <span>⚠️</span>
+                    <span>At Risk</span>
+                </span>
+            @endif
+
+            {{-- On Hold Tag --}}
+            @if($isOnHoldRow)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs shrink-0" title="Task is On Hold">
+                    <svg class="w-2.5 h-2.5 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>On Hold</span>
                 </span>
             @endif
         </div>
@@ -305,7 +337,7 @@
     <td class="py-3.5 px-3 align-middle whitespace-nowrap min-w-[140px] w-36">
         <div class="relative inline-block w-full max-w-[140px]">
             @php
-                $currentStatus = is_object($item->status) ? $item->status->value : $item->status;
+                $currentStatus = \App\Enums\WbsStatus::normalizeValue($item->status);
                 $stBadge = match($currentStatus) {
                     'in_progress'  => [
                         'bg' => 'bg-blue-50 text-blue-700 border-blue-200/90',
@@ -318,16 +350,6 @@
                         'style' => 'background-color: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0 !important;'
                     ],
                     'at_risk'      => [
-                        'bg' => 'bg-amber-50 text-amber-800 border-amber-200/90',
-                        'dot' => 'bg-amber-500',
-                        'style' => 'background-color: #fffbeb !important; color: #b45309 !important; border-color: #fde68a !important;'
-                    ],
-                    'under_review' => [
-                        'bg' => 'bg-purple-50 text-purple-700 border-purple-200/90',
-                        'dot' => 'bg-purple-500',
-                        'style' => 'background-color: #faf5ff !important; color: #6b21a8 !important; border-color: #e9d5ff !important;'
-                    ],
-                    'blocked'      => [
                         'bg' => 'bg-rose-50 text-rose-700 border-rose-200/90',
                         'dot' => 'bg-rose-500',
                         'style' => 'background-color: #fff1f2 !important; color: #be123c !important; border-color: #fecdd3 !important;'
@@ -359,13 +381,9 @@
                     style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important; {{ $stBadge['style'] }}"
                     title="{{ $canChangeStatusRow ? 'Update Task Status' : 'Status change disabled' }}"
                 >
-                    <option value="not_started" @selected($currentStatus === 'not_started' || $currentStatus === 'backlog') class="bg-white text-slate-900 font-semibold">Not Started</option>
-                    <option value="in_progress" @selected($currentStatus === 'in_progress') class="bg-white text-slate-900 font-semibold">In Progress</option>
-                    <option value="completed" @selected($currentStatus === 'completed') class="bg-white text-emerald-700 font-bold">Completed</option>
-                    <option value="on_hold" @selected($currentStatus === 'on_hold') class="bg-white text-amber-700 font-semibold">On Hold</option>
-                    @if(!in_array($currentStatus, ['not_started', 'backlog', 'in_progress', 'completed', 'on_hold']))
-                        <option value="{{ $currentStatus }}" selected class="bg-white text-slate-900 font-semibold">{{ ucwords(str_replace('_', ' ', $currentStatus)) }}</option>
-                    @endif
+                    @foreach(\App\Enums\WbsStatus::selectableCases() as $stOption)
+                        <option value="{{ $stOption->value }}" @selected($currentStatus === $stOption->value) class="bg-white text-slate-900 font-semibold">{{ $stOption->label() }}</option>
+                    @endforeach
                 </select>
                 <div class="pointer-events-none absolute right-2.5 text-current opacity-70 z-10 flex items-center">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>

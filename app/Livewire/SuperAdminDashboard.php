@@ -16,6 +16,7 @@ use App\Models\TaskBlocker;
 use App\Models\User;
 use App\Models\WbsItem;
 use App\Services\ApprovalService;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class SuperAdminDashboard extends Component
@@ -88,12 +89,19 @@ class SuperAdminDashboard extends Component
     public ?int $reassignProjectId = null;
     public ?int $newLeaderId = null;
 
+    #[On('project-approval-updated')]
+    public function refreshApprovalStatus(): void
+    {
+        $this->showReassignModal = false;
+        $this->reassignProjectId = null;
+    }
+
     public function openReassignModal(int $projectId): void
     {
         $this->reassignProjectId = $projectId;
         $project = Project::find($projectId);
         $this->newLeaderId = $project?->project_manager_id;
-        $this->showReassignModal = true;
+        $this->dispatch('open-project-approvals', projectId: $projectId, action: 'reassign');
     }
 
     public function submitReassign(): void
@@ -695,6 +703,7 @@ class SuperAdminDashboard extends Component
         $activeBlockersCount = $allBlockers->where('status', 'open')->count();
 
         $declinedProjects = Project::whereNotNull('pm_rejection_reason')
+            ->where('pm_accepted', false)
             ->with(['subsidiary', 'projectManager'])
             ->latest('pm_rejected_at')
             ->get();

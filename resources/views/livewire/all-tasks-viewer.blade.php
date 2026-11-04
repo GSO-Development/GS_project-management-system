@@ -4,64 +4,6 @@
     .at-table-row:hover .at-task-title { color: #c3122e; }
     .at-status-dot { width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0; }
     .at-avatar { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
-    [data-ui-page="all-tasks"] .at-table-scroll {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        overflow-x: auto;
-        cursor: grab;
-        scrollbar-width: thin;
-        scrollbar-color: #94a3b8 #f1f5f9;
-    }
-    [data-ui-page="all-tasks"] .at-table-scroll::-webkit-scrollbar {
-        height: 10px;
-    }
-    [data-ui-page="all-tasks"] .at-table-scroll::-webkit-scrollbar-track {
-        background: #f1f5f9;
-    }
-    [data-ui-page="all-tasks"] .at-table-scroll::-webkit-scrollbar-thumb {
-        background: #94a3b8;
-        border: 2px solid #f1f5f9;
-        border-radius: 6px;
-    }
-    [data-ui-page="all-tasks"] .at-table-scroll:focus-visible {
-        outline: 2px solid #c3122e;
-        outline-offset: -2px;
-    }
-    [data-ui-page="all-tasks"] .at-table-scroll.is-dragging,
-    [data-ui-page="all-tasks"] .at-table-scroll.is-dragging * {
-        cursor: grabbing !important;
-        user-select: none;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table {
-        min-width: 1200px;
-        table-layout: fixed;
-        font-variant-numeric: tabular-nums;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table :is(th, td) {
-        padding-left: 12px;
-        padding-right: 12px;
-        vertical-align: middle;
-        white-space: normal;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table th {
-        white-space: nowrap;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table :is(th, td):nth-child(6) {
-        text-align: center;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table td:last-child {
-        padding-right: 20px;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table .at-stuck-text {
-        min-width: 0;
-        overflow-wrap: anywhere;
-        line-height: 1.5;
-    }
-    [data-ui-page="all-tasks"] .at-stuck-table .at-stuck-date,
-    [data-ui-page="all-tasks"] .at-stuck-table .at-stuck-delay {
-        white-space: nowrap;
-    }
     .kpi-tile { transition: all 0.15s ease; }
     .kpi-tile:hover { transform: translateY(-1px); }
     .kpi-tile.active { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
@@ -235,8 +177,9 @@
                                     <option value="all">All Statuses ({{ $kpi['total'] }})</option>
                                     <option value="not_started">Not Started ({{ $kpi['not_started'] }})</option>
                                     <option value="in_progress">In Progress ({{ $kpi['in_progress'] }})</option>
-                                    <option value="completed">Completed ({{ $kpi['completed'] }})</option>
+                                    <option value="at_risk">At Risk ({{ $kpi['at_risk'] }})</option>
                                     <option value="on_hold">On Hold ({{ $kpi['on_hold'] }})</option>
+                                    <option value="completed">Completed ({{ $kpi['completed'] }})</option>
                                 </select>
                                 <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                             </div>
@@ -257,7 +200,7 @@
                             <div class="relative flex-1 sm:flex-initial min-w-[130px]">
                                 <select wire:model.live="sortBy"
                                         class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors shadow-2xs truncate">
-                                    <option value="end_date">Sort: Due Date (Overdue First)</option>
+                                    <option value="end_date">Sort: Due Date</option>
                                     <option value="priority">Sort: Priority</option>
                                     <option value="project">Sort: Project</option>
                                     <option value="title">Sort: Title A–Z</option>
@@ -412,7 +355,9 @@
                             @php
                                 $today       = now()->today();
                                 $daysLeft    = $task->end_date ? (int) $today->diffInDays($task->end_date, false) : null;
-                                $taskStatus  = $task->status?->value ?? (string)$task->status;
+                                $rawStatus   = $task->status?->value ?? (string)$task->status;
+                                $hasActiveRisk = $task->risks && $task->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified'])->isNotEmpty();
+                                $taskStatus  = ($hasActiveRisk && !in_array($rawStatus, ['completed', 'cancelled', 'on_hold'])) ? 'at_risk' : $rawStatus;
                                 $isCompleted = in_array($taskStatus, ['completed','cancelled']);
                                 $isOverdue   = $daysLeft !== null && $daysLeft < 0 && !$isCompleted;
                                 $isDueToday  = $daysLeft === 0 && !$isCompleted;
@@ -425,17 +370,17 @@
 
                                 [$statusLabel, $statusBadge] = match($taskStatus) {
                                     'completed' => ['Completed', 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+                                    'at_risk' => ['At Risk', 'bg-rose-50 text-rose-700 border-rose-200'],
                                     'on_hold', 'blocked' => ['On Hold', 'bg-amber-50 text-amber-800 border-amber-200'],
-                                    'in_progress', 'under_review', 'at_risk' => ['In Progress', 'bg-blue-50 text-blue-700 border-blue-200'],
+                                    'in_progress', 'under_review' => ['In Progress', 'bg-blue-50 text-blue-700 border-blue-200'],
                                     default => ['Not Started', 'bg-slate-50 text-slate-700 border-slate-200'],
                                 };
 
                                 $dotColorCls = match($taskStatus) {
-                                    'in_progress'  => 'bg-blue-600',
+                                    'in_progress', 'under_review' => 'bg-blue-600',
                                     'completed'    => 'bg-emerald-500',
-                                    'on_hold'      => 'bg-amber-500',
+                                    'at_risk'      => 'bg-rose-500',
                                     'blocked', 'on_hold' => 'bg-amber-500',
-                                    'under_review', 'at_risk' => 'bg-blue-600',
                                     default        => 'bg-slate-400',
                                 };
 
@@ -449,8 +394,20 @@
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <span class="w-2 h-2 rounded-full {{ $dotColorCls }} shrink-0"></span>
                                         <div class="min-w-0">
-                                            <div class="at-task-title text-xs font-bold text-slate-900 whitespace-normal break-words transition-colors leading-snug" title="{{ $task->title }}">
-                                                {{ $task->title }}
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <div class="at-task-title text-xs font-bold text-slate-900 whitespace-normal break-words transition-colors leading-snug" title="{{ $task->title }}">
+                                                    {{ $task->title }}
+                                                </div>
+                                                @if(($taskStatus === 'at_risk' || $hasActiveRisk) && !$isCompleted)
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
+                                                        <span>⚠️ {{ $hasActiveRisk ? 'Risk' : 'At Risk' }}</span>
+                                                    </span>
+                                                @endif
+                                                @if(in_array($rawStatus, ['on_hold', 'blocked']) && !$isCompleted)
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                                                        <span>On Hold</span>
+                                                    </span>
+                                                @endif
                                             </div>
                                             @if($task->wbs_code)
                                                 <span class="text-[10px] font-mono font-medium text-slate-400 block mt-0.5">{{ $task->wbs_code }}</span>
@@ -578,7 +535,7 @@
          MODE 2: STUCK & BLOCKED TASKS RADAR VIEW
          ═══════════════════════════════════════════════════════════════ --}}
     @elseif($viewMode === 'stuck')
-        <div wire:key="view-content-stuck-tasks" class="space-y-4 min-w-0">
+        <div wire:key="view-content-stuck-tasks" class="space-y-4">
             <!-- Stuck Tasks Table -->
             <div class="all-tasks-table bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -593,91 +550,18 @@
                     </div>
                 </div>
 
-                <div
-                    class="at-table-scroll"
-                    role="region"
-                    aria-label="Stuck tasks table. Drag left or right, or use Shift and the mouse wheel to scroll horizontally."
-                    tabindex="0"
-                    x-data="{
-                        pressed: false,
-                        dragging: false,
-                        moved: false,
-                        startX: 0,
-                        startScroll: 0,
-                        startDrag(event) {
-                            this.stopDrag();
-                            this.moved = false;
-                            if (event.pointerType !== 'mouse' || event.button !== 0) return;
-                            if (!event.target.closest('table')) return;
-                            if (event.target.closest('button, input, select, textarea, [contenteditable]')) return;
-                            if (this.$el.scrollWidth <= this.$el.clientWidth) return;
-                            this.pressed = true;
-                            this.startX = event.clientX;
-                            this.startScroll = this.$el.scrollLeft;
-                        },
-                        moveDrag(event) {
-                            if (!this.pressed) return;
-                            if (event.buttons !== 1) {
-                                this.stopDrag();
-                                return;
-                            }
-                            const distance = event.clientX - this.startX;
-                            if (!this.moved && Math.abs(distance) <= 5) return;
-                            this.dragging = true;
-                            this.moved = true;
-                            event.preventDefault();
-                            this.$el.scrollLeft = this.startScroll - distance;
-                        },
-                        stopDrag() {
-                            this.pressed = false;
-                            this.dragging = false;
-                        },
-                        cancelDragClick(event) {
-                            if (!this.moved || event.detail === 0) return;
-                            this.moved = false;
-                            event.preventDefault();
-                            event.stopImmediatePropagation();
-                        },
-                        scrollWithWheel(event) {
-                            if (!event.shiftKey || event.ctrlKey || event.deltaX !== 0) return;
-                            const unit = event.deltaMode === 1 ? 16 : (event.deltaMode === 2 ? this.$el.clientWidth : 1);
-                            const previous = this.$el.scrollLeft;
-                            this.$el.scrollLeft += event.deltaY * unit;
-                            if (this.$el.scrollLeft !== previous) event.preventDefault();
-                        }
-                    }"
-                    :class="{ 'is-dragging': dragging }"
-                    @pointerdown="startDrag($event)"
-                    @pointermove.window="moveDrag($event)"
-                    @pointerup.window="stopDrag()"
-                    @pointercancel.window="stopDrag()"
-                    @blur.window="stopDrag()"
-                    @dragstart.prevent
-                    @click.capture="cancelDragClick($event)"
-                    @wheel="scrollWithWheel($event)"
-                >
-                    <table class="at-stuck-table w-full text-left border-collapse text-xs">
-                        <caption class="sr-only">Stuck and blocked tasks with deadlines and delay days.</caption>
-                        <colgroup>
-                            <col style="width: 18%">
-                            <col style="width: 15%">
-                            <col style="width: 19%">
-                            <col style="width: 10%">
-                            <col style="width: 13%">
-                            <col style="width: 8%">
-                            <col style="width: 8%">
-                            <col style="width: 9%">
-                        </colgroup>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-200/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
-                                <th scope="col" class="py-3.5 pl-6 pr-4">Task / Deliverable</th>
-                                <th scope="col" class="py-3.5 px-4">Project</th>
-                                <th scope="col" class="py-3.5 px-4">Assignee</th>
-                                <th scope="col" class="py-3.5 px-4">Status</th>
-                                <th scope="col" class="py-3.5 px-4">Deadline</th>
-                                <th scope="col" class="py-3.5 px-4">Delay</th>
-                                <th scope="col" class="py-3.5 px-4">Priority</th>
-                                <th scope="col" class="py-3.5 pl-4 pr-6 text-right">Action</th>
+                                <th class="py-3.5 pl-6 pr-4">Task / Deliverable</th>
+                                <th class="py-3.5 px-4">Project</th>
+                                <th class="py-3.5 px-4">Assignee</th>
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Delay</th>
+                                <th class="py-3.5 px-4">Reason / Blocker</th>
+                                <th class="py-3.5 px-4">Priority</th>
+                                <th class="py-3.5 pl-4 pr-6 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -686,6 +570,9 @@
                                     $pObj = $task->project;
                                     $assignee = $task->assignedUser;
                                     $isBlocked = $task->status?->value === 'blocked' || ($task->blockers && $task->blockers->where('status', 'open')->count() > 0);
+                                    $activeRisks = $task->risks ? $task->risks->whereIn('status', ['open', 'monitoring', 'active', 'identified']) : collect();
+                                    $isAtRisk = $task->status?->value === 'at_risk' || $activeRisks->isNotEmpty();
+                                    $isOnHold = $task->status?->value === 'on_hold';
                                     
                                     $today = now()->today();
                                     $daysOverdue = ($task->end_date && $task->end_date->lt($today)) ? (int) $task->end_date->diffInDays($today) : 0;
@@ -693,12 +580,14 @@
                                 <tr class="hover:bg-slate-50/60 transition-colors">
                                     <!-- 1. Task Title & Code -->
                                     <td class="py-3.5 pl-6 pr-4 align-middle">
-                                        <div class="flex items-center gap-2.5 min-w-0">
-                                            @if($isBlocked)
-                                                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse flex-shrink-0" title="Blocked Task"></span>
+                                        <div class="flex items-center gap-2.5">
+                                            @if($isBlocked || $isAtRisk)
+                                                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse flex-shrink-0" title="{{ $isAtRisk ? 'At Risk Task' : 'Blocked Task' }}"></span>
+                                            @elseif($isOnHold)
+                                                <span class="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="On Hold Task"></span>
                                             @endif
-                                            <div class="at-stuck-text">
-                                                <a href="{{ route('projects.show', $task->project_id) }}?tab=wbs" title="{{ $task->title }}" class="font-bold text-slate-900 hover:text-[#c3122e] no-underline line-clamp-2 leading-tight">
+                                            <div>
+                                                <a href="{{ route('projects.show', $task->project_id) }}?tab=wbs" class="font-bold text-slate-900 hover:text-[#c3122e] no-underline block leading-tight">
                                                     {{ $task->title }}
                                                 </a>
                                                 <span class="text-[10px] font-mono font-semibold text-slate-400">{{ $task->wbs_code }}</span>
@@ -711,17 +600,17 @@
                                         <a href="{{ route('projects.show', $task->project_id) }}" class="font-bold text-xs text-slate-800 hover:text-[#c3122e] no-underline block">
                                             {{ $pObj->code ?? 'PRJ' }}
                                         </a>
-                                        <span class="text-[10.5px] text-slate-400 block truncate font-medium" title="{{ $pObj->name }}">{{ $pObj->name ?? '—' }}</span>
+                                        <span class="text-[10.5px] text-slate-400 block truncate max-w-[140px] font-medium">{{ $pObj->name ?? '—' }}</span>
                                     </td>
 
                                     <!-- 3. Assignee -->
                                     <td class="py-3.5 px-4 align-middle whitespace-nowrap">
                                         @if($assignee)
-                                            <div class="flex items-center gap-2 min-w-0">
-                                                <span class="w-6 h-6 shrink-0 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-6 h-6 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">
                                                     {{ strtoupper(substr($assignee->name, 0, 1)) }}
                                                 </span>
-                                                <span class="at-stuck-text font-semibold text-slate-800 text-xs" title="{{ $assignee->name }}">{{ $assignee->name }}</span>
+                                                <span class="font-semibold text-slate-800 text-xs">{{ $assignee->name }}</span>
                                             </div>
                                         @else
                                             <span class="text-slate-400 italic text-[11px]">Unassigned</span>
@@ -730,15 +619,15 @@
 
                                     <!-- 4. Status -->
                                     <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                        @if($isBlocked)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10.5px] bg-rose-50 text-rose-800 border border-rose-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                                <span>Blocked</span>
-                                            </span>
-                                        @elseif($task->status?->value === 'on_hold')
+                                        @if($isOnHold || $isBlocked)
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10.5px] bg-amber-50 text-amber-800 border border-amber-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                                 <span>On Hold</span>
+                                            </span>
+                                        @elseif($isAtRisk)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10.5px] bg-rose-50 text-rose-700 border border-rose-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                <span>At Risk</span>
                                             </span>
                                         @else
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10.5px] bg-rose-50 text-rose-700 border border-rose-200">
@@ -748,24 +637,39 @@
                                         @endif
                                     </td>
 
-                                    <!-- 5. Deadline -->
-                                    <td class="py-3.5 px-4 align-middle">
-                                        @if($task->end_date)
-                                            <time datetime="{{ $task->end_date->toDateString() }}"
-                                                  class="at-stuck-date block text-xs font-semibold {{ $daysOverdue > 0 ? 'text-rose-700' : 'text-slate-800' }}">
-                                                {{ $task->end_date->format('M d, Y') }}
-                                            </time>
+                                    <!-- 5. Delay Days -->
+                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap font-mono font-bold text-slate-700">
+                                        @if($daysOverdue > 0)
+                                            <span class="text-rose-600 font-black">+{{ $daysOverdue }}d</span>
                                         @else
-                                            <span class="text-slate-400 text-[11px]">Not set</span>
+                                            <span class="text-slate-400 font-normal">—</span>
                                         @endif
                                     </td>
 
-                                    <!-- 6. Delay Days -->
-                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap font-mono font-bold text-slate-700">
-                                        @if($daysOverdue > 0)
-                                            <span class="at-stuck-delay inline-flex items-center px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-[11px] font-bold" title="{{ $daysOverdue }} days past the deadline">{{ $daysOverdue }} {{ $daysOverdue === 1 ? 'day' : 'days' }}</span>
+                                    <!-- 6. Blocker / Reason -->
+                                    <td class="py-3.5 px-4 align-middle">
+                                        @if(!empty($task->delay_reason))
+                                            <span class="text-[11px] text-slate-600 italic block line-clamp-1 font-medium" title="{{ $task->delay_reason }}">
+                                                "{{ $task->delay_reason }}"
+                                            </span>
+                                        @elseif($activeRisks->isNotEmpty())
+                                            <span class="text-[11px] text-rose-700 font-medium block line-clamp-1" title="{{ $activeRisks->first()->title }}">
+                                                ⚠️ {{ $activeRisks->first()->title }}
+                                            </span>
+                                        @elseif($task->blockers && $task->blockers->where('status', 'open')->count() > 0)
+                                            <span class="text-[11px] text-rose-700 font-medium block line-clamp-1">
+                                                {{ $task->blockers->where('status', 'open')->first()->description ?? 'Active blocker logged' }}
+                                            </span>
+                                        @elseif($isOnHold)
+                                            <span class="text-[11px] text-amber-700 font-medium block line-clamp-1">
+                                                Task placed On Hold
+                                            </span>
+                                        @elseif($isAtRisk)
+                                            <span class="text-[11px] text-rose-700 font-medium block line-clamp-1">
+                                                Task marked At Risk
+                                            </span>
                                         @else
-                                            <span class="text-slate-400 font-normal">—</span>
+                                            <span class="text-slate-400 font-light text-[11px]">—</span>
                                         @endif
                                     </td>
 

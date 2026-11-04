@@ -48,7 +48,7 @@ class MyLeadProjects extends Component
             $this->roleFilter = request('role');
         }
         if (request()->has('status')) {
-            $this->statusFilter = request('status');
+            $this->statusFilter = request('status') === 'overdue' ? 'delayed' : request('status');
         }
         if ($delayProjectId = request()->integer('delay_project')) {
             $this->openDelayAnalysis($delayProjectId, app(ProjectDelayAnalysisService::class));
@@ -278,7 +278,7 @@ class MyLeadProjects extends Component
         // Summary counts (before filters)
         $totalCount      = (clone $baseQuery)->count();
         $activeCount     = (clone $baseQuery)->where('status', 'in_progress')->count();
-        $overdueCount    = (clone $baseQuery)->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled'])->count();
+        $overdueCount    = (clone $baseQuery)->where('status', 'delayed')->count();
         $completedCount  = (clone $baseQuery)->where('status', 'completed')->count();
 
         // Role breakdown counts (before filters)
@@ -314,13 +314,9 @@ class MyLeadProjects extends Component
             );
         }
 
-        // Status filter
+        // Status filter ('overdue' is the legacy name of the 'delayed' status)
         if ($this->statusFilter !== 'all') {
-            if ($this->statusFilter === 'overdue') {
-                $baseQuery->where('deadline', '<', now())->whereNotIn('status', ['completed', 'cancelled']);
-            } else {
-                $baseQuery->where('status', $this->statusFilter);
-            }
+            $baseQuery->where('status', $this->statusFilter === 'overdue' ? 'delayed' : $this->statusFilter);
         }
 
         $projects = $baseQuery->latest()->paginate($this->perPage);

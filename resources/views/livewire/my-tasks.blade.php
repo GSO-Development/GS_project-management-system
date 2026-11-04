@@ -295,7 +295,8 @@
                             <option value="all">All Statuses ({{ $totalCount }})</option>
                             <option value="not_started">Not Started ({{ $notStartedCount }})</option>
                             <option value="in_progress">In Progress ({{ $inProgressCount }})</option>
-                            <option value="blocked">Blocked ({{ $blockedCount }})</option>
+                            <option value="at_risk">At Risk ({{ $atRiskCount ?? 0 }})</option>
+                            <option value="on_hold">On Hold ({{ $onHoldCount ?? 0 }})</option>
                             <option value="completed">Completed ({{ $completedCount }})</option>
                         </select>
                         <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -428,21 +429,19 @@
                                 }
 
                                 // Status badge
-                                $stVal = is_object($task->status) ? $task->status->value : $task->status;
+                                $stVal = \App\Enums\WbsStatus::normalizeValue($task->status);
                                 $stLabel = match($stVal) {
                                     'in_progress'  => 'In Progress',
                                     'completed'    => 'Completed',
-                                    'under_review' => 'Under Review',
-                                    'blocked'      => 'Blocked',
-                                    'at_risk', 'on_hold' => 'At Risk',
+                                    'at_risk'      => 'At Risk',
+                                    'on_hold'      => 'On Hold',
                                     default        => ($isOverdue ? 'Overdue' : ($isDueToday ? 'Due Today' : 'Not Started')),
                                 };
                                 $stBadgeClass = match($stVal) {
                                     'in_progress'  => 'bg-blue-50 text-blue-700 border-blue-200/80',
                                     'completed'    => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-                                    'under_review' => 'bg-sky-50 text-sky-700 border-sky-200/80',
-                                    'blocked'      => 'bg-rose-50 text-rose-700 border-rose-200/80',
-                                    'at_risk', 'on_hold' => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                                    'at_risk'      => 'bg-rose-50 text-rose-700 border-rose-200/80',
+                                    'on_hold'      => 'bg-amber-50 text-amber-800 border-amber-200/80',
                                     default        => ($isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200/80' : ($isDueToday ? 'bg-amber-50 text-amber-800 border-amber-200/80' : 'bg-slate-100 text-slate-600 border-slate-200')),
                                 };
                             @endphp
@@ -583,7 +582,7 @@
                                                 class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs {{ $stBadgeClass }}"
                                                 style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;"
                                                 title="Update Task Status">
-                                            @foreach(\App\Enums\WbsStatus::cases() as $st)
+                                            @foreach(\App\Enums\WbsStatus::selectableCases() as $st)
                                                 <option value="{{ $st->value }}" @selected($stVal === $st->value) class="bg-white text-slate-900 font-semibold">
                                                     {{ $st->label() }}
                                                 </option>

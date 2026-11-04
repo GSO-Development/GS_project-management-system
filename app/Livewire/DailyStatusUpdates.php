@@ -111,12 +111,6 @@ class DailyStatusUpdates extends Component
 
         $query = ProjectStatusUpdate::with(['creator', 'project', 'comments.user.roles'])
             ->where('project_id', $projectId);
-        if (!$this->canViewAllProjectUpdates($project)) {
-            $query->where(function ($q) {
-                $q->where('created_by', auth()->id())
-                    ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
-            });
-        }
 
         return $updateId ? $query->find($updateId) : $query->latest()->first();
     }
@@ -344,42 +338,13 @@ class DailyStatusUpdates extends Component
         }
 
         // Team Member: never see 'pmo_pm' comments.
-        // Only see their own comments, or comments from this project's PM / PMO Admin marked 'team' (or legacy comments on their own update).
-        $isOwnUpdate = ((int) $update->created_by === (int) $user->id);
-        $pmId = $project ? (int) $project->project_manager_id : 0;
-
-        return $update->comments->filter(function ($comment) use ($user, $pmId, $project, $isOwnUpdate) {
-            // Comments marked 'pmo_pm' are strictly private between PMO Admin and Project Manager
+        // See all 'team' (or legacy non-private) comments on updates of their accessible projects.
+        return $update->comments->filter(function ($comment) {
             if ($comment->visibility === 'pmo_pm') {
                 return false;
             }
 
-            if (!$isOwnUpdate && $comment->visibility !== 'team') {
-                return false;
-            }
-
-            $author = $comment->user;
-            if (!$author) {
-                return false;
-            }
-
-            if ((int) $author->id === (int) $user->id) {
-                return true;
-            }
-
-            if ($pmId && (int) $author->id === $pmId) {
-                return true;
-            }
-
-            if ($this->isSuperAdminUser($author)) {
-                return true;
-            }
-
-            if ($project && $this->isProjectManagerOf($project, $author)) {
-                return true;
-            }
-
-            return false;
+            return $comment->user !== null;
         })->values();
     }
 
@@ -581,9 +546,10 @@ class DailyStatusUpdates extends Component
 
         $update = ProjectStatusUpdate::with('project.projectManager', 'creator')->findOrFail($updateId);
         $isPmOrAdminOnProject = $this->isSuperAdminUser($user) || $this->isProjectManagerOf($update->project, $user);
+        $canAccessProject = $isPmOrAdminOnProject || $this->getAccessibleProjects()->contains('id', (int) $update->project_id);
 
-        if (!$isPmOrAdminOnProject && (int) $update->created_by !== (int) $user->id) {
-            $this->dispatch('toast', message: 'You can only comment on your own updates.', type: 'error');
+        if (!$canAccessProject) {
+            $this->dispatch('toast', message: 'Unauthorized to comment on this project update.', type: 'error');
             return;
         }
 
@@ -622,6 +588,19 @@ class DailyStatusUpdates extends Component
             // 2. Notify the Project Manager of the project if different from commenter
             if ($update->project && $update->project->projectManager && (int) $update->project->projectManager->id !== (int) $user->id) {
                 $commentRecipients->push($update->project->projectManager);
+            }
+
+            // 2b. When visibility is 'team' (Both), also notify the task assignee and project team members
+            if ($finalVisibility === 'team' && $this->isSuperAdminUser($user) && $update->project) {
+                if ($update->wbs_item_id) {
+                    $wbsAssignee = WbsItem::with('assignedUser')->find($update->wbs_item_id)?->assignedUser;
+                    if ($wbsAssignee && (int) $wbsAssignee->id !== (int) $user->id) {
+                        $commentRecipients->push($wbsAssignee);
+                    }
+                }
+                foreach ($update->project->members()->where('users.id', '!=', $user->id)->get() as $member) {
+                    $commentRecipients->push($member);
+                }
             }
 
             // 3. Notify all PMO Admins / Super Admins (unless commenter is that admin)
@@ -743,32 +722,8 @@ class DailyStatusUpdates extends Component
         // Query for status updates feed
         $updatesQuery = ProjectStatusUpdate::with(['project.projectManager', 'project.subsidiary', 'wbsItem', 'creator', 'comments.user']);
 
-        // Scope to accessible projects
+        // Scope to accessible projects (all members of accessible projects can view project updates and participate in team discussions)
         $updatesQuery->whereIn('project_id', $accessibleProjectIds);
-
-        // Visibility Hierarchy Rules (Per-Project):
-        // - PMO Admin / Super Admin / Admin Viewer: see all updates across all projects.
-        // - Project Manager of a specific project: see all updates on THAT project.
-        // - Team Member on a project: ONLY see their own updates (created_by === user->id).
-        $isAdmin = $isSuperAdmin || $hasPortfolioViewAccess;
-
-        if (!$isAdmin && $user) {
-            $managedProjectIds = $accessibleProjects
-                ->filter(fn (Project $proj) => $this->isProjectManagerOf($proj, $user))
-                ->pluck('id')
-                ->toArray();
-
-            $updatesQuery->where(function ($q) use ($user, $managedProjectIds) {
-                if (!empty($managedProjectIds)) {
-                    $q->whereIn('project_id', $managedProjectIds)
-                      ->orWhere('created_by', $user->id)
-                      ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
-                } else {
-                    $q->where('created_by', $user->id)
-                      ->orWhereHas('comments', fn ($cq) => $cq->where('content', 'like', '[VIS:team]%'));
-                }
-            });
-        }
 
         if ($this->selectedProjectId) {
             $updatesQuery->where('project_id', $this->selectedProjectId);
