@@ -71,13 +71,14 @@
     // Clean title from any encoding glitch
     $cleanTitle = str_replace(['???', '??'], '–', $item->title);
     $usr = auth()->user();
-    $isPmoAdmin = $usr?->isPmoAdmin();
-    $isProjectPm = $usr && !$usr->isAdminViewer() && $item->project && $item->project->project_manager_id === $usr->id;
-    $canCreateTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.create')));
-    $canEditTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned'))));
-    $canDeleteTaskRow = $isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.delete'));
-    $canChangeStatusRow = $isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.change_status') || $item->assigned_user_id === $usr?->id));
-    $canChangePriorityRow = $isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.change_priority', $item));
+    $isAdminViewer = (bool) $usr?->isAdminViewer();
+    $isPmoAdmin = !$isAdminViewer && (bool) $usr?->isPmoAdmin();
+    $isProjectPm = $usr && !$isAdminViewer && $item->project && $item->project->project_manager_id === $usr->id;
+    $canCreateTaskRow = !$isAdminViewer && ($isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.create_subtask') || $item->project->userCan($usr, 'task.create'))));
+    $canEditTaskRow = !$isAdminViewer && ($isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.edit') || ($item->assigned_user_id === $usr?->id && $item->project->userCan($usr, 'task.edit_assigned')))));
+    $canDeleteTaskRow = !$isAdminViewer && ($isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.delete')));
+    $canChangeStatusRow = !$isAdminViewer && ($isPmoAdmin || $isProjectPm || ($item->project && ($item->project->userCan($usr, 'task.change_status') || $item->assigned_user_id === $usr?->id)));
+    $canChangePriorityRow = !$isAdminViewer && ($isPmoAdmin || $isProjectPm || ($item->project && $item->project->userCan($usr, 'task.change_priority', $item)));
 @endphp
 
 <tr class="transition-colors duration-150 group border-b border-slate-100/90 hover:bg-slate-50/60 {{ $levelConfig['rowBg'] }}">
@@ -372,12 +373,15 @@
                         ]),
                 };
             @endphp
-            <div class="relative flex items-center min-w-[130px] max-w-[150px]">
+            <div class="relative flex items-center min-w-[130px] max-w-[150px] {{ !$canChangeStatusRow ? 'cursor-not-allowed' : '' }}">
                 <span class="pointer-events-none absolute left-3 w-1.5 h-1.5 rounded-full z-10 {{ $stBadge['dot'] }}"></span>
                 <select
-                    wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
-                    @if(!$canChangeStatusRow) disabled @endif
-                    class="text-xs font-bold rounded-full pl-7 pr-8 py-1.5 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs w-full truncate {{ !$canChangeStatusRow ? 'opacity-70 cursor-not-allowed' : '' }}"
+                    @if($canChangeStatusRow)
+                        wire:change="updateItemStatus({{ $item->id }}, $event.target.value)"
+                    @else
+                        disabled
+                    @endif
+                    class="text-xs font-bold rounded-full pl-7 pr-8 py-1.5 border focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all shadow-2xs w-full truncate {{ !$canChangeStatusRow ? 'opacity-70 cursor-not-allowed pointer-events-none select-none' : 'cursor-pointer' }}"
                     style="-webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background-image: none !important; {{ $stBadge['style'] }}"
                     title="{{ $canChangeStatusRow ? 'Update Task Status' : 'Status change disabled' }}"
                 >
@@ -403,11 +407,14 @@
                 default => 'background:#fffbeb; color:#b45309; border-color:#fde68a;',
             };
         @endphp
-        <div class="relative inline-flex items-center w-full max-w-[120px]">
+        <div class="relative inline-flex items-center w-full max-w-[120px] {{ !$canChangePriorityRow ? 'cursor-not-allowed' : '' }}">
             <select
-                wire:change="updateItemPriority({{ $item->id }}, $event.target.value)"
-                @if(!$canChangePriorityRow) disabled @endif
-                class="w-full appearance-none rounded-lg border py-1.5 pl-3 pr-7 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-200 {{ !$canChangePriorityRow ? 'cursor-not-allowed opacity-70' : 'cursor-pointer' }}"
+                @if($canChangePriorityRow)
+                    wire:change="updateItemPriority({{ $item->id }}, $event.target.value)"
+                @else
+                    disabled
+                @endif
+                class="w-full appearance-none rounded-lg border py-1.5 pl-3 pr-7 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-200 {{ !$canChangePriorityRow ? 'cursor-not-allowed opacity-70 pointer-events-none select-none' : 'cursor-pointer' }}"
                 style="{{ $priorityStyle }}"
                 title="{{ $canChangePriorityRow ? 'Update Task Priority' : 'Priority change disabled' }}"
             >

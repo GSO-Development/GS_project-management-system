@@ -556,7 +556,7 @@ class Project extends Model
     {
         if (!$user) return false;
         $u = $user instanceof User ? $user : User::find($user);
-        if (!$u) return false;
+        if (!$u || $u->isAdminViewer()) return false;
 
         if ($u->isSuperAdmin() || $u->hasRole('pmo_admin')) {
             return true;

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\ProjectTemplate;
 use App\Models\TemplateTask;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TemplateGanttBuilder extends Component
@@ -58,7 +59,7 @@ class TemplateGanttBuilder extends Component
             $this->workDays = $template->work_days;
         }
 
-        $existingTasks = $this->template->tasks()->orderBy('order_index')->get();
+        $existingTasks = $this->template->tasks()->orderBy('order_index')->orderBy('id')->get();
         if ($existingTasks->count() > 0) {
             $this->isConfigured = true;
             // Determine setup unit from first non-hour task
@@ -66,21 +67,39 @@ class TemplateGanttBuilder extends Component
             $this->setupUnit = $firstNonHour ? $firstNonHour->unit : 'days';
 
             $levelMap = [];
+            $canonicalIdMap = [];
+            $seenSiblings = [];
+
             foreach ($existingTasks as $task) {
-                $level = 1;
-                if ($task->parent_id && isset($levelMap[$task->parent_id])) {
-                    $level = $levelMap[$task->parent_id] + 1;
+                $rawId = (string) $task->id;
+                $rawParentId = $task->parent_id ? (string) $task->parent_id : null;
+                $resolvedParentId = ($rawParentId && isset($canonicalIdMap[$rawParentId]))
+                    ? $canonicalIdMap[$rawParentId]
+                    : $rawParentId;
+
+                $siblingKey = ($resolvedParentId ?? 'root') . '|' . strtolower(trim((string) $task->name));
+                if (isset($seenSiblings[$siblingKey])) {
+                    $canonicalIdMap[$rawId] = $seenSiblings[$siblingKey];
+                    continue;
                 }
-                $levelMap[$task->id] = $level;
+
+                $canonicalIdMap[$rawId] = $rawId;
+                $seenSiblings[$siblingKey] = $rawId;
+
+                $level = 1;
+                if ($resolvedParentId && isset($levelMap[$resolvedParentId])) {
+                    $level = $levelMap[$resolvedParentId] + 1;
+                }
+                $levelMap[$rawId] = $level;
 
                 $this->tasks[] = [
-                    'id'         => (string) $task->id,
-                    'parent_id'  => $task->parent_id ? (string) $task->parent_id : null,
-                    'name'       => $task->name,
-                    'duration'   => $task->duration,
-                    'unit'       => $task->unit,
-                    'is_deleted' => false,
-                    'level'      => $level,
+                    'id'          => $rawId,
+                    'parent_id'   => $resolvedParentId,
+                    'name'        => $task->name,
+                    'duration'    => $task->duration,
+                    'unit'        => $task->unit,
+                    'is_deleted'  => false,
+                    'level'       => $level,
                     'is_expanded' => (bool) $task->is_expanded,
                 ];
             }
@@ -604,42 +623,55 @@ class TemplateGanttBuilder extends Component
     {
         abort_unless($this->isConfigured, 422, 'Configure the template before saving.');
 
-        // Persist working-time configuration to the template
-        $this->template->update([
-            'work_start_time' => $this->divideByHours ? $this->workStartTime . ':00' : null,
-            'work_end_time'   => $this->divideByHours ? $this->workEndTime . ':00'   : null,
-            'work_days'       => $this->divideByHours ? $this->workDays : null,
-            'divide_by_hours' => $this->divideByHours,
-        ]);
+        DB::transaction(function () {
+            // Lock the template row to serialize concurrent Livewire save requests
+            ProjectTemplate::whereKey($this->template->id)->lockForUpdate()->first();
 
-        // Delete all existing tasks in DB for this template and recreate
-        $this->template->tasks()->delete();
-
-        $order = 1;
-        $idMap = [];
-
-        foreach ($this->tasks as $task) {
-            if ($task['is_deleted'] || $task['duration'] <= 0) {
-                continue;
-            }
-
-            $parentId = null;
-            if ($task['parent_id'] && isset($idMap[$task['parent_id']])) {
-                $parentId = $idMap[$task['parent_id']];
-            }
-
-            $newTask = TemplateTask::create([
-                'project_template_id' => $this->template->id,
-                'parent_id'           => $parentId,
-                'name'                => $task['name'],
-                'duration'            => $task['duration'],
-                'unit'                => $task['unit'],
-                'order_index'         => $order++,
-                'is_expanded'         => $task['is_expanded'] ?? false,
+            // Persist working-time configuration to the template
+            $this->template->update([
+                'work_start_time' => $this->divideByHours ? $this->workStartTime . ':00' : null,
+                'work_end_time'   => $this->divideByHours ? $this->workEndTime . ':00'   : null,
+                'work_days'       => $this->divideByHours ? $this->workDays : null,
+                'divide_by_hours' => $this->divideByHours,
             ]);
 
-            $idMap[$task['id']] = $newTask->id;
-        }
+            // Delete all existing tasks in DB for this template and recreate atomically
+            $this->template->tasks()->delete();
+
+            $order = 1;
+            $idMap = [];
+            $seenSiblings = [];
+
+            foreach ($this->tasks as $task) {
+                if ($task['is_deleted'] || $task['duration'] <= 0) {
+                    continue;
+                }
+
+                $parentId = null;
+                if ($task['parent_id'] && isset($idMap[$task['parent_id']])) {
+                    $parentId = $idMap[$task['parent_id']];
+                }
+
+                $siblingKey = ($parentId ?? 'root') . '|' . strtolower(trim((string) $task['name']));
+                if (isset($seenSiblings[$siblingKey])) {
+                    $idMap[$task['id']] = $seenSiblings[$siblingKey];
+                    continue;
+                }
+
+                $newTask = TemplateTask::create([
+                    'project_template_id' => $this->template->id,
+                    'parent_id'           => $parentId,
+                    'name'                => $task['name'],
+                    'duration'            => $task['duration'],
+                    'unit'                => $task['unit'],
+                    'order_index'         => $order++,
+                    'is_expanded'         => $task['is_expanded'] ?? false,
+                ]);
+
+                $idMap[$task['id']] = $newTask->id;
+                $seenSiblings[$siblingKey] = $newTask->id;
+            }
+        });
     }
 
     public function render()
@@ -681,6 +713,7 @@ class TemplateGanttBuilder extends Component
                 $visibleColumns[] = $task;
             }
         }
+        unset($task);
 
         // 3. Calculate spans for parent tasks (bottom-up approach)
         for ($i = count($visibleTasks) - 1; $i >= 0; $i--) {
@@ -697,6 +730,7 @@ class TemplateGanttBuilder extends Component
                 }
             }
         }
+        unset($task);
 
         return view('livewire.template-gantt-builder', [
             'visibleTasks' => $visibleTasks,

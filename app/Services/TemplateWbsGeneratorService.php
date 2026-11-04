@@ -30,18 +30,48 @@ class TemplateWbsGeneratorService
 
         return DB::transaction(function () use ($project, $template, $startDate, $replaceExisting, $batchUuid) {
             return \App\Services\AuditLogService::asSystem(function () use ($project, $template, $startDate, $replaceExisting, $batchUuid) {
+                Project::whereKey($project->id)->lockForUpdate()->first();
+
                 if ($replaceExisting) {
                     WbsItem::withTrashed()->where('project_id', $project->id)->update(['parent_id' => null]);
                     WbsItem::withTrashed()->where('project_id', $project->id)->forceDelete();
                 }
 
-                $templateTasks = $template->tasks;
+                $templateTasks = $template->tasks->sortBy([
+                    ['order_index', 'asc'],
+                    ['id', 'asc'],
+                ])->values();
+
                 if ($templateTasks->isEmpty()) {
                     return 0;
                 }
 
+                // Deduplicate any duplicate sibling template tasks while remapping child parent_ids
+                $canonicalIdMap = [];
+                $seenSiblings = [];
+                $dedupedTasks = collect();
+
+                foreach ($templateTasks as $task) {
+                    $rawId = (string) $task->id;
+                    $rawParentId = $task->parent_id ? (string) $task->parent_id : null;
+                    $resolvedParentId = ($rawParentId && isset($canonicalIdMap[$rawParentId]))
+                        ? $canonicalIdMap[$rawParentId]
+                        : $rawParentId;
+
+                    $siblingKey = ($resolvedParentId ?? 'root') . '|' . strtolower(trim((string) $task->name));
+                    if (isset($seenSiblings[$siblingKey])) {
+                        $canonicalIdMap[$rawId] = $seenSiblings[$siblingKey];
+                        continue;
+                    }
+
+                    $canonicalIdMap[$rawId] = $rawId;
+                    $seenSiblings[$siblingKey] = $rawId;
+                    $task->parent_id = $resolvedParentId ? (int) $resolvedParentId : null;
+                    $dedupedTasks->push($task);
+                }
+
                 // Group tasks by parent_id (handle both integer and string keys)
-                $tasksByParent = $templateTasks->groupBy(function ($task) {
+                $tasksByParent = $dedupedTasks->groupBy(function ($task) {
                     return $task->parent_id ? (string) $task->parent_id : 'root';
                 });
 

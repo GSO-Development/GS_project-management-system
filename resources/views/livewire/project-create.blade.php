@@ -626,7 +626,10 @@
                 @if($creation_option === 'template' && $selected_template_id)
                     @php
                         $tplModel = $allTemplates->firstWhere('id', $selected_template_id);
-                        $tplTasks = $tplModel ? $tplModel->tasks()->whereNull('parent_id')->orderBy('order_index')->get() : collect();
+                        $tplTasks = $tplModel
+                            ? $tplModel->tasks()->whereNull('parent_id')->orderBy('order_index')->orderBy('id')->get()
+                                ->unique(fn ($t) => strtolower(trim((string) $t->name)))->values()
+                            : collect();
                         $colors = ['#c3122e', '#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2'];
                     @endphp
                     @if($tplTasks->count())

@@ -532,7 +532,7 @@ class ProjectCreate extends Component
 
     private function createWbsFromTemplate(Project $project, int $templateId, \Carbon\Carbon $projectStartDate)
     {
-        app(\App\Services\TemplateWbsGeneratorService::class)->generate($project, $templateId, $projectStartDate);
+        app(\App\Services\TemplateWbsGeneratorService::class)->generate($project, $templateId, $projectStartDate, true);
     }
 
     public function render()

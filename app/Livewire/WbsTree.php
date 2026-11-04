@@ -97,7 +97,7 @@ class WbsTree extends Component
     public function getCanManageTasksProperty(): bool
     {
         $user = auth()->user();
-        if (!$user) return false;
+        if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin()
             || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.edit');
@@ -106,7 +106,7 @@ class WbsTree extends Component
     public function getCanCreateTasksProperty(): bool
     {
         $user = auth()->user();
-        if (!$user) return false;
+        if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
             || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.create');
@@ -115,7 +115,7 @@ class WbsTree extends Component
     public function getCanCreateSubtasksProperty(): bool
     {
         $user = auth()->user();
-        if (!$user) return false;
+        if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
             || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.create_subtask')
@@ -125,7 +125,7 @@ class WbsTree extends Component
     public function getCanEditTasksProperty(): bool
     {
         $user = auth()->user();
-        if (!$user) return false;
+        if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
             || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.edit')
@@ -135,7 +135,7 @@ class WbsTree extends Component
     public function getCanDeleteTasksProperty(): bool
     {
         $user = auth()->user();
-        if (!$user) return false;
+        if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
             || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.delete');
@@ -144,7 +144,7 @@ class WbsTree extends Component
     public function canEditSpecificItem(?WbsItem $item): bool
     {
         $user = auth()->user();
-        if (!$user || !$item) return false;
+        if (!$user || !$item || $user->isAdminViewer()) return false;
         if ($user->isPmoAdmin()) return true;
         if ($this->project->project_manager_id === $user->id) return true;
         if ($this->project->userCan($user, 'task.edit')) return true;
@@ -155,7 +155,7 @@ class WbsTree extends Component
     public function canDeleteSpecificItem(?WbsItem $item): bool
     {
         $user = auth()->user();
-        if (!$user || !$item) return false;
+        if (!$user || !$item || $user->isAdminViewer()) return false;
         if ($user->isPmoAdmin()) return true;
         if ($this->project->project_manager_id === $user->id) return true;
         if ($this->project->userCan($user, 'task.delete')) return true;
@@ -870,7 +870,7 @@ class WbsTree extends Component
         $item = WbsItem::findOrFail($itemId);
 
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'task.change_status', $item)) {
+        if (!$user || $user->isAdminViewer() || !$this->project->userCan($user, 'task.change_status', $item)) {
             $this->dispatch('toast', message: 'You are not authorized to update this task status.', type: 'error');
             return;
         }
@@ -946,7 +946,7 @@ class WbsTree extends Component
         $item = WbsItem::findOrFail($itemId);
 
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'task.update_progress', $item)) {
+        if (!$user || $user->isAdminViewer() || !$this->project->userCan($user, 'task.update_progress', $item)) {
             $this->dispatch('toast', message: 'You are not authorized to update progress on this task.', type: 'error');
             return;
         }

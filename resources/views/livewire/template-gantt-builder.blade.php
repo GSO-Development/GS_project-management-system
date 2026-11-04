@@ -86,8 +86,10 @@
                 @endif
 
                 @if(auth()->user()?->isSuperAdmin())
-                    <button wire:click="{{ $selectForProject ? 'continueToProject' : 'saveGantt' }}" wire:loading.attr="disabled"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                    <button wire:click="{{ $selectForProject ? 'continueToProject' : 'saveGantt' }}"
+                            wire:target="continueToProject,saveGantt"
+                            wire:loading.attr="disabled"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a00e24] shadow-md shadow-[#c3122e]/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-60 disabled:pointer-events-none">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                         </svg>
