@@ -12,6 +12,7 @@ use App\Models\Subsidiary;
 use App\Models\TaskBlocker;
 use App\Models\User;
 use App\Models\WbsItem;
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -46,16 +47,26 @@ class AuditLogObserver
      */
     protected function logActivity(Model $model, string $eventType): void
     {
-        $userId = auth()->id();
-        if (!$userId) return; // Only log authenticated user actions
+        // 1. Check if auditing is globally muted or specifically silenced for this model
+        if (AuditLogService::isMuted() || AuditLogService::isModelSilenced($model)) {
+            return;
+        }
 
-        $class = get_class($model);
+        $userId    = auth()->id();
+        $actorType = AuditLogService::getActorType();
+
+        // 2. Allow unauthenticated logging only if in automated system or background maintenance context
+        if (!$userId && $actorType === ActivityLog::ACTOR_USER) {
+            return;
+        }
+
+        $class    = get_class($model);
         $baseName = class_basename($class);
 
         $prevValues = null;
-        $newValues = null;
+        $newValues  = null;
 
-        // Do not store credentials, framework timestamps, or other noisy fields.
+        // Do not store credentials, framework timestamps, or noisy internal fields.
         $hiddenFields = ['password', 'remember_token', 'azure_token', 'created_at', 'updated_at'];
 
         if ($eventType === 'create') {
@@ -67,24 +78,32 @@ class AuditLogObserver
             }
 
             $prevValues = array_intersect_key($model->getOriginal(), $changes);
-            $newValues = $changes;
+            $newValues  = $changes;
         } elseif ($eventType === 'delete') {
             $prevValues = array_diff_key($model->getOriginal(), array_flip($hiddenFields));
         }
 
+        $changedKeys = array_keys($newValues ?? []);
+
+        // 3. Resolve semantic audit action
         $action = match ($baseName) {
-            'Project'             => $eventType === 'create' ? 'created_project' : ($eventType === 'update' ? 'updated_project' : 'deleted_project'),
-            'WbsItem'             => $this->taskAction($eventType, array_keys($newValues ?? [])),
+            'Project'             => $this->projectAction($eventType, $changedKeys, $newValues),
+            'WbsItem'             => $this->taskAction($eventType, $changedKeys, $newValues),
             'ProjectStatusUpdate' => $eventType === 'create' ? 'created_status_update' : ($eventType === 'update' ? 'updated_status_update' : 'deleted_status_update'),
             'ProjectRisk'         => $eventType === 'create' ? 'created_risk' : ($eventType === 'update' ? 'updated_risk' : 'deleted_risk'),
             'TaskBlocker'         => $eventType === 'create' ? 'created_blocker' : ($eventType === 'update' ? 'updated_blocker' : 'deleted_blocker'),
             'ProjectDocument'     => $eventType === 'create' ? 'uploaded_document' : ($eventType === 'update' ? 'updated_document' : 'deleted_document'),
             'Comment'             => $eventType === 'create' ? 'added_comment' : ($eventType === 'update' ? 'updated_comment' : 'deleted_comment'),
-            'User'                => $eventType === 'create' ? 'created_user' : ($eventType === 'update' ? 'updated_user' : 'deleted_user'),
+            'User'                => $this->userAction($eventType, $changedKeys, $newValues),
             'Subsidiary'          => $eventType === 'create' ? 'created_subsidiary' : ($eventType === 'update' ? 'updated_subsidiary' : 'deleted_subsidiary'),
             'ApprovalRequest'     => $eventType === 'create' ? 'submitted_approval_request' : ($eventType === 'update' ? 'updated_approval_request' : 'deleted_approval_request'),
             default               => strtolower($eventType . '_' . preg_replace('/(?<!^)[A-Z]/', '_$0', $baseName)),
         };
+
+        // 4. Prevent duplicate semantic/observer logs in the same request lifecycle
+        if (AuditLogService::hasLogged($class, $model->getKey(), $action)) {
+            return;
+        }
 
         $module = match ($baseName) {
             'Project', 'ProjectStatusUpdate', 'ProjectRisk' => 'projects',
@@ -97,21 +116,36 @@ class AuditLogObserver
             default                                         => 'general',
         };
 
+        $ipAddress = null;
+        $userAgent = null;
+
+        if (!app()->runningInConsole() && request()) {
+            $ipAddress = request()->ip();
+            $userAgent = request()->userAgent();
+        } elseif (app()->runningInConsole()) {
+            $ipAddress = 'CLI / Background Worker';
+            $userAgent = 'Artisan / Cron Console Process';
+        }
+
         try {
+            AuditLogService::markLogged($class, $model->getKey(), $action);
+
             ActivityLog::create([
                 'user_id'         => $userId,
                 'action'          => $action,
+                'actor_type'      => $actorType,
                 'module'          => $module,
                 'record_type'     => $class,
                 'record_id'       => $model->getKey(),
+                'batch_uuid'      => AuditLogService::getBatchUuid(),
                 'previous_values' => $prevValues,
                 'new_values'      => $newValues,
-                'ip_address'      => request()->ip(),
-                'user_agent'      => request()->userAgent(),
+                'ip_address'      => $ipAddress,
+                'user_agent'      => $userAgent,
             ]);
         } catch (\Throwable $e) {
             // Audit failures must not break the business action, but must remain diagnosable.
-            Log::warning('Unable to write audit log.', [
+            Log::warning('AuditLogObserver: Unable to write audit log.', [
                 'model' => $class,
                 'record_id' => $model->getKey(),
                 'event' => $eventType,
@@ -123,7 +157,7 @@ class AuditLogObserver
     /**
      * Give task changes explicit, searchable audit actions.
      */
-    protected function taskAction(string $eventType, array $changedFields): string
+    protected function taskAction(string $eventType, array $changedFields, ?array $newValues): string
     {
         if ($eventType === 'create') {
             return 'created_wbs_item';
@@ -133,12 +167,53 @@ class AuditLogObserver
             return 'deleted_wbs_item';
         }
 
+        if (in_array('assigned_user_id', $changedFields, true)) {
+            return empty($newValues['assigned_user_id']) ? 'unassigned_task' : 'reassigned_task';
+        }
+
         return match (true) {
             in_array('status', $changedFields, true) => 'changed_task_status',
-            in_array('assigned_user_id', $changedFields, true) => 'reassigned_task',
             in_array('progress', $changedFields, true) => 'updated_task_progress',
             count(array_intersect($changedFields, ['start_date', 'end_date', 'start_time', 'end_time'])) > 0 => 'rescheduled_task',
             default => 'updated_wbs_item',
         };
+    }
+
+    /**
+     * Project specific semantic actions.
+     */
+    protected function projectAction(string $eventType, array $changedFields, ?array $newValues): string
+    {
+        if ($eventType === 'create') return 'created_project';
+        if ($eventType === 'delete') return 'deleted_project';
+
+        if (in_array('project_manager_id', $changedFields, true)) {
+            return empty($newValues['project_manager_id']) ? 'unassigned_project_manager' : 'reassigned_project_leader';
+        }
+
+        if (in_array('status', $changedFields, true)) {
+            return 'changed_project_status';
+        }
+
+        if (in_array('deadline', $changedFields, true)) {
+            return 'updated_project_schedule';
+        }
+
+        return 'updated_project';
+    }
+
+    /**
+     * User specific semantic actions (e.g. deactivation, activation).
+     */
+    protected function userAction(string $eventType, array $changedFields, ?array $newValues): string
+    {
+        if ($eventType === 'create') return 'created_user';
+        if ($eventType === 'delete') return 'deleted_user';
+
+        if (in_array('is_active', $changedFields, true)) {
+            return (!empty($newValues['is_active'])) ? 'activated_user' : 'deactivated_user';
+        }
+
+        return 'updated_user';
     }
 }

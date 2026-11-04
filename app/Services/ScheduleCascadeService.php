@@ -168,113 +168,120 @@ class ScheduleCascadeService
             $projectId = $sourceTask->project_id;
             $eligibleTasks = $this->findEligibleFollowingTasks($sourceTask, $preserveSourceSchedule);
             $reason = "Upstream task \"{$sourceTask->title}\" (WBS {$sourceTask->wbs_code}) deadline changed by {$daysDelta} " . (abs($daysDelta) === 1 ? 'day' : 'days');
+            $batchUuid = \App\Services\AuditLogService::newBatchUuid();
 
-            foreach ($eligibleTasks as $task) {
-                $statusValue = $task->status instanceof WbsStatus ? $task->status->value : (string) $task->status;
-                $isCompleted = in_array($statusValue, ['completed', 'cancelled']);
-                $isInProgress = $statusValue === 'in_progress';
+            \App\Services\AuditLogService::asSystem(function () use (
+                $eligibleTasks, &$shiftedTasks, $daysDelta, $reason, $projectId, $preserveSourceSchedule, $sourceTask, $sourceSchedule
+            ) {
+                \App\Services\AuditLogService::withoutObserver(function () use (
+                    $eligibleTasks, &$shiftedTasks, $daysDelta, $reason, $projectId, $preserveSourceSchedule, $sourceTask, $sourceSchedule
+                ) {
+                    foreach ($eligibleTasks as $task) {
+                        $statusValue = $task->status instanceof WbsStatus ? $task->status->value : (string) $task->status;
+                        $isCompleted = in_array($statusValue, ['completed', 'cancelled']);
+                        $isInProgress = $statusValue === 'in_progress';
 
-                if ($isCompleted) {
-                    continue;
-                }
-
-                $oldStart = $task->start_date ? $task->start_date->copy() : null;
-                $oldEnd   = $task->end_date   ? $task->end_date->copy()   : null;
-                $oldStartTimeStr = $task->start_time ? \Carbon\Carbon::parse($task->start_time)->format('H:i') : '08:30';
-                $oldEndTimeStr   = $task->end_time   ? \Carbon\Carbon::parse($task->end_time)->format('H:i')   : '17:30';
-
-                $sourceNewEnd = $sourceTask->fresh()?->end_date;
-                $durDays = ($oldStart && $oldEnd) ? max(0, (int) $oldStart->diffInDays($oldEnd)) : 0;
-
-                if ($oldStart && $oldEnd) {
-                    if ($isInProgress) {
-                        $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr);
-                        $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
-                        if ($newEndDt->lt($newStartDt)) {
-                            $newEndDt = $newStartDt->copy()->addDay();
+                        if ($isCompleted) {
+                            continue;
                         }
-                    } else {
-                        $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta);
-                        $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+
+                        $oldStart = $task->start_date ? $task->start_date->copy() : null;
+                        $oldEnd   = $task->end_date   ? $task->end_date->copy()   : null;
+                        $oldStartTimeStr = $task->start_time ? \Carbon\Carbon::parse($task->start_time)->format('H:i') : '08:30';
+                        $oldEndTimeStr   = $task->end_time   ? \Carbon\Carbon::parse($task->end_time)->format('H:i')   : '17:30';
+
+                        $sourceNewEnd = $sourceTask->fresh()?->end_date;
+                        $durDays = ($oldStart && $oldEnd) ? max(0, (int) $oldStart->diffInDays($oldEnd)) : 0;
+
+                        if ($oldStart && $oldEnd) {
+                            if ($isInProgress) {
+                                $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr);
+                                $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                                if ($newEndDt->lt($newStartDt)) {
+                                    $newEndDt = $newStartDt->copy()->addDay();
+                                }
+                            } else {
+                                $newStartDt = \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta);
+                                $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                            }
+                        } elseif ($oldEnd) {
+                            $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
+                            $newStartDt = $oldStart ? \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta) : $newEndDt->copy();
+                        } else {
+                            continue;
+                        }
+
+                        // Ensure start date of following task is not earlier than source task's new end date
+                        if ($sourceNewEnd && !$isInProgress && $newStartDt->lt($sourceNewEnd)) {
+                            $newStartDt = $sourceNewEnd->copy()->addDay()->setTimeFrom(\Carbon\Carbon::parse($oldStartTimeStr));
+                            $newEndDt   = $newStartDt->copy()->addDays($durDays)->setTimeFrom(\Carbon\Carbon::parse($oldEndTimeStr));
+                        }
+
+                        $updateData = [
+                            'start_date'             => $newStartDt->toDateString(),
+                            'start_time'             => $newStartDt->format('H:i'),
+                            'end_date'               => $newEndDt->toDateString(),
+                            'end_time'               => $newEndDt->format('H:i'),
+                            'rescheduled_shift_days' => $daysDelta,
+                            'rescheduled_at'         => now(),
+                            'rescheduled_reason'     => $reason,
+                        ];
+
+                        // Auto-update title if title was formatted as a time range (e.g., "08:30 AM – 12:30 PM")
+                        if (preg_match('/^\d{1,2}:\d{2}\s*(?:AM|PM)\s*[-–—\s]+\s*\d{1,2}:\d{2}\s*(?:AM|PM)$/iu', trim($task->title))) {
+                            $sFmt = $newStartDt->format('h:i A');
+                            $eFmt = $newEndDt->format('h:i A');
+                            $updateData['title'] = "{$sFmt} – {$eFmt}";
+                        }
+
+                        $task->update($updateData);
+
+                        $shiftedTasks[] = [
+                            'id'             => $task->id,
+                            'wbs_code'       => $task->wbs_code,
+                            'title'          => $task->title,
+                            'old_start'      => $oldStart ? $oldStart->toDateString() : null,
+                            'old_end'        => $oldEnd   ? $oldEnd->toDateString()   : null,
+                            'new_start'      => $newStartDt->toDateString(),
+                            'new_end'        => $newEndDt->toDateString(),
+                            'start_preserved'=> $isInProgress,
+                        ];
                     }
-                } elseif ($oldEnd) {
-                    $newEndDt   = \Carbon\Carbon::parse($oldEnd->format('Y-m-d') . ' ' . $oldEndTimeStr)->addDays($daysDelta);
-                    $newStartDt = $oldStart ? \Carbon\Carbon::parse($oldStart->format('Y-m-d') . ' ' . $oldStartTimeStr)->addDays($daysDelta) : $newEndDt->copy();
-                } else {
-                    continue;
-                }
 
-                // Ensure start date of following task is not earlier than source task's new end date
-                if ($sourceNewEnd && !$isInProgress && $newStartDt->lt($sourceNewEnd)) {
-                    $newStartDt = $sourceNewEnd->copy()->addDay()->setTimeFrom(\Carbon\Carbon::parse($oldStartTimeStr));
-                    $newEndDt   = $newStartDt->copy()->addDays($durDays)->setTimeFrom(\Carbon\Carbon::parse($oldEndTimeStr));
-                }
+                    // Recalculate parent phase/container boundaries from child dates
+                    $this->recalculatePhaseBoundaries($projectId);
+                    if ($preserveSourceSchedule) $sourceTask->update($sourceSchedule);
 
-                $updateData = [
-                    'start_date'             => $newStartDt->toDateString(),
-                    'start_time'             => $newStartDt->format('H:i'),
-                    'end_date'               => $newEndDt->toDateString(),
-                    'end_time'               => $newEndDt->format('H:i'),
-                    'rescheduled_shift_days' => $daysDelta,
-                    'rescheduled_at'         => now(),
-                    'rescheduled_reason'     => $reason,
-                ];
+                    // Auto-update Project official deadline to sync with new overall maximum task schedule
+                    $project = Project::find($projectId);
+                    if ($project) {
+                        $maxTaskEnd = WbsItem::where('project_id', $projectId)
+                            ->whereNotNull('end_date')
+                            ->max('end_date');
 
-                // Auto-update title if title was formatted as a time range (e.g., "08:30 AM – 12:30 PM")
-                if (preg_match('/^\d{1,2}:\d{2}\s*(?:AM|PM)\s*[-–—\s]+\s*\d{1,2}:\d{2}\s*(?:AM|PM)$/iu', trim($task->title))) {
-                    $sFmt = $newStartDt->format('h:i A');
-                    $eFmt = $newEndDt->format('h:i A');
-                    $updateData['title'] = "{$sFmt} – {$eFmt}";
-                }
-
-                $task->update($updateData);
-
-                $shiftedTasks[] = [
-                    'id'             => $task->id,
-                    'wbs_code'       => $task->wbs_code,
-                    'title'          => $task->title,
-                    'old_start'      => $oldStart ? $oldStart->toDateString() : null,
-                    'old_end'        => $oldEnd   ? $oldEnd->toDateString()   : null,
-                    'new_start'      => $newStartDt->toDateString(),
-                    'new_end'        => $newEndDt->toDateString(),
-                    'start_preserved'=> $isInProgress,
-                ];
-            }
-
-            // Recalculate parent phase/container boundaries from child dates
-            $this->recalculatePhaseBoundaries($projectId);
-            if ($preserveSourceSchedule) $sourceTask->update($sourceSchedule);
-
-            // Auto-update Project official deadline to sync with new overall maximum task schedule
-            $project = Project::find($projectId);
-            if ($project) {
-                $maxTaskEnd = WbsItem::where('project_id', $projectId)
-                    ->whereNotNull('end_date')
-                    ->max('end_date');
-
-                if ($maxTaskEnd) {
-                    $maxTaskEndStr = \Carbon\Carbon::parse($maxTaskEnd)->toDateString();
-                    if (!$project->deadline || $maxTaskEndStr !== $project->deadline->toDateString()) {
-                        $project->update(['deadline' => $maxTaskEndStr]);
+                        if ($maxTaskEnd) {
+                            $maxTaskEndStr = \Carbon\Carbon::parse($maxTaskEnd)->toDateString();
+                            if (!$project->deadline || $maxTaskEndStr !== $project->deadline->toDateString()) {
+                                $project->update(['deadline' => $maxTaskEndStr]);
+                            }
+                        }
                     }
-                }
-            }
+                });
+            }, $batchUuid);
 
-            // Audit log
+            // Audit log under system automated action
             if (!empty($shiftedTasks)) {
-                ActivityLog::create([
-                    'user_id'         => auth()->id(),
-                    'action'          => 'cascade_rescheduled',
-                    'module'          => 'wbs',
-                    'record_type'     => WbsItem::class,
-                    'record_id'       => $sourceTask->id,
-                    'previous_values' => [
+                \App\Services\AuditLogService::log(
+                    action: 'cascade_rescheduled',
+                    module: 'wbs',
+                    record: $sourceTask,
+                    previous: [
                         'source_task'  => $sourceTask->title,
                         'wbs_code'     => $sourceTask->wbs_code,
                         'days_shifted' => $daysDelta,
                         'affected'     => array_map(fn($t) => "WBS {$t['wbs_code']} ({$t['title']}): {$t['old_start']} to {$t['old_end']}", $shiftedTasks),
                     ],
-                    'new_values' => [
+                    new: [
                         'source_task'   => $sourceTask->title,
                         'wbs_code'      => $sourceTask->wbs_code,
                         'days_shifted'  => $daysDelta,
@@ -282,9 +289,9 @@ class ScheduleCascadeService
                         'affected'      => array_map(fn($t) => "WBS {$t['wbs_code']} ({$t['title']}): {$t['new_start']} to {$t['new_end']}", $shiftedTasks),
                         'reason'        => $reason,
                     ],
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ]);
+                    actorType: \App\Models\ActivityLog::ACTOR_SYSTEM,
+                    batchUuid: $batchUuid
+                );
             }
         });
 

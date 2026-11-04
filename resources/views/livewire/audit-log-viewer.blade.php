@@ -689,6 +689,13 @@
                 </div>
 
                 {{-- Filter controls (All in single row) --}}
+                <select wire:model.live="actorTypeFilter" class="filter-select font-semibold">
+                    <option value="all">All Actor Types</option>
+                    <option value="user">👤 User Actions ({{ $actorCounts['user'] ?? 0 }})</option>
+                    <option value="system">🤖 Automated System ({{ $actorCounts['system'] ?? 0 }})</option>
+                    <option value="maintenance">⚙️ Maintenance ({{ $actorCounts['maintenance'] ?? 0 }})</option>
+                </select>
+
                 <select wire:model.live="actionFilter" class="filter-select">
                     <option value="all">All Actions</option>
                     @foreach($actionsList as $act)
@@ -712,6 +719,14 @@
                     <option value="custom">Custom Range</option>
                 </select>
 
+                @if($batchFilter)
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <span>Batch: {{ substr($batchFilter, 0, 8) }}...</span>
+                        <button wire:click="clearBatchFilter" type="button" class="text-indigo-400 hover:text-indigo-700 cursor-pointer ml-1 font-bold">✕</button>
+                    </div>
+                @endif
+
                 {{-- Sort toggle --}}
                 <button wire:click="toggleSortOrder" type="button" class="sort-btn"
                         title="{{ $sortOrder === 'desc' ? 'Newest first' : 'Oldest first' }}">
@@ -733,7 +748,7 @@
                     <option value="100">100</option>
                 </select>
 
-                @if($search || $moduleFilter !== 'all' || $actionFilter !== 'all' || $dateFilter !== 'all' || $quickTab !== 'all')
+                @if($search || $moduleFilter !== 'all' || $actionFilter !== 'all' || $actorTypeFilter !== 'all' || $batchFilter || $dateFilter !== 'all' || $quickTab !== 'all')
                     <button wire:click="resetFilters" type="button" class="reset-btn">
                         <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -907,14 +922,25 @@
                                     </div>
                                     <div style="min-width:0;">
                                         <div style="font-size:12.5px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">
-                                            {{ $log->user->name ?? 'System Automated' }}
+                                            {{ $log->user->name ?? ($log->actor_type === 'maintenance' ? 'Maintenance Service' : 'System Automated') }}
                                         </div>
                                         <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;display:flex;align-items:center;gap:5px;margin-top:1px;">
-                                            <span>{{ $log->user->email ?? 'background service' }}</span>
+                                            <span>{{ $log->user->email ?? ($log->actor_type === 'maintenance' ? 'Console / Cron' : 'Automated Trigger') }}</span>
                                         </div>
-                                        <div style="margin-top:2px;">
+                                        <div style="margin-top:3px; display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                                            @php
+                                                $actType = $log->actor_type ?? 'user';
+                                                $actBadge = match($actType) {
+                                                    'system' => ['bg' => '#f5f3ff', 'color' => '#6d28d9', 'border' => '#ddd6fe', 'label' => '🤖 System'],
+                                                    'maintenance' => ['bg' => '#fffbeb', 'color' => '#b45309', 'border' => '#fde68a', 'label' => '⚙️ Maint.'],
+                                                    default => ['bg' => '#eff6ff', 'color' => '#1d4ed8', 'border' => '#bfdbfe', 'label' => '👤 User'],
+                                                };
+                                            @endphp
                                             <span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:9.5px;font-weight:800;background:{{ $actorRole === 'PMO Admin' ? '#fef2f2' : ($actorRole === 'Project Leader' ? '#eff6ff' : '#f1f5f9') }};color:{{ $actorRole === 'PMO Admin' ? '#c3122e' : ($actorRole === 'Project Leader' ? '#1d4ed8' : '#475569') }};border:1px solid {{ $actorRole === 'PMO Admin' ? '#fee2e2' : ($actorRole === 'Project Leader' ? '#bfdbfe' : '#e2e8f0') }};white-space:nowrap;">
                                                 {{ $actorRole }}
+                                            </span>
+                                            <span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:9.5px;font-weight:700;background:{{ $actBadge['bg'] }};color:{{ $actBadge['color'] }};border:1px solid {{ $actBadge['border'] }};white-space:nowrap;" title="{{ ucfirst($actType) }} Action">
+                                                {{ $actBadge['label'] }}
                                             </span>
                                         </div>
                                     </div>
@@ -930,6 +956,17 @@
                                         style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.12s;">
                                     {{ $actionName }}
                                 </button>
+                                @if($log->batch_uuid)
+                                    <div style="margin-top:4px;">
+                                        <button wire:click="filterByBatch('{{ $log->batch_uuid }}')"
+                                                type="button"
+                                                title="Filter all logs in this batch ({{ $log->batch_uuid }})"
+                                                style="display:inline-flex;align-items:center;gap:3.5px;padding:1.5px 6px;border-radius:5px;font-size:9.5px;font-weight:700;background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe;cursor:pointer;">
+                                            <svg style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                            <span>Batch</span>
+                                        </button>
+                                    </div>
+                                @endif
                             </td>
 
                             {{-- MODULE --}}
@@ -1128,6 +1165,27 @@
                             <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Client IP</span>
                             <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#374151;">{{ $selectedLog->ip_address ?: '127.0.0.1' }}</span>
                         </div>
+                        <div>
+                            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Action Classification</span>
+                            @php
+                                $selType = $selectedLog->actor_type ?? 'user';
+                            @endphp
+                            <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;
+                                {{ $selType === 'system' ? 'background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;' : ($selType === 'maintenance' ? 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;' : 'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;') }}">
+                                {{ $selType === 'system' ? '🤖 Automated System Action' : ($selType === 'maintenance' ? '⚙️ Background Maintenance' : '👤 Direct User Action') }}
+                            </span>
+                        </div>
+                        @if($selectedLog->batch_uuid)
+                            <div>
+                                <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Batch UUID</span>
+                                <button wire:click="filterByBatch('{{ $selectedLog->batch_uuid }}'); closeDetailModal();" type="button"
+                                        style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#4338ca;background:#e0e7ff;border:1px solid #c7d2fe;padding:2px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"
+                                        title="Click to view all audit logs in this batch">
+                                    <span>{{ substr($selectedLog->batch_uuid, 0, 8) }}...</span>
+                                    <span style="font-size:9.5px;text-decoration:underline;">Filter Batch →</span>
+                                </button>
+                            </div>
+                        @endif
                         <div>
                             <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:3px;">Occurred</span>
                             <span style="font-size:12px;font-weight:700;color:#059669;">{{ $selectedLog->created_at->diffForHumans() }}</span>

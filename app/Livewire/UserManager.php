@@ -193,17 +193,19 @@ class UserManager extends Component
         $blockedCount = count($partition['blocked']);
         $count        = 0;
 
+        $batchUuid = \App\Services\AuditLogService::newBatchUuid();
+
         foreach ($safeIds as $id) {
             $user = User::find($id);
             if (!$user) continue;
-            \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
-                \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
-                \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
-                \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
-                $user->projects()->detach();
-                $user->is_active = false;
-                $user->save();
-                $user->delete();
+            \Illuminate\Support\Facades\DB::transaction(function () use ($user, $batchUuid) {
+                \App\Services\AuditLogService::withBatch($batchUuid, function () use ($user, $batchUuid) {
+                    $this->unassignAndAuditUserRecords(
+                        $user,
+                        "Bulk deletion of user {$user->name} by " . (auth()->user()?->name ?? 'PMO Admin'),
+                        $batchUuid
+                    );
+                });
             });
             $count++;
         }
@@ -508,18 +510,24 @@ class UserManager extends Component
                     return;
                 }
 
-                $user->update($data);
+                \App\Services\AuditLogService::withoutObserver(function () use ($user, $data) {
+                    $user->update($data);
+                });
                 $action = 'updated_user';
             } else {
                 $trashedUser = User::onlyTrashed()->where('email', trim($this->email))->first();
                 if ($trashedUser) {
                     $trashedUser->restore();
                     $data['must_change_password'] = false;
-                    $trashedUser->update($data);
+                    \App\Services\AuditLogService::withoutObserver(function () use ($trashedUser, $data) {
+                        $trashedUser->update($data);
+                    });
                     $user = $trashedUser;
                 } else {
                     $data['must_change_password'] = true;
-                    $user = User::create($data);
+                    $user = \App\Services\AuditLogService::withoutObserver(function () use ($data) {
+                        return User::create($data);
+                    });
                 }
                 $action = 'created_user';
             }
@@ -528,14 +536,13 @@ class UserManager extends Component
             $user->syncRoles($targetRoles);
         }
 
-        ActivityLog::create([
-            'user_id'     => auth()->id(),
-            'action'      => $action,
-            'module'      => 'users',
-            'record_type' => User::class,
-            'record_id'   => $user->id,
-            'new_values'  => ['name' => $user->name, 'email' => $user->email, 'role' => $this->role],
-        ]);
+        \App\Services\AuditLogService::log(
+            action: $action,
+            module: 'users',
+            record: $user,
+            new: ['name' => $user->name, 'email' => $user->email, 'role' => $this->role],
+            actorType: \App\Models\ActivityLog::ACTOR_USER
+        );
 
         $this->showModal = false;
         $this->dispatch('toast', message: 'User saved successfully!', type: 'success');
@@ -593,28 +600,79 @@ class UserManager extends Component
         }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
-            // 1. Unassign from active projects where this user is the Project Manager
-            \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
-
-            // 2. Unassign from active/pending deliverables & tasks
-            \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
-
-            // 3. Clear risk ownership
-            \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
-
-            // 4. Detach from project team memberships
-            $user->projects()->detach();
-
-            // 5. Deactivate and soft delete
-            // Note: User model uses SoftDeletes. Historical audit records (project_status_updates.created_by,
-            // project_documents.uploaded_by, projects.created_by, comments) are non-nullable and must remain
-            // intact for compliance. Soft-deleting immediately removes the user from active listings and logins.
-            $user->is_active = false;
-            $user->save();
-            $user->delete();
+            $batchUuid = \App\Services\AuditLogService::newBatchUuid();
+            \App\Services\AuditLogService::withBatch($batchUuid, function () use ($user, $batchUuid) {
+                $this->unassignAndAuditUserRecords(
+                    $user,
+                    "User {$user->name} deleted by " . (auth()->user()?->name ?? 'PMO Admin'),
+                    $batchUuid
+                );
+            });
         });
 
         $this->dispatch('toast', message: 'User deleted successfully.', type: 'info');
+    }
+
+    /**
+     * Unassign user from all active projects, deliverables and risks with individual audit logs.
+     */
+    protected function unassignAndAuditUserRecords(User $user, string $reason, string $batchUuid): void
+    {
+        // 1. Unassign from active projects where this user is the Project Manager
+        $projects = \App\Models\Project::where('project_manager_id', $user->id)->get(['id', 'name', 'code']);
+        if ($projects->isNotEmpty()) {
+            \App\Services\AuditLogService::logBulkDisassociation(
+                modelClass: \App\Models\Project::class,
+                records: $projects,
+                fieldCleared: 'project_manager_id',
+                clearedValue: $user->name,
+                action: 'unassigned_project_manager',
+                module: 'projects',
+                reason: $reason,
+                batchUuid: $batchUuid
+            );
+            \App\Models\Project::where('project_manager_id', $user->id)->update(['project_manager_id' => null]);
+        }
+
+        // 2. Unassign from active/pending deliverables & tasks
+        $tasks = \App\Models\WbsItem::where('assigned_user_id', $user->id)->get(['id', 'title', 'wbs_code']);
+        if ($tasks->isNotEmpty()) {
+            \App\Services\AuditLogService::logBulkDisassociation(
+                modelClass: \App\Models\WbsItem::class,
+                records: $tasks,
+                fieldCleared: 'assigned_user_id',
+                clearedValue: $user->name,
+                action: 'unassigned_task',
+                module: 'wbs_items',
+                reason: $reason,
+                batchUuid: $batchUuid
+            );
+            \App\Models\WbsItem::where('assigned_user_id', $user->id)->update(['assigned_user_id' => null]);
+        }
+
+        // 3. Clear risk ownership
+        $risks = \App\Models\ProjectRisk::where('owner_id', $user->id)->get(['id', 'title']);
+        if ($risks->isNotEmpty()) {
+            \App\Services\AuditLogService::logBulkDisassociation(
+                modelClass: \App\Models\ProjectRisk::class,
+                records: $risks,
+                fieldCleared: 'owner_id',
+                clearedValue: $user->name,
+                action: 'unassigned_risk_owner',
+                module: 'projects',
+                reason: $reason,
+                batchUuid: $batchUuid
+            );
+            \App\Models\ProjectRisk::where('owner_id', $user->id)->update(['owner_id' => null]);
+        }
+
+        // 4. Detach from project team memberships
+        $user->projects()->detach();
+
+        // 5. Deactivate and soft delete
+        $user->is_active = false;
+        $user->save();
+        $user->delete();
     }
 
     // ---------------------------------------------------------------

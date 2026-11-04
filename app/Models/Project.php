@@ -184,6 +184,14 @@ class Project extends Model
             $this->attributes['status'] = $computed->value;
             if ($save && $this->exists) {
                 $this->saveQuietly();
+                \App\Services\AuditLogService::log(
+                    action: 'auto_synced_project_status',
+                    module: 'projects',
+                    record: $this,
+                    previous: ['status' => $raw],
+                    new: ['status' => $computed->value, 'reason' => 'Automatically synchronized from task schedule & progress'],
+                    actorType: \App\Models\ActivityLog::ACTOR_SYSTEM
+                );
             }
         }
 
@@ -192,10 +200,12 @@ class Project extends Model
 
     public static function syncAllProjectStatuses(): void
     {
-        $projects = static::with('wbsItems')->get();
-        foreach ($projects as $project) {
-            $project->syncAutoStatus(true);
-        }
+        \App\Services\AuditLogService::asMaintenance(function () {
+            $projects = static::with('wbsItems')->get();
+            foreach ($projects as $project) {
+                $project->syncAutoStatus(true);
+            }
+        });
     }
 
     public function getComputedHealthAttribute(): string

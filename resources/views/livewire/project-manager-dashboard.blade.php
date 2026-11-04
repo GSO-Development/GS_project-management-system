@@ -106,6 +106,123 @@
         }
         @media (max-width:1023px) { .manager-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
         @media (max-width:639px) { .manager-head h1{font-size:23px!important}.manager-kpis{grid-template-columns:1fr} }
+
+        /* Project leadership review dialog */
+        .leadership-review-dialog {
+            width: min(980px, calc(100vw - 32px)) !important;
+            max-width: 980px !important;
+            max-height: calc(100dvh - 32px) !important;
+            margin: auto !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            overflow: visible !important;
+        }
+        .leadership-review-shell {
+            width: 100%;
+            height: min(720px, calc(100dvh - 32px));
+            max-height: calc(100dvh - 32px);
+            overflow: hidden;
+            border: 1px solid rgba(226,232,240,.95);
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 36px 90px -30px rgba(15,23,42,.72), 0 14px 32px -22px rgba(15,23,42,.38);
+        }
+        .leadership-review-header {
+            min-height: 70px;
+            padding: 13px 20px;
+            border-bottom: 1px solid #e5eaf0;
+            background: #fff;
+        }
+        .leadership-review-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+        }
+        .leadership-review-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 16px 20px;
+            background: #f6f8fa;
+            scrollbar-gutter: stable;
+        }
+        .leadership-summary-card,
+        .leadership-section-card {
+            border: 1px solid #e1e7ee !important;
+            border-radius: 12px !important;
+            background: #fff !important;
+            box-shadow: 0 1px 2px rgba(15,23,42,.025);
+        }
+        .leadership-metric-card {
+            min-height: 68px;
+            border-radius: 11px !important;
+            border-color: #e1e7ee !important;
+            box-shadow: 0 1px 2px rgba(15,23,42,.025) !important;
+        }
+        .leadership-review-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+            align-items: start;
+            gap: 14px;
+        }
+        .leadership-wbs-list {
+            max-height: 220px;
+            padding: 4px !important;
+            background: #f8fafc !important;
+        }
+        .leadership-wbs-list > div {
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+        .leadership-roster-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+        .leadership-roster-grid > div {
+            border-width: 1px !important;
+            border-color: #e2e8f0 !important;
+            border-radius: 10px !important;
+            box-shadow: none !important;
+        }
+        .leadership-review-footer {
+            flex: 0 0 auto;
+            padding: 12px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #fff;
+            box-shadow: 0 -14px 28px -30px rgba(15,23,42,.5);
+        }
+        .leadership-review-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 9px;
+            width: 100%;
+        }
+        .leadership-review-action {
+            min-height: 40px;
+            border-radius: 10px !important;
+        }
+        @media (max-width: 899px) {
+            .leadership-review-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 639px) {
+            .leadership-review-dialog {
+                width: calc(100vw - 16px) !important;
+                max-height: calc(100dvh - 16px) !important;
+            }
+            .leadership-review-shell {
+                height: calc(100dvh - 16px);
+                max-height: calc(100dvh - 16px);
+                border-radius: 16px;
+            }
+            .leadership-review-header { min-height: 68px; padding: 12px 14px; }
+            .leadership-review-body { padding: 12px; }
+            .leadership-review-footer { padding: 12px; }
+            .leadership-review-actions { display: grid; grid-template-columns: 1fr 1fr; }
+            .leadership-review-actions .leadership-accept-action { grid-column: 1 / -1; grid-row: 1; }
+            .leadership-review-action { width: 100%; padding-inline: 12px !important; }
+        }
     </style>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
@@ -613,19 +730,20 @@
             x-data
             x-init="$nextTick(() => { if (!$el.open) $el.showModal() })"
             x-on:cancel.prevent="$wire.closeReviewModal()"
-            class="p-0 border-0 bg-transparent overflow-visible backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm"
-            style="position:fixed !important;inset:0 !important;margin:auto !important;padding:0 !important;width:calc(100vw - 32px) !important;max-width:{{ $showRejectModal ? '680px' : '896px' }} !important;height:auto !important;max-height:calc(100dvh - 32px) !important;background:transparent !important;overflow:visible !important;"
+            class="leadership-review-dialog backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm"
+            style="position:fixed !important;inset:0 !important;"
             aria-labelledby="leadership-signoff-title"
             wire:click.self="closeReviewModal"
         >
-            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-                 style="width:100% !important;height:{{ $showRejectModal ? 'auto' : 'min(760px,calc(100dvh - 32px))' }};max-height:calc(100dvh - 32px);box-shadow:0 32px 80px -24px rgba(15,23,42,.65),0 12px 28px -18px rgba(15,23,42,.35);">
+            <div class="leadership-review-shell relative flex flex-col animate-in fade-in zoom-in-95 duration-200">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-200 bg-white flex-shrink-0">
+                <div class="leadership-review-header flex flex-shrink-0 items-center justify-between">
                     <div class="flex items-center gap-3.5 min-w-0">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-xl shrink-0 shadow-2xs">
-                            ⭐
+                        <div class="leadership-review-icon shrink-0 flex items-center justify-center border border-rose-200 bg-rose-50 text-[#c3122e]">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M12 3.75l7.5 3v5.25c0 4.142-3.358 7.5-7.5 8.25-4.142-.75-7.5-4.108-7.5-8.25V6.75l7.5-3Z" />
+                            </svg>
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
@@ -647,10 +765,10 @@
                 </div>
 
                 {{-- Modal Body Container --}}
-                <div class="{{ $showRejectModal ? 'flex-none' : 'flex-1 min-h-0 overflow-y-auto' }} space-y-4 p-4 sm:p-6 bg-slate-50/70 scrollbar-thin overscroll-contain">
+                <div class="leadership-review-body space-y-4 scrollbar-thin overscroll-contain">
                     @if(!$showRejectModal)
                         {{-- 1. Project Title, Requester & Scope Card --}}
-                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+                        <div class="leadership-summary-card space-y-2.5 p-4">
                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Project Initiation Details</span>
                                 <div class="flex items-center gap-2">
@@ -685,38 +803,39 @@
 
                         {{-- 2. Timeline & Schedule Parameters Grid (4 Cards) --}}
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">📅 Start Date</span>
+                            <div class="leadership-metric-card p-3 bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span class="text-slate-500">01</span> Start Date</span>
                                 <span class="font-mono font-black text-slate-900 block mt-1">
                                     {{ $reviewProject->start_date ? $reviewProject->start_date->format('M d, Y') : 'Immediate' }}
                                 </span>
                             </div>
-                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">🏁 Target Deadline</span>
+                            <div class="leadership-metric-card p-3 bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span class="text-slate-500">02</span> Target Deadline</span>
                                 <span class="font-mono font-black text-slate-900 block mt-1">
                                     {{ $reviewProject->deadline ? $reviewProject->deadline->format('M d, Y') : 'TBD' }}
                                 </span>
                             </div>
-                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">⏳ Est. Duration</span>
+                            <div class="leadership-metric-card p-3 bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span class="text-slate-500">03</span> Est. Duration</span>
                                 <span class="font-bold text-slate-900 block mt-1">
                                     {{ $durationDays ? "{$durationDays} Days" : 'Flexible' }}
                                 </span>
                             </div>
-                            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block">💰 Est. Budget</span>
+                            <div class="leadership-metric-card p-3 bg-white border border-slate-200 shadow-2xs">
+                                <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span class="text-slate-500">04</span> Est. Budget</span>
                                 <span class="font-mono font-bold text-slate-900 block mt-1">
                                     {{ $reviewProject->estimated_budget > 0 ? 'Rs. ' . number_format($reviewProject->estimated_budget, 0) : 'Not Specified' }}
                                 </span>
                             </div>
                         </div>
 
+                        <div class="leadership-review-grid">
                         {{-- 3. WBS Breakdown & Execution Blueprint Section --}}
-                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3">
+                        <div class="leadership-section-card p-4 space-y-3">
                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
-                                        📋
+                                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5.25H6.75A2.25 2.25 0 0 0 4.5 7.5v11.25A2.25 2.25 0 0 0 6.75 21h10.5a2.25 2.25 0 0 0 2.25-2.25V7.5a2.25 2.25 0 0 0-2.25-2.25H15M9 5.25A2.25 2.25 0 0 1 11.25 3h1.5A2.25 2.25 0 0 1 15 5.25M9 5.25A2.25 2.25 0 0 0 11.25 7.5h1.5A2.25 2.25 0 0 0 15 5.25" /></svg>
                                     </div>
                                     <div>
                                         <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">
@@ -744,7 +863,7 @@
 
                             {{-- WBS Phases & Tasks Preview List --}}
                             @if($wbsItems->count() > 0)
-                                <div class="max-h-48 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin rounded-xl bg-white p-2.5 border border-slate-200/70">
+                                <div class="leadership-wbs-list overflow-y-auto space-y-1.5 pr-1 scrollbar-thin rounded-xl bg-slate-50/60 p-2.5 border border-slate-200/70">
                                     @foreach($wbsItems as $item)
                                         @php
                                             $isPhase = ($item->item_type?->value === 'phase' || !$item->parent_id);
@@ -775,11 +894,11 @@
                         </div>
 
                         {{-- 4. Governance & Team Structure Section --}}
-                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-3">
+                        <div class="leadership-section-card p-4 space-y-3">
                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-rose-100 text-[#c3122e] flex items-center justify-center font-bold text-xs">
-                                        👥
+                                    <div class="w-6 h-6 rounded-lg bg-rose-50 text-[#c3122e] flex items-center justify-center">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.203-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
                                     </div>
                                     <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">Governance &amp; Assigned Team Roster</h5>
                                 </div>
@@ -788,7 +907,7 @@
                                 </span>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div class="leadership-roster-grid grid grid-cols-1 gap-2 text-xs">
                                 {{-- Project Manager Card (Self) --}}
                                 <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border-2 border-[#c3122e]/40 shadow-2xs">
                                     <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-[11px] flex-shrink-0 shadow-2xs" style="background: linear-gradient(135deg, #c3122e 0%, #8b0d1f 100%);">
@@ -866,6 +985,7 @@
                                 @endforeach
                             </div>
                         </div>
+                        </div>
 
                         {{-- Previous Rejection Note (if any) --}}
                         @if($reviewProject->isPmRejected())
@@ -902,22 +1022,22 @@
 
                 {{-- Premium Action Footer --}}
                 @unless($showRejectModal)
-                <div class="flex-shrink-0" style="padding:15px 28px;border-top:1px solid #e2e8f0;background:linear-gradient(180deg,#fff 0%,#fafbfd 100%);box-shadow:0 -12px 28px -28px rgba(15,23,42,.45);">
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;flex-wrap:wrap;">
-                        <button wire:click="closeReviewModal" type="button" class="transition-all cursor-pointer active:scale-[.98]"
+                <div class="leadership-review-footer">
+                    <div class="leadership-review-actions">
+                        <button wire:click="closeReviewModal" type="button" class="leadership-review-action transition-all cursor-pointer active:scale-[.98]"
                             style="height:42px;padding:0 19px;border-radius:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-size:13px;font-weight:700;box-shadow:0 1px 2px rgba(15,23,42,.04);">
                             Cancel
                         </button>
 
                         @if(!$showRejectModal)
-                            <button wire:click="openRejectForm({{ $reviewProject->id }})" type="button" class="transition-all cursor-pointer active:scale-[.98]"
+                            <button wire:click="openRejectForm({{ $reviewProject->id }})" type="button" class="leadership-review-action transition-all cursor-pointer active:scale-[.98]"
                                 style="height:42px;padding:0 19px;border-radius:11px;border:1px solid #fecdd3;background:#fff5f6;color:#be123c;font-size:13px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 1px 2px rgba(15,23,42,.03);">
                                 <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                 <span>Decline Assignment</span>
                             </button>
 
-                            <button wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)" wire:loading.attr="disabled" type="button" class="transition-all cursor-pointer active:scale-[.98] disabled:opacity-60"
-                                style="height:42px;padding:0 22px;border-radius:11px;border:1px solid #a80f27;background:linear-gradient(135deg,#cf1535 0%,#b30e29 100%);color:#fff;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 9px 20px -12px rgba(195,18,46,.9),inset 0 1px 0 rgba(255,255,255,.18);">
+                            <button wire:click="acceptProjectAssignment({{ $reviewProject->id }}, true)" wire:loading.attr="disabled" type="button" class="leadership-review-action leadership-accept-action transition-all cursor-pointer active:scale-[.98] disabled:opacity-60"
+                                style="height:42px;padding:0 22px;border-radius:11px;border:1px solid #a80f27;background:#c3122e;color:#fff;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 8px 18px -12px rgba(195,18,46,.75);">
                                 <svg wire:loading.remove wire:target="acceptProjectAssignment" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 <svg wire:loading wire:target="acceptProjectAssignment" class="animate-spin" style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none"><circle opacity=".3" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"/><path fill="currentColor" d="M21 12a9 9 0 00-9-9v3a6 6 0 016 6h3z"/></svg>
                                 <span>Accept &amp; Open Workspace</span>

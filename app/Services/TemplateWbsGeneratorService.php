@@ -26,44 +26,60 @@ class TemplateWbsGeneratorService
     {
         $template = ProjectTemplate::with('tasks')->findOrFail($templateId);
         $startDate = $startDate ? $startDate->copy()->startOfDay() : ($project->start_date ? Carbon::parse($project->start_date)->startOfDay() : now()->startOfDay());
+        $batchUuid = \App\Services\AuditLogService::newBatchUuid();
 
-        return DB::transaction(function () use ($project, $template, $startDate, $replaceExisting) {
-            if ($replaceExisting) {
-                WbsItem::withTrashed()->where('project_id', $project->id)->update(['parent_id' => null]);
-                WbsItem::withTrashed()->where('project_id', $project->id)->forceDelete();
-            }
+        return DB::transaction(function () use ($project, $template, $startDate, $replaceExisting, $batchUuid) {
+            return \App\Services\AuditLogService::asSystem(function () use ($project, $template, $startDate, $replaceExisting, $batchUuid) {
+                if ($replaceExisting) {
+                    WbsItem::withTrashed()->where('project_id', $project->id)->update(['parent_id' => null]);
+                    WbsItem::withTrashed()->where('project_id', $project->id)->forceDelete();
+                }
 
-            $templateTasks = $template->tasks;
-            if ($templateTasks->isEmpty()) {
-                return 0;
-            }
+                $templateTasks = $template->tasks;
+                if ($templateTasks->isEmpty()) {
+                    return 0;
+                }
 
-            // Group tasks by parent_id (handle both integer and string keys)
-            $tasksByParent = $templateTasks->groupBy(function ($task) {
-                return $task->parent_id ? (string) $task->parent_id : 'root';
-            });
+                // Group tasks by parent_id (handle both integer and string keys)
+                $tasksByParent = $templateTasks->groupBy(function ($task) {
+                    return $task->parent_id ? (string) $task->parent_id : 'root';
+                });
 
-            $nextSort = (int) (WbsItem::where('project_id', $project->id)->whereNull('parent_id')->max('sort_order') ?? 0);
-            $createdCount = 0;
+                $nextSort = (int) (WbsItem::where('project_id', $project->id)->whereNull('parent_id')->max('sort_order') ?? 0);
+                $createdCount = 0;
 
-            $this->createBranch(
-                $project,
-                $tasksByParent,
-                'root',
-                $startDate,
-                null,
-                $createdCount,
-                $nextSort
-            );
+                $this->createBranch(
+                    $project,
+                    $tasksByParent,
+                    'root',
+                    $startDate,
+                    null,
+                    $createdCount,
+                    $nextSort
+                );
 
-            // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
-            WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
+                // Cascade hierarchical schedule dates (Days, Weeks, Months, Hours)
+                WbsScheduleCascadeService::cascadeProjectSchedule($project->id, true);
 
-            // Recalculate WBS numbering and progress
-            (new WbsNumberingService())->recalculateProjectWbsCodes($project->id);
-            (new ProgressCalculationService())->updateProjectOverallProgress($project->id);
+                // Recalculate WBS numbering and progress
+                (new WbsNumberingService())->recalculateProjectWbsCodes($project->id);
+                (new ProgressCalculationService())->updateProjectOverallProgress($project->id);
 
-            return $createdCount;
+                \App\Services\AuditLogService::log(
+                    action: 'generated_wbs_from_template',
+                    module: 'wbs',
+                    record: $project,
+                    new: [
+                        'template_id'   => $template->id,
+                        'template_name' => $template->name,
+                        'tasks_created' => $createdCount,
+                    ],
+                    actorType: \App\Models\ActivityLog::ACTOR_SYSTEM,
+                    batchUuid: $batchUuid
+                );
+
+                return $createdCount;
+            }, $batchUuid);
         });
     }
 

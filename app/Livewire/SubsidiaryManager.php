@@ -174,15 +174,6 @@ class SubsidiaryManager extends Component
         $name = $sub->name;
         $code = $sub->code;
 
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'deleted_subsidiary',
-            'module' => 'subsidiaries',
-            'record_type' => Subsidiary::class,
-            'record_id' => $sub->id,
-            'old_values' => $sub->toArray(),
-        ]);
-
         $sub->delete();
 
         $this->cancelDelete();
@@ -212,15 +203,6 @@ class SubsidiaryManager extends Component
                 $skippedCount++;
                 continue;
             }
-
-            ActivityLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'deleted_subsidiary',
-                'module' => 'subsidiaries',
-                'record_type' => Subsidiary::class,
-                'record_id' => $sub->id,
-                'old_values' => $sub->toArray(),
-            ]);
 
             $sub->delete();
             $deletedCount++;

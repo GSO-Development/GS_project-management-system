@@ -440,6 +440,7 @@ class ProjectManagerDashboard extends Component
         // Pending Invitations awaiting acceptance by this PM
         $pendingInvitations = Project::where('project_manager_id', $user->id)
             ->where('pm_accepted', false)
+            ->whereNull('pm_rejection_reason')
             ->with(['subsidiary', 'creator', 'template.tasks', 'wbsItems', 'members'])
             ->latest()
             ->get();

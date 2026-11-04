@@ -62,6 +62,8 @@ class ApprovalService
         DB::transaction(function () use ($request, $reviewer, $comment) {
             $project = $request->project;
 
+            \App\Services\AuditLogService::silenceModel($request);
+
             $request->update([
                 'status' => ApprovalStatus::APPROVED,
                 'reviewed_by' => $reviewer->id,
@@ -199,6 +201,8 @@ class ApprovalService
         if ($isRequesterPm && !$isReviewerPmoOrSuper) {
             throw new InvalidArgumentException("Approval requests submitted by Project Managers must be reviewed by PMO Admin or Super Admin.");
         }
+
+        \App\Services\AuditLogService::silenceModel($request);
 
         $request->update([
             'status' => ApprovalStatus::REJECTED,

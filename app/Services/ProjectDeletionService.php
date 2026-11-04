@@ -141,27 +141,27 @@ class ProjectDeletionService
                 ],
             ];
 
-            // 15. Delete the project record from database (Soft Delete)
-            $projectModel->delete();
+            // 15. Delete the project record from database (Soft Delete) without observer duplication
+            \App\Services\AuditLogService::withoutObserver(function () use ($projectModel) {
+                $projectModel->delete();
+            });
 
             // 16. Record Comprehensive Audit Log
-            ActivityLog::create([
-                'user_id'         => $user->id,
-                'action'          => 'deleted_project',
-                'module'          => 'projects',
-                'record_type'     => Project::class,
-                'record_id'       => $projectId,
-                'previous_values' => $previousSnapshot,
-                'new_values'      => [
+            \App\Services\AuditLogService::log(
+                action: 'deleted_project',
+                module: 'projects',
+                record: Project::class,
+                previous: $previousSnapshot,
+                new: [
                     'status'           => 'permanently_deleted',
                     'deleted_by'       => $user->name,
                     'deleted_by_email' => $user->email,
                     'deleted_at'       => now()->toDateTimeString(),
                     'summary'          => "Project '{$projectName}' ({$projectCode}) and all {$tasksCount} WBS tasks, {$docsCount} documents, and related records were permanently purged from the system by PMO Admin {$user->name}.",
                 ],
-                'ip_address'      => request()->ip(),
-                'user_agent'      => request()->userAgent(),
-            ]);
+                actorType: ActivityLog::ACTOR_USER,
+                userId: $user->id
+            );
 
             return true;
         });

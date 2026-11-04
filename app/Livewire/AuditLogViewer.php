@@ -19,6 +19,8 @@ class AuditLogViewer extends Component
     public string $search = '';
     public string $moduleFilter = 'all';
     public string $actionFilter = 'all';
+    public string $actorTypeFilter = 'all'; // 'all', 'user', 'system', 'maintenance'
+    public ?string $batchFilter = null;
     public string $userFilter = 'all';
     public string $dateFilter = 'all';
     public ?string $startDate = null;
@@ -41,6 +43,8 @@ class AuditLogViewer extends Component
         return !empty(trim($this->search))
             || $this->moduleFilter !== 'all'
             || $this->actionFilter !== 'all'
+            || $this->actorTypeFilter !== 'all'
+            || !empty($this->batchFilter)
             || $this->userFilter !== 'all'
             || $this->dateFilter !== 'all'
             || $this->quickTab !== 'all';
@@ -55,6 +59,8 @@ class AuditLogViewer extends Component
         'search' => ['except' => ''],
         'moduleFilter' => ['except' => 'all'],
         'actionFilter' => ['except' => 'all'],
+        'actorTypeFilter' => ['except' => 'all'],
+        'batchFilter' => ['except' => null],
         'userFilter' => ['except' => 'all'],
         'dateFilter' => ['except' => 'all'],
         'quickTab' => ['except' => 'all'],
@@ -65,6 +71,8 @@ class AuditLogViewer extends Component
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingModuleFilter(): void { $this->resetPage(); }
     public function updatingActionFilter(): void { $this->resetPage(); }
+    public function updatingActorTypeFilter(): void { $this->resetPage(); }
+    public function updatingBatchFilter(): void { $this->resetPage(); }
     public function updatingUserFilter(): void { $this->resetPage(); }
     public function updatingDateFilter(): void { $this->resetPage(); }
     public function updatingStartDate(): void { $this->resetPage(); }
@@ -73,6 +81,19 @@ class AuditLogViewer extends Component
     public function updatingSortOrder(): void { $this->resetPage(); }
     public function updatingPerPage(): void { $this->resetPage(); }
     public function updatingViewMode(): void { $this->resetPage(); }
+
+    public function filterByBatch(string $batchUuid): void
+    {
+        $this->batchFilter = $batchUuid;
+        $this->showFilters = true;
+        $this->resetPage();
+    }
+
+    public function clearBatchFilter(): void
+    {
+        $this->batchFilter = null;
+        $this->resetPage();
+    }
 
     public function setQuickTab(string $tab): void
     {
@@ -142,6 +163,8 @@ class AuditLogViewer extends Component
         $this->search = '';
         $this->moduleFilter = 'all';
         $this->actionFilter = 'all';
+        $this->actorTypeFilter = 'all';
+        $this->batchFilter = null;
         $this->userFilter = 'all';
         $this->dateFilter = 'all';
         $this->startDate = null;
@@ -369,10 +392,12 @@ class AuditLogViewer extends Component
                 'Log ID', 
                 'User / Actor', 
                 'User Email', 
+                'Actor Type',
                 'Action Performed', 
                 'Module', 
                 'Record Type', 
                 'Record ID', 
+                'Batch UUID',
                 'Target Display Name',
                 'Target Code',
                 'Record Status',
@@ -387,12 +412,14 @@ class AuditLogViewer extends Component
                 $rec = $recordsMap[$log->id] ?? [];
                 fputcsv($handle, [
                     $log->id,
-                    $log->user->name ?? 'System Automated',
+                    $log->user->name ?? ($log->actor_type === 'maintenance' ? 'Background Maintenance' : 'System Automated'),
                     $log->user->email ?? 'N/A',
+                    ucfirst($log->actor_type ?? 'user'),
                     $log->action,
                     $log->module,
                     $log->record_type ? class_basename($log->record_type) : 'N/A',
                     $log->record_id ?? 'N/A',
+                    $log->batch_uuid ?? 'N/A',
                     $rec['title'] ?? 'N/A',
                     $rec['code'] ?? 'N/A',
                     (!empty($rec['is_deleted'])) ? 'Deleted' : 'Active',
@@ -450,6 +477,16 @@ class AuditLogViewer extends Component
                         ->orWhere('email', 'like', $s);
                   });
             });
+        }
+
+        // Actor Type Dropdown Filter
+        if ($this->actorTypeFilter !== 'all') {
+            $query->where('actor_type', $this->actorTypeFilter);
+        }
+
+        // Batch UUID Filter
+        if (!empty($this->batchFilter)) {
+            $query->where('batch_uuid', $this->batchFilter);
         }
 
         // Module Dropdown Filter
@@ -525,6 +562,13 @@ class AuditLogViewer extends Component
         $hasActiveFilters = $this->hasActiveFilters();
         $showFilters = $this->showFilters;
 
+        // Actor Counts
+        $actorCounts = [
+            'user'        => ActivityLog::where('actor_type', 'user')->count(),
+            'system'      => ActivityLog::where('actor_type', 'system')->count(),
+            'maintenance' => ActivityLog::where('actor_type', 'maintenance')->count(),
+        ];
+
         return view('livewire.audit-log-viewer', compact(
             'logs',
             'resolvedRecords',
@@ -533,6 +577,7 @@ class AuditLogViewer extends Component
             'activeActorsCount',
             'securityLogsCount',
             'tabCounts',
+            'actorCounts',
             'usersList',
             'modulesList',
             'actionsList',

@@ -190,7 +190,7 @@
                     </div>
                 </div>
                 <div class="reassign-grid">
-                    <div class="reassign-field">
+                    <div class="reassign-field" style="grid-column: 1 / -1;">
                         <label for="reassign-subsidiary">Subsidiary <span class="reassign-required">*</span></label>
                         <select id="reassign-subsidiary" wire:model.live="reassignSubsidiaryId" class="reassign-input" required>
                             <option value="">Select a subsidiary</option>
@@ -200,12 +200,6 @@
                         </select>
                         @error('reassignSubsidiaryId') <span class="reassign-error">{{ $message }}</span> @enderror
                     </div>
-                    <div class="reassign-field">
-                        <label for="reassign-category">Category <span class="reassign-optional">Optional</span></label>
-                        <input id="reassign-category" type="text" wire:model="reassignCategory" class="reassign-input" maxlength="100" placeholder="e.g. Digital transformation">
-                        @error('reassignCategory') <span class="reassign-error">{{ $message }}</span> @enderror
-                    </div>
-
                 </div>
             </section>
 

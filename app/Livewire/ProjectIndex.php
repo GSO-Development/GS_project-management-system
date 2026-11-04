@@ -542,17 +542,7 @@ class ProjectIndex extends Component
             }
 
 
-            ActivityLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'project_updated',
-                'module' => 'projects',
-                'record_type' => Project::class,
-                'record_id' => $project->id,
-                'old_values' => $oldValues,
-                'new_values' => $project->fresh()->toArray(),
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
+
 
             $this->dispatch('toast', message: 'Project updated successfully!', type: 'success');
         } else {
@@ -577,16 +567,7 @@ class ProjectIndex extends Component
                 $project->members()->sync($syncData);
             }
 
-            ActivityLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'project_created',
-                'module' => 'projects',
-                'record_type' => Project::class,
-                'record_id' => $project->id,
-                'new_values' => $project->toArray(),
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
+
 
             $this->dispatch('toast', message: 'Project created successfully!', type: 'success');
         }

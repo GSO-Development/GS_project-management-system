@@ -765,16 +765,64 @@ class ProjectWorkspace extends Component
             return;
         }
 
-        // Disassociate user from projects & tasks before deleting
-        \App\Models\Project::where('project_manager_id', $targetUser->id)->update(['project_manager_id' => null]);
-        \App\Models\Project::where('created_by', $targetUser->id)->update(['created_by' => null]);
-        \App\Models\WbsItem::where('assigned_user_id', $targetUser->id)->update(['assigned_user_id' => null]);
-        \App\Models\ProjectRisk::where('owner_id', $targetUser->id)->update(['owner_id' => null]);
-        \App\Models\ProjectStatusUpdate::where('created_by', $targetUser->id)->update(['created_by' => null]);
-        \App\Models\ProjectDocument::where('uploaded_by', $targetUser->id)->update(['uploaded_by' => null]);
+        $batchUuid = \App\Services\AuditLogService::newBatchUuid();
+        $reason = "User {$targetUser->name} deleted from project workspace by " . (auth()->user()?->name ?? 'User');
 
-        $targetUser->projects()->detach();
-        $targetUser->forceDelete();
+        \App\Services\AuditLogService::withBatch($batchUuid, function () use ($targetUser, $batchUuid, $reason) {
+            // Disassociate user from projects & tasks with audit trail
+            $projects = \App\Models\Project::where('project_manager_id', $targetUser->id)->get(['id', 'name', 'code']);
+            if ($projects->isNotEmpty()) {
+                \App\Services\AuditLogService::logBulkDisassociation(
+                    modelClass: \App\Models\Project::class,
+                    records: $projects,
+                    fieldCleared: 'project_manager_id',
+                    clearedValue: $targetUser->name,
+                    action: 'unassigned_project_manager',
+                    module: 'projects',
+                    reason: $reason,
+                    batchUuid: $batchUuid
+                );
+                \App\Models\Project::where('project_manager_id', $targetUser->id)->update(['project_manager_id' => null]);
+            }
+
+            \App\Models\Project::where('created_by', $targetUser->id)->update(['created_by' => null]);
+
+            $tasks = \App\Models\WbsItem::where('assigned_user_id', $targetUser->id)->get(['id', 'title', 'wbs_code']);
+            if ($tasks->isNotEmpty()) {
+                \App\Services\AuditLogService::logBulkDisassociation(
+                    modelClass: \App\Models\WbsItem::class,
+                    records: $tasks,
+                    fieldCleared: 'assigned_user_id',
+                    clearedValue: $targetUser->name,
+                    action: 'unassigned_task',
+                    module: 'wbs_items',
+                    reason: $reason,
+                    batchUuid: $batchUuid
+                );
+                \App\Models\WbsItem::where('assigned_user_id', $targetUser->id)->update(['assigned_user_id' => null]);
+            }
+
+            $risks = \App\Models\ProjectRisk::where('owner_id', $targetUser->id)->get(['id', 'title']);
+            if ($risks->isNotEmpty()) {
+                \App\Services\AuditLogService::logBulkDisassociation(
+                    modelClass: \App\Models\ProjectRisk::class,
+                    records: $risks,
+                    fieldCleared: 'owner_id',
+                    clearedValue: $targetUser->name,
+                    action: 'unassigned_risk_owner',
+                    module: 'projects',
+                    reason: $reason,
+                    batchUuid: $batchUuid
+                );
+                \App\Models\ProjectRisk::where('owner_id', $targetUser->id)->update(['owner_id' => null]);
+            }
+
+            \App\Models\ProjectStatusUpdate::where('created_by', $targetUser->id)->update(['created_by' => null]);
+            \App\Models\ProjectDocument::where('uploaded_by', $targetUser->id)->update(['uploaded_by' => null]);
+
+            $targetUser->projects()->detach();
+            $targetUser->forceDelete();
+        });
 
         // Remove from selected ids array
         $this->selectedCollaboratorIds = array_values(array_diff($this->selectedCollaboratorIds, [(string) $userId, $userId]));

@@ -395,23 +395,25 @@ class ProjectCreate extends Component
 
         $isSelfAssigned = (auth()->id() == $this->project_manager_id);
 
-        $project = Project::create([
-            'code' => strtoupper($this->code),
-            'name' => $this->name,
-            'description' => $this->description,
-            'subsidiary_id' => $this->subsidiary_id,
-            'project_manager_id' => $this->project_manager_id,
-            'pm_accepted' => $isSelfAssigned,
-            'pm_accepted_at' => $isSelfAssigned ? now() : null,
-            'created_by' => auth()->id(),
-            'priority' => Priority::MEDIUM,
-            'status' => ProjectStatus::PLANNING,
-            'start_date' => $this->start_date ?: null,
-            'deadline' => $this->deadline ?: null,
-            'estimated_budget' => ($this->estimated_budget !== null && $this->estimated_budget !== '') ? $this->estimated_budget : 0,
-            'wbs_breakdown_type' => $this->creation_option,
-            'template_id' => ($this->creation_option === 'template') ? $this->selected_template_id : null,
-        ]);
+        $project = \App\Services\AuditLogService::withoutObserver(function () use ($isSelfAssigned) {
+            return Project::create([
+                'code' => strtoupper($this->code),
+                'name' => $this->name,
+                'description' => $this->description,
+                'subsidiary_id' => $this->subsidiary_id,
+                'project_manager_id' => $this->project_manager_id,
+                'pm_accepted' => $isSelfAssigned,
+                'pm_accepted_at' => $isSelfAssigned ? now() : null,
+                'created_by' => auth()->id(),
+                'priority' => Priority::MEDIUM,
+                'status' => ProjectStatus::PLANNING,
+                'start_date' => $this->start_date ?: null,
+                'deadline' => $this->deadline ?: null,
+                'estimated_budget' => ($this->estimated_budget !== null && $this->estimated_budget !== '') ? $this->estimated_budget : 0,
+                'wbs_breakdown_type' => $this->creation_option,
+                'template_id' => ($this->creation_option === 'template') ? $this->selected_template_id : null,
+            ]);
+        });
 
         // Sync all Governance roles (Sponsors, Owners, Steering Committee, Project Leader, Core Team)
         $syncData = [];
@@ -460,13 +462,11 @@ class ProjectCreate extends Component
             $this->createWbsFromTemplate($project, $this->selected_template_id, $startDateObj);
         }
 
-        ActivityLog::create([
-            'user_id'     => auth()->id(),
-            'action'      => 'created_project',
-            'module'      => 'projects',
-            'record_type' => Project::class,
-            'record_id'   => $project->id,
-            'new_values'  => [
+        \App\Services\AuditLogService::log(
+            action: 'created_project',
+            module: 'projects',
+            record: $project,
+            new: [
                 'name'          => $project->name,
                 'code'          => $project->code,
                 'subsidiary_id' => $project->subsidiary_id,
@@ -474,9 +474,8 @@ class ProjectCreate extends Component
                 'members_count' => count($syncData),
                 'breakdown_type'=> $this->creation_option,
             ],
-            'ip_address'  => request()->ip(),
-            'user_agent'  => request()->userAgent(),
-        ]);
+            actorType: \App\Models\ActivityLog::ACTOR_USER
+        );
 
         // Register official Project Leadership Approval Request for the designated PM
         if (!$isSelfAssigned) {
