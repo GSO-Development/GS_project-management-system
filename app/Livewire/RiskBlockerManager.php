@@ -373,7 +373,7 @@ class RiskBlockerManager extends Component
         // Projects list for dropdown filter
         $projectsQuery = Project::query();
         if (!$user->hasRole('super_admin') && !$user->hasRole('pmo_admin') && !$user->isAdminViewer() && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-            $projectsQuery->where(function($q) use ($user) {
+            $projectsQuery->where('pm_accepted', true)->where(function($q) use ($user) {
                 $q->where('project_manager_id', $user->id)
                   ->orWhere(function($subQ) use ($user) {
                       $subQ->where('pm_accepted', true)

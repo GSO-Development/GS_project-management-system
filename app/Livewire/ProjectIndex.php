@@ -948,6 +948,10 @@ class ProjectIndex extends Component
             }
         }
 
+        $totalAllTasksCount = WbsItem::whereIn('project_id', (clone $query)->select('projects.id'))
+            ->whereNotIn('status', ['cancelled'])
+            ->count();
+
         $projects = $query->latest()->paginate($this->perPage);
         $projects->getCollection()->each(fn ($p) => $p->syncAutoStatus(true));
         $delayService = app(ProjectDelayAnalysisService::class);
@@ -1274,6 +1278,7 @@ class ProjectIndex extends Component
             'completedCount',
             'overdueCount',
             'onHoldCount',
+            'totalAllTasksCount',
             'totalStuckTasksCount',
             'blockedTasksOnlyCount',
             'overdueTasksOnlyCount',

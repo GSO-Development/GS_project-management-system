@@ -11,7 +11,9 @@ class TeamMemberDashboard extends Component
 {
     public function updateTaskProgress(int $taskId, int $progress): void
     {
-        $task = WbsItem::where('assigned_user_id', auth()->id())->findOrFail($taskId);
+        $task = WbsItem::where('assigned_user_id', auth()->id())
+            ->whereHas('project', fn($q) => $q->where('pm_accepted', true))
+            ->findOrFail($taskId);
         $task->progress = max(0, min(100, $progress));
 
         if ($progress >= 100) {
@@ -27,7 +29,9 @@ class TeamMemberDashboard extends Component
 
     public function updateTaskStatus(int $taskId, string $status): void
     {
-        $task = WbsItem::where('assigned_user_id', auth()->id())->findOrFail($taskId);
+        $task = WbsItem::where('assigned_user_id', auth()->id())
+            ->whereHas('project', fn($q) => $q->where('pm_accepted', true))
+            ->findOrFail($taskId);
         $statusEnum = WbsStatus::tryFrom($status);
         if (!$statusEnum) return;
 
@@ -46,7 +50,7 @@ class TeamMemberDashboard extends Component
         $userId = auth()->id();
         $today  = now()->today();
 
-        $myTasks = WbsItem::whereHas('project')
+        $myTasks = WbsItem::whereHas('project', fn($q) => $q->where('pm_accepted', true))
             ->with('project')
             ->where('assigned_user_id', $userId)
             ->orderBy('end_date', 'asc')

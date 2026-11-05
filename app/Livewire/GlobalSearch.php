@@ -20,7 +20,9 @@ class GlobalSearch extends Component
 
         if (strlen($this->query) >= 2) {
             // Projects
-            $pQuery = Project::where('name', 'like', "%{$this->query}%")->orWhere('code', 'like', "%{$this->query}%");
+            $pQuery = Project::where(function($q) {
+                $q->where('name', 'like', "%{$this->query}%")->orWhere('code', 'like', "%{$this->query}%");
+            });
             if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
                 $pQuery->where(function($q) use ($user) {
                     $q->where('project_manager_id', $user->id)
@@ -33,13 +35,15 @@ class GlobalSearch extends Component
             $results['projects'] = $pQuery->take(5)->get();
 
             // WBS Items
-            $wQuery = WbsItem::where('title', 'like', "%{$this->query}%")->orWhere('wbs_code', 'like', "%{$this->query}%");
+            $wQuery = WbsItem::where(function($q) {
+                $q->where('title', 'like', "%{$this->query}%")->orWhere('wbs_code', 'like', "%{$this->query}%");
+            });
             if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
                 $wQuery->where(function($q) use ($user) {
-                    $q->whereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id)->orWhere('pm_accepted', true))
-                      ->where(function($wq) use ($user) {
+                    $q->whereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id))
+                      ->orWhere(function($wq) use ($user) {
                           $wq->where('assigned_user_id', $user->id)
-                             ->orWhereHas('project', fn($pq) => $pq->where('project_manager_id', $user->id));
+                             ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
                       });
                 });
             }

@@ -661,8 +661,9 @@ class WbsTree extends Component
             // Automatically cascade and shift subsequent sibling task times if this task has times
             \App\Services\WbsScheduleCascadeService::cascadeTimeSlotsForSiblings($item);
 
-            // Notify if newly assigned or assignee changed
-            if (!empty($item->assigned_user_id) && $item->assigned_user_id !== $previousAssigneeId && $item->assigned_user_id !== auth()->id()) {
+            // Notify if newly assigned or assignee changed (only if project is accepted by PM, or assignee is the PM)
+            if (!empty($item->assigned_user_id) && $item->assigned_user_id !== $previousAssigneeId && $item->assigned_user_id !== auth()->id()
+                && ($this->project->isPmAccepted() || (int) $item->assigned_user_id === (int) $this->project->project_manager_id)) {
                 try {
                     $assignee = User::find($item->assigned_user_id);
                     if ($assignee) {
@@ -751,8 +752,9 @@ class WbsTree extends Component
             // Automatically cascade and shift subsequent sibling task times if this task has times
             \App\Services\WbsScheduleCascadeService::cascadeTimeSlotsForSiblings($item);
 
-            // Notify assignee upon new task creation
-            if (!empty($item->assigned_user_id) && $item->assigned_user_id !== auth()->id()) {
+            // Notify assignee upon new task creation (only if project is accepted by PM, or assignee is the PM)
+            if (!empty($item->assigned_user_id) && $item->assigned_user_id !== auth()->id()
+                && ($this->project->isPmAccepted() || (int) $item->assigned_user_id === (int) $this->project->project_manager_id)) {
                 try {
                     $assignee = User::find($item->assigned_user_id);
                     if ($assignee) {

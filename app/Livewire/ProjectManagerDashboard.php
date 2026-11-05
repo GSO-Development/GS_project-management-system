@@ -295,6 +295,7 @@ class ProjectManagerDashboard extends Component
 
         // Also capture any projects where user has assigned tasks directly
         $assignedTaskProjectIds = WbsItem::where('assigned_user_id', $user->id)
+            ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true))
             ->pluck('project_id')
             ->filter()
             ->unique()
@@ -447,6 +448,7 @@ class ProjectManagerDashboard extends Component
 
         // Projects managed by this PM (all)
         $assignedProjects = Project::where('project_manager_id', $user->id)
+            ->where('pm_accepted', true)
             ->with(['subsidiary'])
             ->get();
 
@@ -461,10 +463,15 @@ class ProjectManagerDashboard extends Component
         $collaboratingProjectsCount = $collaboratingProjects->count();
 
         // Total unique projects user is involved in (as Lead PM, Member, Governance, or Task Assignee)
-        $involvedProjectIds = Project::where(function($q) use ($user) {
+        $involvedProjectIds = Project::where('pm_accepted', true)->where(function($q) use ($user) {
             $q->where('project_manager_id', $user->id)
-              ->orWhereHas('members', fn($m) => $m->where('users.id', $user->id))
-              ->orWhereHas('wbsItems', fn($w) => $w->where('assigned_user_id', $user->id));
+              ->orWhere(function($sub) use ($user) {
+                  $sub->where('pm_accepted', true)
+                      ->where(function($mSub) use ($user) {
+                          $mSub->whereHas('members', fn($m) => $m->where('users.id', $user->id))
+                               ->orWhereHas('wbsItems', fn($w) => $w->where('assigned_user_id', $user->id));
+                      });
+              });
         })->pluck('id')->toArray();
 
         $totalInvolvedProjectsCount = count($involvedProjectIds);
@@ -500,8 +507,12 @@ class ProjectManagerDashboard extends Component
         $openRisks = ProjectRisk::with(['project', 'owner', 'wbsItem'])
             ->where(function($q) use ($user, $involvedProjectIds) {
                 $q->whereIn('project_id', $involvedProjectIds)
-                  ->orWhere('owner_id', $user->id)
-                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id));
+                  ->orWhere(function($oq) use ($user) {
+                      $oq->where('owner_id', $user->id)
+                         ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
+                  })
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id)
+                      ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true)));
             })
             ->whereIn('status', ['open', 'monitoring', 'identified'])
             ->latest()
@@ -534,8 +545,12 @@ class ProjectManagerDashboard extends Component
         $allRisks = ProjectRisk::with(['project', 'owner', 'wbsItem'])
             ->where(function($q) use ($user, $involvedProjectIds) {
                 $q->whereIn('project_id', $involvedProjectIds)
-                  ->orWhere('owner_id', $user->id)
-                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id));
+                  ->orWhere(function($oq) use ($user) {
+                      $oq->where('owner_id', $user->id)
+                         ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
+                  })
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id)
+                      ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true)));
             })
             ->latest()
             ->get();
@@ -544,7 +559,8 @@ class ProjectManagerDashboard extends Component
         $currentBlockers = TaskBlocker::with(['wbsItem.project', 'reporter'])
             ->where(function($q) use ($user, $involvedProjectIds) {
                 $q->whereHas('wbsItem', fn($w) => $w->whereIn('project_id', $involvedProjectIds))
-                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id))
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id)
+                      ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true)))
                   ->orWhere('reported_by', $user->id);
             })
             ->where('status', 'open')
@@ -554,7 +570,8 @@ class ProjectManagerDashboard extends Component
         $allBlockers = TaskBlocker::with(['wbsItem.project', 'reporter'])
             ->where(function($q) use ($user, $involvedProjectIds) {
                 $q->whereHas('wbsItem', fn($w) => $w->whereIn('project_id', $involvedProjectIds))
-                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id))
+                  ->orWhereHas('wbsItem', fn($w) => $w->where('assigned_user_id', $user->id)
+                      ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true)))
                   ->orWhere('reported_by', $user->id);
             })
             ->latest()
@@ -568,18 +585,21 @@ class ProjectManagerDashboard extends Component
             ->get();
 
         // Real User-Specific Calculations
-        $myProjects = Project::where(function($q) use ($user) {
+        $myProjects = Project::where('pm_accepted', true)->where(function($q) use ($user) {
                 $q->where('project_manager_id', $user->id)
                   ->orWhere(function($sub) use ($user) {
                       $sub->where('pm_accepted', true)
-                          ->whereHas('members', fn($m) => $m->where('users.id', $user->id));
+                          ->where(function($mSub) use ($user) {
+                              $mSub->whereHas('members', fn($m) => $m->where('users.id', $user->id))
+                                   ->orWhereHas('wbsItems', fn($w) => $w->where('assigned_user_id', $user->id));
+                          });
                   });
             })
             ->with(['subsidiary', 'wbsItems', 'members'])
             ->get();
 
         // ─── User Role Breakdown across Projects (Dynamic Matrix Organization) ───
-        $leadProjectsCount = Project::where('project_manager_id', $user->id)->count();
+        $leadProjectsCount = Project::where('project_manager_id', $user->id)->where('pm_accepted', true)->count();
 
         // Projects where user is a governance/team member (and not the PM)
         $memberProjectsBase = Project::where('project_manager_id', '!=', $user->id)
@@ -709,7 +729,7 @@ class ProjectManagerDashboard extends Component
         
         // Tasks assigned specifically to this logged-in user
         $myAssignedTasks = WbsItem::where('assigned_user_id', $user->id)
-            ->whereHas('project')
+            ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true))
             ->with('project')
             ->get();
         $myAssignedTasksCount = $myAssignedTasks->count();
@@ -792,6 +812,7 @@ class ProjectManagerDashboard extends Component
         // Tasks Due Soon List: prioritize tasks assigned to this user first!
         $directUpcoming = WbsItem::with(['project', 'assignedUser'])
             ->where('assigned_user_id', $user->id)
+            ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true))
             ->whereNotNull('end_date')
             ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
             ->orderBy('end_date', 'asc')
@@ -866,6 +887,7 @@ class ProjectManagerDashboard extends Component
         // 1. Tasks assigned specifically to logged-in user active/due TODAY
         $todayUserTasks = WbsItem::with('project')
             ->where('assigned_user_id', $user->id)
+            ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true))
             ->whereNotIn('status', [\App\Enums\WbsStatus::COMPLETED, \App\Enums\WbsStatus::CANCELLED])
             ->where(function ($q) use ($todayStr) {
                 $q->whereDate('end_date', $todayStr)

@@ -692,17 +692,11 @@ class DailyStatusUpdates extends Component
 
         // PMO Admin and Admin Viewer see every project in the organization.
         if (!$this->hasPortfolioViewAccess($user)) {
-            $query->where(function($q) use ($user) {
-                // PM sees their project
+            // Nobody (including the PM) sees the project here until the PM accepts it
+            $query->where('pm_accepted', true)->where(function($q) use ($user) {
                 $q->where('project_manager_id', $user->id)
-                  // Collaborator sees project ONLY after PM accepts it
-                  ->orWhere(function($sub) use ($user) {
-                      $sub->where('pm_accepted', true)
-                          ->where(function($memberSub) use ($user) {
-                              $memberSub->whereHas('members', fn($mq) => $mq->where('users.id', $user->id))
-                                        ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
-                          });
-                  });
+                  ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id))
+                  ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
             });
         }
 

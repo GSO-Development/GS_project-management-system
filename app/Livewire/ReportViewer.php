@@ -28,7 +28,7 @@ class ReportViewer extends Component
         $query = Project::with(['subsidiary', 'projectManager']);
 
         if (!$user->isPmoAdmin()) {
-            $query->where(function($q) use ($user) {
+            $query->where('pm_accepted', true)->where(function($q) use ($user) {
                 $q->where('project_manager_id', $user->id)
                   ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
             });

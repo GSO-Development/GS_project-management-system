@@ -221,7 +221,7 @@ class CalendarView extends Component
             return true;
         }
 
-        return Project::where('project_manager_id', $user->id)->exists();
+        return Project::where('project_manager_id', $user->id)->where('pm_accepted', true)->exists();
     }
 
     /**
@@ -241,6 +241,7 @@ class CalendarView extends Component
 
         // PM: strictly only projects managed by this user
         return Project::where('project_manager_id', $user->id)
+            ->where('pm_accepted', true)
             ->with('subsidiary')
             ->orderBy('name')
             ->get();
@@ -258,10 +259,15 @@ class CalendarView extends Component
             return Project::with('subsidiary')->orderBy('name')->get();
         }
 
-        return Project::where(function($q) use ($user) {
+        return Project::where('pm_accepted', true)->where(function($q) use ($user) {
             $q->where('project_manager_id', $user->id)
-              ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id))
-              ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
+              ->orWhere(function($subQ) use ($user) {
+                  $subQ->where('pm_accepted', true)
+                       ->where(function($mSub) use ($user) {
+                           $mSub->whereHas('members', fn($mq) => $mq->where('users.id', $user->id))
+                                ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
+                       });
+              });
         })->with('subsidiary')->orderBy('name')->get();
     }
 
@@ -1521,10 +1527,21 @@ class CalendarView extends Component
                       ->orWhereJsonContains('attendees', (int)$user->id)
                       ->orWhereHas('project', function($pq) use ($user) {
                           $pq->where('project_manager_id', $user->id)
-                             ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                             ->orWhere(function($subPq) use ($user) {
+                                 $subPq->where('pm_accepted', true)
+                                       ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                             });
                       });
                 });
             }
+        }
+
+        // Projects not yet accepted by their PM must not appear on anyone's calendar (except PMO Admin)
+        if (!$isPmoAdmin) {
+            $calEventQuery->where(function($q) {
+                $q->whereNull('project_id')
+                  ->orWhereHas('project', fn($pq) => $pq->where('pm_accepted', true));
+            });
         }
 
         $allCalendarEvents = $calEventQuery->get();
@@ -1534,6 +1551,10 @@ class CalendarView extends Component
             ->where(function($q) {
                 $q->whereNotNull('start_date')->orWhereNotNull('end_date');
             });
+
+        if (!$isPmoAdmin) {
+            $wbsQuery->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
+        }
 
         if ($this->subsidiaryFilter !== 'all') {
             $wbsQuery->whereHas('project', fn($q) => $q->where('subsidiary_id', $this->subsidiaryFilter));
@@ -1562,15 +1583,22 @@ class CalendarView extends Component
         }
 
         if ($this->scopeFilter === 'my_events') {
-            $wbsQuery->where('assigned_user_id', $user->id);
+            $wbsQuery->where('assigned_user_id', $user->id)
+                ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
         } else {
             if (!$isPmoAdmin) {
                 $wbsQuery->where(function($q) use ($user) {
-                    $q->where('assigned_user_id', $user->id)
-                      ->orWhereHas('project', function($pq) use ($user) {
-                          $pq->where('project_manager_id', $user->id)
-                             ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
-                      });
+                    $q->where(function($aq) use ($user) {
+                        $aq->where('assigned_user_id', $user->id)
+                           ->whereHas('project', fn($pq) => $pq->where('pm_accepted', true));
+                    })
+                    ->orWhereHas('project', function($pq) use ($user) {
+                        $pq->where('project_manager_id', $user->id)
+                           ->orWhere(function($subPq) use ($user) {
+                               $subPq->where('pm_accepted', true)
+                                     ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                           });
+                    });
                 });
             }
         }
@@ -1581,6 +1609,9 @@ class CalendarView extends Component
         $projectsWithDeadlines = collect();
         if ($this->categoryFilter === 'all' || $this->categoryFilter === 'deadline') {
             $projectDeadlineQuery = Project::whereNotNull('deadline');
+            if (!$isPmoAdmin) {
+                $projectDeadlineQuery->where('pm_accepted', true);
+            }
             if ($this->subsidiaryFilter !== 'all') {
                 $projectDeadlineQuery->where('subsidiary_id', $this->subsidiaryFilter);
             }
@@ -1593,7 +1624,10 @@ class CalendarView extends Component
                 if (!$isPmoAdmin) {
                     $projectDeadlineQuery->where(function($q) use ($user) {
                         $q->where('project_manager_id', $user->id)
-                          ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                          ->orWhere(function($subQ) use ($user) {
+                              $subQ->where('pm_accepted', true)
+                                   ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                          });
                     });
                 }
             }

@@ -345,6 +345,24 @@ class Project extends Model
                     \Illuminate\Support\Facades\Mail::to($member->email)
                         ->send(new \App\Mail\ProjectAssignedMail($this, $member, $role));
                 }
+
+                // Notify any non-PM users assigned to tasks created before PM acceptance
+                $assignedTasks = $this->wbsItems()
+                    ->whereNotNull('assigned_user_id')
+                    ->where('assigned_user_id', '!=', $user->id)
+                    ->with('assignedUser')
+                    ->get();
+                foreach ($assignedTasks as $task) {
+                    if ($task->assignedUser) {
+                        $task->assignedUser->notify(new \App\Notifications\TaskAssignedNotification(
+                            taskTitle: $task->title,
+                            projectName: $this->name,
+                            assignedByName: $user->name,
+                            dueDate: $task->end_date ? \Carbon\Carbon::parse($task->end_date)->format('M d, Y') : null,
+                            url: route('my-tasks.index')
+                        ));
+                    }
+                }
             } catch (\Throwable $e) {
                 \Log::error('ProjectAssignmentNotification upon PM acceptance failed: ' . $e->getMessage());
             }
@@ -562,6 +580,10 @@ class Project extends Model
             return true;
         }
 
+        if (!$this->pm_accepted && $this->project_manager_id !== $u->id) {
+            return false;
+        }
+
         return $this->isGovernanceMember($u);
     }
 
@@ -580,6 +602,10 @@ class Project extends Model
 
         if ($this->project_manager_id === $u->id) {
             return true;
+        }
+
+        if (!$this->pm_accepted) {
+            return false;
         }
 
         if ($this->members()->where('users.id', $u->id)->exists()) {

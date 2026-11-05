@@ -97,11 +97,10 @@ class DocumentManager extends Component
 
         if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
             $query->whereHas('project', function($q) use ($user) {
-                $q->where('project_manager_id', $user->id)
-                  ->orWhere(function($subQ) use ($user) {
-                      $subQ->where('pm_accepted', true)
-                           ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
-                  });
+                $q->where('pm_accepted', true)->where(function($pmSub) use ($user) {
+                    $pmSub->where('project_manager_id', $user->id)
+                          ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                });
             });
         }
 
@@ -116,12 +115,9 @@ class DocumentManager extends Component
         $documents = $query->latest()->paginate(10);
         
         if (!$user->hasRole('super_admin') && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
-            $projects = Project::where(function($q) use ($user) {
+            $projects = Project::where('pm_accepted', true)->where(function($q) use ($user) {
                     $q->where('project_manager_id', $user->id)
-                      ->orWhere(function($subQ) use ($user) {
-                          $subQ->where('pm_accepted', true)
-                               ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
-                      });
+                      ->orWhereHas('members', fn($mq) => $mq->where('user_id', $user->id));
                 })
                 ->get();
         } else {

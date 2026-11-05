@@ -353,9 +353,16 @@ class MyTasks extends Component
 
     private function canModifyTask(WbsItem $task, User $user): bool
     {
-        return $user->hasRole('super_admin')
-            || $task->assigned_user_id === $user->id
-            || ($task->project && $task->project->project_manager_id === $user->id);
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        if (!$task->project || (!$task->project->pm_accepted && $task->project->project_manager_id !== $user->id)) {
+            return false;
+        }
+
+        return $task->assigned_user_id === $user->id
+            || $task->project->project_manager_id === $user->id;
     }
 
     protected function notifyTaskCompletion(WbsItem $task): void
@@ -725,12 +732,14 @@ class MyTasks extends Component
         $today = now()->today()->toDateString();
 
         // 1. Project Manager Status & Scope Counts
-        $managedProjectsCount = Project::where('project_manager_id', $user->id)->count();
+        $managedProjectsCount = Project::where('project_manager_id', $user->id)->where('pm_accepted', true)->count();
         $isProjectManager = $managedProjectsCount > 0;
 
-        $myAssignedCount = WbsItem::where('assigned_user_id', $user->id)->whereHas('project')->count();
+        $myAssignedCount = WbsItem::where('assigned_user_id', $user->id)
+            ->whereHas('project', fn($q) => $q->where('pm_accepted', true))
+            ->count();
         $pmProjectsTasksCount = $isProjectManager 
-            ? WbsItem::whereHas('project', fn($q) => $q->where('project_manager_id', $user->id))->count() 
+            ? WbsItem::whereHas('project', fn($q) => $q->where('project_manager_id', $user->id)->where('pm_accepted', true))->count() 
             : 0;
 
         // If user is not PM on any project, enforce 'assigned'
@@ -740,8 +749,9 @@ class MyTasks extends Component
 
         // 2. Base Query & Available Filter Projects & Assignees
         if ($this->taskScope === 'pm_projects' && $isProjectManager) {
-            $baseQuery = WbsItem::whereHas('project', fn($q) => $q->where('project_manager_id', $user->id));
+            $baseQuery = WbsItem::whereHas('project', fn($q) => $q->where('project_manager_id', $user->id)->where('pm_accepted', true));
             $myProjects = Project::where('project_manager_id', $user->id)
+                ->where('pm_accepted', true)
                 ->with('subsidiary')
                 ->orderBy('name')
                 ->get();
@@ -755,19 +765,20 @@ class MyTasks extends Component
             $availableAssignees = User::whereIn('id', $assigneeIds)->orderBy('name')->get();
         } else {
             $baseQuery = WbsItem::where('assigned_user_id', $user->id)
-                ->whereHas('project');
-            $myProjects = Project::whereHas('wbsItems', fn($q) => $q->where('assigned_user_id', $user->id))
+                ->whereHas('project', fn($q) => $q->where('pm_accepted', true));
+            $myProjects = Project::where('pm_accepted', true)
+                ->whereHas('wbsItems', fn($q) => $q->where('assigned_user_id', $user->id))
                 ->with('subsidiary')
                 ->orderBy('name')
                 ->get();
             if ($myProjects->isEmpty()) {
                 $myProjects = Project::where(function($q) use ($user) {
                     $q->where('project_manager_id', $user->id)
-                      ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                      ->orWhere(function($subQ) use ($user) {
+                          $subQ->where('pm_accepted', true)
+                               ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                      });
                 })->with('subsidiary')->orderBy('name')->get();
-            }
-            if ($myProjects->isEmpty()) {
-                $myProjects = Project::with('subsidiary')->orderBy('name')->get();
             }
             $availableAssignees = collect();
         }

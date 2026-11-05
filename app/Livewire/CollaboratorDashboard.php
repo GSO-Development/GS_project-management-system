@@ -142,10 +142,9 @@ class CollaboratorDashboard extends Component
             ->latest()
             ->get();
 
-        // Tasks assigned to this Collaborator (only from accepted projects or PM's own projects)
-        $myTasks = WbsItem::whereHas('project', function($pq) use ($userId) {
-                $pq->where('pm_accepted', true)
-                   ->orWhere('project_manager_id', $userId);
+        // Tasks assigned to this Collaborator (only from projects accepted by their PM)
+        $myTasks = WbsItem::whereHas('project', function($pq) {
+                $pq->where('pm_accepted', true);
             })
             ->with(['project.projectManager', 'children.assignedUser'])
             ->where('assigned_user_id', $userId)

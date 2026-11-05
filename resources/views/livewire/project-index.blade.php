@@ -146,11 +146,9 @@
                     <a href="{{ route('all-tasks.index') }}"
                        class="py-1.5 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-900 font-semibold transition-all cursor-pointer flex items-center gap-1.5 no-underline">
                         <span>All Tasks</span>
-                        @if($totalStuckTasksCount > 0)
-                            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80">
-                                {{ $totalStuckTasksCount }}
-                            </span>
-                        @endif
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200/80">
+                            {{ number_format($totalAllTasksCount ?? 0) }}
+                        </span>
                     </a>
                 @endif
             </div>
