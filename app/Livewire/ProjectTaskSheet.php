@@ -30,7 +30,7 @@ class ProjectTaskSheet extends Component
     public function getCanEditProperty(): bool
     {
         $user = auth()->user();
-        return $user && !$user->isAdminViewer() && ($user->isPmoAdmin() || $this->project->project_manager_id === $user->id || $this->project->userCan($user, 'task.edit'));
+        return $user && !$user->isAdminViewer() && ($user->isPmoAdmin() || $this->project->userCan($user, 'task.edit'));
     }
 
     public function getCanAssignProperty(): bool

@@ -99,7 +99,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin()
-            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.edit');
     }
 
@@ -108,7 +107,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
-            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.create');
     }
 
@@ -117,7 +115,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
-            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.create_subtask')
             || $this->project->userCan($user, 'task.create');
     }
@@ -127,7 +124,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
-            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.edit')
             || $this->project->userCan($user, 'task.edit_assigned');
     }
@@ -137,7 +133,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || $user->isAdminViewer()) return false;
         return $user->isPmoAdmin() 
-            || $this->project->project_manager_id === $user->id
             || $this->project->userCan($user, 'task.delete');
     }
 
@@ -146,7 +141,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || !$item || $user->isAdminViewer()) return false;
         if ($user->isPmoAdmin()) return true;
-        if ($this->project->project_manager_id === $user->id) return true;
         if ($this->project->userCan($user, 'task.edit')) return true;
         if ($item->assigned_user_id === $user->id && $this->project->userCan($user, 'task.edit_assigned')) return true;
         return false;
@@ -157,7 +151,6 @@ class WbsTree extends Component
         $user = auth()->user();
         if (!$user || !$item || $user->isAdminViewer()) return false;
         if ($user->isPmoAdmin()) return true;
-        if ($this->project->project_manager_id === $user->id) return true;
         if ($this->project->userCan($user, 'task.delete')) return true;
         return false;
     }
@@ -922,7 +915,6 @@ class WbsTree extends Component
             && !$user->isAdminViewer()
             && (
                 $user->isPmoAdmin()
-                || $this->project->project_manager_id === $user->id
                 || $this->project->userCan($user, 'task.change_priority', $item)
             );
 

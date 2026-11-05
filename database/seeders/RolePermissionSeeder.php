@@ -15,7 +15,9 @@ class RolePermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1. Ensure all granular module permissions are created in database
+        // 1. Remove deprecated risk.delete permission and ensure all granular module permissions exist
+        Permission::where('name', 'risk.delete')->delete();
+
         $modules = RbacService::MODULES;
         foreach ($modules as $mod) {
             foreach (array_keys($mod['permissions']) as $permCode) {

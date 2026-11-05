@@ -34,6 +34,7 @@ return new class extends Migration
             // 2. Scope / Project Details
             'project_details.view',
             'project_details.edit',
+            'budget.edit',
             'scope.view',
             'scope.edit',
             'scope.approve',
@@ -54,6 +55,7 @@ return new class extends Migration
             'task.change_priority',
             'task.change_due_date',
             'task.create_subtask',
+            'task.log_daily',
             'task.comment',
             'task.upload_attachment',
             'task.complete',
@@ -128,8 +130,8 @@ return new class extends Migration
         // 3. Default Permissions for Project Manager (lead)
         $leadPerms = [
             'project.view', 'project.view_assigned', 'project.edit', 'project.manage_scope', 'project.manage_schedule', 'project.manage_milestones',
-            'project_details.view', 'project_details.edit', 'scope.view', 'scope.edit', 'schedule.edit',
-            'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.reassign', 'task.change_status', 'task.update_progress', 'task.change_priority', 'task.change_due_date', 'task.create_subtask', 'task.comment', 'task.upload_attachment', 'task.complete',
+            'project_details.view', 'project_details.edit', 'budget.edit', 'scope.view', 'scope.edit', 'schedule.edit',
+            'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.reassign', 'task.change_status', 'task.update_progress', 'task.change_priority', 'task.change_due_date', 'task.create_subtask', 'task.log_daily', 'task.comment', 'task.upload_attachment', 'task.complete',
             'team.view', 'team.add', 'team.remove', 'team.assign_role', 'team.change_role', 'team.view_member',
             'budget.view', 'budget.view_estimated', 'budget.view_actual', 'budget.edit_actual', 'budget.submit_change', 'budget.report',
             'risk.view', 'risk.create', 'risk.edit', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
@@ -144,7 +146,7 @@ return new class extends Migration
         $memberPerms = [
             'project.view_assigned',
             'project_details.view', 'scope.view',
-            'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.comment', 'task.upload_attachment', 'task.complete',
+            'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.log_daily', 'task.comment', 'task.upload_attachment', 'task.complete',
             'team.view', 'team.view_member',
             'risk.view', 'risk.create', 'blocker.create',
             'approval.view', 'approval.submit'

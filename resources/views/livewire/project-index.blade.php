@@ -534,7 +534,7 @@
                                     <td class="align-middle text-right whitespace-nowrap">
                                         <div class="project-row-actions">
                                             {{-- 1. Edit Project Button --}}
-                                            @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $project->project_manager_id === auth()->id() || $project->userCan(auth()->user(), 'project_details.edit'))
+                                            @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $project->userCan(auth()->user(), 'project_details.edit'))
                                                 <button
                                                     type="button"
                                                     wire:click="openEditModal({{ $project->id }})"

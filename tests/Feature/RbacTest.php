@@ -17,6 +17,7 @@ class RbacTest extends TestCase
     {
         parent::setUp();
         $this->artisan('migrate');
+        RbacService::clearCache();
     }
 
     private function createProject(array $attributes = []): Project
@@ -215,5 +216,30 @@ class RbacTest extends TestCase
 
         // task.assign is checked -> must return true
         $this->assertTrue($project->userCan($pm, 'task.assign'));
+    }
+
+    public function test_project_manager_has_all_current_module_permissions_by_default()
+    {
+        $pm = User::create([
+            'name' => 'Full PM',
+            'email' => 'full_pm@nexuspm.local',
+            'password' => bcrypt('secret'),
+        ]);
+        $project = $this->createProject(['project_manager_id' => $pm->id]);
+
+        $this->assertArrayNotHasKey('risk.delete', RbacService::MODULES['risk']['permissions']);
+        $this->assertArrayHasKey('task.change_priority', RbacService::MODULES['task']['permissions']);
+        $this->assertArrayHasKey('task.update_progress', RbacService::MODULES['task']['permissions']);
+
+        foreach (RbacService::MODULES as $moduleKey => $moduleDef) {
+            foreach (array_keys($moduleDef['permissions']) as $perm) {
+                $this->assertTrue(
+                    $project->userCan($pm, $perm),
+                    "Expected Project Manager (lead) to have default permission '{$perm}' in module '{$moduleKey}'."
+                );
+            }
+            $summary = RbacService::computeModuleSummary('lead', $moduleKey);
+            $this->assertSame('Full Access', $summary['label'], "Expected Full Access for lead on module '{$moduleKey}'.");
+        }
     }
 }

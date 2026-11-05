@@ -303,20 +303,24 @@
                                     <td><span class="risk-exposure {{ $threatClass }}"><i></i>{{ $threatLabel }} <b>{{ $score }}/12</b></span></td>
                                     <td>
                                         @php
-                                            $canManageRisk = false;
+                                            $canChangeRiskStatus = false;
+                                            $canEditRisk = false;
                                             $authUser = auth()->user();
                                             if ($authUser) {
                                                 if ($authUser->isSuperAdmin() || $authUser->isPmoAdmin() || $authUser->id === 1) {
-                                                    $canManageRisk = true;
-                                                } elseif ($r->project && $r->project->project_manager_id === $authUser->id) {
-                                                    $canManageRisk = true;
+                                                    $canChangeRiskStatus = true;
+                                                    $canEditRisk = true;
                                                 } elseif ($r->owner_id === $authUser->id || ($r->wbsItem && $r->wbsItem->assigned_user_id === $authUser->id)) {
-                                                    $canManageRisk = true;
+                                                    $canChangeRiskStatus = true;
+                                                    $canEditRisk = true;
+                                                } elseif ($r->project) {
+                                                    $canEditRisk = $r->project->userCan($authUser, 'risk.edit');
+                                                    $canChangeRiskStatus = $canEditRisk || $r->project->userCan($authUser, 'risk.resolve');
                                                 }
                                             }
                                         @endphp
 
-                                        @if($canManageRisk && !$authUser?->isAdminViewer())
+                                        @if($canChangeRiskStatus && !$authUser?->isAdminViewer())
                                             <select wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)" class="risk-table-status">
                                                 <option value="open" @selected($r->status === 'open')>Open</option>
                                                 <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
@@ -334,7 +338,7 @@
                                     @unless(auth()->user()?->isAdminViewer())
                                     <td>
                                         <div class="risk-table-actions">
-                                            @if($canManageRisk)
+                                            @if($canEditRisk)
                                                 <button wire:click="openEditRiskModal({{ $r->id }})" type="button" title="Edit risk" aria-label="Edit risk" class="risk-table-icon-button">
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L8 18l-4 1 1-4 11.5-11.5z"/></svg>
                                                 </button>

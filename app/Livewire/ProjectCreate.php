@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use App\Services\RbacService;
 use App\Services\TemplateWbsGeneratorService;
+use App\Services\AzureGraphService;
+use App\Services\AzureUserProvisioner;
+use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Locked;
 
 class ProjectCreate extends Component
 {
@@ -39,6 +43,17 @@ class ProjectCreate extends Component
     public array $customRoleAssignments = [];
     // Search strings for each custom role: ['role_code' => 'search_query']
     public array $customRoleSearch = [];
+
+    // Azure AD "add from directory" panel (only one team dropdown shows it at a time).
+    // $azureRole: pm | owner | sponsor | steering | member | custom:{role_code}
+    public ?string $azureRole = null;
+    public string $azureQuery = '';
+    public ?string $azureError = null;
+    #[Locked]
+    public array $azureResults = [];
+    // Users provisioned/selected through Azure search – always kept visible in the pickers.
+    #[Locked]
+    public array $azureAddedUserIds = [];
 
     // Breakdown Method Properties
     public string $creation_option = 'manual'; // 'template' or 'manual'
@@ -350,6 +365,293 @@ class ProjectCreate extends Component
         $this->project_manager_id = $userId;
     }
 
+    // ────────────────────────────────────────────────────────────────
+    //  Azure AD – add people who are not yet in the system
+    // ────────────────────────────────────────────────────────────────
+
+    protected function canUseAzureDirectory(): bool
+    {
+        return (bool) auth()->user()?->isPmoAdmin();
+    }
+
+    protected function azureIsConfigured(): bool
+    {
+        return !empty(config('services.azure.tenant'))
+            && !empty(config('services.azure.client_id'))
+            && !empty(config('services.azure.client_secret'));
+    }
+
+    protected function isValidAzureRole(string $role): bool
+    {
+        if (in_array($role, ['pm', 'owner', 'sponsor', 'steering', 'member'], true)) {
+            return true;
+        }
+
+        return str_starts_with($role, 'custom:')
+            && array_key_exists(substr($role, 7), $this->getCustomRoles());
+    }
+
+    protected function azureRoleLabel(string $role): string
+    {
+        return match (true) {
+            $role === 'pm'       => 'Project Manager',
+            $role === 'owner'    => 'Project Owner',
+            $role === 'sponsor'  => 'Project Sponsor',
+            $role === 'steering' => 'Steering Committee',
+            $role === 'member'   => 'Core Project Team',
+            str_starts_with($role, 'custom:') => (string) ($this->getCustomRoles()[substr($role, 7)]['name']
+                ?? ucwords(str_replace(['_', '-'], ' ', substr($role, 7)))),
+            default => 'Team Member',
+        };
+    }
+
+    // ── Live Azure AD lookup while typing in a dropdown's search box ──────────
+
+    public function updatedLeaderSearch($value): void       { $this->autoAzureSearch('pm', (string) $value); }
+    public function updatedOwnerSearch($value): void        { $this->autoAzureSearch('owner', (string) $value); }
+    public function updatedSponsorSearch($value): void      { $this->autoAzureSearch('sponsor', (string) $value); }
+    public function updatedSteeringSearch($value): void     { $this->autoAzureSearch('steering', (string) $value); }
+    public function updatedParticipantSearch($value): void  { $this->autoAzureSearch('member', (string) $value); }
+
+    public function updatedCustomRoleSearch($value, $key = null): void
+    {
+        if (is_string($key) && $key !== '') {
+            $this->autoAzureSearch('custom:' . $key, (string) $value);
+        }
+    }
+
+    protected function autoAzureSearch(string $role, string $text): void
+    {
+        if (!$this->canUseAzureDirectory() || !$this->isValidAzureRole($role)) {
+            return;
+        }
+
+        $this->azureRole    = $role;
+        $this->azureQuery   = trim($text);
+        $this->azureResults = [];
+        $this->azureError   = null;
+
+        $this->runAzureSearch();
+    }
+
+    public function closeAzureSearch(): void
+    {
+        $this->azureRole    = null;
+        $this->azureQuery   = '';
+        $this->azureResults = [];
+        $this->azureError   = null;
+    }
+
+    /** Clear the dropdown's own search box once someone has been picked from Azure AD. */
+    protected function clearLocalSearchFor(string $role): void
+    {
+        match (true) {
+            $role === 'pm'       => $this->leaderSearch = '',
+            $role === 'owner'    => $this->ownerSearch = '',
+            $role === 'sponsor'  => $this->sponsorSearch = '',
+            $role === 'steering' => $this->steeringSearch = '',
+            $role === 'member'   => $this->participantSearch = '',
+            str_starts_with($role, 'custom:') => $this->customRoleSearch[substr($role, 7)] = '',
+            default => null,
+        };
+    }
+
+    protected function runAzureSearch(): void
+    {
+        $this->azureError   = null;
+        $this->azureResults = [];
+
+        $query = trim($this->azureQuery);
+        if (!$this->canUseAzureDirectory() || mb_strlen($query) < 2) {
+            return;
+        }
+
+        if (!$this->azureIsConfigured()) {
+            $this->azureError = 'Azure AD is not configured. Please set the Azure tenant / client credentials first.';
+            return;
+        }
+
+        try {
+            $results = AzureGraphService::searchUsers($query, 8);
+        } catch (\Throwable $e) {
+            Log::error('ProjectCreate: Azure user search failed - ' . $e->getMessage());
+            $this->azureError = 'Could not reach Azure AD right now. Please try again.';
+            return;
+        }
+
+        if (empty($results)) {
+            return;
+        }
+
+        // Which of these people already exist in the system?
+        $azureIds = array_values(array_filter(array_column($results, 'id')));
+        $emails   = array_values(array_filter(array_column($results, 'email')));
+
+        $existing = User::withTrashed()
+            ->where(function ($q) use ($azureIds, $emails) {
+                $q->whereIn('azure_id', $azureIds)->orWhereIn('email', $emails);
+            })
+            ->get();
+
+        // People the dropdown already lists (and that match the typed text) need no Azure row.
+        $visible = User::getUsersForSubsidiary($this->subsidiary_id);
+        if (!empty($this->azureAddedUserIds)) {
+            $visible = $visible->concat(User::whereIn('id', $this->azureAddedUserIds)->get());
+        }
+        $visibleIds = $visible->pluck('id')->map(fn($id) => (int) $id)->all();
+        $needle     = mb_strtolower($query);
+
+        $rows = [];
+        foreach ($results as $row) {
+            $match = $existing->first(function ($u) use ($row) {
+                return (!empty($u->azure_id) && $u->azure_id === ($row['id'] ?? null))
+                    || strcasecmp((string) $u->email, (string) ($row['email'] ?? '')) === 0;
+            });
+
+            $row['in_system']      = (bool) $match;
+            $row['blocked_reason'] = null;
+
+            if ($match && !$match->trashed()) {
+                $alreadyListed = in_array((int) $match->id, $visibleIds, true)
+                    && $match->is_active
+                    && !$match->isGovernanceOrAdminUser()
+                    && (str_contains(mb_strtolower((string) $match->name), $needle)
+                        || str_contains(mb_strtolower((string) $match->email), $needle));
+
+                if ($alreadyListed) {
+                    continue;
+                }
+
+                if (!$match->is_active) {
+                    $row['blocked_reason'] = 'Deactivated';
+                } elseif ($match->isGovernanceOrAdminUser()) {
+                    $row['blocked_reason'] = 'Admin account';
+                }
+            }
+
+            $rows[] = $row;
+        }
+
+        $this->azureResults = $rows;
+    }
+
+    public function addAzureUser(int $index): void
+    {
+        if (!$this->canUseAzureDirectory()) {
+            $this->dispatch('toast', message: 'Only PMO Admins can add users from Azure AD.', type: 'error');
+            return;
+        }
+
+        $role      = $this->azureRole;
+        $azureUser = $this->azureResults[$index] ?? null;
+
+        if (!$role || !$azureUser || !$this->isValidAzureRole($role)) {
+            return;
+        }
+
+        try {
+            ['user' => $user, 'created' => $created] = AzureUserProvisioner::provision($azureUser, $this->subsidiary_id);
+        } catch (\RuntimeException $e) {
+            $this->azureError = $e->getMessage();
+            return;
+        } catch (\Throwable $e) {
+            Log::error('ProjectCreate: Azure user provisioning failed - ' . $e->getMessage());
+            $this->azureError = 'Could not add this person. Please try again.';
+            return;
+        }
+
+        // Keep the person visible in every picker, even if their subsidiary differs from the project's.
+        $this->azureAddedUserIds = array_values(array_unique(array_merge($this->azureAddedUserIds, [(int) $user->id])));
+
+        $currentRole = $this->currentRoleKeyOf((int) $user->id);
+        if ($currentRole !== null && $currentRole !== $role) {
+            $this->azureError = "{$user->name} is already assigned as {$this->azureRoleLabel($currentRole)} in this project. Remove them from that role first.";
+            return;
+        }
+
+        $this->assignUserToRole($role, (int) $user->id);
+
+        $label = $this->azureRoleLabel($role);
+        $this->clearLocalSearchFor($role);
+        $this->closeAzureSearch();
+
+        $this->dispatch('azure-user-added', role: $role);
+        $this->dispatch(
+            'toast',
+            message: $created
+                ? "{$user->name} was added to the system from Azure AD and assigned as {$label}."
+                : "{$user->name} assigned as {$label}.",
+            type: 'success'
+        );
+    }
+
+    /** Which project role (key) a user currently holds in this form, if any. */
+    protected function currentRoleKeyOf(int $userId): ?string
+    {
+        $uStr = (string) $userId;
+
+        if ($this->project_manager_id && (string) $this->project_manager_id === $uStr) {
+            return 'pm';
+        }
+        if (in_array($uStr, array_map('strval', $this->owner_ids), true)) {
+            return 'owner';
+        }
+        if (in_array($uStr, array_map('strval', $this->sponsor_ids), true)) {
+            return 'sponsor';
+        }
+        if (in_array($uStr, array_map('strval', $this->steering_committee_ids), true)) {
+            return 'steering';
+        }
+        foreach ($this->customRoleAssignments as $code => $ids) {
+            if (in_array($uStr, array_map('strval', (array) $ids), true)) {
+                return 'custom:' . $code;
+            }
+        }
+        if (in_array($uStr, array_map('strval', $this->selected_participant_ids), true)) {
+            return 'member';
+        }
+
+        return null;
+    }
+
+    protected function assignUserToRole(string $role, int $userId): void
+    {
+        $uStr = (string) $userId;
+        $with = fn(array $ids): array => array_values(array_unique(array_merge(array_map('strval', $ids), [$uStr])));
+
+        switch (true) {
+            case $role === 'pm':
+                $this->selectLeader($userId);
+                $this->resetErrorBag('project_manager_id');
+                break;
+
+            case $role === 'owner':
+                $this->owner_ids = $with($this->owner_ids);
+                $this->updatedOwnerIds();
+                break;
+
+            case $role === 'sponsor':
+                $this->sponsor_ids = $with($this->sponsor_ids);
+                $this->updatedSponsorIds();
+                break;
+
+            case $role === 'steering':
+                $this->steering_committee_ids = $with($this->steering_committee_ids);
+                $this->updatedSteeringCommitteeIds();
+                break;
+
+            case $role === 'member':
+                $this->selected_participant_ids = $with($this->selected_participant_ids);
+                break;
+
+            case str_starts_with($role, 'custom:'):
+                $code = substr($role, 7);
+                $this->customRoleAssignments[$code] = $with((array) ($this->customRoleAssignments[$code] ?? []));
+                $this->updatedCustomRoleAssignments();
+                break;
+        }
+    }
+
     public function generateCode()
     {
         $this->code = Project::generateCodeForSubsidiary($this->subsidiary_id);
@@ -590,6 +892,23 @@ class ProjectCreate extends Component
         $currentSub = $this->subsidiary_id ? Subsidiary::find($this->subsidiary_id) : null;
         $allPms = User::getPmsForSubsidiary($this->subsidiary_id);
         $allParticipants = User::getUsersForSubsidiary($this->subsidiary_id);
+
+        // People just added through Azure AD search must always be selectable/visible here.
+        if (!empty($this->azureAddedUserIds)) {
+            $azureAdded = User::with(['subsidiary', 'roles'])
+                ->whereIn('id', $this->azureAddedUserIds)
+                ->where('is_active', true)
+                ->get()
+                ->reject(fn($u) => $u->isGovernanceOrAdminUser());
+
+            $mergeAzure = fn($list) => $list->concat($azureAdded)
+                ->unique('id')
+                ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values();
+
+            $allPms          = $mergeAzure($allPms);
+            $allParticipants = $mergeAzure($allParticipants);
+        }
         $allTemplates = \App\Models\ProjectTemplate::all();
 
         // Load custom roles and filter their user lists

@@ -404,9 +404,9 @@ class ProjectIndex extends Component
 
         $user = auth()->user();
         $isSuperAdmin = $user && ($user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1);
-        $isPM = $user && $project->project_manager_id === $user->id;
+        $canEditDetails = $user && $project->userCan($user, 'project_details.edit');
 
-        if (!$isSuperAdmin && !$isPM) {
+        if (!$isSuperAdmin && !$canEditDetails) {
             $this->dispatch('toast', message: 'You are not authorized to edit this project.', type: 'error');
             return;
         }
@@ -512,9 +512,9 @@ class ProjectIndex extends Component
 
         if ($this->editingId) {
             $project = Project::findOrFail($this->editingId);
-            $isPM = $user && $project->project_manager_id === $user->id;
+            $canEditDetails = $user && $project->userCan($user, 'project_details.edit');
 
-            if (!$isSuperAdmin && !$isPM) {
+            if (!$isSuperAdmin && !$canEditDetails) {
                 $this->dispatch('toast', message: 'Unauthorized.', type: 'error');
                 return;
             }

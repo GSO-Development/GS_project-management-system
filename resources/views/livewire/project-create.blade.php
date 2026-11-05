@@ -154,7 +154,7 @@
 
                         {{-- 1. PROJECT MANAGER (Single Select, Required) --}}
                         @php $selectedPm = $project_manager_id ? $allPms->firstWhere('id', $project_manager_id) : null; @endphp
-                        <div class="space-y-2" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+                        <div class="space-y-2" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false" @azure-user-added.window="if ($event.detail && $event.detail.role === 'pm') open = false">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs font-bold text-slate-900">Project Manager</span>
@@ -184,7 +184,7 @@
                                 {{-- Floating Dropdown Menu --}}
                                 <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
                                     <div class="relative">
-                                        <input x-ref="pmInput" type="text" wire:model.live.debounce.150ms="leaderSearch" placeholder="Search PM by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                        <input x-ref="pmInput" type="text" wire:model.live.debounce.400ms="leaderSearch" placeholder="Search PM by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
                                         <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                                     </div>
 
@@ -223,6 +223,7 @@
                                             <div class="py-3 text-center text-xs text-slate-400 font-medium">No project managers found.</div>
                                         @endforelse
                                     </div>
+                                        @include('livewire.partials.project-create-azure-search', ['roleKey' => 'pm'])
                                 </div>
                             </div>
                         </div>
@@ -269,7 +270,7 @@
                                 {{-- Dropdown --}}
                                 <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
                                     <div class="relative">
-                                        <input x-ref="ownerInput" type="text" wire:model.live.debounce.150ms="ownerSearch" placeholder="Search owner by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                        <input x-ref="ownerInput" type="text" wire:model.live.debounce.400ms="ownerSearch" placeholder="Search owner by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
                                         <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                                     </div>
 
@@ -309,6 +310,7 @@
                                             <div class="py-3 text-center text-xs text-slate-400 font-medium">No owner candidates found.</div>
                                         @endforelse
                                     </div>
+                                        @include('livewire.partials.project-create-azure-search', ['roleKey' => 'owner'])
                                 </div>
                             </div>
                         </div>
@@ -363,7 +365,7 @@
                                 {{-- Dropdown --}}
                                 <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
                                     <div class="relative">
-                                        <input x-ref="sponsorInput" type="text" wire:model.live.debounce.150ms="sponsorSearch" placeholder="Search sponsor by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                        <input x-ref="sponsorInput" type="text" wire:model.live.debounce.400ms="sponsorSearch" placeholder="Search sponsor by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
                                         <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                                     </div>
 
@@ -403,6 +405,7 @@
                                             <div class="py-3 text-center text-xs text-slate-400 font-medium">No sponsor candidates found.</div>
                                         @endforelse
                                     </div>
+                                        @include('livewire.partials.project-create-azure-search', ['roleKey' => 'sponsor'])
                                 </div>
                             </div>
                         </div>
@@ -449,7 +452,7 @@
                                 {{-- Dropdown --}}
                                 <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
                                     <div class="relative">
-                                        <input x-ref="steeringInput" type="text" wire:model.live.debounce.150ms="steeringSearch" placeholder="Search committee member..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                        <input x-ref="steeringInput" type="text" wire:model.live.debounce.400ms="steeringSearch" placeholder="Search committee member..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
                                         <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                                     </div>
 
@@ -489,6 +492,7 @@
                                             <div class="py-3 text-center text-xs text-slate-400 font-medium">No committee candidates found.</div>
                                         @endforelse
                                     </div>
+                                        @include('livewire.partials.project-create-azure-search', ['roleKey' => 'steering'])
                                 </div>
                             </div>
                         </div>
@@ -551,7 +555,7 @@
                                         {{-- Dropdown --}}
                                         <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
                                             <div class="relative">
-                                                <input x-ref="customInput_{{ $cCode }}" type="text" wire:model.live.debounce.150ms="customRoleSearch.{{ $cCode }}" placeholder="Search {{ strtolower($cRoleName) }} by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                                <input x-ref="customInput_{{ $cCode }}" type="text" wire:model.live.debounce.400ms="customRoleSearch.{{ $cCode }}" placeholder="Search {{ strtolower($cRoleName) }} by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
                                                 <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                                             </div>
 
@@ -597,6 +601,7 @@
                                                     <div class="py-3 text-center text-xs text-slate-400 font-medium">No candidates found.</div>
                                                 @endforelse
                                             </div>
+                                                @include('livewire.partials.project-create-azure-search', ['roleKey' => 'custom:' . $cCode])
                                         </div>
                                     </div>
                                 </div>
@@ -655,7 +660,7 @@
                             <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="relative flex-1">
-                                        <input x-ref="teamInput" type="text" wire:model.live.debounce.150ms="participantSearch" placeholder="Search team members by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                        <input x-ref="teamInput" type="text" wire:model.live.debounce.400ms="participantSearch" placeholder="Search team members by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
                                         <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                                     </div>
                                     <button type="button" wire:click="toggleAllParticipants" class="text-[11px] font-bold text-[#c3122e] bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200/60 transition-all shrink-0 cursor-pointer">
@@ -704,6 +709,7 @@
                                         <div class="py-3 text-center text-xs text-slate-400 font-medium">No team members found.</div>
                                     @endforelse
                                 </div>
+                                    @include('livewire.partials.project-create-azure-search', ['roleKey' => 'member'])
                             </div>
                         </div>
                     </div>

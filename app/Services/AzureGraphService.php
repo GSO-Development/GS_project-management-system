@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -20,6 +21,16 @@ class AzureGraphService
             return null;
         }
 
+        // Re-use the client-credentials token until shortly before it expires (saves one HTTP call per Graph request).
+        $cacheKey = 'azure_graph_token_' . md5($tenantId . '|' . $clientId);
+        try {
+            if ($cachedToken = Cache::get($cacheKey)) {
+                return $cachedToken;
+            }
+        } catch (\Throwable $e) {
+            // cache unavailable - fall through and request a fresh token
+        }
+
         try {
             $response = Http::asForm()->timeout(4)->post(
                 "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token",
@@ -32,7 +43,18 @@ class AzureGraphService
             );
 
             if ($response->successful()) {
-                return $response->json('access_token');
+                $token = $response->json('access_token');
+
+                if ($token) {
+                    try {
+                        $ttl = max(60, (int) ($response->json('expires_in') ?? 3600) - 120);
+                        Cache::put($cacheKey, $token, $ttl);
+                    } catch (\Throwable $e) {
+                        // ignore cache write failures
+                    }
+                }
+
+                return $token;
             }
 
             Log::error('AzureGraphService: Token request failed — ' . $response->body());

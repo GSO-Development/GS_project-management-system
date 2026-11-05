@@ -1,4 +1,296 @@
 <div data-ui-page="roles" class="ui-page ui-page-admin space-y-6 sm:space-y-7 pb-12" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+    <style>
+        .rpm-drawer-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 2147483640 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            justify-content: flex-end !important;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+        }
+        .rpm-drawer-backdrop,
+        .rpm-modal-backdrop {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(15, 23, 42, 0.55) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+        }
+        .rpm-drawer-container {
+            position: relative !important;
+            z-index: 10 !important;
+            width: 100% !important;
+            max-width: 42rem !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            display: flex !important;
+            padding-left: 2rem !important;
+            pointer-events: none !important;
+        }
+        @media (max-width: 640px) {
+            .rpm-drawer-container {
+                padding-left: 0 !important;
+            }
+        }
+        .rpm-drawer-panel {
+            width: 100% !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            background: #ffffff !important;
+            border-left: 1px solid #e2e8f0 !important;
+            box-shadow: -20px 0 60px -15px rgba(15, 23, 42, 0.28) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            pointer-events: auto !important;
+        }
+        .rpm-drawer-header {
+            padding: 16px 24px !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 16px !important;
+            flex-shrink: 0 !important;
+        }
+        .rpm-role-avatar {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
+            border-radius: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            flex-shrink: 0 !important;
+        }
+        .rpm-header-btn {
+            padding: 6px 11px !important;
+            border-radius: 8px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            color: #475569 !important;
+            background: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            line-height: 1.2 !important;
+        }
+        .rpm-header-btn:hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        .rpm-close-btn {
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 8px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #64748b !important;
+            background: transparent !important;
+            border: 1px solid transparent !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+        }
+        .rpm-close-btn:hover {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-color: #e2e8f0 !important;
+        }
+        .rpm-drawer-subheader {
+            padding: 12px 24px !important;
+            background: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            flex-shrink: 0 !important;
+        }
+        .rpm-search-wrap {
+            position: relative !important;
+            width: 100% !important;
+        }
+        .rpm-search-input {
+            width: 100% !important;
+            padding: 9px 32px 9px 36px !important;
+            border-radius: 9px !important;
+            border: 1px solid #cbd5e1 !important;
+            background: #ffffff !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #1e293b !important;
+            line-height: 1.4 !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+        }
+        .rpm-search-input:focus {
+            outline: none !important;
+            border-color: #c3122e !important;
+            box-shadow: 0 0 0 3px rgba(195, 18, 46, 0.1) !important;
+        }
+        .rpm-search-icon {
+            position: absolute !important;
+            left: 12px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 15px !important;
+            height: 15px !important;
+            color: #94a3b8 !important;
+            pointer-events: none !important;
+        }
+        .rpm-drawer-body {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+            scrollbar-gutter: stable !important;
+            padding: 20px 24px !important;
+            background: #f8fafc !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 16px !important;
+        }
+        .rpm-drawer-body::-webkit-scrollbar {
+            width: 7px !important;
+        }
+        .rpm-drawer-body::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+        }
+        .rpm-drawer-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 999px !important;
+        }
+        .rpm-drawer-body::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
+        }
+        .rpm-module-card {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+            flex-shrink: 0 !important;
+        }
+        .rpm-module-header {
+            padding: 11px 16px !important;
+            background: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 12px !important;
+        }
+        .rpm-module-grid {
+            padding: 14px 16px !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+        }
+        @media (max-width: 540px) {
+            .rpm-module-grid {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+        }
+        .rpm-perm-item {
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+            padding: 10px 12px !important;
+            border-radius: 9px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            transition: all 0.15s ease !important;
+        }
+        .rpm-perm-item:hover {
+            border-color: #cbd5e1 !important;
+            background: #f8fafc !important;
+        }
+        .rpm-perm-item.is-checked {
+            background: #fff1f2 !important;
+            border-color: #fda4af !important;
+            box-shadow: 0 1px 2px rgba(195, 18, 46, 0.05) !important;
+        }
+        .rpm-perm-item.is-checked:hover {
+            background: #ffe4e6 !important;
+            border-color: #fb7185 !important;
+        }
+        .rpm-perm-checkbox {
+            width: 15px !important;
+            height: 15px !important;
+            margin-top: 2px !important;
+            border-radius: 4px !important;
+            accent-color: #c3122e !important;
+            flex-shrink: 0 !important;
+            pointer-events: none !important;
+        }
+        .rpm-drawer-footer {
+            padding: 14px 24px !important;
+            border-top: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 12px !important;
+            flex-shrink: 0 !important;
+        }
+        .rpm-btn-cancel {
+            padding: 8px 16px !important;
+            border-radius: 9px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #475569 !important;
+            background: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+        }
+        .rpm-btn-cancel:hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        .rpm-btn-save {
+            padding: 8px 18px !important;
+            border-radius: 9px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #ffffff !important;
+            background: #c3122e !important;
+            border: 1px solid #c3122e !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            box-shadow: 0 2px 6px rgba(195, 18, 46, 0.25) !important;
+            transition: all 0.15s ease !important;
+        }
+        .rpm-btn-save:hover {
+            background: #a50e26 !important;
+            border-color: #a50e26 !important;
+        }
+        .rpm-modal-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 2147483640 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 16px !important;
+            overflow-y: auto !important;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+        }
+        .rpm-modal-overlay .rounded-2xl {
+            border-radius: 14px !important;
+        }
+        .rpm-modal-overlay .rounded-xl {
+            border-radius: 9px !important;
+        }
+    </style>
 
     <!-- Clean Standard Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -96,10 +388,11 @@
                     wire:model.live.debounce.250ms="searchRole" 
                     placeholder="Search roles..." 
                     class="w-full text-xs font-semibold rounded-xl border border-slate-300/90 pl-8 pr-7 py-2 bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/15 shadow-2xs transition-all"
+                    style="padding-left: 34px !important;"
                 >
-                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 @if($searchRole)
-                    <button wire:click="$set('searchRole', '')" type="button" class="absolute right-2.5 top-2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer">✕</button>
+                    <button wire:click="$set('searchRole', '')" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer">✕</button>
                 @endif
             </div>
         </div>
@@ -152,7 +445,7 @@
                                                 {{ $roleDef['name'] }}
                                             </h4>
                                             @if(!$isSystem)
-                                                <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-200">
+                                                <span class="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-rose-50 text-[#c3122e] border border-rose-200">
                                                     Custom
                                                 </span>
                                             @endif
@@ -258,7 +551,7 @@
         <div 
             x-data 
             @keydown.escape.window="$wire.closeManageModal()" 
-            class="fixed inset-0 overflow-hidden z-[2147483640]" 
+            class="rpm-drawer-overlay" 
             role="dialog" 
             aria-modal="true"
         >
@@ -269,11 +562,11 @@
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                class="rpm-drawer-backdrop transition-opacity" 
                 wire:click="closeManageModal"
             ></div>
 
-            <div class="fixed inset-y-0 right-0 max-w-full flex pl-8 z-10 pointer-events-none">
+            <div class="rpm-drawer-container">
                 <div 
                     x-transition:enter="transform transition ease-in-out duration-300"
                     x-transition:enter-start="translate-x-full"
@@ -281,16 +574,16 @@
                     x-transition:leave="transform transition ease-in-out duration-300"
                     x-transition:leave-start="translate-x-0"
                     x-transition:leave-end="translate-x-full"
-                    class="w-screen max-w-2xl bg-white shadow-2xl flex flex-col border-l border-slate-200 pointer-events-auto"
+                    class="rpm-drawer-panel"
                 >
                     
                     <!-- Top Brand Line -->
-                    <div class="h-1.5 w-full flex-shrink-0" style="background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, #c3122e 100%);"></div>
+                    <div class="h-1.5 w-full flex-shrink-0" style="height: 5px; background: linear-gradient(90deg, #c3122e 0%, #b8860b 50%, #c3122e 100%);"></div>
 
                     <!-- Drawer Header -->
-                    <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between gap-4 flex-shrink-0 bg-white">
+                    <div class="rpm-drawer-header">
                         <div class="flex items-center gap-3.5 min-w-0">
-                            <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-xs font-black border shadow-2xs flex-shrink-0 {{ $currentRoleInfo['badge'] }}">
+                            <div class="rpm-role-avatar border shadow-2xs {{ $currentRoleInfo['badge'] }}">
                                 {{ $roleAbbr }}
                             </div>
                             <div class="min-w-0">
@@ -314,37 +607,36 @@
                         </div>
 
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <button wire:click="selectAllGlobal" type="button" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Select All</button>
-                            <button wire:click="clearAllGlobal" type="button" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Clear All</button>
-                            <button wire:click="closeManageModal" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer ml-1">
+                            <button wire:click="selectAllGlobal" type="button" class="rpm-header-btn">Select All</button>
+                            <button wire:click="clearAllGlobal" type="button" class="rpm-header-btn">Clear All</button>
+                            <button wire:click="closeManageModal" type="button" class="rpm-close-btn ml-1" title="Close">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
                     </div>
 
                     <!-- Drawer Search Bar & Progress Bar -->
-                    <div class="px-6 py-3 bg-slate-50 border-b border-slate-100 flex flex-col gap-2.5 flex-shrink-0">
-                        <div class="relative w-full">
+                    <div class="rpm-drawer-subheader">
+                        <div class="rpm-search-wrap">
+                            <svg class="rpm-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             <input 
                                 type="text" 
                                 wire:model.live.debounce.150ms="searchDrawerPermission"
                                 placeholder="Filter permissions in this role (e.g. create, edit, delete, budget, task)..." 
-                                class="w-full text-xs font-semibold rounded-xl border border-slate-300 pl-8 pr-3 py-2 bg-white focus:border-[#c3122e] focus:ring-1 focus:ring-[#c3122e] shadow-2xs"
-                                style="border: 1px solid #cbd5e1;"
+                                class="rpm-search-input"
                             >
-                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             @if($searchDrawerPermission)
-                                <button wire:click="$set('searchDrawerPermission', '')" class="absolute right-2.5 top-2 text-xs font-bold text-slate-400 hover:text-slate-700">✕</button>
+                                <button wire:click="$set('searchDrawerPermission', '')" type="button" class="absolute right-2.5 top-2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer">✕</button>
                             @endif
                         </div>
                         <!-- Progress Bar -->
-                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div class="w-full bg-slate-200 rounded-full overflow-hidden" style="height: 6px;">
                             <div class="h-full rounded-full transition-all duration-300 {{ $selectedCount === $visibleTotalPermsCount ? 'bg-emerald-500' : 'bg-[#c3122e]' }}" style="width: {{ $visibleTotalPermsCount > 0 ? round(($selectedCount / $visibleTotalPermsCount) * 100) : 0 }}%"></div>
                         </div>
                     </div>
 
                     <!-- Drawer Permissions Body (Scrollable Modules Accordion) -->
-                    <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/40">
+                    <div class="rpm-drawer-body">
                         @php $matchingModulesCount = 0; @endphp
                         @foreach($allModules as $modKey => $modDef)
                             @php
@@ -372,20 +664,20 @@
                                 $totalInMod = count($modPerms);
                             @endphp
 
-                            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                            <div class="rpm-module-card">
                                 <!-- Module Header -->
-                                <div class="px-4.5 py-3 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 text-xs font-bold">
+                                <div class="rpm-module-header">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-700 text-xs font-bold shrink-0">
                                             <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                         </div>
                                         <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">{{ $modDef['name'] }}</h4>
-                                        <span class="px-2 py-0.2 rounded text-[10px] font-bold {{ $grantedInMod === $totalInMod ? 'bg-emerald-100 text-emerald-800' : ($grantedInMod > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500') }}">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold {{ $grantedInMod === $totalInMod ? 'bg-emerald-100 text-emerald-800' : ($grantedInMod > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500') }}">
                                             {{ $grantedInMod }}/{{ $totalInMod }}
                                         </span>
                                     </div>
 
-                                    <div class="flex items-center gap-2 text-[10.5px]">
+                                    <div class="flex items-center gap-2 text-[11px] shrink-0">
                                         <button wire:click="selectAllForModule('{{ $modKey }}')" type="button" class="font-bold text-[#c3122e] hover:underline cursor-pointer">All</button>
                                         <span class="text-slate-300">|</span>
                                         <button wire:click="clearAllForModule('{{ $modKey }}')" type="button" class="font-bold text-slate-500 hover:underline cursor-pointer">None</button>
@@ -393,20 +685,20 @@
                                 </div>
 
                                 <!-- Module Permissions Grid -->
-                                <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div class="rpm-module-grid">
                                     @foreach($modPerms as $pCode => $pLabel)
                                         @php $checked = !empty($rolePermissions[$pCode]); @endphp
                                         <div 
                                             wire:click="togglePermission('{{ $pCode }}')"
-                                            class="p-2.5 rounded-xl border transition-all flex items-start gap-2.5 cursor-pointer select-none {{ $checked ? 'bg-rose-50/50 border-rose-300 text-slate-900 shadow-xs' : 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50' }}"
+                                            class="rpm-perm-item {{ $checked ? 'is-checked' : '' }}"
                                         >
                                             <input 
                                                 type="checkbox" 
                                                 @checked($checked)
-                                                class="pointer-events-none rounded border-slate-300 text-[#c3122e] focus:ring-[#c3122e] mt-0.5 flex-shrink-0"
+                                                class="rpm-perm-checkbox"
                                             >
                                             <div class="min-w-0 text-xs">
-                                                <span class="font-bold block leading-tight {{ $checked ? 'text-[#c3122e]' : 'text-slate-800' }}">{{ $pLabel }}</span>
+                                                <span class="font-bold block leading-snug {{ $checked ? 'text-[#c3122e]' : 'text-slate-800' }}">{{ $pLabel }}</span>
                                                 <span class="text-[10px] font-mono text-slate-400 block mt-0.5 truncate">{{ $pCode }}</span>
                                             </div>
                                         </div>
@@ -423,7 +715,7 @@
                     </div>
 
                     <!-- Sticky Drawer Footer -->
-                    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3 bg-white flex-shrink-0">
+                    <div class="rpm-drawer-footer">
                         <div class="flex items-center gap-3">
                             <button 
                                 wire:click="resetRoleToDefault('{{ $selectedRole }}')"
@@ -453,13 +745,13 @@
                         </div>
 
                         <div class="flex items-center gap-2.5">
-                            <button wire:click="closeManageModal" type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer">
+                            <button wire:click="closeManageModal" type="button" class="rpm-btn-cancel">
                                 Cancel
                             </button>
                             <button 
                                 wire:click="savePermissions" 
                                 type="button" 
-                                class="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5 bg-[#c3122e] hover:bg-[#a50e26]"
+                                class="rpm-btn-save"
                                 wire:loading.attr="disabled"
                             >
                                 <span wire:loading.remove wire:target="savePermissions" class="flex items-center gap-1.5">
@@ -489,7 +781,7 @@
             x-data 
             x-trap.inert.noscroll="true" 
             @keydown.escape.window="$wire.set('showCreateRoleModal', false)" 
-            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-3 sm:p-5 overflow-y-auto" 
+            class="rpm-modal-overlay" 
             role="dialog" 
             aria-modal="true" 
             aria-labelledby="role-modal-title"
@@ -501,7 +793,7 @@
                 x-transition:leave="ease-in duration-150"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                class="rpm-modal-backdrop transition-opacity" 
                 wire:click="$set('showCreateRoleModal', false)"
             ></div>
 
@@ -598,7 +890,7 @@
             x-data 
             x-trap.inert.noscroll="true" 
             @keydown.escape.window="$wire.set('showCreatePermissionModal', false)" 
-            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-3 sm:p-5 overflow-y-auto" 
+            class="rpm-modal-overlay" 
             role="dialog" 
             aria-modal="true" 
             aria-labelledby="permission-modal-title"
@@ -610,7 +902,7 @@
                 x-transition:leave="ease-in duration-150"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                class="rpm-modal-backdrop transition-opacity" 
                 wire:click="$set('showCreatePermissionModal', false)"
             ></div>
 
@@ -700,7 +992,7 @@
         <div 
             x-data
             @keydown.escape.window="$wire.cancelDeleteRole()"
-            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+            class="rpm-modal-overlay"
             role="dialog" 
             aria-modal="true"
             aria-labelledby="delete-role-modal-title"
@@ -713,7 +1005,7 @@
                 x-transition:leave="ease-in duration-150"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                class="rpm-modal-backdrop transition-opacity" 
                 wire:click="cancelDeleteRole"
             ></div>
 

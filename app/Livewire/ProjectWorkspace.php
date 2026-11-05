@@ -460,7 +460,7 @@ class ProjectWorkspace extends Component
     public function saveSetupModal()
     {
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'project.edit') && !$this->project->canUserManage($user)) {
+        if (!$this->project->userCan($user, 'project_details.edit') && !$this->project->userCan($user, 'project.edit') && !$this->project->canUserManage($user)) {
             $this->dispatch('toast', message: 'You do not have permission to setup the project workspace.', type: 'error');
             return;
         }
@@ -631,7 +631,7 @@ class ProjectWorkspace extends Component
     public function openTimelineModal()
     {
         $user = auth()->user();
-        if (!$this->project->userCan($user, 'project.manage_schedule') && !$this->project->userCan($user, 'schedule.edit')) {
+        if (!$this->project->userCan($user, 'project_details.edit') && !$this->project->userCan($user, 'project.manage_schedule') && !$this->project->userCan($user, 'schedule.edit')) {
             $this->dispatch('toast', message: 'You do not have permission to edit timeline dates.', type: 'error');
             return;
         }
@@ -644,7 +644,7 @@ class ProjectWorkspace extends Component
     public function saveTimeline()
     {
         $user = auth()->user();
-        abort_if(!$this->project->userCan($user, 'project.manage_schedule') && !$this->project->userCan($user, 'schedule.edit'), 403, 'Unauthorized to edit project timeline.');
+        abort_if(!$this->project->userCan($user, 'project_details.edit') && !$this->project->userCan($user, 'project.manage_schedule') && !$this->project->userCan($user, 'schedule.edit'), 403, 'Unauthorized to edit project timeline.');
 
         $this->validate([
             'startDateInput' => 'nullable|date',

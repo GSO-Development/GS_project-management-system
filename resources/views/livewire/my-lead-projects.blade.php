@@ -403,7 +403,7 @@
                                     @endif
 
                                     {{-- 2. Edit Project Button --}}
-                                    @if($p->isPmAccepted() && ($p->project_manager_id === auth()->id() || auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $p->userCan(auth()->user(), 'project_details.edit')))
+                                    @if($p->isPmAccepted() && (auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1 || $p->userCan(auth()->user(), 'project_details.edit')))
                                         <a
                                             href="{{ route('projects.show', $p) . '?editProject=1' }}"
                                             x-on:click.stop

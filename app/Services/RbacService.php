@@ -72,7 +72,7 @@ class RbacService
             'code' => 'lead',
             'icon' => '⭐',
             'badge' => 'bg-rose-50 text-[#c3122e] border-rose-200',
-            'description' => 'Project-level leader with full access to project details, WBS scheduling, task creation, editing & deletion.',
+            'description' => 'Project-level leader with full access to project details & financials, WBS scheduling, task & subtask management, team roster, and risk management.',
             'is_system' => true,
             'is_protected' => true,
         ],
@@ -217,6 +217,8 @@ class RbacService
                 'task.delete' => 'Delete Task',
                 'task.assign' => 'Assign Team Members',
                 'task.change_status' => 'Update Task Status',
+                'task.change_priority' => 'Update Task Priority',
+                'task.update_progress' => 'Update Task Progress',
                 'task.create_subtask' => 'Create Subtask',
                 'task.log_daily' => 'Daily Progress Log',
             ],
@@ -239,7 +241,6 @@ class RbacService
                 'risk.view' => 'View Risks & Blockers',
                 'risk.create' => 'Report / Log Risk',
                 'risk.edit' => 'Edit Risk Details & Mitigation',
-                'risk.delete' => 'Delete Risk',
                 'risk.assign' => 'Assign Risk Owner',
                 'risk.escalate' => 'Escalate Risk',
                 'risk.resolve' => 'Resolve / Close Risk',
@@ -303,7 +304,7 @@ class RbacService
             // If user has no explicit role in this project, check if assigned to a task
             if (!$roleCode) {
                 if ($task && $task->assigned_user_id === $user->id) {
-                    if (in_array($permission, ['task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'approval.submit', 'approval.view', 'risk.create', 'risk.view'], true)) {
+                    if (in_array($permission, ['task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'approval.submit', 'approval.view', 'risk.create', 'risk.view'], true)) {
                         return true;
                     }
                 }
@@ -319,8 +320,8 @@ class RbacService
             }
 
             // Task-specific assignment scoping:
-            // If checking access on a specific $task model (e.g. view, edit assigned, status update)
-            if ($task && in_array($permission, ['task.view', 'task.edit_assigned', 'task.change_status'], true)) {
+            // If checking access on a specific $task model (e.g. view, edit assigned, status update, progress update)
+            if ($task && in_array($permission, ['task.view', 'task.edit_assigned', 'task.change_status', 'task.update_progress'], true)) {
                 // Roles with 'task.view_all' can view and act on any task across the project
                 if (in_array('task.view_all', $rolePermissions, true)) {
                     return true;
@@ -371,7 +372,7 @@ class RbacService
         }
 
         if (!$role) {
-            return self::$rolePermissionsCache[$roleCode] = [];
+            return self::$rolePermissionsCache[$roleCode] = self::getDefaultPermissionsForRole($roleCode);
         }
 
         $perms = $role->permissions->pluck('name')->toArray();
@@ -387,18 +388,18 @@ class RbacService
             'super_admin', 'pmo_admin' => Permission::pluck('name')->toArray(),
             'lead', 'project_manager' => [
                 'project_details.view', 'project_details.edit', 'budget.edit',
-                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.change_status', 'task.create_subtask', 'task.log_daily',
+                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.change_status', 'task.change_priority', 'task.update_progress', 'task.create_subtask', 'task.log_daily',
                 'team.view', 'team.add', 'team.remove',
-                'risk.view', 'risk.create', 'risk.edit', 'risk.delete', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
+                'risk.view', 'risk.create', 'risk.edit', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
             ],
             'member', 'team_member' => [
                 // WBS & Tasks permissions only + Risk logging
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.log_daily',
+                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.log_daily',
                 'risk.view', 'risk.create', 'blocker.create',
             ],
             'collaborator' => [
                 // WBS & Tasks permissions only + Risk logging
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.log_daily',
+                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.log_daily',
                 'risk.view', 'risk.create', 'blocker.create',
             ],
             'sponsor' => [
