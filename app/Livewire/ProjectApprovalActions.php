@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\ApprovalStatus;
 use App\Enums\ApprovalType;
+use App\Livewire\Concerns\SearchesAzureDirectory;
 use App\Models\ActivityLog;
 use App\Models\ApprovalRequest;
 use App\Models\Project;
@@ -18,6 +19,8 @@ use Livewire\Component;
 
 class ProjectApprovalActions extends Component
 {
+    use SearchesAzureDirectory;
+
     #[Locked]
     public ?int $approvalProjectId = null;
     public bool $showApprovalList = false;
@@ -364,8 +367,69 @@ class ProjectApprovalActions extends Component
         $this->reassignMemberIds = array_values(array_diff($this->reassignMemberIds, [$userId]));
     }
 
+    // ── Azure AD people search for the reassign dialog ────────────────────────
+
+    protected function canUseAzureDirectory(): bool
+    {
+        return (bool) auth()->user()?->isPmoAdmin();
+    }
+
+    protected function azureSubsidiaryId(): ?int
+    {
+        return $this->reassignSubsidiaryId;
+    }
+
+    protected function azureIsValidRole(string $role): bool
+    {
+        return in_array($role, ['pm', 'sponsor', 'owner', 'steering', 'member'], true);
+    }
+
+    protected function azureRoleLabel(string $role): string
+    {
+        return match ($role) {
+            'pm'       => 'Project Manager',
+            'sponsor'  => 'Project Sponsor',
+            'owner'    => 'Project Owner',
+            'steering' => 'Steering Committee',
+            default    => 'Team Member',
+        };
+    }
+
+    protected function azureAssignToRole(string $role, User $user): ?string
+    {
+        $id = (string) $user->id;
+
+        switch ($role) {
+            case 'pm':
+                $this->reassignPmId = (int) $user->id;
+                $this->resetErrorBag('reassignPmId');
+                break;
+            case 'sponsor':
+                $this->addReassignSponsor($id);
+                break;
+            case 'owner':
+                $this->addReassignOwner($id);
+                break;
+            case 'steering':
+                $this->addReassignSteering($id);
+                break;
+            case 'member':
+                $this->addReassignMember($id);
+                break;
+        }
+
+        return null;
+    }
+
+    public function clearReassignPm(): void
+    {
+        $this->reassignPmId = null;
+    }
+
     public function openReassignModal(int $projectId, ?int $requestId = null): void
     {
+        $this->resetAzureSearchState();
+
         $user = auth()->user();
         if (!$user->hasRole('super_admin') && !$user->isPmoAdmin()) {
             $this->dispatch('toast', message: 'Only PMO Admins can reassign project leadership.', type: 'error');
@@ -414,6 +478,8 @@ class ProjectApprovalActions extends Component
 
     public function closeReassignModal(): void
     {
+        $this->resetAzureSearchState();
+        $this->azureAddedUserIds       = [];
         $this->showReassignModal       = false;
         $this->reassignProjectId       = null;
         $this->reassignRequestId       = null;
@@ -441,7 +507,7 @@ class ProjectApprovalActions extends Component
         abort_unless(auth()->user()->isPmoAdmin(), 403);
         $project = $this->contextualProject($this->reassignProjectId ?? 0);
         $this->reassignCode = strtoupper(trim($this->reassignCode));
-        $eligibleIds = User::getPmsForSubsidiary($this->reassignSubsidiaryId)->pluck('id')->all();
+        $eligibleIds = User::getPmsForSubsidiary($this->reassignSubsidiaryId)->pluck('id')->merge($this->azureAddedUserIds)->unique()->values()->all();
         $this->validate([
             'reassignName' => 'required|string|max:255',
             'reassignCode' => ['required', 'string', 'max:30', Rule::unique('projects', 'code')->ignore($project->id)],
@@ -536,12 +602,13 @@ class ProjectApprovalActions extends Component
             : collect();
         $reassignProject = $this->showReassignModal && $this->reassignProjectId ? $this->contextualProject($this->reassignProjectId)->load(['projectManager', 'subsidiary', 'members']) : null;
         $availablePms = $reassignProject ? User::getUsersForSubsidiary($this->reassignSubsidiaryId)
-            ->concat($reassignProject->members)->reject(fn($u) => $u->isGovernanceOrAdminUser())->unique('id')->sortBy('name')->values() : collect();
+            ->concat($reassignProject->members)->concat($this->azureAddedUsers())->reject(fn($u) => $u->isGovernanceOrAdminUser())->unique('id')->sortBy('name')->values() : collect();
         $subsidiaries = $reassignProject ? Subsidiary::orderBy('name')->get() : collect();
+        $azureEnabled = $reassignProject && $this->canUseAzureDirectory();
 
         return view('livewire.project-approval-actions', compact(
             'approvalProject', 'requests', 'selectedRequest', 'canApprove', 'canReject',
-            'userProjects', 'userWbsTasks', 'reassignProject', 'availablePms', 'subsidiaries'
+            'userProjects', 'userWbsTasks', 'reassignProject', 'availablePms', 'subsidiaries', 'azureEnabled'
         ));
     }
 }

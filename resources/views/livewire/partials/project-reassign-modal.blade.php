@@ -159,12 +159,15 @@
 
             <div class="reassign-leader reassign-field">
                 <label for="reassign-manager">New Project Manager <span class="reassign-required">*</span></label>
-                <select id="reassign-manager" wire:model.live="reassignPmId" class="reassign-input" required>
-                    <option value="">Choose a project manager</option>
-                    @foreach($availablePms as $person)
-                        <option value="{{ $person->id }}">{{ $person->name }} ({{ $person->subsidiary->code ?? 'GS' }})</option>
-                    @endforeach
-                </select>
+                @if($reassignPmId && ($pmPerson = $availablePms->firstWhere('id', $reassignPmId)))
+                    <div class="reassign-chips" style="margin-bottom:6px;">
+                        <span class="reassign-chip">
+                            <span class="reassign-chip-name">{{ $pmPerson->name }} ({{ $pmPerson->subsidiary->code ?? 'GS' }})</span>
+                            <button type="button" class="reassign-chip-remove" wire:click="clearReassignPm" aria-label="Clear project manager" title="Change project manager">&times;</button>
+                        </span>
+                    </div>
+                @endif
+                @include('livewire.partials.azure-user-search', ['roleKey' => 'pm', 'azureEnabled' => $azureEnabled ?? false, 'pickLocal' => true, 'showInput' => true, 'inputClass' => 'reassign-input', 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                 @error('reassignPmId') <span class="reassign-error">{{ $message }}</span> @enderror
                 <p class="reassign-helper">
                     @if($reassignPmId === auth()->id())
@@ -245,10 +248,10 @@
             <section class="reassign-section" x-data="{ expanded: true }">
                 @php
                     $reassignRoles = [
-                        ['key' => 'sponsors', 'label' => 'Project sponsors', 'ids' => $reassignSponsorIds, 'add' => 'addReassignSponsor', 'remove' => 'removeReassignSponsor'],
-                        ['key' => 'owners', 'label' => 'Project owners', 'ids' => $reassignOwnerIds, 'add' => 'addReassignOwner', 'remove' => 'removeReassignOwner'],
-                        ['key' => 'committee', 'label' => 'Steering committee', 'ids' => $reassignSteeringIds, 'add' => 'addReassignSteering', 'remove' => 'removeReassignSteering'],
-                        ['key' => 'members', 'label' => 'Team members', 'ids' => $reassignMemberIds, 'add' => 'addReassignMember', 'remove' => 'removeReassignMember'],
+                        ['key' => 'sponsors', 'azure' => 'sponsor', 'label' => 'Project sponsors', 'ids' => $reassignSponsorIds, 'add' => 'addReassignSponsor', 'remove' => 'removeReassignSponsor'],
+                        ['key' => 'owners', 'azure' => 'owner', 'label' => 'Project owners', 'ids' => $reassignOwnerIds, 'add' => 'addReassignOwner', 'remove' => 'removeReassignOwner'],
+                        ['key' => 'committee', 'azure' => 'steering', 'label' => 'Steering committee', 'ids' => $reassignSteeringIds, 'add' => 'addReassignSteering', 'remove' => 'removeReassignSteering'],
+                        ['key' => 'members', 'azure' => 'member', 'label' => 'Team members', 'ids' => $reassignMemberIds, 'add' => 'addReassignMember', 'remove' => 'removeReassignMember'],
                     ];
                     $roleAssignmentCount = count($reassignSponsorIds) + count($reassignOwnerIds) + count($reassignSteeringIds) + count($reassignMemberIds);
                     $customRoleMembers = $reassignProject->members->whereNotIn('pivot.role', ['sponsor', 'owner', 'steering_committee', 'member', 'lead']);
@@ -264,12 +267,7 @@
                     @foreach($reassignRoles as $role)
                         <div class="reassign-field" wire:key="reassign-role-{{ $role['key'] }}">
                             <label for="reassign-{{ $role['key'] }}">{{ $role['label'] }}</label>
-                            <select id="reassign-{{ $role['key'] }}" class="reassign-input" wire:change="{{ $role['add'] }}($event.target.value)" x-on:change="$nextTick(() => { $el.value = '' })">
-                                <option value="">Add a person</option>
-                                @foreach($availablePms->reject(fn($person) => in_array((string) $person->id, array_map('strval', $role['ids']), true)) as $person)
-                                    <option value="{{ $person->id }}">{{ $person->name }} ({{ $person->subsidiary->code ?? 'GS' }})</option>
-                                @endforeach
-                            </select>
+                            @include('livewire.partials.azure-user-search', ['roleKey' => $role['azure'], 'azureEnabled' => $azureEnabled ?? false, 'pickLocal' => true, 'showInput' => true, 'inputClass' => 'reassign-input', 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                             @if(count($role['ids']))
                                 <div class="reassign-chips">
                                     @foreach($availablePms->whereIn('id', array_map('intval', $role['ids'])) as $person)

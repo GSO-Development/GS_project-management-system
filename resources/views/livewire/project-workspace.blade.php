@@ -1942,7 +1942,7 @@
                     </div>
                     <div>
                         <h3 id="team-dialog-title" class="font-black text-slate-900 text-base">Project Team &amp; Collaborators</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Search existing staff, select members and assign their project roles.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Search staff, add people from Azure AD, select members and assign their project roles.</p>
                     </div>
                 </div>
                 <button type="button" wire:click="$set('showCollaboratorsModal', false)" aria-label="Close team dialog" class="team-dialog-close p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
@@ -1953,9 +1953,19 @@
             <!-- Search existing staff accounts -->
             <div class="team-dialog-toolbar flex flex-col gap-3 mb-4">
                 <div class="relative flex-1">
-                    <input type="search" aria-label="Search existing staff members" wire:model.live.debounce.250ms="collaboratorSearch" placeholder="Search existing staff by name or email..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-[#c3122e] outline-none transition-all">
+                    <input type="search" aria-label="Search existing staff members" wire:model.live.debounce.400ms="collaboratorSearch" placeholder="Search staff by name or email (Azure AD included)..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-[#c3122e] outline-none transition-all">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
+
+                @php
+                    // Same role list the per-member role picker below offers (no org-level admin roles).
+                    $azureCollabRoleOptions = collect($allRoles)
+                        ->reject(fn($rMeta, $rCode) => in_array($rCode, ['pmo_admin', 'super_admin', 'admin_viewer', 'lead', 'project_manager'], true))
+                        ->sortBy(fn($rMeta, $rCode) => match($rCode) { 'member' => 1, 'sponsor' => 2, 'owner' => 3, 'steering_committee' => 4, 'collaborator' => 5, default => 10 })
+                        ->map(fn($rMeta) => $rMeta['name'])
+                        ->all();
+                @endphp
+                @include('livewire.partials.azure-user-search', ['roleKey' => 'collab', 'showInput' => false, 'roleOptions' => $azureCollabRoleOptions, 'addLabel' => null])
             </div>
 
             <!-- Collaborators Selection List -->
@@ -2035,7 +2045,7 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-center text-xs text-slate-400 py-6">No matching staff members found</p>
+                        <p class="text-center text-xs text-slate-400 py-6">No matching staff members found{{ !empty($azureEnabled) ? ' in the system. Check Azure AD results above.' : '' }}</p>
                     @endforelse
                 </div>
 
@@ -2263,14 +2273,14 @@
                                 </label>
                                 <span class="text-[10px] font-extrabold text-[#c3122e] bg-rose-100/90 px-2.5 py-0.5 rounded-full border border-rose-200 shadow-2xs">Required Lead Role</span>
                             </div>
-                            <div class="relative">
-                                <select wire:model="reassignPmId" class="w-full text-xs font-extrabold rounded-xl border border-slate-200 bg-white p-3 pr-10 focus:border-[#c3122e] focus:ring-4 focus:ring-[#c3122e]/10 outline-none shadow-2xs text-slate-900 cursor-pointer hover:border-rose-300 transition-all">
-                                    <option value="">-- Choose New Project Manager --</option>
-                                    @foreach($availablePms as $user)
-                                        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                            @if($reassignPmId && ($pmPerson = $availablePms->firstWhere('id', $reassignPmId)))
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-xs font-extrabold text-slate-900 shadow-2xs">
+                                    <span>{{ $pmPerson->name }}</span>
+                                    <span class="text-[10px] font-medium text-slate-400">{{ $pmPerson->email }}</span>
+                                    <button type="button" wire:click="clearReassignPm" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer" title="Change project manager">&times;</button>
+                                </div>
+                            @endif
+                            @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'pm', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                             @error('reassignPmId') <span class="text-rose-600 text-[11px] font-bold block mt-1 flex items-center gap-1">⚠️ {{ $message }}</span> @enderror
                         </div>
 
@@ -2312,15 +2322,7 @@
                                     @endforelse
                                 </div>
 
-                                <!-- Dropdown to Add Sponsor -->
-                                <div class="relative">
-                                    <select wire:change="addReassignSponsor($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
-                                        <option value="">+ Add Sponsor from available list...</option>
-                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignSponsorIds)) as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'sponsor', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                             </div>
 
                             {{-- Project Owners --}}
@@ -2359,15 +2361,7 @@
                                     @endforelse
                                 </div>
 
-                                <!-- Dropdown to Add Owner -->
-                                <div class="relative">
-                                    <select wire:change="addReassignOwner($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
-                                        <option value="">+ Add Owner from available list...</option>
-                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignOwnerIds)) as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'owner', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                             </div>
 
                             {{-- Steering Committee --}}
@@ -2406,15 +2400,7 @@
                                     @endforelse
                                 </div>
 
-                                <!-- Dropdown to Add Steering Member -->
-                                <div class="relative">
-                                    <select wire:change="addReassignSteering($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
-                                        <option value="">+ Add Committee Member from available list...</option>
-                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignSteeringIds)) as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'steering', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                             </div>
 
                             {{-- Core Team Members --}}
@@ -2453,15 +2439,7 @@
                                     @endforelse
                                 </div>
 
-                                <!-- Dropdown to Add Core Team Member -->
-                                <div class="relative">
-                                    <select wire:change="addReassignMember($event.target.value); $event.target.value=''" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer text-slate-700 shadow-2xs hover:border-slate-300 transition-all">
-                                        <option value="">+ Add Core Team Member from available list...</option>
-                                        @foreach($availablePms->reject(fn($u) => in_array((string)$u->id, $reassignMemberIds)) as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->subsidiary->code ?? 'GST' }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'member', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
                             </div>
                         </div>
                     </div>

@@ -46,13 +46,6 @@ class RolePermissionManager extends Component
     public ?string $clonePermissionsFrom = null;
     public bool $isRoleCodeManuallyEdited = false;
 
-    // Create Permission Modal
-    public bool $showCreatePermissionModal = false;
-    public string $newPermissionName = '';
-    public string $newPermissionCode = '';
-    public string $newPermissionModule = 'scope';
-    public bool $isPermissionCodeManuallyEdited = false;
-
     // Delete Role Confirmation Modal
     public bool $showDeleteRoleModal = false;
     public ?string $roleToDelete = null;
@@ -74,9 +67,13 @@ class RolePermissionManager extends Component
         }
 
         $this->selectedRole = $roleCode;
-        $activePerms = RbacService::getPermissionsForRole($roleCode);
-
         $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
+
+        // Platform-enforced roles (PMO Administrator, Admin Viewer) are shown read-only with what they
+        // can effectively do; everyone else shows the permissions stored for the role.
+        $activePerms = RbacService::isSystemLockedRole($roleCode)
+            ? RbacService::getEffectivePermissionsForRole($roleCode)
+            : RbacService::getPermissionsForRole($roleCode);
 
         // Strip project.create for non-PMO admin roles
         if (!$isPmoAdminRole) {
@@ -107,6 +104,10 @@ class RolePermissionManager extends Component
 
     public function togglePermission(string $permCode): void
     {
+        if (RbacService::isSystemLockedRole($this->selectedRole)) {
+            return;
+        }
+
         $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
 
         if ($permCode === 'project.create' && !$isPmoAdminRole) {
@@ -118,6 +119,10 @@ class RolePermissionManager extends Component
 
     public function selectAllForModule(string $moduleKey): void
     {
+        if (RbacService::isSystemLockedRole($this->selectedRole)) {
+            return;
+        }
+
         $allModules = RbacService::getAllModules();
         $module = $allModules[$moduleKey] ?? null;
         if (!$module) return;
@@ -134,6 +139,10 @@ class RolePermissionManager extends Component
 
     public function clearAllForModule(string $moduleKey): void
     {
+        if (RbacService::isSystemLockedRole($this->selectedRole)) {
+            return;
+        }
+
         $allModules = RbacService::getAllModules();
         $module = $allModules[$moduleKey] ?? null;
         if (!$module) return;
@@ -145,6 +154,10 @@ class RolePermissionManager extends Component
 
     public function selectAllGlobal(): void
     {
+        if (RbacService::isSystemLockedRole($this->selectedRole)) {
+            return;
+        }
+
         $allModules = RbacService::getAllModules();
         $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
 
@@ -160,6 +173,10 @@ class RolePermissionManager extends Component
 
     public function clearAllGlobal(): void
     {
+        if (RbacService::isSystemLockedRole($this->selectedRole)) {
+            return;
+        }
+
         // Set all to false rather than empty array so Livewire detects each key change
         $this->rolePermissions = array_map(fn() => false, $this->rolePermissions);
     }
@@ -179,6 +196,11 @@ class RolePermissionManager extends Component
         abort_if(!auth()->user()->isSuperAdmin() && !auth()->user()->isPmoAdmin(), 403, 'Unauthorized.');
 
         if (!$this->selectedRole) {
+            return;
+        }
+
+        if (RbacService::isSystemLockedRole($this->selectedRole)) {
+            $this->dispatch('toast', message: 'PMO Administrator and Admin Viewer access is enforced by the platform and cannot be edited.', type: 'warning');
             return;
         }
 
@@ -258,6 +280,10 @@ class RolePermissionManager extends Component
 
         $targetRole = $roleCode ?: $this->selectedRole;
         if (!$targetRole) {
+            return;
+        }
+
+        if (RbacService::isSystemLockedRole($targetRole)) {
             return;
         }
 
@@ -508,86 +534,13 @@ class RolePermissionManager extends Component
         }
     }
 
-    // --- CREATE NEW PERMISSION ---
-
-    public function openCreatePermissionModal(): void
-    {
-        $this->newPermissionName = '';
-        $this->newPermissionCode = '';
-        $this->newPermissionModule = 'scope';
-        $this->isPermissionCodeManuallyEdited = false;
-        $this->showCreatePermissionModal = true;
-    }
-
-    public function updatedNewPermissionName(string $value): void
-    {
-        if (!$this->isPermissionCodeManuallyEdited) {
-            $slug = Str::slug($value, '_');
-            $this->newPermissionCode = !empty($slug) ? "{$this->newPermissionModule}.{$slug}" : '';
-        }
-    }
-
-    public function updatedNewPermissionModule(string $value): void
-    {
-        if (!$this->isPermissionCodeManuallyEdited && !empty($this->newPermissionName)) {
-            $slug = Str::slug($this->newPermissionName, '_');
-            $this->newPermissionCode = "{$value}.{$slug}";
-        }
-    }
-
-    public function updatedNewPermissionCode(string $value): void
-    {
-        $this->isPermissionCodeManuallyEdited = (trim($value) !== '');
-    }
-
-    public function resetPermissionCodeToAuto(): void
-    {
-        $this->isPermissionCodeManuallyEdited = false;
-        $slug = Str::slug($this->newPermissionName, '_');
-        $this->newPermissionCode = !empty($slug) ? "{$this->newPermissionModule}.{$slug}" : '';
-    }
-
-    public function createPermission(): void
-    {
-        $this->validate([
-            'newPermissionName' => 'required|string|max:100',
-            'newPermissionCode' => 'required|string|max:100|unique:permissions,name',
-        ]);
-
-        Permission::create([
-            'name' => strtolower($this->newPermissionCode),
-            'guard_name' => 'web',
-        ]);
-
-        // Auto-assign to Super Admin & PMO Admin
-        $superAdmin = Role::where('name', 'super_admin')->first();
-        if ($superAdmin) {
-            $superAdmin->givePermissionTo(strtolower($this->newPermissionCode));
-        }
-        $pmoAdmin = Role::where('name', 'pmo_admin')->first();
-        if ($pmoAdmin) {
-            $pmoAdmin->givePermissionTo(strtolower($this->newPermissionCode));
-        }
-
-        RbacService::clearCache();
-        $this->showCreatePermissionModal = false;
-        $this->dispatch('toast', message: "Granular permission '{$this->newPermissionCode}' registered successfully!", type: 'success');
-    }
 
     public function render()
     {
         $allRoles = RbacService::getAllRoles();
-        // System access profiles are assigned from the User Directory. This matrix
-        // is intentionally limited to project-context roles and their permissions.
-        $matrixRoles = array_filter(
-            $allRoles,
-            fn (array $role, string|int $key) => !in_array(
-                $role['code'] ?? (is_string($key) ? $key : ''),
-                ['pmo_admin', 'admin_viewer'],
-                true
-            ),
-            ARRAY_FILTER_USE_BOTH
-        );
+        // Every role is listed. PMO Administrator and Admin Viewer are platform-enforced, so they are
+        // shown read-only with the permissions they effectively hold.
+        $matrixRoles = $allRoles;
         $roles = $matrixRoles;
 
         if (!empty($this->searchRole)) {
@@ -618,8 +571,18 @@ class RolePermissionManager extends Component
             $modules = $filteredModules;
         }
 
-        $totalPermsCount = Permission::count();
+        $totalPermsCount = count(RbacService::allPermissionCodes());
         $totalRolesCount = count($matrixRoles);
+
+        // Role-group counters for the summary cards.
+        $roleCodes = array_keys($matrixRoles);
+        $systemRolesCount = count(array_intersect($roleCodes, ['pmo_admin', 'admin_viewer']));
+        $leadershipRolesCount = count(array_intersect($roleCodes, ['lead', 'sponsor', 'owner', 'steering_committee']));
+        $squadRolesCount = $totalRolesCount - $systemRolesCount - $leadershipRolesCount;
+
+        // Platform-level access comparison (PMO Admin / Admin Viewer / Project Manager).
+        $systemAccess = RbacService::SYSTEM_ACCESS;
+        $drawerReadOnly = RbacService::isSystemLockedRole($this->selectedRole);
 
         $currentPage = $this->getPage();
         $paginatedRoles = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -637,6 +600,11 @@ class RolePermissionManager extends Component
             'allModules' => $allModules,
             'totalPermsCount' => $totalPermsCount,
             'totalRolesCount' => $totalRolesCount,
+            'systemRolesCount' => $systemRolesCount,
+            'leadershipRolesCount' => $leadershipRolesCount,
+            'squadRolesCount' => $squadRolesCount,
+            'systemAccess' => $systemAccess,
+            'drawerReadOnly' => $drawerReadOnly,
         ])->layout('layouts.app', ['title' => 'Roles & Permissions Hub — GS NexusPM']);
     }
 }

@@ -193,14 +193,36 @@ class RbacService
      * Module definitions with granular permission codes.
      */
     public const MODULES = [
+        'project' => [
+            'key' => 'project',
+            'name' => 'Projects',
+            'icon' => '📁',
+            'permissions' => [
+                'project.view' => 'View Project',
+                'project.view_all' => 'View All Projects',
+                'project.view_assigned' => 'View Assigned Projects',
+                'project.create' => 'Create Project',
+                'project.edit' => 'Edit Project',
+                'project.manage_schedule' => 'Manage Project Schedule',
+            ],
+        ],
         'scope' => [
             'key' => 'scope',
-            'name' => 'Scope / Project Details',
+            'name' => 'Scope & Project Details',
             'icon' => '📝',
             'permissions' => [
                 'project_details.view' => 'View Project Details',
                 'project_details.edit' => 'Edit Project Details',
-                'budget.edit' => 'Edit Financials & Budget (Estimated Budget & Actual Spend)',
+                'scope.approve' => 'Approve Scope Changes',
+                'schedule.edit' => 'Edit Schedule / Timeline',
+            ],
+        ],
+        'budget' => [
+            'key' => 'budget',
+            'name' => 'Budget & Finance',
+            'icon' => '💰',
+            'permissions' => [
+                'budget.edit' => 'Edit Financials & Budget (Estimated Cost & Actual Spend)',
             ],
         ],
         'task' => [
@@ -215,7 +237,7 @@ class RbacService
                 'task.edit' => 'Edit Task',
                 'task.edit_assigned' => 'Edit Assigned Task',
                 'task.delete' => 'Delete Task',
-                'task.assign' => 'Assign Team Members',
+                'task.assign' => 'Assign Team Members to Task',
                 'task.change_status' => 'Update Task Status',
                 'task.change_priority' => 'Update Task Priority',
                 'task.update_progress' => 'Update Task Progress',
@@ -249,28 +271,180 @@ class RbacService
                 'blocker.resolve' => 'Resolve Blocker Item',
             ],
         ],
+        'approval' => [
+            'key' => 'approval',
+            'name' => 'Approvals',
+            'icon' => '✅',
+            'permissions' => [
+                'approval.view' => 'View Approval Requests',
+                'approval.submit' => 'Submit Approval Request',
+                'approval.approve' => 'Approve Requests',
+                'approval.reject' => 'Reject Requests',
+                'approval.return' => 'Return Request for Revision',
+                'approval.final_approve' => 'Final Approval (Sponsor Sign-off)',
+            ],
+        ],
     ];
+
+    /**
+     * Platform-level (page / action) access that is enforced by routes and role checks rather than by
+     * Spatie permissions. Shown on the Roles & Permissions page so PMO Admin, Admin Viewer and
+     * Project Manager access can be compared at a glance.
+     *
+     * Access values: yes | no | view (read-only) | scoped (conditional – see note).
+     */
+    public const SYSTEM_ACCESS = [
+        [
+            'label' => 'Create a new project',
+            'note' => 'Only PMO Administrators can open the Create Project page.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'no', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'Reassign project leadership',
+            'note' => 'Reassign a declined or rejected project to another Project Manager.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'no', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'Accept / decline an assigned project',
+            'note' => 'Only the Project Manager a project is assigned to can accept or decline it.',
+            'access' => ['pmo_admin' => 'scoped', 'admin_viewer' => 'no', 'lead' => 'yes'],
+            'scoped_note' => 'Only if assigned as the Project Manager',
+        ],
+        [
+            'label' => 'Change data inside projects',
+            'note' => 'Project Managers act within their own projects, limited to the permissions granted above.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'no', 'lead' => 'scoped'],
+            'scoped_note' => 'Own projects, per the permission matrix',
+        ],
+        [
+            'label' => 'Organisation-wide monitors (All Tasks, Project Monitor, Team Monitor)',
+            'note' => 'Admin Viewer sees everything but cannot change anything.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'view', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'User Directory (participants)',
+            'note' => 'Create, edit and deactivate users, including Azure AD provisioning.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'view', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'Subsidiaries',
+            'note' => 'Manage subsidiary companies.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'view', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'Audit logs',
+            'note' => 'Review the system activity trail.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'view', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'Project templates & Gantt builder',
+            'note' => 'Create and manage reusable project templates.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'no', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'Roles & Permissions',
+            'note' => 'This page – edit what each project role is allowed to do.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'no', 'lead' => 'no'],
+        ],
+        [
+            'label' => 'System settings',
+            'note' => 'Platform-wide configuration.',
+            'access' => ['pmo_admin' => 'yes', 'admin_viewer' => 'no', 'lead' => 'no'],
+        ],
+    ];
+
+    /**
+     * Roles whose access is enforced by the platform itself (route / role checks), not by editable
+     * permission assignments. Their permissions are displayed but cannot be edited.
+     */
+    public const SYSTEM_LOCKED_ROLES = ['super_admin', 'pmo_admin', 'admin_viewer'];
+
+    public static function isSystemLockedRole(?string $code): bool
+    {
+        return $code !== null && in_array($code, self::SYSTEM_LOCKED_ROLES, true);
+    }
+
+    /**
+     * Admin Viewer is a read-only observer: every "view" permission plus report export.
+     * Single source of truth, used both for enforcement and for display.
+     */
+    public static function adminViewerAllows(string $permission): bool
+    {
+        // Admin Viewer = every *.view permission only. No create/edit/delete/export.
+        return str_contains($permission, '.view');
+    }
+
+    /**
+     * Request-level cache of the merged permission catalog.
+     */
+    protected static ?array $modulesCache = null;
 
     /**
      * Ensure all defined module permissions exist in Spatie permissions table.
      */
     public static function ensureAllPermissionsExist(): void
     {
+        $existing = Permission::where('guard_name', 'web')->pluck('name')->all();
+
         foreach (self::MODULES as $module) {
             foreach (array_keys($module['permissions']) as $permName) {
-                Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
+                if (!in_array($permName, $existing, true)) {
+                    Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
+                }
             }
         }
     }
 
     /**
      * Get all active module definitions and permissions.
+     *
+     * Returns only the curated MODULES catalog. Database-only permissions that are not
+     * in the catalog (legacy migrations, old report/budget phantom rows) are intentionally
+     * excluded so the UI shows only permissions the codebase actually enforces.
      */
     public static function getAllModules(): array
     {
+        if (self::$modulesCache !== null) {
+            return self::$modulesCache;
+        }
+
         self::ensureAllPermissionsExist();
-        
-        return self::MODULES;
+
+        return self::$modulesCache = self::MODULES;
+    }
+
+    /**
+     * Every permission code shown in the catalog.
+     *
+     * @return array<int, string>
+     */
+    public static function allPermissionCodes(): array
+    {
+        $codes = [];
+        foreach (self::getAllModules() as $module) {
+            foreach (array_keys($module['permissions']) as $code) {
+                $codes[] = (string) $code;
+            }
+        }
+
+        return array_values(array_unique($codes));
+    }
+
+    /**
+     * Permissions a platform-enforced role effectively has (for display only).
+     * PMO Administrator = everything; Admin Viewer = read-only subset.
+     *
+     * @return array<int, string>
+     */
+    public static function getEffectivePermissionsForRole(string $roleCode): array
+    {
+        $all = self::allPermissionCodes();
+
+        if ($roleCode === 'admin_viewer') {
+            return array_values(array_filter($all, fn (string $code) => self::adminViewerAllows($code)));
+        }
+
+        return $all;
     }
 
     /**
@@ -284,7 +458,7 @@ class RbacService
 
         // Organization-wide observer: project membership never grants mutations.
         if ($user->isAdminViewer()) {
-            return str_contains($permission, '.view') || $permission === 'report.export';
+            return self::adminViewerAllows($permission);
         }
 
         // PMO Admin / Super Admin always has 100% full system access
@@ -357,6 +531,11 @@ class RbacService
             return self::$rolePermissionsCache[$roleCode];
         }
 
+        // Platform-enforced roles: report what they can effectively do, not stale database rows.
+        if (self::isSystemLockedRole($roleCode)) {
+            return self::$rolePermissionsCache[$roleCode] = self::getEffectivePermissionsForRole($roleCode);
+        }
+
         $role = Role::where('name', $roleCode)->first();
         if (!$role) {
             $alias = match($roleCode) {
@@ -424,6 +603,7 @@ class RbacService
     public static function clearCache(): void
     {
         self::$rolePermissionsCache = [];
+        self::$modulesCache = null;
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 

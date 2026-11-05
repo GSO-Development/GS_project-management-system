@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\ApprovalType;
 use App\Enums\WbsStatus;
+use App\Livewire\Concerns\SearchesAzureDirectory;
 use App\Mail\ProjectAssignedMail;
 use App\Models\ApprovalRequest;
 use App\Models\Comment;
@@ -24,6 +25,10 @@ use Livewire\WithFileUploads;
 class ProjectWorkspace extends Component
 {
     use WithFileUploads;
+    use SearchesAzureDirectory;
+
+    /** Project role given to someone added from Azure AD inside the Project Team dialog. */
+    public string $azureAssignRole = 'member';
 
     public function boot(): void
     {
@@ -273,8 +278,14 @@ class ProjectWorkspace extends Component
         $this->dispatch('toast', message: 'Project assignment declined. PMO Admin has been notified of your feedback.', type: 'warning');
     }
 
+    public function clearReassignPm(): void
+    {
+        $this->reassignPmId = null;
+    }
+
     public function openReassignModal(): void
     {
+        $this->resetAzureSearchState();
         $this->project->load(['subsidiary', 'projectManager', 'members']);
         
         $this->reassignName           = $this->project->name;
@@ -659,8 +670,108 @@ class ProjectWorkspace extends Component
         $this->dispatch('toast', message: 'Project timeline updated successfully!', type: 'success');
     }
 
+    // ── Azure AD people search (Project Team dialog + reassign panel) ─────────
+
+    protected function canUseAzureDirectory(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user && ($user->isPmoAdmin() || $this->project->userCan($user, 'team.add')));
+    }
+
+    protected function azureSubsidiaryId(): ?int
+    {
+        return $this->reassignSubsidiaryId ?: $this->project->subsidiary_id;
+    }
+
+    protected function azureIsValidRole(string $role): bool
+    {
+        if ($role === 'collab') {
+            return true;
+        }
+
+        // Reassign panel pickers are PMO-only (submitReassign enforces the same rule).
+        return in_array($role, ['pm', 'sponsor', 'owner', 'steering', 'member'], true)
+            && (bool) auth()->user()?->isPmoAdmin();
+    }
+
+    protected function azureCollaboratorRole(): string
+    {
+        $role = $this->azureAssignRole;
+
+        if (in_array($role, ['admin_viewer', 'pmo_admin', 'super_admin', 'lead', 'project_manager'], true)
+            || !array_key_exists($role, \App\Services\RbacService::getAllRoles())) {
+            return 'member';
+        }
+
+        return $role;
+    }
+
+    protected function azureRoleLabel(string $role): string
+    {
+        if ($role === 'collab') {
+            $name = \App\Services\RbacService::getAllRoles()[$this->azureCollaboratorRole()]['name'] ?? 'Team Member';
+
+            return $name . ' (click "Save team members" to confirm)';
+        }
+
+        return match ($role) {
+            'pm'       => 'Project Manager',
+            'sponsor'  => 'Project Sponsor',
+            'owner'    => 'Project Owner',
+            'steering' => 'Steering Committee',
+            default    => 'Core Team Member',
+        };
+    }
+
+    protected function azureAssignToRole(string $role, User $user): ?string
+    {
+        $id = (string) $user->id;
+
+        switch ($role) {
+            case 'collab':
+                if ((int) $user->id === (int) $this->project->project_manager_id) {
+                    return "{$user->name} is already the Project Leader of this project.";
+                }
+                if (!in_array($id, array_map('strval', $this->selectedCollaboratorIds), true)) {
+                    $this->selectedCollaboratorIds[] = $id;
+                }
+                $this->collaboratorRoles[$id] = $this->azureCollaboratorRole();
+                // Clear the filter so the new person shows up, ticked, in the list.
+                $this->collaboratorSearch = '';
+                break;
+            case 'pm':
+                $this->reassignPmId = (int) $user->id;
+                $this->resetErrorBag('reassignPmId');
+                break;
+            case 'sponsor':
+                $this->addReassignSponsor($id);
+                break;
+            case 'owner':
+                $this->addReassignOwner($id);
+                break;
+            case 'steering':
+                $this->addReassignSteering($id);
+                break;
+            case 'member':
+                $this->addReassignMember($id);
+                break;
+        }
+
+        return null;
+    }
+
+    /** Typing in the Project Team dialog's search box also looks people up in Azure AD. */
+    public function updatedCollaboratorSearch($value): void
+    {
+        $this->azureAutoSearch('collab', (string) $value);
+    }
+
     public function openCollaboratorsModal()
     {
+        $this->resetAzureSearchState();
+        $this->azureAssignRole = 'member';
+
         $user = auth()->user();
         if (!$user->isPmoAdmin() && !$this->project->userCan($user, 'team.add') && !$this->project->userCan($user, 'team.view')) {
             $this->dispatch('toast', message: 'You do not have permission to manage team members.', type: 'error');
@@ -1540,7 +1651,15 @@ class ProjectWorkspace extends Component
             }
         }
 
+        // People added from Azure AD this session must stay visible in every picker.
+        $azureAdded = $this->azureAddedUsers();
+        if ($azureAdded->isNotEmpty()) {
+            $availablePms = $availablePms->concat($azureAdded)->unique('id')->values();
+        }
+
         $availableUsers = $availablePms;
+        $azureEnabled = $this->canUseAzureDirectory();
+        $azureReassignEnabled = (bool) auth()->user()?->isPmoAdmin();
         $subsidiaries = \App\Models\Subsidiary::orderBy('name')->get();
         $allSubsidiaries = $subsidiaries;
         $allPms = \App\Models\User::where('is_active', true)->orderBy('name')->get();
@@ -1558,7 +1677,7 @@ class ProjectWorkspace extends Component
             $filteredEditTemplates = $allTemplates;
         }
 
-        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms', 'allRoles', 'allTemplates', 'filteredEditTemplates'));
+        return view('livewire.project-workspace', compact('project', 'previewDoc', 'availableUsers', 'availablePms', 'subsidiaries', 'allSubsidiaries', 'allPms', 'allRoles', 'allTemplates', 'filteredEditTemplates', 'azureEnabled', 'azureReassignEnabled'));
     }
 
     public function toggleCollapse(int $id)

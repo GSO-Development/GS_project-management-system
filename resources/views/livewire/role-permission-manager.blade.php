@@ -325,7 +325,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
             </div>
-            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">2</div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $systemRolesCount }}</div>
         </div>
 
         <!-- Project Leadership Roles -->
@@ -336,7 +336,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
             </div>
-            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">4</div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $leadershipRolesCount }}</div>
         </div>
 
         <!-- Squad & Collaborator Roles -->
@@ -347,7 +347,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
             </div>
-            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ max(0, $totalRolesCount - 6) + 2 }}</div>
+            <div class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">{{ $squadRolesCount }}</div>
         </div>
 
         <!-- Access Controls / Permissions -->
@@ -402,7 +402,7 @@
             <table class="w-full text-left border-collapse min-w-full">
                 <thead>
                     <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                        <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[220px] shadow-r">Project Context Role</th>
+                        <th class="py-4 pl-6 pr-4 sticky left-0 z-20 bg-slate-100 min-w-[220px] shadow-r">Role</th>
                         @foreach(\App\Services\RbacService::getAllModules() as $mKey => $mDef)
                             <th class="py-4 px-3 text-center min-w-[130px]">{{ $mDef['name'] }}</th>
                         @endforeach
@@ -420,9 +420,10 @@
                             $isSystem = $roleDef['is_system'] ?? false;
                             $userCount = $roleDef['users_count'] ?? 0;
                             $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
+                            $isSystemLocked = \App\Services\RbacService::isSystemLockedRole($roleCode);
 
                             $abbr = match($roleCode) {
-                                'pmo_admin' => 'PM',
+                                'pmo_admin' => 'PA', 'admin_viewer' => 'AV',
                                 'lead' => 'PM',
                                 'sponsor' => 'PS',
                                 'owner' => 'PO',
@@ -467,11 +468,20 @@
                             <!-- Actions Column: Omit Manage button for PMO admin -->
                             <td class="py-4 pl-3 pr-6 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-2">
-                                    @if($isPmoAdminRole)
-                                        <span class="px-3 py-1.5 rounded-xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs inline-flex items-center gap-1.5">
-                                            <span>⭐</span>
-                                            <span>Full System Access</span>
+                                    @if($isSystemLocked)
+                                        <span class="px-3 py-1.5 rounded-xl text-[11px] font-black border shadow-2xs inline-flex items-center gap-1.5 {{ $isPmoAdminRole ? 'bg-emerald-50 text-emerald-800 border-emerald-200/90' : 'bg-indigo-50 text-indigo-800 border-indigo-200/90' }}">
+                                            <span>{{ $isPmoAdminRole ? '⭐' : '👁️' }}</span>
+                                            <span>{{ $isPmoAdminRole ? 'Full System Access' : 'Read-only Access' }}</span>
                                         </span>
+                                        <button
+                                            wire:key="btn-view-{{ $roleCode }}"
+                                            wire:click="openManageModal('{{ $roleCode }}')"
+                                            type="button"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-slate-700 bg-slate-50 hover:bg-slate-700 hover:text-white border border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-95"
+                                            title="View {{ $roleDef['name'] }} permissions"
+                                        >
+                                            <span>View Access</span>
+                                        </button>
                                     @else
                                         <!-- Single Primary Manage Button for Non-Admin Roles -->
                                         <button 
@@ -519,6 +529,50 @@
         </div>
     </div>
 
+    <!-- Platform-level access: PMO Administrator vs Admin Viewer vs Project Manager -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/60">
+            <h3 class="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight">Platform Access Comparison</h3>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">Page-level and administrative access that is enforced by the platform itself, for PMO Administrator, Admin Viewer and Project Manager.</p>
+        </div>
+        <div class="w-full overflow-x-auto scrollbar-thin">
+            <table class="w-full text-left border-collapse min-w-full">
+                <thead>
+                    <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase tracking-wider">
+                        <th class="py-3.5 pl-6 pr-4 min-w-[280px]">Capability</th>
+                        <th class="py-3.5 px-3 text-center min-w-[150px]">PMO Administrator</th>
+                        <th class="py-3.5 px-3 text-center min-w-[150px]">Admin Viewer</th>
+                        <th class="py-3.5 pl-3 pr-6 text-center min-w-[150px]">Project Manager</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white text-xs">
+                    @foreach($systemAccess as $row)
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <td class="py-3.5 pl-6 pr-4">
+                                <div class="font-black text-slate-900 text-xs sm:text-[13px] leading-tight">{{ $row['label'] }}</div>
+                                <div class="text-[11px] text-slate-400 font-medium mt-0.5">{{ $row['note'] }}</div>
+                            </td>
+                            @foreach(['pmo_admin', 'admin_viewer', 'lead'] as $accessRole)
+                                @php
+                                    $level = $row['access'][$accessRole] ?? 'no';
+                                    [$levelLabel, $levelClass] = match($level) {
+                                        'yes' => ['Allowed', 'bg-emerald-50 text-emerald-700 border-emerald-200 font-extrabold'],
+                                        'view' => ['View only', 'bg-blue-50 text-blue-700 border-blue-200 font-bold'],
+                                        'scoped' => [$row['scoped_note'] ?? 'Conditional', 'bg-amber-50 text-amber-800 border-amber-200 font-bold'],
+                                        default => ['Not allowed', 'bg-slate-100 text-slate-500 border-slate-200 font-bold'],
+                                    };
+                                @endphp
+                                <td class="py-3.5 px-3 text-center">
+                                    <span class="px-2.5 py-1 rounded-lg text-[10.5px] border inline-block {{ $level === 'scoped' ? 'whitespace-normal leading-snug max-w-[200px]' : 'whitespace-nowrap' }} {{ $levelClass }}">{{ $levelLabel }}</span>
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- ═══════════════════════════════════════════════════════════════
          5. MANAGE PERMISSIONS DRAWER / SLIDE-OVER MODAL
          ═══════════════════════════════════════════════════════════════ -->
@@ -536,7 +590,7 @@
             $visibleTotalPermsCount = count($activeRolePermissions);
 
             $roleAbbr = match($selectedRole) {
-                'pmo_admin' => 'PM',
+                'pmo_admin' => 'PA', 'admin_viewer' => 'AV',
                 'lead' => 'PM',
                 'sponsor' => 'PS',
                 'owner' => 'PO',
@@ -594,6 +648,11 @@
                                     <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                         {{ $selectedRole }}
                                     </span>
+                                    @if($drawerReadOnly)
+                                        <span class="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 border border-indigo-200">
+                                            READ-ONLY
+                                        </span>
+                                    @endif
                                     @if($hasUnsaved)
                                         <span class="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
                                             UNSAVED CHANGES
@@ -607,8 +666,10 @@
                         </div>
 
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <button wire:click="selectAllGlobal" type="button" class="rpm-header-btn">Select All</button>
-                            <button wire:click="clearAllGlobal" type="button" class="rpm-header-btn">Clear All</button>
+                            @unless($drawerReadOnly)
+                                <button wire:click="selectAllGlobal" type="button" class="rpm-header-btn">Select All</button>
+                                <button wire:click="clearAllGlobal" type="button" class="rpm-header-btn">Clear All</button>
+                            @endunless
                             <button wire:click="closeManageModal" type="button" class="rpm-close-btn ml-1" title="Close">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
@@ -637,6 +698,15 @@
 
                     <!-- Drawer Permissions Body (Scrollable Modules Accordion) -->
                     <div class="rpm-drawer-body">
+                        @if($drawerReadOnly)
+                            <div class="rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3 text-xs font-semibold text-indigo-900 leading-relaxed flex-shrink-0">
+                                @if($isPmoAdminRole)
+                                    <strong>PMO Administrator</strong> has unrestricted access: every permission below is granted automatically. This access is enforced by the platform and cannot be edited here.
+                                @else
+                                    <strong>Admin Viewer</strong> is an organisation-wide, read-only observer: every <em>View</em> permission is granted. It can never create, edit or delete anything. This is enforced by the platform and cannot be edited here.
+                                @endif
+                            </div>
+                        @endif
                         @php $matchingModulesCount = 0; @endphp
                         @foreach($allModules as $modKey => $modDef)
                             @php
@@ -677,11 +747,13 @@
                                         </span>
                                     </div>
 
+                                    @unless($drawerReadOnly)
                                     <div class="flex items-center gap-2 text-[11px] shrink-0">
                                         <button wire:click="selectAllForModule('{{ $modKey }}')" type="button" class="font-bold text-[#c3122e] hover:underline cursor-pointer">All</button>
                                         <span class="text-slate-300">|</span>
                                         <button wire:click="clearAllForModule('{{ $modKey }}')" type="button" class="font-bold text-slate-500 hover:underline cursor-pointer">None</button>
                                     </div>
+                                    @endunless
                                 </div>
 
                                 <!-- Module Permissions Grid -->
@@ -689,12 +761,14 @@
                                     @foreach($modPerms as $pCode => $pLabel)
                                         @php $checked = !empty($rolePermissions[$pCode]); @endphp
                                         <div 
-                                            wire:click="togglePermission('{{ $pCode }}')"
+                                            @if(!$drawerReadOnly) wire:click="togglePermission('{{ $pCode }}')" @endif
                                             class="rpm-perm-item {{ $checked ? 'is-checked' : '' }}"
+                                            @if($drawerReadOnly) style="cursor: default;" @endif
                                         >
                                             <input 
                                                 type="checkbox" 
                                                 @checked($checked)
+                                                @disabled($drawerReadOnly)
                                                 class="rpm-perm-checkbox"
                                             >
                                             <div class="min-w-0 text-xs">
@@ -716,6 +790,10 @@
 
                     <!-- Sticky Drawer Footer -->
                     <div class="rpm-drawer-footer">
+                        @if($drawerReadOnly)
+                            <p class="text-[11px] font-semibold text-slate-500">Read-only &middot; this role is enforced by the platform and cannot be edited.</p>
+                            <button wire:click="closeManageModal" type="button" class="rpm-btn-cancel">Close</button>
+                        @else
                         <div class="flex items-center gap-3">
                             <button 
                                 wire:click="resetRoleToDefault('{{ $selectedRole }}')"
@@ -764,6 +842,7 @@
                                 </span>
                             </button>
                         </div>
+                    @endif
                     </div>
 
                 </div>
@@ -872,109 +951,6 @@
                             <span wire:loading wire:target="createRole" class="flex items-center gap-1.5">
                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                                 <span>Creating...</span>
-                            </span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        @endteleport
-    @endif
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         7. CREATE NEW PERMISSION MODAL
-         ═══════════════════════════════════════════════════════════════ -->
-    @if($showCreatePermissionModal)
-        @teleport('body')
-        <div 
-            x-data 
-            x-trap.inert.noscroll="true" 
-            @keydown.escape.window="$wire.set('showCreatePermissionModal', false)" 
-            class="rpm-modal-overlay" 
-            role="dialog" 
-            aria-modal="true" 
-            aria-labelledby="permission-modal-title"
-        >
-            <div 
-                x-transition:enter="ease-out duration-200"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-150"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="rpm-modal-backdrop transition-opacity" 
-                wire:click="$set('showCreatePermissionModal', false)"
-            ></div>
-
-            <div 
-                x-transition:enter="ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-150"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-3 sm:translate-y-0 sm:scale-95"
-                class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all"
-            >
-                <!-- Top Brand Line -->
-                <div class="h-1 w-full bg-gradient-to-r from-amber-500 to-amber-600"></div>
-
-                <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0 shadow-xs">
-                            <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 id="permission-modal-title" class="text-base font-extrabold text-slate-900 tracking-tight">Add Granular Permission</h3>
-                            <p class="mt-0.5 text-xs text-slate-500 font-medium">Register a reusable capability for role-based access control.</p>
-                        </div>
-                    </div>
-                    <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 cursor-pointer" aria-label="Close permission form">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <form wire:submit="createPermission" class="space-y-4 px-5 py-5 sm:px-6">
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Target module <span class="text-rose-600">*</span></label>
-                        <select wire:model.live="newPermissionModule" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100 cursor-pointer">
-                            @foreach($allModules as $mKey => $mDef)
-                                <option value="{{ $mKey }}">{{ $mDef['name'] }} ({{ $mKey }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700">Permission display name <span class="text-rose-600">*</span></label>
-                        <input type="text" wire:model.live.debounce.150ms="newPermissionName" maxlength="100" placeholder="e.g. Export Audit Report" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
-                        @error('newPermissionName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <div class="mb-1.5 flex items-center justify-between gap-3">
-                            <label class="text-xs font-bold text-slate-700">Permission code <span class="text-rose-600">*</span></label>
-                            <div class="flex items-center gap-2">
-                                @if($isPermissionCodeManuallyEdited)
-                                    <button type="button" wire:click="resetPermissionCodeToAuto" class="text-[10px] font-bold text-[#c3122e] hover:underline cursor-pointer">
-                                        ↻ Auto-generate
-                                    </button>
-                                @endif
-                                <span class="text-[10px] text-slate-400 font-mono">Spatie permission name</span>
-                            </div>
-                        </div>
-                        <input type="text" wire:model.live.debounce.150ms="newPermissionCode" maxlength="150" placeholder="e.g. project.export_audit" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
-                        <p class="mt-1 text-[10px] text-slate-400 font-medium">Use lowercase words separated by dots or underscores.</p>
-                        @error('newPermissionCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="-mx-5 -mb-5 mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:-mx-6 sm:px-6">
-                        <button type="button" wire:click="$set('showCreatePermissionModal', false)" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer">Cancel</button>
-                        <button type="submit" wire:loading.attr="disabled" wire:target="createPermission" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c3122e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-sm">
-                            <span wire:loading.remove wire:target="createPermission">Register permission</span>
-                            <span wire:loading wire:target="createPermission" class="flex items-center gap-1.5">
-                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                                <span>Registering...</span>
                             </span>
                         </button>
                     </div>
