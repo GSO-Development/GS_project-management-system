@@ -86,11 +86,9 @@
                 <select aria-label="Filter by your role" wire:model.live="roleFilter"
                     class="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer transition-all">
                     <option value="all">All My Roles ({{ $totalCount }})</option>
-                    <option value="lead">Project Manager (PM) ({{ $roleCounts['lead'] ?? 0 }})</option>
-                    <option value="sponsor">Project Sponsor ({{ $roleCounts['sponsor'] ?? 0 }})</option>
-                    <option value="owner">Project Owner ({{ $roleCounts['owner'] ?? 0 }})</option>
-                    <option value="steering_committee">Steering Committee ({{ $roleCounts['steering_committee'] ?? 0 }})</option>
-                    <option value="member">Team Member ({{ $roleCounts['member'] ?? 0 }})</option>
+                    @foreach($availableRoles as $rCode => $rData)
+                        <option value="{{ $rCode }}">{{ $rData['label'] }} ({{ $rData['count'] }})</option>
+                    @endforeach
                 </select>
             </div>
 

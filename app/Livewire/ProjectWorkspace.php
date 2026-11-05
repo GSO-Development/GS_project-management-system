@@ -670,7 +670,11 @@ class ProjectWorkspace extends Component
         $this->selectedCollaboratorIds = array_map('strval', $this->project->members->pluck('id')->toArray());
         $this->collaboratorRoles = [];
         foreach ($this->project->members as $member) {
-            $this->collaboratorRoles[(string) $member->id] = $member->pivot->role ?? 'member';
+            $role = $member->pivot->role ?? 'member';
+            if (in_array($role, ['admin_viewer', 'pmo_admin', 'super_admin', 'lead'], true)) {
+                $role = 'member';
+            }
+            $this->collaboratorRoles[(string) $member->id] = $role;
         }
         $this->collaboratorSearch = '';
         $this->showCreateCollaboratorSection = false;
@@ -696,6 +700,9 @@ class ProjectWorkspace extends Component
                 $chosenRole = $this->collaboratorRoles[(string) $memberId] 
                     ?? $this->collaboratorRoles[$memberId] 
                     ?? ($existingMembers[$memberId]->pivot->role ?? 'member');
+                if (in_array($chosenRole, ['admin_viewer', 'pmo_admin', 'super_admin', 'lead'], true)) {
+                    $chosenRole = 'member';
+                }
                 $syncData[$memberId] = ['role' => $chosenRole];
             }
         }

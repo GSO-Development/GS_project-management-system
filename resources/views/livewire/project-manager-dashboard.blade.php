@@ -487,6 +487,11 @@
                         <p class="text-[11px] font-medium text-slate-400 mt-0.5">{{ now()->format('l, M j') }}</p>
                     </div>
                     <div class="flex items-center gap-1.5">
+                        @if($todayEventsCount > 0)
+                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200/80" title="Today's Meetings">
+                                {{ $todayEventsCount }} {{ Str::plural('Meeting', $todayEventsCount) }}
+                            </span>
+                        @endif
                         <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-rose-50 text-[#c3122e] border border-rose-200/60" title="Tasks & Meetings for Today">
                             {{ $todayScheduleItems->count() }} Items
                         </span>
@@ -495,8 +500,8 @@
 
                 {{-- Schedule List (Day-by-Day updating) --}}
                 <div class="space-y-2.5">
-                    @forelse($todayScheduleItems->take(5) as $item)
-                        <div class="p-2.5 rounded-xl bg-slate-50/60 hover:bg-rose-50/20 border border-slate-100 hover:border-rose-100 transition-all space-y-1.5 group">
+                    @forelse($todayScheduleItems->take(6) as $item)
+                        <div class="p-2.5 rounded-xl {{ $item['type'] === 'meeting' ? 'bg-purple-50/40 hover:bg-purple-50/70 border-purple-100 hover:border-purple-200' : 'bg-slate-50/60 hover:bg-rose-50/20 border border-slate-100 hover:border-rose-100' }} border transition-all space-y-1.5 group">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-start gap-2 min-w-0">
                                     {{-- Type Icon --}}
@@ -514,7 +519,10 @@
                                         </a>
                                         <div class="flex items-center gap-1.5 text-[10.5px] font-medium text-slate-400 mt-0.5">
                                             <span class="truncate max-w-[130px]">{{ $item['project'] }}</span>
-                                            @if($item['type'] === 'task' && $item['progress'] !== null)
+                                            @if($item['type'] === 'meeting')
+                                                <span class="text-slate-300">•</span>
+                                                <span class="font-semibold text-purple-600">Meeting</span>
+                                            @elseif($item['type'] === 'task' && $item['progress'] !== null)
                                                 <span class="text-slate-300">•</span>
                                                 <span class="font-mono font-bold text-slate-600">{{ $item['progress'] }}%</span>
                                             @endif

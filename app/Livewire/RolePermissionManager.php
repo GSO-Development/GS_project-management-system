@@ -44,12 +44,14 @@ class RolePermissionManager extends Component
     public string $newRoleDescription = '';
     public string $newRoleIcon = '🏷️';
     public ?string $clonePermissionsFrom = null;
+    public bool $isRoleCodeManuallyEdited = false;
 
     // Create Permission Modal
     public bool $showCreatePermissionModal = false;
     public string $newPermissionName = '';
     public string $newPermissionCode = '';
     public string $newPermissionModule = 'scope';
+    public bool $isPermissionCodeManuallyEdited = false;
 
     // Delete Role Confirmation Modal
     public bool $showDeleteRoleModal = false;
@@ -302,26 +304,68 @@ class RolePermissionManager extends Component
         $this->newRoleDescription = '';
         $this->newRoleIcon = '🏷️';
         $this->clonePermissionsFrom = null;
+        $this->isRoleCodeManuallyEdited = false;
         $this->showCreateRoleModal = true;
     }
 
     public function updatedNewRoleName(string $value): void
     {
-        if (empty($this->newRoleCode)) {
+        if (!$this->isRoleCodeManuallyEdited) {
             $this->newRoleCode = Str::slug($value, '_');
         }
     }
 
+    public function updatedNewRoleCode(string $value): void
+    {
+        $trimmed = strtolower(trim($value));
+        if ($trimmed === '') {
+            $this->isRoleCodeManuallyEdited = false;
+            $this->newRoleCode = Str::slug($this->newRoleName, '_');
+            return;
+        }
+
+        $this->isRoleCodeManuallyEdited = true;
+        // Normalize spaces and dashes to underscores and keep alphanumeric
+        $cleaned = preg_replace('/[^a-z0-9_]/', '_', str_replace(['-', ' '], '_', $trimmed));
+        $this->newRoleCode = preg_replace('/_+/', '_', (string)$cleaned);
+    }
+
+    public function resetRoleCodeToAuto(): void
+    {
+        $this->isRoleCodeManuallyEdited = false;
+        $this->newRoleCode = Str::slug($this->newRoleName, '_');
+    }
+
     public function createRole(): void
     {
+        // Sanitize code
+        if (empty(trim($this->newRoleCode))) {
+            $this->newRoleCode = Str::slug($this->newRoleName, '_');
+        } else {
+            $cleaned = preg_replace('/[^a-z0-9_]/', '_', str_replace(['-', ' '], '_', strtolower(trim($this->newRoleCode))));
+            $this->newRoleCode = trim(preg_replace('/_+/', '_', (string)$cleaned), '_');
+        }
+
+        // Prevent taking reserved core system roles
+        $reservedCodes = ['pmo_admin', 'super_admin', 'admin_viewer', 'lead', 'project_manager', 'member', 'team_member', 'sponsor', 'owner', 'steering_committee', 'collaborator'];
+        if (in_array($this->newRoleCode, $reservedCodes, true) || RbacService::isProtectedRole($this->newRoleCode)) {
+            $this->addError('newRoleCode', 'This system role code is reserved for system governance roles. Please use another code.');
+            return;
+        }
+
         $this->validate([
             'newRoleName' => 'required|string|max:100',
-            'newRoleCode' => 'required|string|max:50|alpha_dash|unique:roles,name',
+            'newRoleCode' => 'required|string|max:50|regex:/^[a-z0-9_]+$/|unique:roles,name',
             'newRoleDescription' => 'nullable|string|max:255',
+        ], [
+            'newRoleName.required' => 'Please enter a role display name.',
+            'newRoleCode.required' => 'Please enter a system role code.',
+            'newRoleCode.regex' => 'The system role code may only contain lowercase letters, numbers, and underscores.',
+            'newRoleCode.unique' => 'A role with this system code already exists. Please enter a unique code.',
         ]);
 
         $role = Role::create([
-            'name' => strtolower($this->newRoleCode),
+            'name' => $this->newRoleCode,
             'guard_name' => 'web',
         ]);
 
@@ -471,23 +515,36 @@ class RolePermissionManager extends Component
         $this->newPermissionName = '';
         $this->newPermissionCode = '';
         $this->newPermissionModule = 'scope';
+        $this->isPermissionCodeManuallyEdited = false;
         $this->showCreatePermissionModal = true;
     }
 
     public function updatedNewPermissionName(string $value): void
     {
-        if (empty($this->newPermissionCode)) {
+        if (!$this->isPermissionCodeManuallyEdited) {
             $slug = Str::slug($value, '_');
-            $this->newPermissionCode = "{$this->newPermissionModule}.{$slug}";
+            $this->newPermissionCode = !empty($slug) ? "{$this->newPermissionModule}.{$slug}" : '';
         }
     }
 
     public function updatedNewPermissionModule(string $value): void
     {
-        if (!empty($this->newPermissionName)) {
+        if (!$this->isPermissionCodeManuallyEdited && !empty($this->newPermissionName)) {
             $slug = Str::slug($this->newPermissionName, '_');
             $this->newPermissionCode = "{$value}.{$slug}";
         }
+    }
+
+    public function updatedNewPermissionCode(string $value): void
+    {
+        $this->isPermissionCodeManuallyEdited = (trim($value) !== '');
+    }
+
+    public function resetPermissionCodeToAuto(): void
+    {
+        $this->isPermissionCodeManuallyEdited = false;
+        $slug = Str::slug($this->newPermissionName, '_');
+        $this->newPermissionCode = !empty($slug) ? "{$this->newPermissionModule}.{$slug}" : '';
     }
 
     public function createPermission(): void

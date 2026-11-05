@@ -173,11 +173,9 @@
                         <select wire:model.live="roleFilter"
                                 class="w-full appearance-none bg-white border border-slate-200 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#c3122e]/10 focus:border-[#c3122e] cursor-pointer transition-colors truncate">
                             <option value="all">All Project Roles</option>
-                            <option value="project_manager">Project Manager</option>
-                            <option value="steering_committee">Steering Committee</option>
-                            <option value="owner">Project Owner</option>
-                            <option value="sponsor">Project Sponsor</option>
-                            <option value="team_member">Team Member</option>
+                            @foreach($projectFilterRoles as $rCode => $rData)
+                                <option value="{{ $rCode }}">{{ $rData['name'] }}</option>
+                            @endforeach
                         </select>
                         <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                     </div>

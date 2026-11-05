@@ -63,19 +63,23 @@
                             </table>
 
                             @php
+                                $customRolesMeta = \App\Services\RbacService::getAllRoles();
+                                $resolvedCustomName = $customRolesMeta[$role]['name'] ?? ucwords(str_replace(['_', '-'], ' ', $role));
                                 $roleLabel = match($role) {
                                     'lead' => 'Project Leader',
                                     'sponsor' => 'Project Sponsor',
                                     'owner' => 'Project Owner',
                                     'steering_committee' => 'Steering Committee',
-                                    default => 'Core Project Team',
+                                    'member' => 'Core Project Team',
+                                    default => $resolvedCustomName,
                                 };
                                 $roleSubtitle = match($role) {
                                     'lead' => 'You have been designated as Project Leader',
                                     'sponsor' => 'You have been designated as Project Sponsor',
                                     'owner' => 'You have been designated as Project Owner',
                                     'steering_committee' => 'You have been appointed to the Steering Committee',
-                                    default => 'You have been added to the Core Project Team',
+                                    'member' => 'You have been added to the Core Project Team',
+                                    default => "You have been assigned as {$resolvedCustomName}",
                                 };
                                 $noticeText = match($role) {
                                     'lead' => 'GOVERNANCE ACTION REQUIRED — REVIEW & ACCEPT LEADERSHIP',

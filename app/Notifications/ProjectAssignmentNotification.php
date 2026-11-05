@@ -79,7 +79,7 @@ class ProjectAssignmentNotification extends Notification
                 'action' => 'project_steering_added',
                 'url' => route('projects.show', $this->project->id),
             ],
-            default => [
+            'member' => [
                 'category' => 'updates',
                 'type' => 'info',
                 'title' => '👥 Added to Core Project Team',
@@ -88,6 +88,19 @@ class ProjectAssignmentNotification extends Notification
                 'action' => 'project_team_added',
                 'url' => route('projects.show', $this->project->id),
             ],
+            default => (function() {
+                $allRoles = \App\Services\RbacService::getAllRoles();
+                $customRoleName = $allRoles[$this->role]['name'] ?? ucwords(str_replace(['_', '-'], ' ', $this->role));
+                return [
+                    'category' => 'updates',
+                    'type' => 'info',
+                    'title' => "🏷️ Assigned as {$customRoleName}",
+                    'role_label' => $customRoleName,
+                    'message' => "You have been assigned as {$customRoleName} for '{$this->project->name}' ({$this->project->code}).",
+                    'action' => 'project_role_added',
+                    'url' => route('projects.show', $this->project->id),
+                ];
+            })(),
         };
 
         return [

@@ -302,15 +302,29 @@
                                     </td>
                                     <td><span class="risk-exposure {{ $threatClass }}"><i></i>{{ $threatLabel }} <b>{{ $score }}/12</b></span></td>
                                     <td>
-                                        @if(auth()->user()?->isAdminViewer())
-                                            <span class="risk-status-static">{{ ucfirst($r->status) }}</span>
+                                        @php
+                                            $canManageRisk = false;
+                                            $authUser = auth()->user();
+                                            if ($authUser) {
+                                                if ($authUser->isSuperAdmin() || $authUser->isPmoAdmin() || $authUser->id === 1) {
+                                                    $canManageRisk = true;
+                                                } elseif ($r->project && $r->project->project_manager_id === $authUser->id) {
+                                                    $canManageRisk = true;
+                                                } elseif ($r->owner_id === $authUser->id || ($r->wbsItem && $r->wbsItem->assigned_user_id === $authUser->id)) {
+                                                    $canManageRisk = true;
+                                                }
+                                            }
+                                        @endphp
+
+                                        @if($canManageRisk && !$authUser?->isAdminViewer())
+                                            <select wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)" class="risk-table-status">
+                                                <option value="open" @selected($r->status === 'open')>Open</option>
+                                                <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
+                                                <option value="mitigated" @selected($r->status === 'mitigated')>Mitigated</option>
+                                                <option value="closed" @selected($r->status === 'closed')>Closed</option>
+                                            </select>
                                         @else
-                                        <select wire:change="updateRiskStatus({{ $r->id }}, $event.target.value)" class="risk-table-status">
-                                            <option value="open" @selected($r->status === 'open')>Open</option>
-                                            <option value="monitoring" @selected($r->status === 'monitoring')>Monitoring</option>
-                                            <option value="mitigated" @selected($r->status === 'mitigated')>Mitigated</option>
-                                            <option value="closed" @selected($r->status === 'closed')>Closed</option>
-                                        </select>
+                                            <span class="risk-status-static">{{ ucfirst($r->status) }}</span>
                                         @endif
                                     </td>
                                     <td>
@@ -320,12 +334,11 @@
                                     @unless(auth()->user()?->isAdminViewer())
                                     <td>
                                         <div class="risk-table-actions">
-                                            <button wire:click="openEditRiskModal({{ $r->id }})" type="button" title="Edit risk" aria-label="Edit risk" class="risk-table-icon-button">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L8 18l-4 1 1-4 11.5-11.5z"/></svg>
-                                            </button>
-                                            <button wire:click="deleteRisk({{ $r->id }})" wire:confirm="Are you sure you want to remove this risk record?" type="button" title="Delete risk" aria-label="Delete risk" class="risk-table-icon-button risk-table-delete">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6"/></svg>
-                                            </button>
+                                            @if($canManageRisk)
+                                                <button wire:click="openEditRiskModal({{ $r->id }})" type="button" title="Edit risk" aria-label="Edit risk" class="risk-table-icon-button">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L8 18l-4 1 1-4 11.5-11.5z"/></svg>
+                                                </button>
+                                            @endif
                                         </div>
                                     </td>
                                     @endunless
@@ -391,28 +404,52 @@
 
     <!-- 1. ADD RISK MODAL -->
     @if($showAddRiskModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showAddRiskModal', false)"></div>
+        @teleport('body')
+        <div 
+            x-data 
+            @keydown.escape.window="$wire.set('showAddRiskModal', false)"
+            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-3 sm:p-5 overflow-hidden"
+            style="position: fixed; inset: 0; z-index: 2147483640; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow: hidden;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-risk-modal-title"
+        >
+            <!-- Backdrop -->
+            <div 
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
+                wire:click="$set('showAddRiskModal', false)"
+            ></div>
 
-            <div class="risk-modal relative bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col max-h-[90vh]">
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
+            <!-- Modal Window -->
+            <div 
+                class="risk-modal-dialog relative z-10 w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden"
+                style="position: relative; z-index: 10; width: 100%; max-width: 44rem; max-height: calc(100vh - 3.5rem); max-height: calc(100dvh - 3.5rem); height: auto; display: flex; flex-direction: column; overflow: hidden; margin: auto;"
+            >
+                <!-- Top Brand Line -->
+                <div class="h-1 w-full bg-gradient-to-r from-[#c3122e] to-[#8b0d1f] flex-shrink-0" style="height: 4px; flex-shrink: 0;"></div>
+
+                <!-- Modal Header (Fixed) -->
+                <div class="px-5 py-4 sm:px-6 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white" style="flex-shrink: 0;">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
-                            <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0 bg-gradient-to-br from-[#c3122e] to-[#8b0d1f]">
+                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Log Project Risk</h3>
-                            <p class="text-xs text-slate-500 font-normal">Record risk threat, probability x impact matrix, and mitigation strategy</p>
+                            <h3 id="add-risk-modal-title" class="text-base font-extrabold text-slate-900 leading-tight">Log Project Risk</h3>
+                            <p class="mt-0.5 text-xs text-slate-500 font-medium">Record risk threat, probability x impact matrix, and mitigation strategy</p>
                         </div>
                     </div>
-                    <button wire:click="$set('showAddRiskModal', false)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
+                    <button type="button" wire:click="$set('showAddRiskModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 cursor-pointer" aria-label="Close risk modal">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <!-- Modal Body (Scrollable) -->
-                <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <!-- Modal Body (Scrollable with min-h-0) -->
+                <div 
+                    class="risk-modal-body-scroll p-5 sm:p-6 space-y-4"
+                    style="flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1.25rem 1.5rem;"
+                >
                     <form id="addRiskForm" wire:submit="addRisk" class="space-y-4">
                         <!-- Project & Scope Section -->
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3">
@@ -543,41 +580,72 @@
                     </form>
                 </div>
 
-                <!-- Modal Footer -->
-                <div class="px-6 py-3.5 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0 bg-slate-50">
-                    <button type="button" wire:click="$set('showAddRiskModal', false)" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">Cancel</button>
-                    <button type="submit" form="addRiskForm" class="px-4.5 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:shadow transition-all cursor-pointer" style="background: linear-gradient(135deg, #c3122e 0%, #a80f26 100%);">
-                        Log Risk
+                <!-- Modal Footer (Fixed) -->
+                <div class="px-5 py-3.5 sm:px-6 border-t border-slate-100 flex items-center justify-end gap-3 flex-shrink-0 bg-slate-50/90" style="flex-shrink: 0;">
+                    <button type="button" wire:click="$set('showAddRiskModal', false)" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs">
+                        Cancel
+                    </button>
+                    <button type="submit" form="addRiskForm" wire:loading.attr="disabled" class="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#c3122e] px-5 text-xs font-bold text-white transition-colors hover:bg-[#a50e26] disabled:opacity-60 cursor-pointer shadow-xs gap-1.5">
+                        <span wire:loading.remove wire:target="addRisk">Log Risk</span>
+                        <span wire:loading wire:target="addRisk" class="flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <span>Logging...</span>
+                        </span>
                     </button>
                 </div>
             </div>
         </div>
+        @endteleport
     @endif
 
     <!-- 2. EDIT RISK MODAL -->
     @if($showEditRiskModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity" wire:click="$set('showEditRiskModal', false)"></div>
+        @teleport('body')
+        <div 
+            x-data 
+            @keydown.escape.window="$wire.set('showEditRiskModal', false)"
+            class="fixed inset-0 z-[2147483640] flex items-center justify-center p-3 sm:p-5 overflow-hidden"
+            style="position: fixed; inset: 0; z-index: 2147483640; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow: hidden;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-risk-modal-title"
+        >
+            <!-- Backdrop -->
+            <div 
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
+                wire:click="$set('showEditRiskModal', false)"
+            ></div>
 
-            <div class="risk-modal relative bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl z-10 overflow-hidden my-6 flex flex-col max-h-[90vh]">
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
+            <!-- Modal Window -->
+            <div 
+                class="risk-modal-dialog relative z-10 w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden"
+                style="position: relative; z-index: 10; width: 100%; max-width: 44rem; max-height: calc(100vh - 3.5rem); max-height: calc(100dvh - 3.5rem); height: auto; display: flex; flex-direction: column; overflow: hidden; margin: auto;"
+            >
+                <!-- Top Brand Line -->
+                <div class="h-1 w-full bg-gradient-to-r from-slate-700 to-slate-900 flex-shrink-0" style="height: 4px; flex-shrink: 0;"></div>
+
+                <!-- Modal Header (Fixed) -->
+                <div class="px-5 py-4 sm:px-6 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white" style="flex-shrink: 0;">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0" style="background: linear-gradient(135deg, #c3122e, #8b0d1f);">
-                            <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0 bg-gradient-to-br from-slate-700 to-slate-900">
+                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </div>
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">Edit Risk Record</h3>
-                            <p class="text-xs text-slate-500 font-normal">Update probability, impact ratings, owner, and action plans</p>
+                            <h3 id="edit-risk-modal-title" class="text-base font-extrabold text-slate-900 leading-tight">Edit Risk Record</h3>
+                            <p class="mt-0.5 text-xs text-slate-500 font-medium">Update probability, impact ratings, owner, and action plans</p>
                         </div>
                     </div>
-                    <button wire:click="$set('showEditRiskModal', false)" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Close">
+                    <button type="button" wire:click="$set('showEditRiskModal', false)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 cursor-pointer" aria-label="Close risk modal">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <!-- Modal Body (Scrollable) -->
-                <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <!-- Modal Body (Scrollable with min-h-0) -->
+                <div 
+                    class="risk-modal-body-scroll p-5 sm:p-6 space-y-4"
+                    style="flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1.25rem 1.5rem;"
+                >
                     <form id="editRiskForm" wire:submit="updateRisk" class="space-y-4">
                         <!-- Project & Scope Section -->
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3">
@@ -706,15 +774,56 @@
                     </form>
                 </div>
 
-                <!-- Modal Footer -->
-                <div class="px-6 py-3.5 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0 bg-slate-50">
-                    <button type="button" wire:click="$set('showEditRiskModal', false)" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">Cancel</button>
-                    <button type="submit" form="editRiskForm" class="px-4.5 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:shadow transition-all cursor-pointer" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                        Save Changes
+                <!-- Modal Footer (Fixed) -->
+                <div class="px-5 py-3.5 sm:px-6 border-t border-slate-100 flex items-center justify-end gap-3 flex-shrink-0 bg-slate-50/90" style="flex-shrink: 0;">
+                    <button type="button" wire:click="$set('showEditRiskModal', false)" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs">
+                        Cancel
+                    </button>
+                    <button type="submit" form="editRiskForm" wire:loading.attr="disabled" class="inline-flex min-h-10 items-center justify-center rounded-xl bg-slate-900 px-5 text-xs font-bold text-white transition-colors hover:bg-slate-800 disabled:opacity-60 cursor-pointer shadow-xs gap-1.5">
+                        <span wire:loading.remove wire:target="updateRisk">Save Changes</span>
+                        <span wire:loading wire:target="updateRisk" class="flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <span>Saving...</span>
+                        </span>
                     </button>
                 </div>
             </div>
         </div>
+        @endteleport
     @endif
-
 </div>
+
+
+    <style>
+        .risk-modal-dialog {
+            max-height: calc(100vh - 3.5rem) !important;
+            max-height: calc(100dvh - 3.5rem) !important;
+            height: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+        .risk-modal-body-scroll {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e1 #f8fafc !important;
+        }
+        .risk-modal-body-scroll::-webkit-scrollbar {
+            width: 8px !important;
+        }
+        .risk-modal-body-scroll::-webkit-scrollbar-track {
+            background: #f8fafc !important;
+            border-radius: 9999px !important;
+        }
+        .risk-modal-body-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1 !important;
+            border-radius: 9999px !important;
+            border: 2px solid #f8fafc !important;
+        }
+        .risk-modal-body-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8 !important;
+        }
+    </style>

@@ -933,7 +933,7 @@ class ProjectIndex extends Component
         }
 
         if ($this->roleFilter !== 'all') {
-            if ($this->roleFilter === 'project_manager') {
+            if ($this->roleFilter === 'project_manager' || $this->roleFilter === 'lead') {
                 $query->where(fn($q) => $q->whereNotNull('project_manager_id')->orWhereHas('members', fn($mq) => $mq->whereIn('project_members.role', ['lead', 'project_manager'])));
             } elseif ($this->roleFilter === 'steering_committee') {
                 $query->whereHas('members', fn($mq) => $mq->where('project_members.role', 'steering_committee'));
@@ -941,7 +941,7 @@ class ProjectIndex extends Component
                 $query->whereHas('members', fn($mq) => $mq->where('project_members.role', 'owner'));
             } elseif ($this->roleFilter === 'sponsor') {
                 $query->whereHas('members', fn($mq) => $mq->where('project_members.role', 'sponsor'));
-            } elseif ($this->roleFilter === 'team_member') {
+            } elseif ($this->roleFilter === 'team_member' || $this->roleFilter === 'member') {
                 $query->where(fn($q) => $q->whereHas('members', fn($mq) => $mq->whereIn('project_members.role', ['member', 'team_member', 'participant']))->orWhereHas('wbsItems'));
             } else {
                 $query->whereHas('members', fn($mq) => $mq->where('project_members.role', $this->roleFilter));
@@ -1262,6 +1262,49 @@ class ProjectIndex extends Component
             'today_visible' => $ganttTodayVisible,
         ];
 
+        // Dynamic Project Role Filters
+        $allRoles = \App\Services\RbacService::getAllRoles();
+        $projectFilterRoles = [];
+        $priorityOrder = [
+            'lead'               => 1,
+            'sponsor'            => 2,
+            'owner'              => 3,
+            'steering_committee' => 4,
+            'member'             => 5,
+            'collaborator'       => 6,
+        ];
+
+        foreach ($allRoles as $rCode => $rMeta) {
+            if (in_array($rCode, ['pmo_admin', 'super_admin', 'admin_viewer', 'project_manager', 'team_member'], true)) {
+                continue;
+            }
+            $label = match($rCode) {
+                'lead'               => 'Project Manager',
+                'sponsor'            => 'Project Sponsor',
+                'owner'              => 'Project Owner',
+                'steering_committee' => 'Steering Committee',
+                'member'             => 'Core Project Team',
+                default              => $rMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $rCode)),
+            };
+            $projectFilterRoles[$rCode] = [
+                'code' => $rCode,
+                'name' => $label,
+            ];
+        }
+
+        uksort($projectFilterRoles, function ($a, $b) use ($priorityOrder, $projectFilterRoles) {
+            $posA = $priorityOrder[$a] ?? 99;
+            $posB = $priorityOrder[$b] ?? 99;
+            if ($posA === $posB) {
+                return strcmp($projectFilterRoles[$a]['name'] ?? $a, $projectFilterRoles[$b]['name'] ?? $b);
+            }
+            return $posA <=> $posB;
+        });
+
+        if ($this->roleFilter !== 'all' && !isset($projectFilterRoles[$this->roleFilter]) && !in_array($this->roleFilter, ['project_manager', 'team_member'])) {
+            $this->roleFilter = 'all';
+        }
+
         return view('livewire.project-index', compact(
             'projects',
             'subsidiaries',
@@ -1290,7 +1333,8 @@ class ProjectIndex extends Component
             'stuckAssigneesList',
             'ganttTimeline',
             'delaySummaries',
-            'availableWbsTemplates'
+            'availableWbsTemplates',
+            'projectFilterRoles'
 
         ));
     }

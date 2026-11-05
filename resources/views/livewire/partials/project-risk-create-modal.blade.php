@@ -61,7 +61,15 @@
                     <label for="project-risk-wbs">Affected Scope / WBS Task</label>
                     <select id="project-risk-wbs" wire:model="riskWbsItemId" class="risk-modal-input" aria-describedby="project-risk-wbs-help">
                         <option value="">General Project Scope</option>
-                        @foreach($project->wbsItems as $wbs)
+                        @php
+                            $modalUser = auth()->user();
+                            $isProjManager = $modalUser && ($modalUser->isSuperAdmin() || $modalUser->isPmoAdmin() || $modalUser->id === 1 || $project->project_manager_id === $modalUser->id);
+                            $canViewAllWbs = $project->userCan($modalUser, 'task.view_all');
+                            $userWbsItems = ($isProjManager || $canViewAllWbs)
+                                ? $project->wbsItems
+                                : $project->wbsItems->filter(fn($w) => $w->assigned_user_id === $modalUser?->id);
+                        @endphp
+                        @foreach($userWbsItems as $wbs)
                             <option value="{{ $wbs->id }}">{{ $wbs->wbs_code ? $wbs->wbs_code.' - ' : '' }}{{ $wbs->title }}</option>
                         @endforeach
                     </select>

@@ -918,12 +918,23 @@ class ProjectManagerDashboard extends Component
                 ];
             });
 
-        // 2. Today's Meetings / Events created by or attended by the user
+        // 2. Today's Meetings / Events: PMO Admin, Lead Project Manager of the project, meeting creator, or assigned attendees only!
         $todayUserEvents = CalendarEvent::with('project')
             ->where(function ($q) use ($user) {
+                if ($user->isPmoAdmin()) {
+                    return;
+                }
+
                 $q->where('created_by', $user->id)
                   ->orWhereJsonContains('attendees', (string) $user->id)
-                  ->orWhereJsonContains('attendees', (int) $user->id);
+                  ->orWhereJsonContains('attendees', (int) $user->id)
+                  ->orWhereHas('project', function ($pq) use ($user) {
+                      $pq->where('project_manager_id', $user->id);
+                  });
+            })
+            ->where(function ($q) {
+                $q->whereNull('project_id')
+                  ->orWhereHas('project', fn($pq) => $pq->where('pm_accepted', true));
             })
             ->where(function ($q) use ($todayStr) {
                 $q->whereDate('start_date', $todayStr)
@@ -935,6 +946,21 @@ class ProjectManagerDashboard extends Component
             })
             ->orderBy('start_time', 'asc')
             ->get()
+            ->filter(function ($ev) use ($user) {
+                if ($user->isPmoAdmin()) {
+                    return true;
+                }
+                if ((int)$ev->created_by === (int)$user->id) {
+                    return true;
+                }
+                if ($ev->project && (int)$ev->project->project_manager_id === (int)$user->id) {
+                    return true;
+                }
+                // For team members and other roles: must be explicitly assigned as attendee!
+                $attendees = is_array($ev->attendees) ? $ev->attendees : (json_decode($ev->attendees ?? '[]', true) ?: []);
+                return in_array($user->id, $attendees) || in_array((string)$user->id, $attendees);
+            })
+            ->values()
             ->map(function ($ev) {
                 $eventTitle = !empty(trim($ev->title)) ? $ev->title : 'Scheduled Meeting';
                 return [
@@ -952,7 +978,8 @@ class ProjectManagerDashboard extends Component
                 ];
             });
 
-        $todayScheduleItems = $todayUserTasks->concat($todayUserEvents)->take(10);
+        // 3. Combined Schedule: Meetings come FIRST, followed by tasks!
+        $todayScheduleItems = $todayUserEvents->concat($todayUserTasks)->take(10);
         $todayTasksCount = $todayUserTasks->count();
         $todayEventsCount = $todayUserEvents->count();
 

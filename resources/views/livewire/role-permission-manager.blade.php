@@ -537,13 +537,23 @@
                 <form wire:submit="createRole" class="space-y-4 px-5 py-5 sm:px-6">
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Role display name <span class="text-rose-600">*</span></label>
-                        <input type="text" wire:model.live="newRoleName" maxlength="100" placeholder="e.g. Quality Assurance Lead" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
+                        <input type="text" wire:model.live.debounce.150ms="newRoleName" maxlength="100" placeholder="e.g. Quality Assurance Lead" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
                         @error('newRoleName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <div class="mb-1.5 flex items-center justify-between gap-3"><label class="text-xs font-bold text-slate-700">System role code <span class="text-rose-600">*</span></label><span class="text-[10px] text-slate-400 font-mono">Unique slug</span></div>
-                        <input type="text" wire:model="newRoleCode" maxlength="100" placeholder="e.g. qa_lead" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
+                        <div class="mb-1.5 flex items-center justify-between gap-3">
+                            <label class="text-xs font-bold text-slate-700">System role code <span class="text-rose-600">*</span></label>
+                            <div class="flex items-center gap-2">
+                                @if($isRoleCodeManuallyEdited)
+                                    <button type="button" wire:click="resetRoleCodeToAuto" class="text-[10px] font-bold text-[#c3122e] hover:underline cursor-pointer">
+                                        ↻ Auto-generate
+                                    </button>
+                                @endif
+                                <span class="text-[10px] text-slate-400 font-mono">Unique slug</span>
+                            </div>
+                        </div>
+                        <input type="text" wire:model.live.debounce.150ms="newRoleCode" maxlength="50" placeholder="e.g. qa_lead" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
                         <p class="mt-1 text-[10px] text-slate-400 font-medium">Use lowercase letters, numbers and underscores only.</p>
                         @error('newRoleCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
@@ -645,16 +655,23 @@
 
                     <div>
                         <label class="mb-1.5 block text-xs font-bold text-slate-700">Permission display name <span class="text-rose-600">*</span></label>
-                        <input type="text" wire:model.live="newPermissionName" maxlength="100" placeholder="e.g. Export Audit Report" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
+                        <input type="text" wire:model.live.debounce.150ms="newPermissionName" maxlength="100" placeholder="e.g. Export Audit Report" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#c3122e] focus:ring-4 focus:ring-rose-100" autofocus>
                         @error('newPermissionName') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <div class="mb-1.5 flex items-center justify-between gap-3">
                             <label class="text-xs font-bold text-slate-700">Permission code <span class="text-rose-600">*</span></label>
-                            <span class="text-[10px] text-slate-400 font-mono">Spatie permission name</span>
+                            <div class="flex items-center gap-2">
+                                @if($isPermissionCodeManuallyEdited)
+                                    <button type="button" wire:click="resetPermissionCodeToAuto" class="text-[10px] font-bold text-[#c3122e] hover:underline cursor-pointer">
+                                        ↻ Auto-generate
+                                    </button>
+                                @endif
+                                <span class="text-[10px] text-slate-400 font-mono">Spatie permission name</span>
+                            </div>
                         </div>
-                        <input type="text" wire:model="newPermissionCode" maxlength="150" placeholder="e.g. project.export_audit" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
+                        <input type="text" wire:model.live.debounce.150ms="newPermissionCode" maxlength="150" placeholder="e.g. project.export_audit" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-800 outline-none transition focus:border-[#c3122e] focus:bg-white focus:ring-4 focus:ring-rose-100">
                         <p class="mt-1 text-[10px] text-slate-400 font-medium">Use lowercase words separated by dots or underscores.</p>
                         @error('newPermissionCode') <span class="text-[11px] text-rose-500 font-bold block mt-0.5">{{ $message }}</span> @enderror
                     </div>

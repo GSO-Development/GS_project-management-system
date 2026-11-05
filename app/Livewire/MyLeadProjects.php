@@ -281,26 +281,81 @@ class MyLeadProjects extends Component
         $overdueCount    = (clone $baseQuery)->where('status', 'delayed')->count();
         $completedCount  = (clone $baseQuery)->where('status', 'completed')->count();
 
-        // Role breakdown counts (before filters)
-        $roleCounts = [
-            'lead' => (clone $baseQuery)->where('project_manager_id', $user->id)->count(),
-            'sponsor' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
-                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'sponsor'))->count(),
-            'owner' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
-                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'owner'))->count(),
-            'steering_committee' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
-                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'steering_committee'))->count(),
-            'member' => (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
-                ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', 'member'))->count(),
+        // Dynamic Role breakdown counts (before filters)
+        $allRoles = \App\Services\RbacService::getAllRoles();
+
+        // Project-level roles (exclude system-wide administration roles)
+        $projectRoles = collect($allRoles)->reject(function($rMeta, $rCode) {
+            return in_array($rCode, ['pmo_admin', 'super_admin', 'admin_viewer', 'project_manager', 'team_member'], true);
+        });
+
+        $roleCounts = [];
+        $availableRoles = [];
+
+        foreach ($projectRoles as $rCode => $rMeta) {
+            $roleLabel = match($rCode) {
+                'lead' => 'Project Manager (PM)',
+                'member' => 'Team Member',
+                'sponsor' => 'Project Sponsor',
+                'owner' => 'Project Owner',
+                'steering_committee' => 'Steering Committee',
+                default => $rMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $rCode)),
+            };
+
+            if ($rCode === 'lead') {
+                $count = (clone $baseQuery)->where('project_manager_id', $user->id)->count();
+            } elseif ($rCode === 'member') {
+                $count = (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
+                    ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->whereIn('project_members.role', ['member', 'team_member', 'participant']))
+                    ->count();
+            } else {
+                $count = (clone $baseQuery)->where('project_manager_id', '!=', $user->id)
+                    ->whereHas('members', fn($mq) => $mq->where('users.id', $user->id)->where('project_members.role', $rCode))
+                    ->count();
+            }
+
+            $roleCounts[$rCode] = $count;
+            $availableRoles[$rCode] = [
+                'code'  => $rCode,
+                'label' => $roleLabel,
+                'count' => $count,
+            ];
+        }
+
+        // Sort: lead, sponsor, owner, steering_committee, member, then custom roles alphabetically
+        $priorityOrder = [
+            'lead' => 1,
+            'sponsor' => 2,
+            'owner' => 3,
+            'steering_committee' => 4,
+            'member' => 5,
         ];
+
+        uksort($availableRoles, function ($a, $b) use ($priorityOrder, $availableRoles) {
+            $posA = $priorityOrder[$a] ?? 99;
+            $posB = $priorityOrder[$b] ?? 99;
+            if ($posA === $posB) {
+                return strcmp($availableRoles[$a]['label'] ?? $a, $availableRoles[$b]['label'] ?? $b);
+            }
+            return $posA <=> $posB;
+        });
+
+        // If the currently filtered role was deleted or no longer exists, safely reset filter to 'all'
+        if ($this->roleFilter !== 'all' && !isset($availableRoles[$this->roleFilter])) {
+            $this->roleFilter = 'all';
+        }
 
         // Role filter
         if ($this->roleFilter !== 'all') {
             if ($this->roleFilter === 'lead') {
                 $baseQuery->where('project_manager_id', $user->id);
+            } elseif ($this->roleFilter === 'member') {
+                $baseQuery->whereHas('members', fn($mq) =>
+                    $mq->where('users.id', $user->id)->whereIn('project_members.role', ['member', 'team_member', 'participant'])
+                );
             } else {
                 $baseQuery->whereHas('members', fn($mq) =>
-                    $mq->where('users.id', $user->id)->where('role', $this->roleFilter)
+                    $mq->where('users.id', $user->id)->where('project_members.role', $this->roleFilter)
                 );
             }
         }
@@ -352,6 +407,7 @@ class MyLeadProjects extends Component
             'overdueCount',
             'completedCount',
             'roleCounts',
+            'availableRoles',
             'userRoles',
             'delaySummaries'
         ))->title('My Projects — GS NexusPM');

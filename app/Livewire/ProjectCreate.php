@@ -271,6 +271,9 @@ class ProjectCreate extends Component
         $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), $sStr));
         $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), $sStr));
         $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $sStr));
+        foreach ($this->customRoleAssignments as $cCode => $cIds) {
+            $this->customRoleAssignments[$cCode] = array_values(array_diff(array_map('strval', (array)$cIds), $sStr));
+        }
         if ($this->project_manager_id && in_array((string)$this->project_manager_id, $sStr)) {
             $this->project_manager_id = null;
         }
@@ -282,6 +285,9 @@ class ProjectCreate extends Component
         $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), $oStr));
         $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), $oStr));
         $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $oStr));
+        foreach ($this->customRoleAssignments as $cCode => $cIds) {
+            $this->customRoleAssignments[$cCode] = array_values(array_diff(array_map('strval', (array)$cIds), $oStr));
+        }
         if ($this->project_manager_id && in_array((string)$this->project_manager_id, $oStr)) {
             $this->project_manager_id = null;
         }
@@ -293,8 +299,41 @@ class ProjectCreate extends Component
         $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), $scStr));
         $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), $scStr));
         $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $scStr));
+        foreach ($this->customRoleAssignments as $cCode => $cIds) {
+            $this->customRoleAssignments[$cCode] = array_values(array_diff(array_map('strval', (array)$cIds), $scStr));
+        }
         if ($this->project_manager_id && in_array((string)$this->project_manager_id, $scStr)) {
             $this->project_manager_id = null;
+        }
+    }
+
+    public function updatedCustomRoleAssignments(): void
+    {
+        $allCustomSelected = [];
+        foreach ($this->customRoleAssignments as $code => $ids) {
+            $allCustomSelected = array_merge($allCustomSelected, array_map('strval', (array)$ids));
+        }
+        $allCustomSelected = array_values(array_unique($allCustomSelected));
+
+        if (!empty($allCustomSelected)) {
+            $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), $allCustomSelected));
+            $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), $allCustomSelected));
+            $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), $allCustomSelected));
+            $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), $allCustomSelected));
+            if ($this->project_manager_id && in_array((string)$this->project_manager_id, $allCustomSelected)) {
+                $this->project_manager_id = null;
+            }
+        }
+    }
+
+    public function removeCustomRoleUser(string $roleCode, int $userId): void
+    {
+        if (isset($this->customRoleAssignments[$roleCode])) {
+            $uStr = (string)$userId;
+            $this->customRoleAssignments[$roleCode] = array_values(array_filter(
+                array_map('strval', (array)$this->customRoleAssignments[$roleCode]),
+                fn($id) => $id !== $uStr && (int)$id !== $userId
+            ));
         }
     }
 
@@ -304,6 +343,10 @@ class ProjectCreate extends Component
         $this->sponsor_ids = array_values(array_diff(array_map('strval', $this->sponsor_ids), [$uStr]));
         $this->owner_ids = array_values(array_diff(array_map('strval', $this->owner_ids), [$uStr]));
         $this->steering_committee_ids = array_values(array_diff(array_map('strval', $this->steering_committee_ids), [$uStr]));
+        $this->selected_participant_ids = array_values(array_diff(array_map('strval', $this->selected_participant_ids), [$uStr]));
+        foreach ($this->customRoleAssignments as $cCode => $cIds) {
+            $this->customRoleAssignments[$cCode] = array_values(array_diff(array_map('strval', (array)$cIds), [$uStr]));
+        }
         $this->project_manager_id = $userId;
     }
 
@@ -316,10 +359,16 @@ class ProjectCreate extends Component
     {
         if (!$this->subsidiary_id) return;
         
+        $allCustomIds = [];
+        foreach ($this->customRoleAssignments as $cIds) {
+            $allCustomIds = array_merge($allCustomIds, array_map('strval', (array)$cIds));
+        }
+
         $excludedIds = array_map('strval', array_merge(
             $this->sponsor_ids,
             $this->owner_ids,
-            $this->steering_committee_ids
+            $this->steering_committee_ids,
+            $allCustomIds
         ));
         if ($this->project_manager_id) {
             $excludedIds[] = (string)$this->project_manager_id;
@@ -438,19 +487,19 @@ class ProjectCreate extends Component
             $syncData[(int)$this->project_manager_id] = ['role' => 'lead'];
         }
 
-        // 5. Core Project Team (members)
-        foreach (array_map('intval', $this->selected_participant_ids) as $mId) {
-            if ($mId > 0 && !isset($syncData[$mId])) {
-                $syncData[$mId] = ['role' => 'member'];
-            }
-        }
-
-        // 6. Custom roles (dynamic, from Roles & Permissions Hub)
+        // 5. Custom roles (dynamic, from Roles & Permissions Hub)
         foreach ($this->customRoleAssignments as $roleCode => $userIds) {
-            foreach (array_map('intval', $userIds) as $uId) {
+            foreach (array_map('intval', (array)$userIds) as $uId) {
                 if ($uId > 0 && !isset($syncData[$uId])) {
                     $syncData[$uId] = ['role' => $roleCode];
                 }
+            }
+        }
+
+        // 6. Core Project Team (members)
+        foreach (array_map('intval', $this->selected_participant_ids) as $mId) {
+            if ($mId > 0 && !isset($syncData[$mId])) {
+                $syncData[$mId] = ['role' => 'member'];
             }
         }
 

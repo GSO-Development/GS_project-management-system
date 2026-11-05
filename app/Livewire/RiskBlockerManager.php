@@ -99,14 +99,27 @@ class RiskBlockerManager extends Component
             return;
         }
         $this->resetRiskForm();
+        $this->resetValidation();
+
+        $user = auth()->user();
         if ($projectId) {
             $this->riskProjectId = $projectId;
         } elseif ($this->selectedProjectId) {
             $this->riskProjectId = $this->selectedProjectId;
         } else {
-            $firstProj = Project::whereHas('subsidiary')->orWhereNotNull('id')->first();
-            if ($firstProj) {
-                $this->riskProjectId = $firstProj->id;
+            $projectsQuery = Project::query();
+            if (!$user->hasRole('super_admin') && !$user->hasRole('pmo_admin') && !$user->isAdminViewer() && $user->email !== 'admin@nexuspm.local' && $user->id !== 1) {
+                $projectsQuery->where('pm_accepted', true)->where(function($q) use ($user) {
+                    $q->where('project_manager_id', $user->id)
+                      ->orWhere(function($subQ) use ($user) {
+                          $subQ->where('pm_accepted', true)
+                               ->whereHas('members', fn($mq) => $mq->where('user_id', $user->id));
+                      });
+                });
+            }
+            $firstAccessible = $projectsQuery->orderBy('name')->first();
+            if ($firstAccessible) {
+                $this->riskProjectId = $firstAccessible->id;
             }
         }
         $this->riskOwnerId = auth()->id();
@@ -199,9 +212,20 @@ class RiskBlockerManager extends Component
         if (auth()->user()?->isAdminViewer()) {
             return;
         }
+        $this->resetValidation();
 
         $risk = ProjectRisk::findOrFail($riskId);
-        if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+        $user = auth()->user();
+
+        $isPrivileged = $user && ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1 || ($risk->project && $risk->project->project_manager_id === $user->id));
+        $isOwnerOrAssignee = $user && ($risk->owner_id === $user->id || ($risk->wbsItem && $risk->wbsItem->assigned_user_id === $user->id));
+
+        if (!$isPrivileged && !$isOwnerOrAssignee) {
+            $this->dispatch('toast', message: '🔒 You can only edit risks that are assigned to you.', type: 'error');
+            return;
+        }
+
+        if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1 && !$isOwnerOrAssignee) {
             $this->dispatch('toast', message: '🔒 You do not have permission to edit this risk.', type: 'error');
             return;
         }
@@ -240,7 +264,17 @@ class RiskBlockerManager extends Component
         ]);
 
         $risk = ProjectRisk::findOrFail($this->editingRiskId);
-        if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+        $user = auth()->user();
+
+        $isPrivileged = $user && ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1 || ($risk->project && $risk->project->project_manager_id === $user->id));
+        $isOwnerOrAssignee = $user && ($risk->owner_id === $user->id || ($risk->wbsItem && $risk->wbsItem->assigned_user_id === $user->id));
+
+        if (!$isPrivileged && !$isOwnerOrAssignee) {
+            $this->dispatch('toast', message: '🔒 You can only edit risks that are assigned to you.', type: 'error');
+            return;
+        }
+
+        if (!$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1 && !$isOwnerOrAssignee) {
             $this->dispatch('toast', message: '🔒 You do not have permission to edit this risk.', type: 'error');
             return;
         }
@@ -298,7 +332,17 @@ class RiskBlockerManager extends Component
         }
 
         $risk = ProjectRisk::findOrFail($riskId);
-        if (!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+        $user = auth()->user();
+
+        $isPrivileged = $user && ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1 || ($risk->project && $risk->project->project_manager_id === $user->id));
+        $isOwnerOrAssignee = $user && ($risk->owner_id === $user->id || ($risk->wbsItem && $risk->wbsItem->assigned_user_id === $user->id));
+
+        if (!$isPrivileged && !$isOwnerOrAssignee) {
+            $this->dispatch('toast', message: '🔒 You can only change status for risks assigned to you.', type: 'error');
+            return;
+        }
+
+        if (!$risk->project?->userCan(auth()->user(), 'risk.resolve') && !$risk->project?->userCan(auth()->user(), 'risk.edit') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1 && !$isOwnerOrAssignee) {
             $this->dispatch('toast', message: '🔒 You do not have permission to update status of this risk.', type: 'error');
             return;
         }

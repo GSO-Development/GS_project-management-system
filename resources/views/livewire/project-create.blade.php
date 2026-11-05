@@ -284,6 +284,14 @@
                                                     $project_manager_id == $user->id => 'PM',
                                                     default => null
                                                 };
+                                                if (!$otherRole) {
+                                                    foreach ($customRoleAssignments as $chkCode => $chkIds) {
+                                                        if (in_array($uIdStr, array_map('strval', (array)$chkIds))) {
+                                                            $otherRole = $customRoles[$chkCode]['name'] ?? 'Custom';
+                                                            break;
+                                                        }
+                                                    }
+                                                }
                                             @endphp
                                             <label class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all {{ $otherRole ? 'opacity-50 cursor-not-allowed bg-slate-50' : ($isOwnerSelected ? 'bg-amber-50 text-amber-900 font-bold' : 'hover:bg-slate-50 text-slate-700 cursor-pointer') }}">
                                                 <div class="flex items-center gap-2.5 min-w-0">
@@ -370,6 +378,14 @@
                                                     $project_manager_id == $user->id => 'PM',
                                                     default => null
                                                 };
+                                                if (!$otherRole) {
+                                                    foreach ($customRoleAssignments as $chkCode => $chkIds) {
+                                                        if (in_array($uIdStr, array_map('strval', (array)$chkIds))) {
+                                                            $otherRole = $customRoles[$chkCode]['name'] ?? 'Custom';
+                                                            break;
+                                                        }
+                                                    }
+                                                }
                                             @endphp
                                             <label class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all {{ $otherRole ? 'opacity-50 cursor-not-allowed bg-slate-50' : ($isSponsorSelected ? 'bg-purple-50 text-purple-900 font-bold' : 'hover:bg-slate-50 text-slate-700 cursor-pointer') }}">
                                                 <div class="flex items-center gap-2.5 min-w-0">
@@ -448,6 +464,14 @@
                                                     $project_manager_id == $user->id => 'PM',
                                                     default => null
                                                 };
+                                                if (!$otherRole) {
+                                                    foreach ($customRoleAssignments as $chkCode => $chkIds) {
+                                                        if (in_array($uIdStr, array_map('strval', (array)$chkIds))) {
+                                                            $otherRole = $customRoles[$chkCode]['name'] ?? 'Custom';
+                                                            break;
+                                                        }
+                                                    }
+                                                }
                                             @endphp
                                             <label class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all {{ $otherRole ? 'opacity-50 cursor-not-allowed bg-slate-50' : ($isScSelected ? 'bg-teal-50 text-teal-900 font-bold' : 'hover:bg-slate-50 text-slate-700 cursor-pointer') }}">
                                                 <div class="flex items-center gap-2.5 min-w-0">
@@ -471,6 +495,115 @@
 
                     </div>
                 </div>
+
+                {{-- Dynamic Custom Roles from Roles & Permissions Hub --}}
+                @if(!empty($customRoles) && count($customRoles) > 0)
+                    <div class="space-y-3 pt-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($customRoles as $cCode => $cRoleMeta)
+                                @php
+                                    $cSelectedIds = array_map('strval', $customRoleAssignments[$cCode] ?? []);
+                                    $cCount = count($cSelectedIds);
+                                    $cRoleName = $cRoleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $cCode));
+                                    $cUsersList = $customRoleUsers[$cCode] ?? $allParticipants;
+                                @endphp
+                                <div class="space-y-2" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false" wire:key="custom-role-block-{{ $cCode }}">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-slate-900">{{ $cRoleName }}</span>
+                                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200/60">
+                                                Custom Role
+                                            </span>
+                                        </div>
+                                        <span class="text-[10px] font-semibold text-slate-400">Optional</span>
+                                    </div>
+
+                                    <div class="relative">
+                                        {{-- Trigger Pill --}}
+                                        <button type="button" :aria-expanded="open" aria-haspopup="true" @click="open = !open; $nextTick(() => $refs['customInput_' + '{{ $cCode }}'] && $refs['customInput_' + '{{ $cCode }}'].focus())" class="w-full min-h-[44px] px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs">
+                                            <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                @if($cCount > 0)
+                                                    <span class="text-xs font-bold text-slate-900 truncate">{{ $cCount }} {{ $cRoleName }}(s) Selected</span>
+                                                @else
+                                                    <span class="text-xs font-medium text-slate-400 truncate">Select {{ $cRoleName }}...</span>
+                                                @endif
+                                            </div>
+                                            <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180 text-slate-700' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                                        </button>
+
+                                        {{-- Selected Chips --}}
+                                        @if($cCount > 0)
+                                            <div class="flex flex-wrap gap-1.5 pt-1.5">
+                                                @foreach($allParticipants->whereIn('id', $cSelectedIds) as $u)
+                                                    <span class="pc-team-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-900 border border-indigo-200/80 shadow-2xs">
+                                                        <div class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold">
+                                                            {{ strtoupper(substr($u->name, 0, 1)) }}
+                                                        </div>
+                                                        <span>{{ $u->name }}</span>
+                                                        <button type="button" wire:click="removeCustomRoleUser('{{ $cCode }}', {{ $u->id }})" class="text-indigo-500 hover:text-rose-600 transition-colors cursor-pointer ml-0.5">
+                                                            &times;
+                                                        </button>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        {{-- Dropdown --}}
+                                        <div x-cloak x-show="open" x-transition.origin.top.duration.150ms class="absolute z-50 left-0 right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-2.5 space-y-2">
+                                            <div class="relative">
+                                                <input x-ref="customInput_{{ $cCode }}" type="text" wire:model.live.debounce.150ms="customRoleSearch.{{ $cCode }}" placeholder="Search {{ strtolower($cRoleName) }} by name..." class="w-full pl-8 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#c3122e] transition-all">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                                            </div>
+
+                                            <div class="max-h-52 overflow-y-auto space-y-1 scrollbar-thin pr-1">
+                                                @forelse($cUsersList as $user)
+                                                    @php
+                                                        $uIdStr = (string)$user->id;
+                                                        $isCurrentRoleSelected = in_array($uIdStr, $cSelectedIds);
+                                                        
+                                                        // Check if user is assigned to any other role
+                                                        $otherRole = null;
+                                                        if ($project_manager_id == $user->id) {
+                                                            $otherRole = 'PM';
+                                                        } elseif (in_array($uIdStr, array_map('strval', $sponsor_ids))) {
+                                                            $otherRole = 'Sponsor';
+                                                        } elseif (in_array($uIdStr, array_map('strval', $owner_ids))) {
+                                                            $otherRole = 'Owner';
+                                                        } elseif (in_array($uIdStr, array_map('strval', $steering_committee_ids))) {
+                                                            $otherRole = 'Committee';
+                                                        } else {
+                                                            foreach ($customRoleAssignments as $checkCode => $checkIds) {
+                                                                if ($checkCode !== $cCode && in_array($uIdStr, array_map('strval', (array)$checkIds))) {
+                                                                    $otherRoleMeta = $customRoles[$checkCode] ?? null;
+                                                                    $otherRole = $otherRoleMeta['name'] ?? ucwords(str_replace(['_', '-'], ' ', $checkCode));
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    <label class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all {{ $otherRole ? 'opacity-50 cursor-not-allowed bg-slate-50' : ($isCurrentRoleSelected ? 'bg-indigo-50 text-indigo-900 font-bold' : 'hover:bg-slate-50 text-slate-700 cursor-pointer') }}">
+                                                        <div class="flex items-center gap-2.5 min-w-0">
+                                                            @if(!$otherRole)
+                                                                <input type="checkbox" wire:model.live="customRoleAssignments.{{ $cCode }}" value="{{ $user->id }}" class="w-3.5 h-3.5 accent-indigo-600 rounded cursor-pointer">
+                                                            @endif
+                                                            <span class="truncate font-medium">{{ $user->name }}</span>
+                                                            <span class="text-[10px] text-slate-400">({{ $user->subsidiary->code ?? 'GS' }})</span>
+                                                        </div>
+                                                        @if($otherRole)
+                                                            <span class="text-[10px] text-slate-400 italic">As {{ $otherRole }}</span>
+                                                        @endif
+                                                    </label>
+                                                @empty
+                                                    <div class="py-3 text-center text-xs text-slate-400 font-medium">No candidates found.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Tier 3: Team Members (Full-width card) --}}
                 <div class="space-y-3 pt-2">
@@ -545,6 +678,14 @@
                                                 $isSc => 'Committee',
                                                 default => null
                                             };
+                                            if (!$otherRole) {
+                                                foreach ($customRoleAssignments as $chkCode => $chkIds) {
+                                                    if (in_array($uIdStr, array_map('strval', (array)$chkIds))) {
+                                                        $otherRole = $customRoles[$chkCode]['name'] ?? 'Custom';
+                                                        break;
+                                                    }
+                                                }
+                                            }
                                             $isSelected = in_array($uIdStr, array_map('strval', $selected_participant_ids)) || $otherRole !== null;
                                         @endphp
                                         <label class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all {{ $otherRole ? 'opacity-50 cursor-not-allowed bg-slate-50' : ($isSelected ? 'bg-blue-50 text-blue-900 font-bold' : 'hover:bg-slate-50 text-slate-700 cursor-pointer') }}">
