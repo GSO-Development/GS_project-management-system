@@ -69,15 +69,15 @@ class RolePermissionManager extends Component
         $this->selectedRole = $roleCode;
         $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
 
-        // Platform-enforced roles (PMO Administrator, Admin Viewer) are shown read-only with what they
+        // Platform-enforced roles (PMO Administrator) are shown read-only with what they
         // can effectively do; everyone else shows the permissions stored for the role.
         $activePerms = RbacService::isSystemLockedRole($roleCode)
             ? RbacService::getEffectivePermissionsForRole($roleCode)
             : RbacService::getPermissionsForRole($roleCode);
 
-        // Strip project.create for non-PMO admin roles
+        // Strip project.create and calendar.create for non-PMO admin roles
         if (!$isPmoAdminRole) {
-            $activePerms = array_diff($activePerms, ['project.create']);
+            $activePerms = array_diff($activePerms, ['project.create', 'calendar.create']);
         }
 
         $this->rolePermissions = [];
@@ -110,7 +110,7 @@ class RolePermissionManager extends Component
 
         $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
 
-        if ($permCode === 'project.create' && !$isPmoAdminRole) {
+        if (in_array($permCode, ['project.create', 'calendar.create'], true) && !$isPmoAdminRole) {
             return;
         }
 
@@ -130,7 +130,7 @@ class RolePermissionManager extends Component
         $isPmoAdminRole = in_array($this->selectedRole, ['super_admin', 'pmo_admin'], true);
 
         foreach (array_keys($module['permissions']) as $permCode) {
-            if ($permCode === 'project.create' && !$isPmoAdminRole) {
+            if (in_array($permCode, ['project.create', 'calendar.create'], true) && !$isPmoAdminRole) {
                 continue;
             }
             $this->rolePermissions[$permCode] = true;
@@ -163,7 +163,7 @@ class RolePermissionManager extends Component
 
         foreach ($allModules as $module) {
             foreach (array_keys($module['permissions']) as $permCode) {
-                if ($permCode === 'project.create' && !$isPmoAdminRole) {
+                if (in_array($permCode, ['project.create', 'calendar.create'], true) && !$isPmoAdminRole) {
                     continue;
                 }
                 $this->rolePermissions[$permCode] = true;
@@ -200,7 +200,7 @@ class RolePermissionManager extends Component
         }
 
         if (RbacService::isSystemLockedRole($this->selectedRole)) {
-            $this->dispatch('toast', message: 'PMO Administrator and Admin Viewer access is enforced by the platform and cannot be edited.', type: 'warning');
+            $this->dispatch('toast', message: 'PMO Administrator access is enforced by the platform and cannot be edited.', type: 'warning');
             return;
         }
 
@@ -213,16 +213,20 @@ class RolePermissionManager extends Component
             $role = Role::create(['name' => $roleCode, 'guard_name' => 'web']);
         }
 
-        // Active permissions to save
-        $newPerms = array_keys(array_filter($this->rolePermissions));
+        // Only catalog permissions are editable on this screen. Preserve any legacy or
+        // integration permission that is not represented in the current catalog so opening
+        // and saving this drawer never silently revokes existing access.
+        $catalogPermissions = RbacService::allPermissionCodes();
+        $selectedCatalogPermissions = array_keys(array_filter($this->rolePermissions));
+        $oldPerms = $role->permissions->pluck('name')->toArray();
+        $legacyPermissions = array_values(array_diff($oldPerms, $catalogPermissions));
+        $newPerms = array_values(array_unique(array_merge($legacyPermissions, $selectedCatalogPermissions)));
 
         $isPmoAdminRole = in_array($roleCode, ['super_admin', 'pmo_admin'], true);
 
         if (!$isPmoAdminRole) {
-            $newPerms = array_values(array_diff($newPerms, ['project.create']));
+            $newPerms = array_values(array_diff($newPerms, ['project.create', 'calendar.create']));
         }
-        $oldPerms = $role->permissions->pluck('name')->toArray();
-
         // Ensure all defined permissions exist in database
         RbacService::ensureAllPermissionsExist();
 
@@ -538,8 +542,8 @@ class RolePermissionManager extends Component
     public function render()
     {
         $allRoles = RbacService::getAllRoles();
-        // Every role is listed. PMO Administrator and Admin Viewer are platform-enforced, so they are
-        // shown read-only with the permissions they effectively hold.
+        // Every role is listed. PMO Administrator is platform-enforced (read-only).
+        // Admin Viewer and all project roles are customizable via Spatie RBAC.
         $matrixRoles = $allRoles;
         $roles = $matrixRoles;
 

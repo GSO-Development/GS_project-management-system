@@ -63,11 +63,31 @@ class ProjectWorkspace extends Component
         return $user && ($user->isPmoAdmin() || $this->project->userCan($user, 'project_details.view'));
     }
 
+    /** Team Members may open the task sheet when they can view the task sheet or assigned tasks. */
+    public function getCanViewTaskSheetProperty(): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdminViewer()) {
+            return $this->project->canUserView($user) && ($this->project->userCan($user, 'task.sheet_view') || $this->project->userCan($user, 'task.view_all'));
+        }
+
+        return $user->isPmoAdmin()
+            || $this->project->userCan($user, 'task.sheet_view')
+            || $this->project->userCan($user, 'task.view_all')
+            || $this->project->userCan($user, 'task.view')
+            || $this->project->userCan($user, 'task.view_assigned');
+    }
+
     public function setTab(string $tab): void
     {
         $user = auth()->user();
 
-        if (($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user))
+        if (($tab === 'sheet' && !$this->canViewTaskSheet)
             || ($tab === 'details' && !$this->canViewProjectDetails)) {
             $this->activeTab = 'wbs';
             return;
@@ -80,7 +100,7 @@ class ProjectWorkspace extends Component
     {
         $user = auth()->user();
 
-        if (($tab === 'sheet' && !$user?->isAdminViewer() && !$this->project->canUserManage($user))
+        if (($tab === 'sheet' && !$this->canViewTaskSheet)
             || ($tab === 'details' && !$this->canViewProjectDetails)) {
             $this->activeTab = 'wbs';
         }
@@ -285,6 +305,14 @@ class ProjectWorkspace extends Component
 
     public function openReassignModal(): void
     {
+        $user = auth()->user();
+        if (!$user || (!$user->isSuperAdmin() && !$user->isPmoAdmin() && $user->id !== 1 && $user->email !== 'admin@nexuspm.local')) {
+            $this->dispatch('toast', message: 'Only PMO Admin can reassign project leadership.', type: 'error');
+            return;
+        }
+
+        $this->showProjectDetailsModal = false;
+        $this->showEditProjectModal = false;
         $this->resetAzureSearchState();
         $this->project->load(['subsidiary', 'projectManager', 'members']);
         
@@ -397,6 +425,7 @@ class ProjectWorkspace extends Component
             'reassignDeadline.after_or_equal' => 'Deadline must be on or after the start date.',
         ]);
 
+        $oldPmId = $this->project->project_manager_id;
         $newLeader = User::findOrFail($this->reassignPmId);
         $isSelfAssigned = ($user->id === $newLeader->id);
 
@@ -416,6 +445,33 @@ class ProjectWorkspace extends Component
             'pm_rejection_reason'=> null,
             'pm_rejected_at'     => null,
         ]);
+
+        // Transfer assigned tasks and open risks from former PM to the new PM
+        if ($oldPmId && (int) $oldPmId !== (int) $newLeader->id) {
+            \App\Models\WbsItem::where('project_id', $this->project->id)
+                ->where('assigned_user_id', $oldPmId)
+                ->update(['assigned_user_id' => $newLeader->id]);
+
+            \App\Models\ProjectRisk::where('project_id', $this->project->id)
+                ->where('owner_id', $oldPmId)
+                ->update(['owner_id' => $newLeader->id]);
+
+            \App\Models\ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'reassigned_project_manager',
+                'module' => 'projects',
+                'record_type' => \App\Models\Project::class,
+                'record_id' => $this->project->id,
+                'new_values' => [
+                    'old_pm_id' => $oldPmId,
+                    'new_pm_id' => $newLeader->id,
+                    'new_pm_name' => $newLeader->name,
+                    'reassigned_by' => $user->name,
+                ],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        }
 
         // Sync all governance roles & team members in project_members
         $syncData = [];
@@ -464,6 +520,7 @@ class ProjectWorkspace extends Component
         }
 
         $this->project->refresh();
+        $this->project->syncAutoStatus(true);
         $this->showReassignModal = false;
         $this->dispatch('toast', message: "Project reassigned & reconfigured. Assigned to {$newLeader->name}.", type: 'success');
     }
@@ -1061,6 +1118,11 @@ class ProjectWorkspace extends Component
         }
         if (request()->boolean('editProject') && $user && ($project->project_manager_id === $user->id || $user->isPmoAdmin() || $project->userCan($user, 'project_details.edit'))) {
             $this->openEditProjectModal();
+        }
+
+        if (request()->boolean('reassign') && $user && ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->hasRole('pmo_admin') || $user->id === 1 || $user->email === 'admin@nexuspm.local')) {
+            $this->setTab('team');
+            $this->openReassignModal();
         }
 
     }

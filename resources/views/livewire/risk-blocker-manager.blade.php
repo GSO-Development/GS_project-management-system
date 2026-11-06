@@ -491,6 +491,10 @@
                                             <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} - {{ $wbs->title }}</option>
                                         @endforeach
                                     </select>
+                                    @error('riskWbsItemId') <span class="text-[11px] text-rose-500 font-medium block mt-0.5">{{ $message }}</span> @enderror
+                                    @if(isset($canViewAllProjectTasks) && !$canViewAllProjectTasks)
+                                        <span class="text-[10px] text-slate-500 mt-1 block">Displaying tasks assigned to you</span>
+                                    @endif
                                 </div>
 
                                 <div>
@@ -685,6 +689,10 @@
                                             <option value="{{ $wbs->id }}">{{ $wbs->wbs_code }} - {{ $wbs->title }}</option>
                                         @endforeach
                                     </select>
+                                    @error('riskWbsItemId') <span class="text-[11px] text-rose-500 font-medium block mt-0.5">{{ $message }}</span> @enderror
+                                    @if(isset($canViewAllProjectTasks) && !$canViewAllProjectTasks)
+                                        <span class="text-[10px] text-slate-500 mt-1 block">Displaying tasks assigned to you</span>
+                                    @endif
                                 </div>
 
                                 <div>

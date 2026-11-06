@@ -716,6 +716,16 @@
                                     if (!$isPmoAdminRole) {
                                         unset($modPerms['project.create']);
                                     }
+
+                                    if (in_array($selectedRole, ['lead', 'project_manager'], true)) {
+                                        unset($modPerms['project.view_all']);
+                                    }
+                                }
+
+                                if ($modKey === 'calendar') {
+                                    if (!$isPmoAdminRole) {
+                                        unset($modPerms['calendar.create']);
+                                    }
                                 }
 
                                 if (!empty($searchDrawerPermission)) {

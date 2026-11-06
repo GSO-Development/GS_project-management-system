@@ -30,7 +30,26 @@ class ProjectTaskSheet extends Component
     public function getCanEditProperty(): bool
     {
         $user = auth()->user();
-        return $user && !$user->isAdminViewer() && ($user->isPmoAdmin() || $this->project->userCan($user, 'task.edit'));
+        return $user && !$user->isAdminViewer() && ($user->isPmoAdmin() || $this->project->userCan($user, 'task.sheet_edit') || $this->project->userCan($user, 'task.edit'));
+    }
+
+    public function getCanViewProperty(): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdminViewer()) {
+            return $this->project->canUserView($user) && ($this->project->userCan($user, 'task.sheet_view') || $this->project->userCan($user, 'task.view_all'));
+        }
+
+        return $user->isPmoAdmin()
+            || $this->project->userCan($user, 'task.sheet_view')
+            || $this->project->userCan($user, 'task.view_all')
+            || $this->project->userCan($user, 'task.view')
+            || $this->project->userCan($user, 'task.view_assigned');
     }
 
     public function getCanAssignProperty(): bool
@@ -184,8 +203,7 @@ class ProjectTaskSheet extends Component
     public function mount(Project $project): void
     {
         $this->project = $project;
-        $user = auth()->user();
-        abort_unless($user?->isAdminViewer() ? $project->canUserView($user) : $project->canUserManage($user), 403);
+        abort_unless($this->canView, 403);
     }
 
     #[On('wbsUpdated')]
@@ -231,8 +249,12 @@ class ProjectTaskSheet extends Component
 
     public function render()
     {
-        // 1. Fetch all items for this project with relations
-        $allTasks = WbsItem::with([
+        $user = auth()->user();
+        $canViewAllTasks = $user?->isPmoAdmin() || $this->project->userCan($user, 'task.view_all');
+
+        // Team Members see only tasks directly assigned to them. Counts and filters
+        // are built from that same set, so no other project work is exposed.
+        $tasksQuery = WbsItem::with([
             'children.children',
             'children.assignedUser',
             'assignedUser',
@@ -241,25 +263,38 @@ class ProjectTaskSheet extends Component
         ])
         ->where('project_id', $this->project->id)
         ->orderBy('sort_order')
-        ->orderBy('id')
-        ->get();
+        ->orderBy('id');
+
+        if (!$canViewAllTasks) {
+            $tasksQuery->where('assigned_user_id', $user->id);
+        }
+
+        $allTasks = $tasksQuery->get();
 
         // 2. Build hierarchical ordered collection (depth-first)
-        $childrenByParent = $allTasks->groupBy(fn($i) => $i->parent_id ?? 0);
         $orderedTasks = collect();
 
-        $walk = function($parentId, $level) use (&$walk, &$orderedTasks, $childrenByParent) {
-            $siblings = $childrenByParent->get($parentId, collect());
-            foreach ($siblings as $item) {
-                $item->tree_level = $level;
-                $item->has_children = $childrenByParent->has($item->id);
-                $item->children_count = $item->has_children ? $childrenByParent->get($item->id)->count() : 0;
-                $orderedTasks->push($item);
-                $walk($item->id, $level + 1);
-            }
-        };
+        if ($canViewAllTasks) {
+            $childrenByParent = $allTasks->groupBy(fn($i) => $i->parent_id ?? 0);
+            $walk = function($parentId, $level) use (&$walk, &$orderedTasks, $childrenByParent) {
+                $siblings = $childrenByParent->get($parentId, collect());
+                foreach ($siblings as $item) {
+                    $item->tree_level = $level;
+                    $item->has_children = $childrenByParent->has($item->id);
+                    $item->children_count = $item->has_children ? $childrenByParent->get($item->id)->count() : 0;
+                    $orderedTasks->push($item);
+                    $walk($item->id, $level + 1);
+                }
+            };
 
-        $walk(0, 1);
+            $walk(0, 1);
+        } else {
+            $orderedTasks = $allTasks->each(function (WbsItem $item) {
+                $item->tree_level = 1;
+                $item->has_children = false;
+                $item->children_count = 0;
+            });
+        }
 
         // 3. Filter items if search or filters are active
         $filteredTasks = $orderedTasks;

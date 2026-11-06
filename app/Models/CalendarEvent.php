@@ -198,12 +198,13 @@ class CalendarEvent extends Model
     public function userCanEdit(?User $user): bool
     {
         if (!$user) return false;
+        if ($user->isAdminViewer()) return false;
         if ($user->isPmoAdmin()) return true;
 
         if ($this->project_id) {
             $project = $this->project ?: Project::find($this->project_id);
             if ($project && (int)$project->project_manager_id === (int)$user->id) {
-                return true;
+                return $project->userCan($user, 'calendar.edit');
             }
         }
 
@@ -213,12 +214,13 @@ class CalendarEvent extends Model
     public function userCanDelete(?User $user): bool
     {
         if (!$user) return false;
+        if ($user->isAdminViewer()) return false;
         if ($user->isPmoAdmin()) return true;
 
         if ($this->project_id) {
             $project = $this->project ?: Project::find($this->project_id);
             if ($project && (int)$project->project_manager_id === (int)$user->id) {
-                return true;
+                return $project->userCan($user, 'calendar.delete');
             }
         }
 

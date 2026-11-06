@@ -212,13 +212,43 @@ class CalendarView extends Component
      * PM can create only if they manage at least one project.
      * Other assigned roles (Sponsor, Owner, Committee, Member) cannot create.
      */
+    protected function hasCalendarPermission(User $user, string $permission, ?Project $project = null): bool
+    {
+        if ($project && $project->userCan($user, $permission)) {
+            return true;
+        }
+
+        foreach ($user->roles as $role) {
+            if ($role->hasPermissionTo($permission)) {
+                return true;
+            }
+        }
+
+        if ($user->managedProjects()->exists() && in_array($permission, \App\Services\RbacService::getPermissionsForRole('lead'), true)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function userCanCreateEvent(): bool
     {
         $user = auth()->user();
         if (!$user) return false;
 
-        if ($user->isPmoAdmin()) {
+        if ($user->isAdminViewer()) {
+            return false;
+        }
+
+        if ($user->isPmoAdmin() || $this->hasCalendarPermission($user, 'calendar.create')) {
             return true;
+        }
+
+        if ($this->hasCalendarPermission($user, 'calendar.create_assigned')) {
+            return Project::where('pm_accepted', true)->where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+            })->exists();
         }
 
         return Project::where('project_manager_id', $user->id)->where('pm_accepted', true)->exists();
@@ -226,8 +256,8 @@ class CalendarView extends Component
 
     /**
      * Get projects available for event creation based on strict permissions:
-     * - PMO Admin: all projects across organization.
-     * - Project Manager: STRICTLY only projects where project_manager_id == user->id.
+     * - PMO Admin / calendar.create: all projects across organization.
+     * - calendar.create_assigned / PM: projects managed or assigned to this user.
      * - Other roles: empty collection.
      */
     public function getCreatableProjects()
@@ -235,16 +265,21 @@ class CalendarView extends Component
         $user = auth()->user();
         if (!$user) return collect();
 
-        if ($user->isPmoAdmin()) {
+        if ($user->isPmoAdmin() || $this->hasCalendarPermission($user, 'calendar.create')) {
             return Project::with('subsidiary')->orderBy('name')->get();
         }
 
-        // PM: strictly only projects managed by this user
-        return Project::where('project_manager_id', $user->id)
-            ->where('pm_accepted', true)
+        if ($this->hasCalendarPermission($user, 'calendar.create_assigned') || $user->managedProjects()->exists()) {
+            return Project::where('pm_accepted', true)->where(function($q) use ($user) {
+                $q->where('project_manager_id', $user->id)
+                  ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+            })
             ->with('subsidiary')
             ->orderBy('name')
             ->get();
+        }
+
+        return collect();
     }
 
     /**
@@ -966,10 +1001,15 @@ class CalendarView extends Component
             $project = Project::find($this->newEventProject);
         }
 
-        // Strict PM validation: PM can only create events for projects they manage
-        if (!$user->isPmoAdmin()) {
-            if (!$project || $project->project_manager_id !== $user->id) {
-                $this->dispatch('toast', message: 'Unauthorized: You can only schedule events for projects you manage as Project Manager.', type: 'error');
+        // Validation: user can only schedule events for projects they have permission for
+        if (!$user->isPmoAdmin() && !$this->hasCalendarPermission($user, 'calendar.create')) {
+            $isAssigned = $project && (
+                (int)$project->project_manager_id === (int)$user->id
+                || $project->members()->where('users.id', $user->id)->exists()
+            );
+
+            if (!$isAssigned || !$this->hasCalendarPermission($user, 'calendar.create_assigned', $project)) {
+                $this->dispatch('toast', message: 'Unauthorized: You can only schedule events for projects you are assigned to.', type: 'error');
                 return;
             }
         }

@@ -146,6 +146,37 @@ class RiskBlockerManager extends Component
         $this->riskImpact = 'medium';
     }
 
+    public function updatedRiskProjectId(): void
+    {
+        $this->riskWbsItemId = null;
+    }
+
+    public function canUserViewAllProjectTasks(?Project $project, ?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isSuperAdmin() || $user->isPmoAdmin() || $user->id === 1 || $user->email === 'admin@nexuspm.local') {
+            return true;
+        }
+
+        if (!$project) {
+            return false;
+        }
+
+        if ((int) $project->project_manager_id === (int) $user->id) {
+            return true;
+        }
+
+        if ($project->members()->where('users.id', $user->id)->where('project_members.role', 'lead')->exists()) {
+            return true;
+        }
+
+        return $project->userCan($user, 'task.view_all');
+    }
+
     public function addRisk()
     {
         if (auth()->user()?->isAdminViewer()) {
@@ -165,9 +196,18 @@ class RiskBlockerManager extends Component
         ]);
 
         $project = Project::findOrFail($this->riskProjectId);
-        if (!$project->userCan(auth()->user(), 'risk.create') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
+        $user = auth()->user();
+        if (!$project->userCan($user, 'risk.create') && !auth()->user()->hasRole('super_admin') && auth()->user()->id !== 1) {
             $this->dispatch('toast', message: '🔒 You do not have permission to create risks for this project.', type: 'error');
             return;
+        }
+
+        if ($this->riskWbsItemId && !$this->canUserViewAllProjectTasks($project, $user)) {
+            $task = WbsItem::where('project_id', $this->riskProjectId)->find($this->riskWbsItemId);
+            if (!$task || (int) $task->assigned_user_id !== (int) $user->id) {
+                $this->addError('riskWbsItemId', 'You can only link risks to tasks assigned to you.');
+                return;
+            }
         }
 
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
@@ -267,6 +307,15 @@ class RiskBlockerManager extends Component
         if (!$isPrivileged && !$isOwnerOrAssignee) {
             $this->dispatch('toast', message: '🔒 You do not have permission to edit this risk.', type: 'error');
             return;
+        }
+
+        $project = $risk->project ?? Project::find($this->riskProjectId);
+        if ($this->riskWbsItemId && !$this->canUserViewAllProjectTasks($project, $user)) {
+            $task = WbsItem::where('project_id', $this->riskProjectId)->find($this->riskWbsItemId);
+            if (!$task || ((int) $task->assigned_user_id !== (int) $user->id && (int) $risk->wbs_item_id !== (int) $task->id)) {
+                $this->addError('riskWbsItemId', 'You can only link risks to tasks assigned to you.');
+                return;
+            }
         }
 
         $probScores = ['low' => 1, 'medium' => 2, 'high' => 3];
@@ -475,8 +524,26 @@ class RiskBlockerManager extends Component
 
         // Available WBS Items for Add/Edit Risk Modal dropdown
         $modalWbsItems = collect();
+        $canViewAllProjectTasks = false;
         if ($this->riskProjectId) {
-            $modalWbsItems = WbsItem::where('project_id', $this->riskProjectId)->get()->sort(function ($a, $b) {
+            $targetProject = Project::find($this->riskProjectId);
+            $canViewAllProjectTasks = $this->canUserViewAllProjectTasks($targetProject, $user);
+
+            $wbsQuery = WbsItem::where('project_id', $this->riskProjectId);
+
+            // If user is a team member / collaborator without full task view permissions,
+            // only show tasks assigned directly to this user!
+            if (!$canViewAllProjectTasks && $user) {
+                $wbsQuery->where(function ($subQ) use ($user) {
+                    $subQ->where('assigned_user_id', $user->id);
+                    // In edit mode, allow preserving the risk's currently selected task
+                    if ($this->editingRiskId && $this->riskWbsItemId) {
+                        $subQ->orWhere('id', $this->riskWbsItemId);
+                    }
+                });
+            }
+
+            $modalWbsItems = $wbsQuery->get()->sort(function ($a, $b) {
                 return strnatcmp($a->wbs_code, $b->wbs_code);
             })->values();
         }
@@ -503,6 +570,7 @@ class RiskBlockerManager extends Component
             'risks',
             'taskRisks',
             'modalWbsItems',
+            'canViewAllProjectTasks',
             'users',
             'totalRisksCount',
             'openRisksCount',

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\Priority;
+use App\Livewire\Concerns\SearchesAzureDirectory;
 use Livewire\Attributes\On;
 use App\Enums\ProjectStatus;
 use App\Models\ActivityLog;
@@ -16,6 +17,7 @@ use App\Models\WbsItem;
 use App\Notifications\GenericSystemNotification;
 use App\Services\ProjectDelayAnalysisService;
 use App\Services\ProjectDeletionService;
+use App\Services\RbacService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -24,6 +26,7 @@ use Livewire\WithPagination;
 class ProjectIndex extends Component
 {
     use WithPagination;
+    use SearchesAzureDirectory;
 
     // View Mode: 'table' (Projects Directory), 'gantt' (Portfolio Gantt), 'stuck' (Stuck Tasks Radar)
     public string $viewMode = 'table';
@@ -94,6 +97,108 @@ class ProjectIndex extends Component
     public bool $showWbsReplaceConfirm = false;
     public bool $showWbsPicker = false;
     public array $selectedMembers = [];
+    public array $editSponsorIds = [];
+    public array $editOwnerIds = [];
+    public array $editSteeringIds = [];
+    public array $editMemberIds = [];
+
+    // ── Azure AD & Local People Picker Integration ───────────────────────────
+    protected function canUseAzureDirectory(): bool
+    {
+        $user = auth()->user();
+        return (bool) ($user && ($user->isPmoAdmin() || $user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1));
+    }
+
+    protected function azureSubsidiaryId(): ?int
+    {
+        return $this->subsidiary_id;
+    }
+
+    protected function azureIsValidRole(string $role): bool
+    {
+        return in_array($role, ['sponsor', 'owner', 'steering', 'member', 'collab'], true);
+    }
+
+    protected function azureRoleLabel(string $role): string
+    {
+        return match ($role) {
+            'sponsor'  => 'Project Sponsor',
+            'owner'    => 'Project Owner',
+            'steering' => 'Steering Committee',
+            default    => 'Team Member',
+        };
+    }
+
+    protected function azureAssignToRole(string $role, User $user): ?string
+    {
+        $id = (string) $user->id;
+
+        switch ($role) {
+            case 'sponsor':
+                $this->addEditSponsor($id);
+                break;
+            case 'owner':
+                $this->addEditOwner($id);
+                break;
+            case 'steering':
+                $this->addEditSteering($id);
+                break;
+            case 'collab':
+            case 'member':
+                $this->addEditMember($id);
+                break;
+        }
+
+        return null;
+    }
+
+    public function addEditSponsor(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->editSponsorIds, true)) {
+            $this->editSponsorIds[] = $userId;
+        }
+    }
+
+    public function removeEditSponsor(string $userId): void
+    {
+        $this->editSponsorIds = array_values(array_diff($this->editSponsorIds, [$userId]));
+    }
+
+    public function addEditOwner(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->editOwnerIds, true)) {
+            $this->editOwnerIds[] = $userId;
+        }
+    }
+
+    public function removeEditOwner(string $userId): void
+    {
+        $this->editOwnerIds = array_values(array_diff($this->editOwnerIds, [$userId]));
+    }
+
+    public function addEditSteering(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->editSteeringIds, true)) {
+            $this->editSteeringIds[] = $userId;
+        }
+    }
+
+    public function removeEditSteering(string $userId): void
+    {
+        $this->editSteeringIds = array_values(array_diff($this->editSteeringIds, [$userId]));
+    }
+
+    public function addEditMember(string $userId): void
+    {
+        if ($userId !== '' && !in_array($userId, $this->editMemberIds, true)) {
+            $this->editMemberIds[] = $userId;
+        }
+    }
+
+    public function removeEditMember(string $userId): void
+    {
+        $this->editMemberIds = array_values(array_diff($this->editMemberIds, [$userId]));
+    }
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -379,7 +484,9 @@ class ProjectIndex extends Component
         }
 
         $this->resetValidation();
-        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers']);
+        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers', 'editSponsorIds', 'editOwnerIds', 'editSteeringIds', 'editMemberIds']);
+        $this->resetAzureSearchState();
+        $this->azureAddedUserIds = [];
 
         $this->status = 'planning';
 
@@ -400,7 +507,7 @@ class ProjectIndex extends Component
             return;
         }
 
-        $project = Project::with('template')->findOrFail($id);
+        $project = Project::with(['template', 'members'])->findOrFail($id);
 
         $user = auth()->user();
         $isSuperAdmin = $user && ($user->hasRole('super_admin') || $user->hasRole('pmo_admin') || $user->id === 1);
@@ -433,6 +540,14 @@ class ProjectIndex extends Component
         $this->originalWbsType = $project->wbs_breakdown_type ?: 'manual';
         $this->priority = $project->priority instanceof \App\Enums\Priority ? $project->priority->value : (string)($project->priority ?? 'medium');
         $this->editTemplateSearch = '';
+
+        // Pre-fill Project Team Governance Roles
+        $this->editSponsorIds  = $project->members->where('pivot.role', 'sponsor')->pluck('id')->map(fn($id) => (string)$id)->values()->toArray();
+        $this->editOwnerIds    = $project->members->where('pivot.role', 'owner')->pluck('id')->map(fn($id) => (string)$id)->values()->toArray();
+        $this->editSteeringIds = $project->members->where('pivot.role', 'steering_committee')->pluck('id')->map(fn($id) => (string)$id)->values()->toArray();
+        $this->editMemberIds   = $project->members->whereIn('pivot.role', ['member', 'team_member', 'collaborator'])->pluck('id')->map(fn($id) => (string)$id)->values()->toArray();
+        $this->resetAzureSearchState();
+        $this->azureAddedUserIds = [];
         $this->showModal = true;
     }
 
@@ -440,7 +555,9 @@ class ProjectIndex extends Component
     {
         $this->showModal = false;
         $this->resetValidation();
-        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers']);
+        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers', 'editSponsorIds', 'editOwnerIds', 'editSteeringIds', 'editMemberIds']);
+        $this->resetAzureSearchState();
+        $this->azureAddedUserIds = [];
     }
 
     public function chooseBlankWbs(): void
@@ -544,6 +661,33 @@ class ProjectIndex extends Component
 
 
 
+            // Sync project team governance roles
+            $syncData = [];
+            if ($project->project_manager_id) {
+                $syncData[$project->project_manager_id] = ['role' => 'lead'];
+            }
+            foreach (array_map('intval', $this->editSponsorIds) as $sId) {
+                if ($sId > 0 && $sId !== $project->project_manager_id) $syncData[$sId] = ['role' => 'sponsor'];
+            }
+            foreach (array_map('intval', $this->editOwnerIds) as $oId) {
+                if ($oId > 0 && $oId !== $project->project_manager_id) $syncData[$oId] = ['role' => 'owner'];
+            }
+            foreach (array_map('intval', $this->editSteeringIds) as $scId) {
+                if ($scId > 0 && $scId !== $project->project_manager_id) $syncData[$scId] = ['role' => 'steering_committee'];
+            }
+            foreach (array_map('intval', $this->editMemberIds) as $mId) {
+                if ($mId > 0 && $mId !== $project->project_manager_id && !isset($syncData[$mId])) {
+                    $syncData[$mId] = ['role' => 'member'];
+                }
+            }
+            $customMembers = $project->members()->get()->reject(fn ($m) => in_array($m->pivot->role, ['sponsor', 'owner', 'steering_committee', 'member', 'team_member', 'collaborator', 'lead']));
+            foreach ($customMembers as $cm) {
+                if (!isset($syncData[$cm->id])) {
+                    $syncData[$cm->id] = ['role' => $cm->pivot->role];
+                }
+            }
+            $project->members()->sync($syncData);
+
             $this->dispatch('toast', message: 'Project updated successfully!', type: 'success');
         } else {
             if (!$user?->canCreateProject()) {
@@ -559,11 +703,32 @@ class ProjectIndex extends Component
                 $this->applyWbsChoice($project, 'template', $this->template_id);
             }
 
-            if (!empty($this->selectedMembers)) {
-                $syncData = [];
-                foreach ($this->selectedMembers as $userId) {
-                    $syncData[$userId] = ['role' => 'team_member', 'joined_at' => now()];
+            $syncData = [];
+            if ($project->project_manager_id) {
+                $syncData[$project->project_manager_id] = ['role' => 'lead'];
+            }
+            foreach (array_map('intval', $this->editSponsorIds) as $sId) {
+                if ($sId > 0 && $sId !== $project->project_manager_id) $syncData[$sId] = ['role' => 'sponsor'];
+            }
+            foreach (array_map('intval', $this->editOwnerIds) as $oId) {
+                if ($oId > 0 && $oId !== $project->project_manager_id) $syncData[$oId] = ['role' => 'owner'];
+            }
+            foreach (array_map('intval', $this->editSteeringIds) as $scId) {
+                if ($scId > 0 && $scId !== $project->project_manager_id) $syncData[$scId] = ['role' => 'steering_committee'];
+            }
+            foreach (array_map('intval', $this->editMemberIds) as $mId) {
+                if ($mId > 0 && $mId !== $project->project_manager_id && !isset($syncData[$mId])) {
+                    $syncData[$mId] = ['role' => 'member'];
                 }
+            }
+            if (!empty($this->selectedMembers)) {
+                foreach ($this->selectedMembers as $userId) {
+                    if (!isset($syncData[$userId])) {
+                        $syncData[$userId] = ['role' => 'team_member', 'joined_at' => now()];
+                    }
+                }
+            }
+            if (!empty($syncData)) {
                 $project->members()->sync($syncData);
             }
 
@@ -573,7 +738,9 @@ class ProjectIndex extends Component
         }
 
         $this->showModal = false;
-        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers']);
+        $this->reset(['code', 'name', 'description', 'category', 'actual_cost', 'subsidiary_id', 'project_manager_id', 'status', 'start_date', 'deadline', 'estimated_budget', 'wbsTemplateLabel', 'wbsChoice', 'template_id', 'originalWbsType', 'showWbsReplaceConfirm', 'showWbsPicker', 'editingId', 'selectedMembers', 'editSponsorIds', 'editOwnerIds', 'editSteeringIds', 'editMemberIds']);
+        $this->resetAzureSearchState();
+        $this->azureAddedUserIds = [];
     }
 
     public function confirmDelete(int $id): void
@@ -756,18 +923,36 @@ class ProjectIndex extends Component
         // Base query with strict role-based access scoping
         $baseQuery = Project::query();
 
-        if ($user && !$user->hasAdminInterfaceAccess()) {
-            $baseQuery->where(function($q) use ($user) {
-                // If user is the designated PM, they can see it
-                $q->where('project_manager_id', $user->id)
-                  // For all other users, project MUST be accepted by PM first
-                  ->orWhere(function($sub) use ($user) {
-                      $sub->where('pm_accepted', true)
-                          ->where(function($memberSub) use ($user) {
-                              $memberSub->whereHas('members', fn($mq) => $mq->where('users.id', $user->id))
-                                        ->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
-                          });
-                  });
+        if ($user && !$user->hasAdminInterfaceAccess() && !$user->hasProjectPermission('project.view_all')) {
+            $projectViewRoles = RbacService::getRoleCodesWithAnyPermission([
+                'project.view',
+                'project.view_assigned',
+            ]);
+            $leadCanView = in_array('lead', $projectViewRoles, true)
+                || in_array('project_manager', $projectViewRoles, true);
+
+            $baseQuery->where(function($q) use ($user, $projectViewRoles, $leadCanView) {
+                // The designated PM is evaluated as the lead project role.
+                if ($leadCanView) {
+                    $q->where('project_manager_id', $user->id);
+                }
+
+                // Other project members require an accepted project plus a currently
+                // granted project-view permission. Task-only assignees retain their
+                // narrowly scoped assigned-task access.
+                $q->orWhere(function($sub) use ($user, $projectViewRoles) {
+                    $sub->where('pm_accepted', true)
+                        ->where(function($memberSub) use ($user, $projectViewRoles) {
+                            if ($projectViewRoles !== []) {
+                                $memberSub->whereHas('members', function ($memberQuery) use ($user, $projectViewRoles) {
+                                    $memberQuery->where('users.id', $user->id)
+                                        ->whereIn('project_members.role', $projectViewRoles);
+                                });
+                            }
+
+                            $memberSub->orWhereHas('wbsItems', fn($wq) => $wq->where('assigned_user_id', $user->id));
+                        });
+                });
             });
         }
 
@@ -960,7 +1145,28 @@ class ProjectIndex extends Component
         );
         $subsidiaries = Subsidiary::all();
         $pms = User::getPmsForSubsidiary(null);
-        $allUsers = User::where('is_active', true)->get();
+        $assignedMemberIds = array_filter(array_map('intval', array_merge(
+            $this->editSponsorIds,
+            $this->editOwnerIds,
+            $this->editSteeringIds,
+            $this->editMemberIds
+        )));
+
+        $allUsers = User::with('subsidiary')
+            ->where(function($q) use ($assignedMemberIds) {
+                $q->where('is_active', true);
+                if (!empty($assignedMemberIds)) {
+                    $q->orWhereIn('id', $assignedMemberIds);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        if (!empty($this->azureAddedUserIds)) {
+            $allUsers = $allUsers->concat($this->azureAddedUsers())->unique('id')->sortBy('name')->values();
+        }
+
+        $azureEnabled = $this->canUseAzureDirectory();
 
         // ═══════════════════════════════════════════════════════════════
         // 🔍 WBS TASK INSPECTOR DATA PREPARATION
@@ -1334,7 +1540,8 @@ class ProjectIndex extends Component
             'ganttTimeline',
             'delaySummaries',
             'availableWbsTemplates',
-            'projectFilterRoles'
+            'projectFilterRoles',
+            'azureEnabled'
 
         ));
     }

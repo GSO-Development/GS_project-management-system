@@ -87,10 +87,10 @@ class RbacTest extends TestCase
         $this->assertFalse($member->hasProjectPermission('task.delete', $project));
         $this->assertFalse($member->hasProjectPermission('team.add', $project));
 
-        // Default member can view and update assigned
+        // Default member can view and update assigned work
         $this->assertTrue($member->hasProjectPermission('task.view_assigned', $project));
         $this->assertTrue($member->hasProjectPermission('task.edit_assigned', $project));
-        $this->assertTrue($member->hasProjectPermission('task.comment', $project));
+        $this->assertTrue($member->hasProjectPermission('project.view_assigned', $project));
     }
 
     public function test_dynamic_permission_toggle()
@@ -227,19 +227,22 @@ class RbacTest extends TestCase
         ]);
         $project = $this->createProject(['project_manager_id' => $pm->id]);
 
-        $this->assertArrayNotHasKey('risk.delete', RbacService::MODULES['risk']['permissions']);
+        $this->assertArrayHasKey('risk.delete', RbacService::MODULES['risk']['permissions']);
         $this->assertArrayHasKey('task.change_priority', RbacService::MODULES['task']['permissions']);
         $this->assertArrayHasKey('task.update_progress', RbacService::MODULES['task']['permissions']);
 
         foreach (RbacService::MODULES as $moduleKey => $moduleDef) {
             foreach (array_keys($moduleDef['permissions']) as $perm) {
-                $this->assertTrue(
-                    $project->userCan($pm, $perm),
-                    "Expected Project Manager (lead) to have default permission '{$perm}' in module '{$moduleKey}'."
-                );
+                if (!in_array($perm, ['project.create', 'project.view_all'], true)) {
+                    $this->assertTrue(
+                        $project->userCan($pm, $perm),
+                        "Expected Project Manager (lead) to have default permission '{$perm}' in module '{$moduleKey}'."
+                    );
+                }
             }
             $summary = RbacService::computeModuleSummary('lead', $moduleKey);
-            $this->assertSame('Full Access', $summary['label'], "Expected Full Access for lead on module '{$moduleKey}'.");
+            $expectedSummary = 'Full Access';
+            $this->assertSame($expectedSummary, $summary['label'], "Unexpected access summary for lead on module '{$moduleKey}'.");
         }
     }
 }

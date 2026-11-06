@@ -6,7 +6,7 @@
         $isPm            = !$isAdminViewer && ($project->project_manager_id === $currentUser->id);
         $userRoleCode    = $project->getUserRole($currentUser);
         $canViewProjectDetails = $this->canViewProjectDetails;
-        $hideTaskSheet = !$isAdminViewer && !$project->canUserManage($currentUser);
+        $hideTaskSheet = !$this->canViewTaskSheet;
         $roleMeta        = $allRoles[$userRoleCode] ?? null;
 
         if ($isPm || $userRoleCode === 'lead') {
@@ -137,17 +137,6 @@
             </div>
 
             <div class="flex items-center gap-2.5 flex-shrink-0 pl-2 sm:pl-0">
-                @if(auth()->user()->isSuperAdmin())
-                    <button
-                        wire:click="openReassignModal"
-                        type="button"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a80f27] shadow-sm hover:shadow transition-all cursor-pointer active:scale-95"
-                    >
-                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                        <span>Reassign Leader</span>
-                    </button>
-                @endif
-
                 @if(!$isAdminViewer && $project->project_manager_id === auth()->id())
                     @if($project->canApproveAssignment(auth()->user()))
                     <button
@@ -829,6 +818,20 @@
                             <div class="team-lead__stat"><strong>{{ $pmTasksCount }}</strong><span>Assigned tasks</span></div>
                             <div class="team-lead__stat"><strong class="team-lead__company">{{ $pmUser->subsidiary->code ?? ($project->subsidiary->code ?? 'GS') }}</strong><span>Subsidiary</span></div>
                         </div>
+                        @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isPmoAdmin())
+                            <div style="padding-top: 14px; margin-top: auto; border-top: 1px solid #f4e8ec;">
+                                <button
+                                    wire:click="openReassignModal"
+                                    type="button"
+                                    class="team-roster__add w-full"
+                                    style="width: 100%; justify-content: center; font-weight: 700;"
+                                    title="Assign a new Project Manager or reconfigure governance"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                    Reassign Project Manager
+                                </button>
+                            </div>
+                        @endif
                     </div>
                     </div>
                     <div class="team-collaborators-section">
@@ -1666,7 +1669,14 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80">
                         <!-- Project Manager (Read-only) -->
                         <div class="min-w-0">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Project Manager</span>
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Project Manager</span>
+                                @if(auth()->user()?->isPmoAdmin() || auth()->user()?->isSuperAdmin())
+                                    <button type="button" wire:click="openReassignModal" class="text-[10px] font-bold text-[#c3122e] hover:underline cursor-pointer" title="Reassign Project Manager">
+                                        Reassign PM
+                                    </button>
+                                @endif
+                            </div>
                             @if($currPm)
                                 <div class="flex items-center gap-2 min-w-0">
                                     <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-slate-300/80">
@@ -2122,349 +2132,324 @@
     @endteleport
     @endif
 
-    <!-- ===== REASSIGN & RECONFIGURE PROJECT LEADER MODAL (PMO ADMIN) ===== -->
+    <!-- ===== REASSIGN PROJECT MANAGER MODAL (PMO ADMIN) ===== -->
     @if($showReassignModal)
     @teleport('body')
     <div 
         x-data 
         @keydown.escape.window="$wire.closeReassignModal()"
         wire:click.self="closeReassignModal"
-        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.52); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
+        style="position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.58); backdrop-filter: blur(6px); margin: 0; box-sizing: border-box;"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="reassign-pm-modal-title"
     >
-        <div style="position: relative; width: min(840px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column;">
-                {{-- Header --}}
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 flex-shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg shadow-2xs flex-shrink-0">
-                            🔄
-                        </div>
-                        <div>
-                            <h3 class="text-base font-black text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
-                                Reassign &amp; Reconfigure Project
-                            </h3>
-                            <p class="text-[11px] text-slate-500 font-medium">Edit project parameters &amp; reassign leadership for rejected or declined project</p>
-                        </div>
+        <div style="position: relative; width: min(720px, calc(100vw - 32px)); max-width: 720px; max-height: calc(100dvh - 36px); background: #ffffff; border-radius: 20px; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28); border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column;">
+            
+            {{-- Header --}}
+            <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-[#c3122e] border border-rose-100 flex items-center justify-center font-bold flex-shrink-0 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
                     </div>
-                    <button wire:click="closeReassignModal" type="button" class="text-slate-400 hover:text-slate-600 font-bold p-1 rounded-xl hover:bg-slate-100 transition-colors text-lg cursor-pointer">&times;</button>
+                    <div class="min-w-0">
+                        <h3 id="reassign-pm-modal-title" class="text-base font-extrabold text-slate-900 tracking-tight" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                            Reassign Project Manager
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium truncate">
+                            Transfer project leadership, assigned tasks, and governance oversight.
+                        </p>
+                    </div>
+                </div>
+                <button 
+                    wire:click="closeReassignModal" 
+                    type="button" 
+                    class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all flex items-center justify-center font-bold text-sm cursor-pointer flex-shrink-0"
+                    title="Close (Esc)"
+                >
+                    &times;
+                </button>
+            </div>
+
+            {{-- Scrollable Body --}}
+            <div class="p-6 space-y-5 text-xs overflow-y-auto flex-1 scrollbar-thin">
+
+                {{-- Previous Decline Alert (Only if project assignment was previously declined) --}}
+                @if($reassignDeclineReason)
+                    <div class="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 space-y-1.5 shadow-2xs">
+                        <div class="flex items-center justify-between font-bold text-xs text-amber-900">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                <span>Previous Leadership Feedback</span>
+                            </span>
+                            @if($project->projectManager)
+                                <span class="text-[10px] bg-amber-100/90 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                                    {{ $project->projectManager->name }}
+                                </span>
+                            @endif
+                        </div>
+                        <p class="text-xs text-amber-900 font-medium italic bg-white/70 p-2.5 rounded-lg border border-amber-100">
+                            "{{ $reassignDeclineReason }}"
+                        </p>
+                    </div>
+                @endif
+
+                {{-- Current vs New PM Transition Banner --}}
+                @php
+                    $formerPm = $project->projectManager;
+                    $formerPmTasksCount = $formerPm ? $project->wbsItems()->where('assigned_user_id', $formerPm->id)->count() : 0;
+                    $formerPmRisksCount = $formerPm ? $project->risks()->where('owner_id', $formerPm->id)->count() : 0;
+                @endphp
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Project Leader</span>
+                        <span class="text-[10px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                            {{ $formerPmTasksCount }} tasks &bull; {{ $formerPmRisksCount }} risks will transfer
+                        </span>
+                    </div>
+
+                    @if($formerPm)
+                        <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200/70 shadow-2xs">
+                            <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-200">
+                                {{ strtoupper(substr($formerPm->name, 0, 1)) }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-xs font-bold text-slate-900 block truncate">{{ $formerPm->name }}</span>
+                                <span class="text-[11px] text-slate-500 truncate block">{{ $formerPm->email }} &bull; {{ $formerPm->subsidiary->code ?? ($project->subsidiary->code ?? 'GS') }}</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Former Leader</span>
+                        </div>
+                    @else
+                        <div class="p-3 bg-white rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 italic">
+                            No Project Manager currently assigned.
+                        </div>
+                    @endif
                 </div>
 
-                {{-- Scrollable Body --}}
-                <div class="p-6 space-y-5 text-xs overflow-y-auto flex-1 scrollbar-thin">
-                    {{-- Decline Reason Alert Card (if declined) --}}
-                    @if($reassignDeclineReason)
-                        <div class="p-4 rounded-2xl bg-rose-50/90 border border-rose-200/90 text-rose-950 space-y-1.5 shadow-2xs">
-                            <div class="flex items-center justify-between font-extrabold text-xs">
-                                <span class="flex items-center gap-2 text-rose-700">
-                                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
-                                    <span>⚠️ Declined Leadership Assignment Reason</span>
-                                </span>
-                                @if($project->projectManager)
-                                    <span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">
-                                        Prev PM: {{ $project->projectManager->name }}
-                                    </span>
-                                @endif
+                {{-- Hero Card: Select New Project Manager --}}
+                <div class="bg-gradient-to-r from-rose-50/70 via-white to-white p-4.5 rounded-2xl border-2 border-rose-200 shadow-2xs space-y-3">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <label class="font-bold text-slate-900 text-xs flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-[#c3122e] text-white flex items-center justify-center font-bold text-[10px] shadow-2xs">★</span>
+                            <span>Designate New Project Manager <span class="text-rose-600">*</span></span>
+                        </label>
+                        <span class="text-[10px] font-bold text-[#c3122e] bg-rose-100/90 px-2.5 py-0.5 rounded-full border border-rose-200">
+                            Required Lead Role
+                        </span>
+                    </div>
+
+                    @if($reassignPmId && ($pmPerson = $availablePms->firstWhere('id', $reassignPmId)))
+                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-rose-300 shadow-2xs">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-[#c3122e] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($pmPerson->name, 0, 1)) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-xs font-bold text-slate-900 block truncate">{{ $pmPerson->name }}</span>
+                                    <span class="text-[11px] text-slate-500 truncate block">{{ $pmPerson->email }} &bull; {{ $pmPerson->subsidiary->code ?? 'GST' }}</span>
+                                </div>
                             </div>
-                            <p class="text-xs text-rose-900 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-100">
-                                "{{ $reassignDeclineReason }}"
-                            </p>
+                            <button 
+                                type="button" 
+                                wire:click="clearReassignPm" 
+                                class="w-6 h-6 rounded-md bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-500 font-bold text-xs flex items-center justify-center transition-all cursor-pointer flex-shrink-0" 
+                                title="Change selection"
+                            >
+                                &times;
+                            </button>
                         </div>
                     @endif
 
-                    {{-- Form Grid: Section 1 - Basic Info --}}
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-                            <span class="text-base">📌</span>
-                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">1. Project Identity &amp; Classification</h4>
-                        </div>
+                    @include('livewire.partials.azure-user-search', [
+                        'azureEnabled' => $azureReassignEnabled, 
+                        'pickLocal' => true, 
+                        'roleKey' => 'pm', 
+                        'showInput' => true, 
+                        'placeholder' => 'Search name or e-mail to assign new PM (System + Azure AD)...'
+                    ])
+                    @error('reassignPmId') <span class="text-rose-600 text-[11px] font-bold block mt-1">⚠ {{ $message }}</span> @enderror
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {{-- Project Code --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Project Code <span class="text-rose-600">*</span></label>
-                                <input type="text" wire:model="reassignCode" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 focus:bg-white focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none uppercase" placeholder="GST-PRJ-001">
-                                @error('reassignCode') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
-                            </div>
+                    <div class="flex items-start gap-2 pt-1 text-[11px] text-slate-500">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>All active tasks and risks assigned to the former PM will automatically transfer to the new PM upon confirmation.</span>
+                    </div>
+                </div>
 
-                            {{-- Project Name --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Project Name <span class="text-rose-600">*</span></label>
-                                <input type="text" wire:model="reassignName" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="Project Name">
-                                @error('reassignName') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {{-- Subsidiary --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Subsidiary <span class="text-rose-600">*</span></label>
-                                <select wire:model.live="reassignSubsidiaryId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none cursor-pointer">
-                                    <option value="">-- Select Subsidiary --</option>
-                                    @foreach($subsidiaries as $sub)
-                                        <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->code }})</option>
-                                    @endforeach
-                                </select>
-                                @error('reassignSubsidiaryId') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
-                            </div>
-
-                            {{-- Category --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Category</label>
-                                <input type="text" wire:model="reassignCategory" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="e.g. Corporate Strategy">
-                            </div>
-
-                            </div>
-                        </div>
+                {{-- Project Governance (Sponsors, Owners, Members) --}}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Project Governance Team (Optional)</h4>
+                        <span class="text-[10px] text-slate-400">Review or adjust sponsors &amp; owners</span>
                     </div>
 
-                    {{-- Form Grid: Section 2 - Timeline & Financials --}}
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-                            <span class="text-base">📅</span>
-                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">2. Timeline Schedule &amp; Budget Allocation</h4>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {{-- Start Date --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Start Date <span class="text-rose-600">*</span></label>
-                                <input type="date" wire:model="reassignStartDate" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none">
-                                @error('reassignStartDate') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
-                            </div>
-
-                            {{-- Target Deadline --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Target Deadline <span class="text-rose-600">*</span></label>
-                                <input type="date" wire:model="reassignDeadline" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none">
-                                @error('reassignDeadline') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
-                            </div>
-
-                            {{-- Estimated Budget --}}
-                            <div>
-                                <label class="block font-bold text-slate-700 text-xs mb-1">Estimated Budget (LKR)</label>
-                                <input type="number" step="0.01" wire:model="reassignEstimatedBudget" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="0.00">
-                                @error('reassignEstimatedBudget') <span class="text-rose-600 text-[11px] font-bold block mt-1">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Form Grid: Section 3 - Leadership & Governance Team --}}
-                    <div class="space-y-4 pt-1">
-                        <div class="flex items-center justify-between border-b border-slate-200/70 pb-2.5">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center text-xs shadow-xs font-black">
-                                    👥
-                                </div>
-                                <div>
-                                    <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">3. Project Leadership &amp; Governance Panel</h4>
-                                    <p class="text-[10px] text-slate-400 font-medium">Assign leadership roles, executive sponsors &amp; team structure</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60 hidden sm:inline-block">Governance &amp; Team</span>
-                        </div>
-
-                        {{-- Hero Card: Designated Project Manager / Leader --}}
-                        <div class="bg-gradient-to-r from-rose-50/80 via-slate-50/90 to-white p-4.5 rounded-2xl border-l-4 border-l-[#c3122e] border border-rose-200/70 shadow-xs space-y-3 relative overflow-hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Project Sponsors --}}
+                        <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <label class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                                    <span class="w-5 h-5 rounded-lg bg-[#c3122e] text-white flex items-center justify-center font-black text-[10px] shadow-2xs">⭐</span>
-                                    <span>Select New Project Manager / Leader <span class="text-rose-600">*</span></span>
+                                <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                    <span>👑</span>
+                                    <span>Project Sponsors</span>
+                                    <span class="text-[10px] font-normal text-slate-400">(Executive Tier)</span>
                                 </label>
-                                <span class="text-[10px] font-extrabold text-[#c3122e] bg-rose-100/90 px-2.5 py-0.5 rounded-full border border-rose-200 shadow-2xs">Required Lead Role</span>
-                            </div>
-                            @if($reassignPmId && ($pmPerson = $availablePms->firstWhere('id', $reassignPmId)))
-                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-xs font-extrabold text-slate-900 shadow-2xs">
-                                    <span>{{ $pmPerson->name }}</span>
-                                    <span class="text-[10px] font-medium text-slate-400">{{ $pmPerson->email }}</span>
-                                    <button type="button" wire:click="clearReassignPm" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer" title="Change project manager">&times;</button>
-                                </div>
-                            @endif
-                            @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'pm', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
-                            @error('reassignPmId') <span class="text-rose-600 text-[11px] font-bold block mt-1 flex items-center gap-1">⚠️ {{ $message }}</span> @enderror
-                        </div>
-
-                        {{-- Governance Roles Cards (Sponsors, Owners, Steering, Members) --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {{-- Project Sponsors --}}
-                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-amber-300 hover:shadow-md transition-all duration-200">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
-                                            👑
-                                        </div>
-                                        <div>
-                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Project Sponsors</h5>
-                                            <span class="text-[10px] text-amber-700/80 font-bold bg-amber-50 px-1.5 py-0.2 rounded">Executive Tier</span>
-                                        </div>
-                                    </div>
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignSponsorIds) > 0 ? 'bg-amber-100 text-amber-900 border border-amber-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
-                                        {{ count($reassignSponsorIds) }} {{ count($reassignSponsorIds) === 1 ? 'Sponsor' : 'Sponsors' }}
+                                @if(count($reassignSponsorIds) > 0)
+                                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/60">
+                                        {{ count($reassignSponsorIds) }} assigned
                                     </span>
-                                </div>
-
-                                <!-- Display Assigned Sponsors Badges -->
-                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
-                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignSponsorIds)) as $sUser)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-amber-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition-all">
-                                            <span class="w-4.5 h-4.5 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                @endif
+                            </div>
+                            @php
+                                $sAssigned = $availablePms->whereIn('id', array_map('intval', $reassignSponsorIds));
+                            @endphp
+                            @if($sAssigned->isNotEmpty())
+                                <div class="flex flex-wrap items-center gap-1.5 pt-0.5 pb-0.5">
+                                    @foreach($sAssigned as $sUser)
+                                        <span class="inline-flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-lg text-xs font-semibold bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-slate-800 shadow-2xs transition-colors">
+                                            <span class="w-4.5 h-4.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[9px] flex items-center justify-center shrink-0">
                                                 {{ strtoupper(substr($sUser->name, 0, 1)) }}
                                             </span>
-                                            <span>{{ $sUser->name }}</span>
-                                            <span class="text-[9px] font-mono font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.2 rounded-md border border-amber-200/60">({{ $sUser->subsidiary->code ?? 'GST' }})</span>
-                                            <button type="button" wire:click="removeReassignSponsor('{{ $sUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove sponsor">&times;</button>
+                                            <span class="truncate max-w-[130px] font-bold text-[11px]" title="{{ $sUser->name }} ({{ $sUser->email }})">
+                                                {{ $sUser->name }}
+                                            </span>
+                                            <span class="text-[10px] text-slate-400 font-medium">({{ $sUser->subsidiary->code ?? 'GS' }})</span>
+                                            <button type="button" wire:click="removeReassignSponsor('{{ $sUser->id }}')" class="w-4 h-4 rounded hover:bg-rose-100 hover:text-rose-600 text-slate-400 font-bold flex items-center justify-center text-xs cursor-pointer transition-colors" title="Remove {{ $sUser->name }}">&times;</button>
                                         </span>
-                                    @empty
-                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                            <span>No sponsors assigned yet.</span>
-                                        </span>
-                                    @endforelse
+                                    @endforeach
                                 </div>
+                            @endif
+                            @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'sponsor', 'showInput' => true, 'inputClass' => 'w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-normal text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs placeholder:text-slate-400 transition-all', 'placeholder' => 'Add sponsor (system or Azure AD)...'])
+                        </div>
 
-                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'sponsor', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
-                            </div>
-
-                            {{-- Project Owners --}}
-                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-emerald-300 hover:shadow-md transition-all duration-200">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
-                                            🎯
-                                        </div>
-                                        <div>
-                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Project Owners</h5>
-                                            <span class="text-[10px] text-emerald-700/80 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">Business Tier</span>
-                                        </div>
-                                    </div>
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignOwnerIds) > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
-                                        {{ count($reassignOwnerIds) }} {{ count($reassignOwnerIds) === 1 ? 'Owner' : 'Owners' }}
+                        {{-- Project Owners --}}
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                    <span>🎯</span>
+                                    <span>Project Owners</span>
+                                    <span class="text-[10px] font-normal text-slate-400">(Business Tier)</span>
+                                </label>
+                                @if(count($reassignOwnerIds) > 0)
+                                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/60">
+                                        {{ count($reassignOwnerIds) }} assigned
                                     </span>
-                                </div>
-
-                                <!-- Display Assigned Owners Badges -->
-                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
-                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignOwnerIds)) as $oUser)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-emerald-200 shadow-2xs hover:border-emerald-400 hover:shadow-xs transition-all">
-                                            <span class="w-4.5 h-4.5 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                @endif
+                            </div>
+                            @php
+                                $oAssigned = $availablePms->whereIn('id', array_map('intval', $reassignOwnerIds));
+                            @endphp
+                            @if($oAssigned->isNotEmpty())
+                                <div class="flex flex-wrap items-center gap-1.5 pt-0.5 pb-0.5">
+                                    @foreach($oAssigned as $oUser)
+                                        <span class="inline-flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-lg text-xs font-semibold bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-slate-800 shadow-2xs transition-colors">
+                                            <span class="w-4.5 h-4.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[9px] flex items-center justify-center shrink-0">
                                                 {{ strtoupper(substr($oUser->name, 0, 1)) }}
                                             </span>
-                                            <span>{{ $oUser->name }}</span>
-                                            <span class="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.2 rounded-md border border-emerald-200/60">({{ $oUser->subsidiary->code ?? 'GST' }})</span>
-                                            <button type="button" wire:click="removeReassignOwner('{{ $oUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove owner">&times;</button>
-                                        </span>
-                                    @empty
-                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                            <span>No owners assigned yet.</span>
-                                        </span>
-                                    @endforelse
-                                </div>
-
-                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'owner', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
-                            </div>
-
-                            {{-- Steering Committee --}}
-                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-violet-300 hover:shadow-md transition-all duration-200">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-700 border border-violet-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
-                                            🏛️
-                                        </div>
-                                        <div>
-                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Steering Committee</h5>
-                                            <span class="text-[10px] text-violet-700/80 font-bold bg-violet-50 px-1.5 py-0.2 rounded">Oversight Panel</span>
-                                        </div>
-                                    </div>
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignSteeringIds) > 0 ? 'bg-violet-100 text-violet-900 border border-violet-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
-                                        {{ count($reassignSteeringIds) }} {{ count($reassignSteeringIds) === 1 ? 'Member' : 'Members' }}
-                                    </span>
-                                </div>
-
-                                <!-- Display Assigned Steering Committee Badges -->
-                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
-                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignSteeringIds)) as $scUser)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-violet-200 shadow-2xs hover:border-violet-400 hover:shadow-xs transition-all">
-                                            <span class="w-4.5 h-4.5 rounded-full bg-violet-600 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                                                {{ strtoupper(substr($scUser->name, 0, 1)) }}
+                                            <span class="truncate max-w-[130px] font-bold text-[11px]" title="{{ $oUser->name }} ({{ $oUser->email }})">
+                                                {{ $oUser->name }}
                                             </span>
-                                            <span>{{ $scUser->name }}</span>
-                                            <span class="text-[9px] font-mono font-bold text-violet-800 bg-violet-100/80 px-1.5 py-0.2 rounded-md border border-violet-200/60">({{ $scUser->subsidiary->code ?? 'GST' }})</span>
-                                            <button type="button" wire:click="removeReassignSteering('{{ $scUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove committee member">&times;</button>
+                                            <span class="text-[10px] text-slate-400 font-medium">({{ $oUser->subsidiary->code ?? 'GS' }})</span>
+                                            <button type="button" wire:click="removeReassignOwner('{{ $oUser->id }}')" class="w-4 h-4 rounded hover:bg-rose-100 hover:text-rose-600 text-slate-400 font-bold flex items-center justify-center text-xs cursor-pointer transition-colors" title="Remove {{ $oUser->name }}">&times;</button>
                                         </span>
-                                    @empty
-                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                            <span>No steering committee assigned yet.</span>
-                                        </span>
-                                    @endforelse
+                                    @endforeach
                                 </div>
-
-                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'steering', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
-                            </div>
-
-                            {{-- Core Team Members --}}
-                            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3 hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-200/60 flex items-center justify-center font-black text-sm shadow-2xs">
-                                            🤝
-                                        </div>
-                                        <div>
-                                            <h5 class="font-black text-slate-900 text-xs tracking-tight">Core Team Members</h5>
-                                            <span class="text-[10px] text-blue-700/80 font-bold bg-blue-50 px-1.5 py-0.2 rounded">Execution Team</span>
-                                        </div>
-                                    </div>
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black transition-colors {{ count($reassignMemberIds) > 0 ? 'bg-blue-100 text-blue-900 border border-blue-300/80' : 'bg-slate-100 text-slate-400 border border-slate-200/60' }}">
-                                        {{ count($reassignMemberIds) }} {{ count($reassignMemberIds) === 1 ? 'Member' : 'Members' }}
-                                    </span>
-                                </div>
-
-                                <!-- Display Assigned Team Members Badges -->
-                                <div class="flex flex-wrap items-center gap-1.5 min-h-[46px] p-2.5 bg-slate-50/70 rounded-xl border border-dashed border-slate-200 transition-all">
-                                    @forelse($availablePms->whereIn('id', array_map('intval', $reassignMemberIds)) as $mUser)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white text-slate-900 border border-blue-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition-all">
-                                            <span class="w-4.5 h-4.5 rounded-full bg-blue-600 text-white font-black text-[9px] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                                                {{ strtoupper(substr($mUser->name, 0, 1)) }}
-                                            </span>
-                                            <span>{{ $mUser->name }}</span>
-                                            <span class="text-[9px] font-mono font-bold text-blue-800 bg-blue-100/80 px-1.5 py-0.2 rounded-md border border-blue-200/60">({{ $mUser->subsidiary->code ?? 'GST' }})</span>
-                                            <button type="button" wire:click="removeReassignMember('{{ $mUser->id }}')" class="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 font-bold text-xs flex items-center justify-center transition-all cursor-pointer ml-0.5" title="Remove team member">&times;</button>
-                                        </span>
-                                    @empty
-                                        <span class="text-[11px] text-slate-400 font-medium italic pl-1 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                            <span>No team members assigned yet.</span>
-                                        </span>
-                                    @endforelse
-                                </div>
-
-                                @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'member', 'showInput' => true, 'placeholder' => 'Search name or e-mail (system first, then Azure AD)...'])
-                            </div>
+                            @endif
+                            @include('livewire.partials.azure-user-search', ['azureEnabled' => $azureReassignEnabled, 'pickLocal' => true, 'roleKey' => 'owner', 'showInput' => true, 'inputClass' => 'w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-normal text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs placeholder:text-slate-400 transition-all', 'placeholder' => 'Add owner (system or Azure AD)...'])
                         </div>
-                    </div>
-
-                    {{-- Form Grid: Section 4 - Description / Scope --}}
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-                            <span class="text-base">📝</span>
-                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">4. Description &amp; Project Scope</h4>
-                        </div>
-                        <textarea wire:model="reassignDescription" rows="3" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-white p-3 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none" placeholder="Provide revised description or charter details..."></textarea>
                     </div>
                 </div>
 
-                {{-- Footer --}}
-                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0">
-                    <button wire:click="closeReassignModal" type="button" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-all cursor-pointer">
-                        Cancel
-                    </button>
-                    <button wire:click="submitReassign" type="button" class="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-md shadow-rose-900/20 transition-all cursor-pointer flex items-center gap-2">
-                        <span>🚀</span>
-                        <span>Reassign &amp; Recreate Project</span>
-                    </button>
+                {{-- Compact Project Schedule & Details (Pre-filled for Validation) --}}
+                <div class="space-y-3 pt-1">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Project Timeline &amp; Identity</h4>
+                        <span class="text-[10px] text-slate-400">Pre-filled</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-600 text-[11px] mb-1">Start Date <span class="text-rose-500">*</span></label>
+                            <input type="date" wire:model="reassignStartDate" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] outline-none">
+                            @error('reassignStartDate') <span class="text-rose-600 text-[10px] block mt-0.5">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 text-[11px] mb-1">Target Deadline <span class="text-rose-500">*</span></label>
+                            <input type="date" wire:model="reassignDeadline" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] outline-none">
+                            @error('reassignDeadline') <span class="text-rose-600 text-[10px] block mt-0.5">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 text-[11px] mb-1">Estimated Budget (LKR)</label>
+                            <input type="number" step="0.01" wire:model="reassignEstimatedBudget" class="w-full text-xs font-mono font-semibold rounded-xl border border-slate-200 bg-white p-2.5 focus:border-[#c3122e] outline-none" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    {{-- Compact identity inputs to satisfy backend validation --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        <div>
+                            <label class="block font-semibold text-slate-600 text-[11px] mb-1">Project Name <span class="text-rose-500">*</span></label>
+                            <input type="text" wire:model="reassignName" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white p-2 focus:border-[#c3122e] outline-none">
+                            @error('reassignName') <span class="text-rose-600 text-[10px] block mt-0.5">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 text-[11px] mb-1">Project Code <span class="text-rose-500">*</span></label>
+                            <input type="text" wire:model="reassignCode" class="w-full text-xs font-mono font-semibold rounded-xl border border-slate-200 bg-white p-2 focus:border-[#c3122e] outline-none uppercase">
+                            @error('reassignCode') <span class="text-rose-600 text-[10px] block mt-0.5">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 text-[11px] mb-1">Subsidiary <span class="text-rose-500">*</span></label>
+                            <select wire:model.live="reassignSubsidiaryId" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white p-2 focus:border-[#c3122e] outline-none">
+                                <option value="">-- Select --</option>
+                                @foreach($subsidiaries as $sub)
+                                    <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->code }})</option>
+                                @endforeach
+                            </select>
+                            @error('reassignSubsidiaryId') <span class="text-rose-600 text-[10px] block mt-0.5">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
                 </div>
+
+                {{-- Reassignment / Handover Remarks --}}
+                <div class="space-y-1.5">
+                    <label class="block font-semibold text-slate-700 text-xs">Handover Remarks / Reassignment Reason (Optional)</label>
+                    <textarea 
+                        wire:model="reassignDescription" 
+                        rows="2" 
+                        class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-white p-3 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none placeholder:text-slate-400" 
+                        placeholder="e.g. Employee departure, leadership transfer, or handover notes..."
+                    ></textarea>
+                </div>
+
             </div>
+
+            {{-- Footer (Properly Nested Inside Dialog Container!) --}}
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 flex-shrink-0">
+                <button 
+                    wire:click="closeReassignModal" 
+                    type="button" 
+                    class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                    Cancel
+                </button>
+                <button 
+                    wire:click="submitReassign" 
+                    type="button" 
+                    wire:loading.attr="disabled"
+                    class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#c3122e] hover:bg-[#a90f27] shadow-sm transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60"
+                >
+                    <span wire:loading.remove wire:target="submitReassign">Save &amp; Reassign Leadership</span>
+                    <span wire:loading wire:target="submitReassign" class="flex items-center gap-1.5">
+                        <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        <span>Saving...</span>
+                    </span>
+                </button>
+            </div>
+
         </div>
     </div>
     @endteleport

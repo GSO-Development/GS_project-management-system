@@ -600,19 +600,28 @@ class Project extends Model
             return true;
         }
 
-        if ($this->project_manager_id === $u->id) {
+        // A project role may explicitly grant portfolio-wide project visibility.
+        if ($u->hasProjectPermission('project.view_all')) {
             return true;
         }
 
         if (!$this->pm_accepted) {
-            return false;
+            // The assigned Project Manager still needs to access a pending assignment,
+            // but only while its role retains a project-view permission.
+            return $this->project_manager_id === $u->id
+                && ($this->userCan($u, 'project.view') || $this->userCan($u, 'project.view_assigned'));
         }
 
-        if ($this->members()->where('users.id', $u->id)->exists()) {
-            return true;
+        if ($this->getUserRole($u)) {
+            return $this->userCan($u, 'project.view')
+                || $this->userCan($u, 'project.view_assigned');
         }
 
-        return $this->wbsItems()->where('assigned_user_id', $u->id)->exists();
+        // A user who is assigned only to a task can open the parent project only while
+        // their assigned-task permission remains granted.
+        $assignedTask = $this->wbsItems()->where('assigned_user_id', $u->id)->first();
+
+        return $assignedTask !== null && $this->userCan($u, 'task.view_assigned', $assignedTask);
     }
 
     /**

@@ -1699,7 +1699,21 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80">
                             <!-- Project Manager (Read-only) -->
                             <div class="min-w-0">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Project Manager</span>
+                                <div class="flex items-center justify-between gap-1 mb-1">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Project Manager</span>
+                                    @if(auth()->user()?->isPmoAdmin() || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('pmo_admin') || auth()->user()?->id === 1)
+                                        <a 
+                                            href="{{ route('projects.show', $editingId) }}?tab=team&reassign=1" 
+                                            class="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#c3122e] hover:text-[#900c22] hover:underline cursor-pointer transition-colors" 
+                                            title="Reassign Project Manager"
+                                        >
+                                            <svg class="w-3 h-3 text-[#c3122e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                            </svg>
+                                            <span>Reassign PM</span>
+                                        </a>
+                                    @endif
+                                </div>
                                 @if($currPm)
                                     <div class="flex items-center gap-2 min-w-0">
                                         <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-slate-300/80">
@@ -1784,6 +1798,128 @@
                             </div>
                             <textarea wire:model="description" rows="3" placeholder="Briefly describe key project scope, deliverables, and strategic objectives..." class="w-full p-3.5 rounded-xl border border-slate-200 bg-white text-xs leading-relaxed font-normal text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs transition-all placeholder:text-slate-400"></textarea>
                             @error('description') <span class="text-xs text-rose-600 font-bold mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    {{-- 2. Project Governance & Delivery Team --}}
+                    <div class="border-t border-slate-100 pt-5 space-y-3.5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-extrabold text-slate-800">Project Team &amp; Governance Roles</h4>
+                                    @php
+                                        $totalTeamCount = count($editSponsorIds) + count($editOwnerIds) + count($editSteeringIds) + count($editMemberIds);
+                                    @endphp
+                                    @if($totalTeamCount > 0)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-[#c3122e] border border-rose-200">
+                                            {{ $totalTeamCount }} Assigned
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-medium mt-0.5">
+                                    Assign executive sponsors, business owners, steering committee, and delivery team members. Search staff from system or add from Azure AD.
+                                </p>
+                            </div>
+                        </div>
+
+                        @php
+                            $rolesConfig = [
+                                [
+                                    'key' => 'sponsor',
+                                    'label' => 'Project Sponsors',
+                                    'tier' => 'Executive Tier',
+                                    'icon' => '👑',
+                                    'ids' => $editSponsorIds,
+                                    'removeMethod' => 'removeEditSponsor',
+                                    'placeholder' => 'Add sponsor (system or Azure AD)...',
+                                ],
+                                [
+                                    'key' => 'owner',
+                                    'label' => 'Project Owners',
+                                    'tier' => 'Business Tier',
+                                    'icon' => '🎯',
+                                    'ids' => $editOwnerIds,
+                                    'removeMethod' => 'removeEditOwner',
+                                    'placeholder' => 'Add owner (system or Azure AD)...',
+                                ],
+                                [
+                                    'key' => 'steering',
+                                    'label' => 'Steering Committee',
+                                    'tier' => 'Governance Tier',
+                                    'icon' => '🏛️',
+                                    'ids' => $editSteeringIds,
+                                    'removeMethod' => 'removeEditSteering',
+                                    'placeholder' => 'Add steering member (system or Azure AD)...',
+                                ],
+                                [
+                                    'key' => 'member',
+                                    'label' => 'Team Members / Collaborators',
+                                    'tier' => 'Delivery Tier',
+                                    'icon' => '👥',
+                                    'ids' => $editMemberIds,
+                                    'removeMethod' => 'removeEditMember',
+                                    'placeholder' => 'Add team member (system or Azure AD)...',
+                                ],
+                            ];
+                        @endphp
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @foreach($rolesConfig as $rConfig)
+                                @php
+                                    $assignedPersons = $allUsers->whereIn('id', array_map('intval', $rConfig['ids']));
+                                @endphp
+                                <div wire:key="edit-role-field-{{ $rConfig['key'] }}" class="space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                            <span>{{ $rConfig['icon'] }}</span>
+                                            <span>{{ $rConfig['label'] }}</span>
+                                            <span class="text-[10px] font-normal text-slate-400">({{ $rConfig['tier'] }})</span>
+                                        </label>
+                                        @if(count($rConfig['ids']) > 0)
+                                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/60">
+                                                {{ count($rConfig['ids']) }} assigned
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Chips: rendered only when members are assigned --}}
+                                    @if($assignedPersons->isNotEmpty())
+                                        <div class="flex flex-wrap items-center gap-1.5 pt-0.5 pb-0.5">
+                                            @foreach($assignedPersons as $person)
+                                                <span class="inline-flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-lg text-xs font-semibold bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-slate-800 shadow-2xs transition-colors">
+                                                    <span class="w-4.5 h-4.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[9px] flex items-center justify-center shrink-0">
+                                                        {{ strtoupper(substr($person->name, 0, 1)) }}
+                                                    </span>
+                                                    <span class="truncate max-w-[130px] font-bold text-[11px]" title="{{ $person->name }} ({{ $person->email }})">
+                                                        {{ $person->name }}
+                                                    </span>
+                                                    <span class="text-[10px] text-slate-400 font-medium">({{ $person->subsidiary->code ?? 'GS' }})</span>
+                                                    <button 
+                                                        type="button" 
+                                                        wire:click="{{ $rConfig['removeMethod'] }}('{{ $person->id }}')" 
+                                                        class="w-4 h-4 rounded hover:bg-rose-100 hover:text-rose-600 text-slate-400 font-bold flex items-center justify-center text-xs cursor-pointer transition-colors"
+                                                        title="Remove {{ $person->name }}"
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    {{-- Person Picker (Local System Search + Azure AD Search & Add) --}}
+                                    <div>
+                                        @include('livewire.partials.person-picker', [
+                                            'roleKey'     => $rConfig['key'],
+                                            'people'      => $allUsers,
+                                            'excludeIds'  => array_map('intval', $rConfig['ids']),
+                                            'azureEnabled'=> $azureEnabled,
+                                            'inputClass'  => 'w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-normal text-slate-900 focus:border-[#c3122e] focus:ring-2 focus:ring-[#c3122e]/10 outline-none shadow-2xs placeholder:text-slate-400 transition-all',
+                                            'placeholder' => $rConfig['placeholder'],
+                                        ])
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
 

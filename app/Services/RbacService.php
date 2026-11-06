@@ -202,7 +202,7 @@ class RbacService
                 'project.view_all' => 'View All Projects',
                 'project.view_assigned' => 'View Assigned Projects',
                 'project.create' => 'Create Project',
-                'project.edit' => 'Edit Project',
+                'project.edit' => 'Update Project Status & Workspace Setup',
                 'project.manage_schedule' => 'Manage Project Schedule',
             ],
         ],
@@ -233,6 +233,8 @@ class RbacService
                 'task.view' => 'View Tasks',
                 'task.view_all' => 'View All Tasks',
                 'task.view_assigned' => 'View Assigned Tasks',
+                'task.sheet_view' => 'View Task Sheet (Work Plan)',
+                'task.sheet_edit' => 'Edit Task Sheet (Bulk Dates & Schedule Cascade)',
                 'task.create' => 'Create New Task',
                 'task.edit' => 'Edit Task',
                 'task.edit_assigned' => 'Edit Assigned Task',
@@ -251,6 +253,7 @@ class RbacService
             'icon' => '👥',
             'permissions' => [
                 'team.view' => 'View Project Team',
+                'team.view_member' => 'View Team Member Details',
                 'team.add' => 'Add Project Member',
                 'team.remove' => 'Remove Project Member',
             ],
@@ -263,6 +266,7 @@ class RbacService
                 'risk.view' => 'View Risks & Blockers',
                 'risk.create' => 'Report / Log Risk',
                 'risk.edit' => 'Edit Risk Details & Mitigation',
+                'risk.delete' => 'Delete Risk',
                 'risk.assign' => 'Assign Risk Owner',
                 'risk.escalate' => 'Escalate Risk',
                 'risk.resolve' => 'Resolve / Close Risk',
@@ -271,17 +275,19 @@ class RbacService
                 'blocker.resolve' => 'Resolve Blocker Item',
             ],
         ],
-        'approval' => [
-            'key' => 'approval',
-            'name' => 'Approvals',
-            'icon' => '✅',
+        'calendar' => [
+            'key' => 'calendar',
+            'name' => 'Calendar & Meetings',
+            'icon' => '📅',
             'permissions' => [
-                'approval.view' => 'View Approval Requests',
-                'approval.submit' => 'Submit Approval Request',
-                'approval.approve' => 'Approve Requests',
-                'approval.reject' => 'Reject Requests',
-                'approval.return' => 'Return Request for Revision',
-                'approval.final_approve' => 'Final Approval (Sponsor Sign-off)',
+                'calendar.view' => 'View Calendar & Meetings',
+                'calendar.view_all' => 'View All Project Calendars',
+                'calendar.create' => 'Schedule Meetings (All Projects)',
+                'calendar.create_assigned' => 'Schedule Meetings (Assigned Projects Only)',
+                'calendar.edit' => 'Edit Meetings & Events',
+                'calendar.delete' => 'Delete Meetings & Events',
+                'calendar.sync_outlook' => 'Sync with Microsoft Outlook',
+                'calendar.export' => 'Export Calendar (.ics)',
             ],
         ],
     ];
@@ -357,11 +363,28 @@ class RbacService
      * Roles whose access is enforced by the platform itself (route / role checks), not by editable
      * permission assignments. Their permissions are displayed but cannot be edited.
      */
-    public const SYSTEM_LOCKED_ROLES = ['super_admin', 'pmo_admin', 'admin_viewer'];
+    public const SYSTEM_LOCKED_ROLES = ['super_admin', 'pmo_admin'];
 
     public static function isSystemLockedRole(?string $code): bool
     {
         return $code !== null && in_array($code, self::SYSTEM_LOCKED_ROLES, true);
+    }
+
+    /**
+     * Project creation and portfolio-wide viewing are platform governance actions,
+     * not permissions that can be granted to a Project Manager project role.
+     */
+    public static function canRoleReceivePermission(?string $roleCode, string $permission): bool
+    {
+        if ($permission === 'project.create' || $permission === 'calendar.create') {
+            return in_array($roleCode, ['super_admin', 'pmo_admin'], true);
+        }
+
+        if ($permission === 'project.view_all') {
+            return !in_array($roleCode, ['lead', 'project_manager'], true);
+        }
+
+        return true;
     }
 
     /**
@@ -370,8 +393,8 @@ class RbacService
      */
     public static function adminViewerAllows(string $permission): bool
     {
-        // Admin Viewer = every *.view permission only. No create/edit/delete/export.
-        return str_contains($permission, '.view');
+        // Admin Viewer default = every view permission only. No create/edit/delete/export.
+        return str_contains($permission, 'view');
     }
 
     /**
@@ -456,9 +479,9 @@ class RbacService
             return false;
         }
 
-        // Organization-wide observer: project membership never grants mutations.
+        // Organization-wide observer: permissions are dynamically configured via RBAC
         if ($user->isAdminViewer()) {
-            return self::adminViewerAllows($permission);
+            return in_array($permission, self::getPermissionsForRole('admin_viewer'), true);
         }
 
         // PMO Admin / Super Admin always has 100% full system access
@@ -489,7 +512,8 @@ class RbacService
             $rolePermissions = self::getPermissionsForRole($roleCode);
 
             // If requested permission is not in the granted permissions array, deny access
-            if (!in_array($permission, $rolePermissions, true)) {
+            if (!self::canRoleReceivePermission($roleCode, $permission)
+                || !in_array($permission, $rolePermissions, true)) {
                 return false;
             }
 
@@ -510,12 +534,15 @@ class RbacService
         // 2. Global / Unscoped Check
         foreach ($user->projects as $prj) {
             $roleCode = $prj->pivot->role ?? 'member';
-            if (in_array($permission, self::getPermissionsForRole($roleCode))) {
+            if (self::canRoleReceivePermission($roleCode, $permission)
+                && in_array($permission, self::getPermissionsForRole($roleCode))) {
                 return true;
             }
         }
 
-        if ($user->managedProjects()->exists() && in_array($permission, self::getPermissionsForRole('lead'))) {
+        if ($user->managedProjects()->exists()
+            && self::canRoleReceivePermission('lead', $permission)
+            && in_array($permission, self::getPermissionsForRole('lead'))) {
             return true;
         }
 
@@ -559,39 +586,80 @@ class RbacService
     }
 
     /**
+     * Return project-member role codes that currently hold at least one of the
+     * requested permissions. Used by project listings so an unchecked project-view
+     * permission hides the project as well as blocking a direct URL.
+     *
+     * @param array<int, string> $permissions
+     * @return array<int, string>
+     */
+    public static function getRoleCodesWithAnyPermission(array $permissions): array
+    {
+        if ($permissions === []) {
+            return [];
+        }
+
+        return Role::query()
+            ->whereHas('permissions', fn ($query) => $query->whereIn('name', $permissions))
+            ->pluck('name')
+            ->filter(fn (string $roleCode) => collect($permissions)
+                ->contains(fn (string $permission) => self::canRoleReceivePermission($roleCode, $permission)))
+            ->all();
+    }
+
+    /**
      * Get default permissions mapping for standard project governance & system roles.
      */
     public static function getDefaultPermissionsForRole(string $roleCode): array
     {
+        $allCurrentPermissions = self::allPermissionCodes();
+
         return match($roleCode) {
-            'super_admin', 'pmo_admin' => Permission::pluck('name')->toArray(),
-            'lead', 'project_manager' => [
-                'project_details.view', 'project_details.edit', 'budget.edit',
-                'task.view', 'task.view_all', 'task.view_assigned', 'task.create', 'task.edit', 'task.edit_assigned', 'task.delete', 'task.assign', 'task.change_status', 'task.change_priority', 'task.update_progress', 'task.create_subtask', 'task.log_daily',
-                'team.view', 'team.add', 'team.remove',
-                'risk.view', 'risk.create', 'risk.edit', 'risk.assign', 'risk.escalate', 'risk.resolve', 'blocker.create', 'blocker.edit', 'blocker.resolve',
-            ],
+            'super_admin', 'pmo_admin' => $allCurrentPermissions,
+            // Project creation is a platform-level PMO action (User::canCreateProject), not a
+            // project-role permission. A Project Manager is also intentionally scoped to projects
+            // they lead or are assigned to, rather than receiving portfolio-wide project visibility.
+            'lead', 'project_manager' => array_values(array_diff($allCurrentPermissions, [
+                'project.create',
+                'project.view_all',
+                'calendar.create',
+            ])),
+            'admin_viewer' => array_values(array_filter($allCurrentPermissions, fn (string $code) => self::adminViewerAllows($code))),
             'member', 'team_member' => [
-                // WBS & Tasks permissions only + Risk logging
-                'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.log_daily',
+                'project.view_assigned',
+                'task.view', 'task.view_assigned', 'task.sheet_view', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.log_daily',
                 'risk.view', 'risk.create', 'blocker.create',
+                'calendar.view', 'calendar.sync_outlook', 'calendar.export',
             ],
             'collaborator' => [
-                // WBS & Tasks permissions only + Risk logging
+                'project.view_assigned',
                 'task.view', 'task.view_assigned', 'task.edit_assigned', 'task.change_status', 'task.update_progress', 'task.log_daily',
                 'risk.view', 'risk.create', 'blocker.create',
+                'calendar.view',
             ],
             'sponsor' => [
-                // WBS & Tasks & Risk view permissions
-                'task.view', 'task.view_all', 'task.view_assigned', 'risk.view',
+                'project.view', 'project.view_assigned', 'project.view_all',
+                'project_details.view',
+                'task.view', 'task.view_all', 'task.sheet_view',
+                'team.view', 'team.view_member',
+                'risk.view',
+                'calendar.view', 'calendar.view_all', 'calendar.export',
             ],
             'owner' => [
-                // WBS & Tasks permissions only
-                'task.view', 'task.view_assigned',
+                'project.view', 'project.view_assigned',
+                'project_details.view',
+                'task.view', 'task.view_all', 'task.sheet_view',
+                'team.view', 'team.view_member',
+                'risk.view',
+                'calendar.view', 'calendar.view_all', 'calendar.export',
             ],
             'steering_committee' => [
-                // WBS & Tasks permissions only
-                'task.view', 'task.view_assigned',
+                'project.view', 'project.view_assigned',
+                'project_details.view',
+                'task.view', 'task.view_all', 'task.sheet_view',
+                'team.view', 'team.view_member',
+                'risk.view',
+                'calendar.view', 'calendar.view_all', 'calendar.export',
             ],
             default => [],
         };
@@ -620,6 +688,16 @@ class RbacService
         }
 
         $modulePermKeys = array_keys($moduleDef['permissions']);
+
+        // Project creation is granted solely by the PMO platform role and is intentionally
+        // not an editable project-role permission. Keep the matrix total consistent with
+        // the permissions shown in non-PMO role drawers.
+        if ($moduleKey === 'project' || $moduleKey === 'calendar') {
+            $modulePermKeys = array_values(array_filter(
+                $modulePermKeys,
+                fn (string $permission) => self::canRoleReceivePermission($roleCode, $permission),
+            ));
+        }
         $totalModulePerms = count($modulePermKeys);
 
         if (in_array($roleCode, ['super_admin', 'pmo_admin'], true)) {

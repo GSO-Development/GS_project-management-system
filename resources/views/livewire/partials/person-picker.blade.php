@@ -60,7 +60,7 @@
         @endif
     </div>
 @else
-    <div x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false" class="space-y-1.5">
+    <div x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false" class="relative">
         <input type="search"
             @if($inputId) id="{{ $inputId }}" @endif
             wire:model.live.debounce.400ms="azureSearch.{{ $roleKey }}"
@@ -72,7 +72,7 @@
             aria-label="{{ $placeholder }}"
             class="{{ $inputClass }}">
 
-        <div x-show="open" x-cloak class="rounded-xl border border-slate-200 bg-white shadow-sm max-h-64 overflow-y-auto p-1.5 space-y-1">
+        <div x-show="open" x-cloak class="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-xl max-h-56 overflow-y-auto p-1.5 space-y-1">
             @forelse($localMatches as $p)
                 <button type="button" wire:key="pp-{{ $roleKey }}-{{ $p->id }}"
                     wire:click="pickLocalUser('{{ $roleKey }}', {{ $p->id }})" @click="open = false"
